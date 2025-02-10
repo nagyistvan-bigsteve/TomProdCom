@@ -1,0 +1,31 @@
+<!-- Select Unit First -->
+<br />
+<mat-form-field appearance="outline">
+  <mat-label>{{ "HOME_PAGE.UNIT_SELECT.SELECT_LABEL" | translate }}</mat-label>
+  <mat-select [(ngModel)]="selectedUnit" (selectionChange)="onUnitChange()">
+    <mat-option *ngFor="let group of productGroups" [value]="group.unit">
+      {{ "HOME_PAGE.UNIT_SELECT.SELECT_OPTIONS." + group.unit | translate }}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
+<!-- Product Search -->
+<mat-form-field appearance="outline">
+  <mat-label>Search Product</mat-label>
+  <input
+    type="text"
+    matInput
+    [formControl]="productControl"
+    [matAutocomplete]="auto"
+  />
+</mat-form-field>
+
+<!-- Autocomplete Options -->
+<mat-autocomplete #auto="matAutocomplete">
+  <mat-option
+    *ngFor="let product of filteredProducts | async"
+    [value]="product.name"
+  >
+    {{ product.name }}
+  </mat-option>
+</mat-autocomplete>

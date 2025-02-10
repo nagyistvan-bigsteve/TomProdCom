@@ -1,0 +1,13 @@
+{
+  "HOME_PAGE": {
+    "UNIT_SELECT": {
+      "SELECT_LABEL": "Alege unitatea",
+      "SELECT_OPTIONS": {
+        "1": "buc",
+        "2": "m²",
+        "3": "m³",
+        "4": "pachet"
+      }
+    }
+  }
+}
