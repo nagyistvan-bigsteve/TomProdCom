@@ -1,13 +1,26 @@
 {
+  "LANGUAGE": {
+    "SWITCH_LABEL": "Schimbă limba"
+  },
+  "OFFER_PAGE": {
+    "FIRST_STEP": {
+      "TITLE": "Crează o noua comanda!",
+      "START_BUTTON": "Start!"
+    }
+  },
   "HOME_PAGE": {
     "UNIT_SELECT": {
       "SELECT_LABEL": "Alege unitatea",
       "SELECT_OPTIONS": {
+        "0": "toate",
         "1": "buc",
         "2": "m²",
         "3": "m³",
         "4": "pachet"
       }
+    },
+    "PRODUCT_SELECT": {
+      "SELECT_LABEL": "Produse"
     }
   }
 }

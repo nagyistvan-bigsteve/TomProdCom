@@ -4,8 +4,9 @@ import {
   isDevMode,
   importProvidersFrom,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
-
+import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { ModalModule } from 'ngx-bootstrap/modal';
+import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { routes } from './app.routes';
 import { provideServiceWorker } from '@angular/service-worker';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -17,13 +18,18 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    provideRouter(routes, withComponentInputBinding()),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),
     provideAnimationsAsync(),
-    importProvidersFrom(FormsModule, ReactiveFormsModule),
+    importProvidersFrom(
+      FormsModule,
+      ReactiveFormsModule,
+      ModalModule.forRoot(),
+      TooltipModule.forRoot()
+    ),
     provideHttpClient(),
     provideTranslateService(),
     {

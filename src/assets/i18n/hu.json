@@ -1,0 +1,26 @@
+{
+  "LANGUAGE": {
+    "SWITCH_LABEL": "Válts nyelvet"
+  },
+  "OFFER_PAGE": {
+    "FIRST_STEP": {
+      "TITLE": "Hozz létre egy új rendelést!",
+      "START_BUTTON": "Kezdés!"
+    }
+  },
+  "HOME_PAGE": {
+    "UNIT_SELECT": {
+      "SELECT_LABEL": "Válassz mértékegységet",
+      "SELECT_OPTIONS": {
+        "0": "mind",
+        "1": "db",
+        "2": "m²",
+        "3": "m³",
+        "4": "köteg"
+      }
+    },
+    "PRODUCT_SELECT": {
+      "SELECT_LABEL": "Termékek"
+    }
+  }
+}
