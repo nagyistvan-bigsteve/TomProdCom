@@ -1,0 +1,51 @@
+.switch {
+  position: relative;
+  display: block;
+  width: 42px;
+  height: 32px;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(95, 1, 1, 0.55);
+  transition: 0.5s;
+  //   box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+  border: 1px solid white;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  top: 1.5px;
+  left: 1.5px;
+  background-image: url("/assets/flags/ro.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  transition: 0.5s;
+}
+
+.switch input {
+  display: none;
+}
+
+input:checked + .slider:before {
+  transform: translateX(10px) rotateZ(90deg);
+  background-image: url("/assets/flags/hu.png");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.slider.round {
+  border-radius: 35px;
+}
+
+.slider.round:before {
+  width: 28px;
+  height: 28px;
+}

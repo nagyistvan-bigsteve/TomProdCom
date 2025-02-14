@@ -4,6 +4,7 @@ export enum OrderStatus {
 }
 
 export enum Unit_id {
+  UNDEFINED = 0,
   BUC = 1,
   M2 = 2,
   M3 = 3,
@@ -26,4 +27,9 @@ export enum Category {
 export enum ClientType {
   PF = 1,
   PJ = 2,
+}
+
+export enum Language {
+  HU = 'hu',
+  RO = 'ro',
 }

@@ -3,13 +3,14 @@ import { CommonModule } from '@angular/common';
 import { Observable, startWith, map, take } from 'rxjs';
 import { ProductsService } from '../../services/query-services/products.service';
 import { Products } from '../../models/models';
-import { Unit_id } from '../../models/enums';
+import { Language, Unit_id } from '../../models/enums';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { _isTestEnvironment } from '@angular/cdk/platform';
 
 @Component({
   selector: 'app-product-list',
@@ -29,7 +30,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 export class ProductSelectComponent implements OnInit {
   productControl = new FormControl('');
   productGroups: { unit: Unit_id; products: Products }[] = [];
-  selectedUnit: Unit_id = 3;
+  selectedUnit: Unit_id = Unit_id.UNDEFINED;
   products: Products = [];
   filteredProducts: Observable<Products> | undefined;
 
@@ -37,7 +38,9 @@ export class ProductSelectComponent implements OnInit {
   readonly #translate = inject(TranslateService);
 
   ngOnInit() {
-    this.#translate.use('ro');
+    const savedLang =
+      (localStorage.getItem('selectedLanguage') as Language) || Language.RO;
+    this.#translate.use(savedLang);
     this.fetchProducts();
     this.filteredProducts = this.productControl.valueChanges.pipe(
       startWith(''),
@@ -57,6 +60,8 @@ export class ProductSelectComponent implements OnInit {
 
   fetchProductGroups(products: Products) {
     this.productGroups = this.groupProductsByUnit(products);
+    this.productGroups.unshift({ unit: Unit_id.UNDEFINED, products: products });
+
     this.selectedUnit = this.productGroups.length
       ? this.productGroups[0].unit
       : 1;
@@ -88,6 +93,13 @@ export class ProductSelectComponent implements OnInit {
 
   private _filter(value: string): Products {
     const filterValue = value.toLowerCase();
+
+    if (this.selectedUnit === Unit_id.UNDEFINED) {
+      return this.products.filter((product) =>
+        product.name.toLowerCase().includes(filterValue)
+      );
+    }
+
     return this.selectedUnit
       ? this.productGroups
           .find((group) => group.unit === this.selectedUnit)

@@ -1,4 +1,3 @@
-<!-- Select Unit First -->
 <br />
 <mat-form-field appearance="outline">
   <mat-label>{{ "HOME_PAGE.UNIT_SELECT.SELECT_LABEL" | translate }}</mat-label>
@@ -9,9 +8,10 @@
   </mat-select>
 </mat-form-field>
 
-<!-- Product Search -->
 <mat-form-field appearance="outline">
-  <mat-label>Search Product</mat-label>
+  <mat-label>{{
+    "HOME_PAGE.PRODUCT_SELECT.SELECT_LABEL" | translate
+  }}</mat-label>
   <input
     type="text"
     matInput
@@ -20,7 +20,6 @@
   />
 </mat-form-field>
 
-<!-- Autocomplete Options -->
 <mat-autocomplete #auto="matAutocomplete">
   <mat-option
     *ngFor="let product of filteredProducts | async"

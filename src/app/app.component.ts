@@ -1,29 +1,29 @@
-import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { SupabaseService } from './services/supabase.service';
-import { JsonPipe } from '@angular/common';
-import { Products } from './models/models';
-import { ProductSelectComponent } from './components/product-list/product-list.component';
+import { Component, inject, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
+import { MatButtonModule } from '@angular/material/button';
+import { Language } from './models/enums';
+import { RouterModule } from '@angular/router';
+import { TopbarComponent } from './components/topbar/topbar.component';
+import { BottomNavbarComponent } from './components/bottom-navbar/bottom-navbar.component';
 
 @Component({
   standalone: true,
   selector: 'app-root',
-  imports: [ProductSelectComponent],
+  imports: [
+    MatButtonModule,
+    RouterModule,
+    TopbarComponent,
+    BottomNavbarComponent,
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
-export class AppComponent {
-  constructor(private translate: TranslateService) {
-    this.translate.setDefaultLang('ro'); // Default language
+export class AppComponent implements OnInit {
+  private readonly translateService = inject(TranslateService);
+
+  ngOnInit(): void {
+    const savedLang = localStorage.getItem('selectedLanguage') || Language.RO;
+    this.translateService.setDefaultLang(savedLang);
+    this.translateService.use(savedLang);
   }
-  // title = 'tom-prod-com';
-  // products: Products = [];
-  // constructor(private supabaseService: SupabaseService) {}
-  // async ngOnInit() {
-  //   const { data, error }: { data: Products | null; error: any } =
-  //     await this.supabaseService.client.from('products').select('*');
-  //   if (error) console.error('Error fetching data:', error);
-  //   else data ? (this.products = data) : (this.products = []);
-  // }
 }
