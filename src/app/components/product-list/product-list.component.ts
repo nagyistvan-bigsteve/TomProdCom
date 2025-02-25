@@ -1,16 +1,26 @@
-import { Component, inject, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  inject,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Observable, startWith, map, take } from 'rxjs';
+import { Observable, take } from 'rxjs';
 import { ProductsService } from '../../services/query-services/products.service';
-import { Products } from '../../models/models';
-import { Language, Unit_id } from '../../models/enums';
+import { Product, Products } from '../../models/models';
+import { Size_id, Unit_id } from '../../models/enums';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { _isTestEnvironment } from '@angular/cdk/platform';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatOptionSelectionChange } from '@angular/material/core';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-product-list',
@@ -24,28 +34,36 @@ import { _isTestEnvironment } from '@angular/cdk/platform';
     ReactiveFormsModule,
     FormsModule,
     TranslateModule,
+    MatChipsModule,
+    MatDividerModule,
   ],
   styleUrls: ['./product-list.component.scss'],
 })
-export class ProductSelectComponent implements OnInit {
-  productControl = new FormControl('');
-  productGroups: { unit: Unit_id; products: Products }[] = [];
-  selectedUnit: Unit_id = Unit_id.UNDEFINED;
+export class ProductSelectComponent {
+  @ViewChild('input') input: ElementRef<HTMLInputElement> | null = null;
+  @Output() selectedProduct = new EventEmitter<Product>();
+
+  //variables for storing the products
   products: Products = [];
   filteredProducts: Observable<Products> | undefined;
 
-  readonly #productService = inject(ProductsService);
-  readonly #translate = inject(TranslateService);
+  //Variables for the unit mapping
+  productsByUnits: { unit: Unit_id; products: Products }[] = [];
+  selectedUnit: Unit_id = Unit_id.UNDEFINED;
 
-  ngOnInit() {
-    const savedLang =
-      (localStorage.getItem('selectedLanguage') as Language) || Language.RO;
-    this.#translate.use(savedLang);
+  //variables for the size mapping
+  productsBySizes: { size: Size_id; products: Products }[] = [];
+  selectedSize: Size_id = Size_id.UNDEFINED;
+
+  //variables for the product select
+  myControl = new FormControl('');
+  filteredOptions: Product[] = [];
+  productsByFilter: Products = [];
+
+  readonly #productService = inject(ProductsService);
+
+  constructor() {
     this.fetchProducts();
-    this.filteredProducts = this.productControl.valueChanges.pipe(
-      startWith(''),
-      map((value) => this._filter(value || ''))
-    );
   }
 
   fetchProducts() {
@@ -59,16 +77,69 @@ export class ProductSelectComponent implements OnInit {
   }
 
   fetchProductGroups(products: Products) {
-    this.productGroups = this.groupProductsByUnit(products);
-    this.productGroups.unshift({ unit: Unit_id.UNDEFINED, products: products });
+    this.productsByUnits = this.groupProductsByUnit(products);
+    this.productsByUnits.unshift({
+      unit: Unit_id.UNDEFINED,
+      products: products,
+    });
 
-    this.selectedUnit = this.productGroups.length
-      ? this.productGroups[0].unit
-      : 1;
-    this.onUnitChange();
+    this.productsBySizes = this.groupProductsBySize(products);
+    this.productsBySizes.unshift({
+      size: Size_id.UNDEFINED,
+      products: products,
+    });
+
+    this.productsByFilter = this.fetchProductsByFilters();
   }
 
-  groupProductsByUnit(
+  fetchProductsByFilters(): Products {
+    if (
+      this.selectedSize === Size_id.UNDEFINED &&
+      this.selectedUnit === Unit_id.UNDEFINED
+    ) {
+      return this.products;
+    }
+
+    if (this.selectedUnit === Unit_id.UNDEFINED) {
+      return this.products.filter(
+        (product) => product.size_id === this.selectedSize
+      );
+    }
+
+    if (this.selectedSize === Size_id.UNDEFINED) {
+      return this.products.filter(
+        (product) => product.unit_id === this.selectedUnit
+      );
+    }
+
+    return this.products.filter(
+      (product) =>
+        product.unit_id === this.selectedUnit &&
+        product.size_id === this.selectedSize
+    );
+  }
+
+  optionSelected(event: MatOptionSelectionChange) {
+    this.selectedProduct.emit(
+      this.products.find((product) => product.name === event.source.value)
+    );
+  }
+
+  onFilterChange() {
+    this.myControl.setValue('');
+    this.productsByFilter = this.fetchProductsByFilters();
+  }
+
+  filter(): void {
+    if (this.input) {
+      const filterValue = this.input.nativeElement.value.toLowerCase();
+      this.filteredOptions = this.productsByFilter.filter((o) =>
+        o.name.toLowerCase().includes(filterValue)
+      );
+    }
+  }
+
+  private groupProductsByUnit(
     products: Products
   ): { unit: Unit_id; products: Products }[] {
     const grouped = products.reduce((acc, product) => {
@@ -85,27 +156,20 @@ export class ProductSelectComponent implements OnInit {
     }));
   }
 
-  onUnitChange() {
-    if (this.selectedUnit) {
-      this.productControl.setValue('');
-    }
-  }
+  private groupProductsBySize(
+    products: Products
+  ): { size: Size_id; products: Products }[] {
+    const grouped = products.reduce((acc, product) => {
+      if (!acc[product.size_id]) {
+        acc[product.size_id] = [];
+      }
+      acc[product.size_id].push(product);
+      return acc;
+    }, {} as Record<Size_id, Products>);
 
-  private _filter(value: string): Products {
-    const filterValue = value.toLowerCase();
-
-    if (this.selectedUnit === Unit_id.UNDEFINED) {
-      return this.products.filter((product) =>
-        product.name.toLowerCase().includes(filterValue)
-      );
-    }
-
-    return this.selectedUnit
-      ? this.productGroups
-          .find((group) => group.unit === this.selectedUnit)
-          ?.products.filter((product) =>
-            product.name.toLowerCase().includes(filterValue)
-          ) || []
-      : [];
+    return Object.entries(grouped).map(([size, products]) => ({
+      size: parseInt(size) as Size_id,
+      products,
+    }));
   }
 }

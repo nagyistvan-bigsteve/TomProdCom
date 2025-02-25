@@ -1,9 +1,9 @@
 <div class="d-flex border-top border-dark navbar-color">
   <div class="d-flex justify-content-center w-50 border-1">
     <button
-      class="d-flex justify-content-center align-items-center navbar-button"
+      class="d-flex flex-column justify-content-center align-items-center navbar-button w-100 h-100"
       mat-icon-button
-      routerLink="/offer"
+      (click)="toNewOfferPage()"
     >
       <mat-icon
         class="w-auto h-auto"
@@ -11,6 +11,7 @@
         aria-label="Offer"
         fontIcon="post_add"
       ></mat-icon>
+      {{ "NAVBAR.OFFER_BUTTON" | translate }}
     </button>
   </div>
   <mat-divider
@@ -20,9 +21,8 @@
   ></mat-divider>
   <div class="d-flex justify-content-center w-50 border-1">
     <button
-      class="d-flex justify-content-center align-items-center navbar-button"
+      class="d-flex flex-column justify-content-center align-items-center navbar-button w-100 h-100"
       mat-icon-button
-      routerLink="/offer/create"
     >
       <mat-icon
         class="w-auto h-auto"
@@ -30,6 +30,7 @@
         aria-label="Offer-history"
         fontIcon="description"
       ></mat-icon>
+      {{ "NAVBAR.HISTORY_BUTTON" | translate }}
     </button>
   </div>
 </div>

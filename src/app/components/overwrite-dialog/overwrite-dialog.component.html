@@ -1,0 +1,12 @@
+<h2 mat-dialog-title>Product Exists</h2>
+<mat-dialog-content>
+  <p>
+    The product "{{ data.productName }}" already exists. What would you like to
+    do?
+  </p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onAdd()">Add to Existing</button>
+  <button mat-button color="warn" (click)="onOverwrite()">Overwrite</button>
+  <button mat-button (click)="onCancel()">Cancel</button>
+</mat-dialog-actions>

@@ -4,3 +4,31 @@
   justify-content: center;
   align-items: center;
 }
+
+.product-container {
+  background-color: rgba(73, 92, 76, 0.97);
+}
+
+.add-product {
+  height: 75%;
+  width: 100%;
+  transition: height 0.3s;
+}
+
+.product-list {
+  height: 20%;
+  width: 100%;
+  transition: height 0.3s;
+}
+
+.select-product-off {
+  height: 20%;
+}
+
+.select-product-tile {
+  background-color: rgba(73, 92, 76, 0.97);
+}
+
+.expanded-product-list {
+  height: 75%;
+}

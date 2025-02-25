@@ -39,8 +39,41 @@ body {
       color: white,
     )
   );
+
+  @include mat.chips-overrides(
+    (
+      label-text-color: white,
+      outline-width: 2px,
+      flat-disabled-selected-container-color: rgba(95, 1, 1, 0.55),
+      elevated-selected-container-color: rgba(95, 1, 1, 0.55),
+      selected-label-text-color: white,
+      disabled-label-text-color: white,
+      with-icon-selected-icon-color: white,
+      with-icon-disabled-icon-color: white,
+      disabled-container-opacity: none,
+      with-icon-disabled-icon-opacity: none,
+      focus-outline-color: rgb(110, 110, 117),
+    )
+  );
+
+  @include mat.form-field-overrides(
+    (
+      outlined-label-text-color: white,
+      outlined-input-text-color: white,
+      outlined-outline-width: 2px,
+      outlined-focus-outline-color: rgba(95, 1, 1, 0.55),
+      outlined-focus-label-text-color: white,
+      outlined-hover-label-text-color: white,
+      outlined-hover-outline-color: rgb(110, 110, 117),
+    )
+  );
 }
 
-.content-container {
+.page-container {
   height: 80vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }

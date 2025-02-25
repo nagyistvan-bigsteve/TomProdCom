@@ -1,7 +1,5 @@
 @if("OFFER_PAGE.FIRST_STEP.TITLE" | translate){
-<div
-  class="d-flex flex-column align-items-center justify-content-center page-container content-container"
->
+<div class="page-container">
   <div class="d-flex flex-column h-100 justify-content-center">
     <div class="p-5 image-container">
       <img
@@ -13,7 +11,10 @@
       <div class="fs-3">
         {{ "OFFER_PAGE.FIRST_STEP.TITLE" | translate }}
       </div>
-      <button class="btn start-button w-75 py-2 mt-4" (click)="createOffer()">
+      <button
+        class="btn start-button w-75 py-2 mt-4"
+        (click)="toCreateOfferPage()"
+      >
         {{ "OFFER_PAGE.FIRST_STEP.START_BUTTON" | translate }}
       </button>
     </div>

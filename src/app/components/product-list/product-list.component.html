@@ -1,30 +1,78 @@
-<br />
-<mat-form-field appearance="outline">
-  <mat-label>{{ "HOME_PAGE.UNIT_SELECT.SELECT_LABEL" | translate }}</mat-label>
-  <mat-select [(ngModel)]="selectedUnit" (selectionChange)="onUnitChange()">
-    <mat-option *ngFor="let group of productGroups" [value]="group.unit">
-      {{ "HOME_PAGE.UNIT_SELECT.SELECT_OPTIONS." + group.unit | translate }}
-    </mat-option>
-  </mat-select>
-</mat-form-field>
+<div
+  class="d-flex flex-column justify-content-center align-items-center w-100 my-2"
+>
+  @if(products) {
+  <div>
+    <div>
+      {{ "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_LABEL" | translate }}
+    </div>
+    <mat-chip-listbox
+      [(ngModel)]="selectedUnit"
+      (ngModelChange)="onFilterChange()"
+      aria-label="Selected product group by unit"
+    >
+      @for (productsByUnit of productsByUnits; track productsByUnit) {
+      <mat-chip-option
+        [disabled]="productsByUnit.unit === selectedUnit"
+        [value]="productsByUnit.unit"
+        [selected]="productsByUnit.unit === selectedUnit"
+        >{{
+          "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+            productsByUnit.unit | translate
+        }}</mat-chip-option
+      >
+      }
+    </mat-chip-listbox>
+  </div>
 
-<mat-form-field appearance="outline">
-  <mat-label>{{
-    "HOME_PAGE.PRODUCT_SELECT.SELECT_LABEL" | translate
-  }}</mat-label>
-  <input
-    type="text"
-    matInput
-    [formControl]="productControl"
-    [matAutocomplete]="auto"
-  />
-</mat-form-field>
+  <div class="mt-2">
+    <div>
+      {{ "OFFER_PAGE.CREATE_OFFER.SIZE_FILTER.FILTER_LABEL" | translate }}
+    </div>
 
-<mat-autocomplete #auto="matAutocomplete">
-  <mat-option
-    *ngFor="let product of filteredProducts | async"
-    [value]="product.name"
-  >
-    {{ product.name }}
-  </mat-option>
-</mat-autocomplete>
+    <mat-chip-listbox
+      [(ngModel)]="selectedSize"
+      (ngModelChange)="onFilterChange()"
+      aria-label="Selected product group by size"
+    >
+      @for (productsBySize of productsBySizes; track productsBySize) {
+      <mat-chip-option
+        [disabled]="productsBySize.size === selectedSize"
+        [value]="productsBySize.size"
+        [selected]="productsBySize.size === selectedSize"
+        >{{
+          "OFFER_PAGE.CREATE_OFFER.SIZE_FILTER.FILTER_OPTIONS." +
+            productsBySize.size | translate
+        }}</mat-chip-option
+      >
+      }
+    </mat-chip-listbox>
+  </div>
+
+  <form class="product-select w-100 mt-3">
+    <mat-form-field class="w-100" appearance="outline">
+      <mat-label>
+        {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_SELECT.SELECT_LABEL" | translate }}
+      </mat-label>
+      <input
+        #input
+        type="text"
+        matInput
+        [formControl]="myControl"
+        [matAutocomplete]="auto"
+        (input)="filter()"
+        (focus)="filter()"
+      />
+      <mat-autocomplete requireSelection #auto="matAutocomplete">
+        @for (option of filteredOptions; track option) {
+        <mat-option
+          [value]="option.name"
+          (onSelectionChange)="optionSelected($event)"
+          >{{ option.name }}</mat-option
+        >
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  </form>
+  }
+</div>

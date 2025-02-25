@@ -1,26 +1,60 @@
 {
   "LANGUAGE": {
-    "SWITCH_LABEL": "Válts nyelvet"
+    "SWITCH_LABEL": "Válts nyelvet",
+    "CURRENCY": "RON"
+  },
+  "TOPBAR": {
+    "TITLE": "TomProdCom"
+  },
+  "NAVBAR": {
+    "OFFER_BUTTON": "Új ajánlat",
+    "HISTORY_BUTTON": "Rendelések"
   },
   "OFFER_PAGE": {
     "FIRST_STEP": {
       "TITLE": "Hozz létre egy új rendelést!",
       "START_BUTTON": "Kezdés!"
-    }
-  },
-  "HOME_PAGE": {
-    "UNIT_SELECT": {
-      "SELECT_LABEL": "Válassz mértékegységet",
-      "SELECT_OPTIONS": {
-        "0": "mind",
-        "1": "db",
-        "2": "m²",
-        "3": "m³",
-        "4": "köteg"
-      }
     },
-    "PRODUCT_SELECT": {
-      "SELECT_LABEL": "Termékek"
+    "CREATE_OFFER": {
+      "UNIT_FILTER": {
+        "FILTER_LABEL": "Válassz mértékegységet:",
+        "FILTER_OPTIONS": {
+          "0": "mind",
+          "1": "db",
+          "2": "m²",
+          "3": "m³",
+          "4": "köteg"
+        }
+      },
+      "SIZE_FILTER": {
+        "FILTER_LABEL": "Válassz méretet:",
+        "FILTER_OPTIONS": {
+          "0": "normál",
+          "1": "extra",
+          "2": "extra²",
+          "3": "mind"
+        }
+      },
+      "PRODUCT_SELECT": {
+        "SELECT_LABEL": "Termékek"
+      },
+      "PRICE_CATEGORY": {
+        "4": "A+",
+        "1": "A",
+        "2": "A/B",
+        "3": "B",
+        "LABEL": "Válassz kategóriát!"
+      },
+      "PRODUCT_LIST": {
+        "NAME": "Név",
+        "QUALITY": "Osztály",
+        "QUANTITY": "Mennyiség",
+        "PRICE": "Összeg"
+      },
+      "TILE_BUTTONS": {
+        "SHOW_PRODUCT_LIST": "Lista megtekintése",
+        "ADD_PRODUCT": "Termék hozzáadása"
+      }
     }
   }
 }

@@ -1,26 +1,60 @@
 {
   "LANGUAGE": {
-    "SWITCH_LABEL": "Schimbă limba"
+    "SWITCH_LABEL": "Schimbă limba",
+    "CURRENCY": "RON"
+  },
+  "TOPBAR": {
+    "TITLE": "TomProdCom"
+  },
+  "NAVBAR": {
+    "OFFER_BUTTON": "Oferta nouă",
+    "HISTORY_BUTTON": "Comenzi"
   },
   "OFFER_PAGE": {
     "FIRST_STEP": {
-      "TITLE": "Crează o noua comanda!",
+      "TITLE": "Crează o nouă comanda!",
       "START_BUTTON": "Start!"
-    }
-  },
-  "HOME_PAGE": {
-    "UNIT_SELECT": {
-      "SELECT_LABEL": "Alege unitatea",
-      "SELECT_OPTIONS": {
-        "0": "toate",
-        "1": "buc",
-        "2": "m²",
-        "3": "m³",
-        "4": "pachet"
-      }
     },
-    "PRODUCT_SELECT": {
-      "SELECT_LABEL": "Produse"
+    "CREATE_OFFER": {
+      "UNIT_FILTER": {
+        "FILTER_LABEL": "Alege unitatea:",
+        "FILTER_OPTIONS": {
+          "0": "toate",
+          "1": "buc",
+          "2": "m²",
+          "3": "m³",
+          "4": "pachet"
+        }
+      },
+      "SIZE_FILTER": {
+        "FILTER_LABEL": "Alege mărimea:",
+        "FILTER_OPTIONS": {
+          "0": "normal",
+          "1": "extra",
+          "2": "extra²",
+          "3": "toate"
+        }
+      },
+      "PRODUCT_SELECT": {
+        "SELECT_LABEL": "Produse"
+      },
+      "PRICE_CATEGORY": {
+        "4": "A+",
+        "1": "A",
+        "2": "A/B",
+        "3": "B",
+        "LABEL": "Alege categorie!"
+      },
+      "PRODUCT_LIST": {
+        "NAME": "Nume",
+        "QUALITY": "Clasa",
+        "QUANTITY": "Cantitate",
+        "PRICE": "Preț"
+      },
+      "TILE_BUTTONS": {
+        "SHOW_PRODUCT_LIST": "Vezi lista de produse",
+        "ADD_PRODUCT": "Adaugă produs nou"
+      }
     }
   }
 }

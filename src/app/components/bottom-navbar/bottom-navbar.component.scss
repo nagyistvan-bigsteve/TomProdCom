@@ -1,11 +1,11 @@
 .navbar-color {
-  background-color: rgba(116, 125, 122, 0.2);
+  background-color: rgba(73, 92, 76, 0.97);
 }
 
 .navbar-button {
-  margin-top: 3px;
   height: 53px;
-  width: 56px;
+  color: white;
+  font-size: 12px;
 
   mat-icon {
     font-size: 28px;
@@ -13,8 +13,9 @@
 }
 
 .navbar-button:focus {
+  color: rgba(95, 1, 1, 0.55);
+
   mat-icon {
-    font-size: 38px;
     color: rgba(95, 1, 1, 0.55);
   }
 }

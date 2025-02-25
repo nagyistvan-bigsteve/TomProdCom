@@ -12,7 +12,7 @@ import { TranslateModule } from '@ngx-translate/core';
 export class OfferPageComponent {
   readonly #router = inject(Router);
 
-  createOffer(): void {
+  toCreateOfferPage(): void {
     this.#router.navigate(['/offer/create']);
   }
 }

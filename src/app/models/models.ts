@@ -10,9 +10,18 @@ export type Product = {
   thickness: number;
   width: number;
   length: number;
-  m2_unit?: number;
-  m2_brut?: number;
-  piece_per_pack?: number;
+  m2_util: number;
+  m2_brut: number;
+  piece_per_pack: number;
+};
+
+export type ProductItem = {
+  product: Product;
+  quantity: number;
+  price: number;
+  category: Category;
+  packsNeeded?: number;
+  extraPiecesNeeded?: number;
 };
 
 export type Client = {
@@ -53,4 +62,13 @@ export type Order = {
   operatorId: string;
   totalAmountFinal: number;
   comment: string;
+};
+
+export type Price = {
+  id: number;
+  unit_id: Unit_id;
+  category_id: Category;
+  size_id: Size_id;
+  price: number;
+  product_id: number;
 };

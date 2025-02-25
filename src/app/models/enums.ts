@@ -15,6 +15,7 @@ export enum Size_id {
   NORMAL = 0,
   EXTRA = 1,
   EXTRA2 = 2,
+  UNDEFINED = 3,
 }
 
 export enum Category {

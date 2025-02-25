@@ -1,0 +1,60 @@
+<div class="h-100 w-100 mt-1 overflow-auto">
+  <div class="row border-bottom border-dark mx-2">
+    <div class="col col-4 p-0">
+      {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_LIST.NAME" | translate }}
+    </div>
+    <div class="col col-2 p-0">
+      <div class="d-flex justify-content-center">
+        {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_LIST.QUALITY" | translate }}
+      </div>
+    </div>
+    <div class="col col-3 p-0">
+      <div class="d-flex justify-content-center">
+        {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_LIST.QUANTITY" | translate }}
+      </div>
+    </div>
+    <div class="col col-3 p-0">
+      <div class="d-flex justify-content-end">
+        {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_LIST.PRICE" | translate }}
+      </div>
+    </div>
+  </div>
+  @for (item of productList; track $index) {
+  <div
+    class="row py-2 mx-2"
+    cdkDragHandle
+    cdkDrag
+    (cdkDragMoved)="onDragMove($event, $index)"
+    (cdkDragReleased)="onDragReleased($event, $index)"
+    [class.delete-threshold]="dragStates[$index]?.reachedThreshold"
+    [cdkDragLockAxis]="'x'"
+  >
+    <div class="col col-5 p-0">
+      <div class="d-flex align-items-center h-100">
+        {{ item.product.name }}
+      </div>
+    </div>
+    <div class="col col-2 p-0">
+      <div class="d-flex align-items-center h-100">
+        {{
+          "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category | translate
+        }}
+      </div>
+    </div>
+    <div class="col col-2 p-0">
+      <div class="d-flex align-items-center h-100">
+        {{ item.quantity | number : "1.1-2" }}
+        {{
+          "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+            item.product.unit_id | translate
+        }}
+      </div>
+    </div>
+    <div class="col col-3 p-0">
+      <div class="d-flex justify-content-end align-items-center h-100">
+        {{ item.price | number : "1.1-2" }}
+      </div>
+    </div>
+  </div>
+  }
+</div>
