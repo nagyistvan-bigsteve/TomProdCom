@@ -54,6 +54,29 @@
       "TILE_BUTTONS": {
         "SHOW_PRODUCT_LIST": "Vezi lista de produse",
         "ADD_PRODUCT": "Adaugă produs nou"
+      },
+      "OVERWRITE_POPUP": {
+        "TITLE": "Deja există în listă.",
+        "DESCRIPTION_FIRST_PART": "Produsul ",
+        "DESCRIPTION_SECOND_PART": " deja e în listă. Ce vrei să faci?",
+        "OVERWRITE": "Înlocuire",
+        "ADD_ON": "Adaugare",
+        "CANCEL": "Ieșire"
+      },
+      "SUCCESS_BAR": {
+        "ADD": "Adaugat cu succes: ",
+        "OVERWRITE": "Schimbat cu succes: "
+      },
+      "ITEM_DESCRIPTION": {
+        "UNIT_PRICE": "Preț buc: ",
+        "M2_NET": "Net m²: ",
+        "PIECE_PER_PACK": "buc/pachet: "
+      },
+      "DELETE_ITEM_POPUP": {
+        "TITLE": "Confirmare ștergere",
+        "DESCRIPTION": "Ești sigur, că vrei să ștergi?",
+        "CANCEL_BUTTON": "Înapoi",
+        "DELETE_BUTTON": "Ștergere"
       }
     }
   }

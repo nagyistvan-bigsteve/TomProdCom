@@ -18,41 +18,43 @@
     </div>
     }@else {
     <div
-      class="d-flex flex-column justify-content-between align-items-center h-100 w-100 px-2 mb-2 rounded shadow select-product-tile"
+      class="d-flex flex-column justify-content-center align-items-center h-100 w-100 px-2 mb-2 rounded shadow select-product-tile"
       (click)="selectProductOn = !selectProductOn"
     >
-      <div class="fs-2 pt-4">
+      <div class="fs-2">
         {{ "OFFER_PAGE.CREATE_OFFER.TILE_BUTTONS.ADD_PRODUCT" | translate }}
       </div>
-      <div class="d-flex justify-content-end w-100">
-        <mat-icon class="fs-1 m-1 mb-2">keyboard_arrow_down</mat-icon>
+      <div class="products-expand-icon-position">
+        <mat-icon class="fs-1 icon-color">keyboard_arrow_down</mat-icon>
       </div>
     </div>
     }
   </div>
   <div
     class="product-list px-2"
-    [class]="{ 'expanded-product-list': !selectProductOn }"
+    [class]="{
+      'expanded-product-list': !selectProductOn
+    }"
   >
-    @if(selectProductOn) {
+    @if(!selectProductOn) {
+    <app-selected-product-list
+      @enterAnimation
+      [productList]="productList"
+    ></app-selected-product-list>
+    } @else {
     <div
-      class="d-flex flex-column justify-content-between align-items-center h-100 w-100 px-2 mb-2 rounded shadow select-product-tile"
+      class="d-flex flex-column justify-content-center align-items-center h-100 w-100 px-2 mb-2 rounded shadow select-product-tile"
       (click)="selectProductOn = !selectProductOn"
     >
-      <div class="d-flex justify-content-end w-100">
-        <mat-icon class="fs-1 m-1 mb-2">keyboard_arrow_up</mat-icon>
+      <div class="list-expand-icon-position">
+        <mat-icon class="fs-1 icon-color">keyboard_arrow_up</mat-icon>
       </div>
-      <div class="fs-2 pb-4">
+      <div class="fs-2">
         {{
           "OFFER_PAGE.CREATE_OFFER.TILE_BUTTONS.SHOW_PRODUCT_LIST" | translate
         }}
       </div>
     </div>
-    } @else {
-    <app-selected-product-list
-      @enterAnimation
-      [productList]="productList"
-    ></app-selected-product-list>
     }
   </div>
 </div>

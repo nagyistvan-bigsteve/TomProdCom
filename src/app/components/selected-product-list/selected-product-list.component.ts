@@ -1,54 +1,55 @@
-import { AfterViewChecked, Component, Input } from '@angular/core';
+import {
+  Component,
+  inject,
+  Input,
+  TemplateRef,
+  ViewChild,
+} from '@angular/core';
 import { ProductItem } from '../../models/models';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatDividerModule } from '@angular/material/divider';
-import {
-  CdkDragMove,
-  CdkDragRelease,
-  DragDropModule,
-} from '@angular/cdk/drag-drop';
+import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-selected-product-list',
-  imports: [CommonModule, TranslateModule, MatDividerModule, DragDropModule],
+  imports: [
+    CommonModule,
+    TranslateModule,
+    MatDividerModule,
+    MatAccordion,
+    MatExpansionModule,
+    MatIconModule,
+    MatDialogModule,
+    MatButtonModule,
+  ],
   templateUrl: './selected-product-list.component.html',
   styleUrl: './selected-product-list.component.scss',
 })
-export class SelectedProductListComponent implements AfterViewChecked {
+export class SelectedProductListComponent {
+  @ViewChild('confirmDeleteDialog') confirmDeleteDialog!: TemplateRef<any>;
   @Input({ required: true }) productList: ProductItem[] = [];
-  dragStates: { reachedThreshold: boolean }[] = [];
-  ngAfterViewChecked(): void {
-    this.dragStates = this.productList.map(() => ({
-      reachedThreshold: false,
-    }));
+
+  private _dialog = inject(MatDialog);
+
+  confirmDelete(index: number): void {
+    console.log(index);
+    const dialogRef = this._dialog.open(this.confirmDeleteDialog, {
+      width: '300px',
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === true) {
+        this.deleteItem(index);
+      }
+    });
   }
 
-  private readonly DELETION_THRESHOLD = 100; // pixels to trigger deletion
-
-  onDragMove(event: CdkDragMove, index: number) {
-    const xOffset = Math.abs(event.distance.x);
-    this.dragStates[index].reachedThreshold = xOffset > this.DELETION_THRESHOLD;
-  }
-
-  onDragReleased(event: CdkDragRelease, index: number) {
-    const element = event.source.element.nativeElement;
-    const xOffset = Math.abs(
-      element.getBoundingClientRect().x - event.source.getFreeDragPosition().x
-    );
-
-    if (xOffset > this.DELETION_THRESHOLD) {
-      // Delete the item
-      this.productList = this.productList.filter((_, i) => i !== index);
-      this.dragStates = this.dragStates.filter((_, i) => i !== index);
-    } else {
-      // Reset the drag position
-      event.source.reset();
-    }
-
-    // Reset threshold state
-    if (this.dragStates[index]) {
-      this.dragStates[index].reachedThreshold = false;
-    }
+  deleteItem(index: number): void {
+    console.log('heeere');
+    this.productList.splice(index, 1);
   }
 }

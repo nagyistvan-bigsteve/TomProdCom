@@ -1,6 +1,7 @@
 @if (selectedProduct) {
 <div
-  class="d-flex justify-content-evenly product-container shadow rounded w-100 p-2"
+  @enterAnimation
+  class="d-flex justify-content-evenly product-container shadow rounded w-100 p-2 card-text-color"
 >
   <div class="d-flex align-items-center mw-50">
     <div class="d-flex flex-column align-items-center">
@@ -32,7 +33,9 @@
       class="d-flex flex-column justify-content-center align-items-center mw-25"
     >
       <div class="d-flex justify-content-center align-items-center w-100">
-        @if(selectedProduct.unit_id !== 2) {
+        @if (selectedProduct.unit_id === 3) {
+        {{ "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1" | translate }}
+        } @else if(selectedProduct.unit_id !== 2) {
         {{
           "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
             selectedProduct.unit_id | translate
@@ -71,8 +74,9 @@
   >
     <div class="d-flex flex-column">
       @if (calculatedPrice) {
-      {{ this.calculatedPrice }} {{ "LANGUAGE.CURRENCY" | translate }} }
-      @if(packsNeeded || extraPiecesNeeded){
+      {{ this.calculatedPrice | number : "1.1-1" }}
+      {{ "LANGUAGE.CURRENCY" | translate }} } @if(packsNeeded ||
+      extraPiecesNeeded){
       <div class="d-flex mt-3">
         {{ packsNeeded ? packsNeeded + "p" : "" }}
         {{ packsNeeded && extraPiecesNeeded ? "+" : "" }}
@@ -84,7 +88,7 @@
 </div>
 <div class="d-flex justify-content-center w-100">
   <button
-    class="btn bg-success d-flex align-items-center mt-2"
+    class="btn bg-success d-flex align-items-center mt-2 z-3"
     (click)="addNewProduct()"
     mat-icon-button
   >

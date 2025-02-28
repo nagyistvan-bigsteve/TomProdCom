@@ -1,16 +1,21 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { ProductSelectComponent } from '../../components/product-list/product-list.component';
 import { Product, ProductItem } from '../../models/models';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SelectedProductComponent } from '../../components/selected-product/selected-product.component';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { ENTER_ANIMATION } from '../../models/animations';
+import { ENTER_ANIMATION, LEAVE_ANIMATION } from '../../models/animations';
 import { SelectedProductListComponent } from '../../components/selected-product-list/selected-product-list.component';
 import { OverwriteDialogComponent } from '../../components/overwrite-dialog/overwrite-dialog.component';
-import { DialogRef } from '@angular/cdk/dialog';
 import { MatDialog } from '@angular/material/dialog';
+import {
+  MatSnackBar,
+  MatSnackBarConfig,
+  MatSnackBarModule,
+} from '@angular/material/snack-bar';
+import { OverlayModule } from '@angular/cdk/overlay';
 
 @Component({
   selector: 'app-create-offer-page',
@@ -22,34 +27,27 @@ import { MatDialog } from '@angular/material/dialog';
     MatButtonModule,
     MatIconModule,
     SelectedProductListComponent,
+    MatSnackBarModule,
+    OverlayModule,
   ],
   standalone: true,
   templateUrl: './create-offer-page.component.html',
   styleUrl: './create-offer-page.component.scss',
-  animations: ENTER_ANIMATION,
+  animations: [ENTER_ANIMATION, LEAVE_ANIMATION],
 })
 export class CreateOfferPageComponent {
   selectedProduct: Product | undefined = undefined;
   productList: ProductItem[] = [];
   selectProductOn: boolean = true;
-
-  constructor(private dialog: MatDialog) {}
+  readonly #translateService = inject(TranslateService);
+  private _snackBar = inject(MatSnackBar);
+  private _dialog = inject(MatDialog);
 
   getSelectedProduct(product: Product): void {
     this.selectedProduct = product;
   }
 
   addProductToList(item: ProductItem): void {
-    // if (
-    //   this.productList.find((product) => {
-    //     product.category === item.category &&
-    //       product.product.name === item.product.name;
-    //   })
-    // ) {
-
-    // } else {
-    //   this.productList.push(item);
-    // }
     const existingProduct = this.productList.find(
       (product) =>
         product.category === item.category &&
@@ -57,24 +55,64 @@ export class CreateOfferPageComponent {
     );
 
     if (existingProduct) {
-      const dialogRef = this.dialog.open(OverwriteDialogComponent, {
+      const dialogRef = this._dialog.open(OverwriteDialogComponent, {
         data: { productName: item.product.name },
       });
 
       dialogRef.afterClosed().subscribe((result: any) => {
         if (result === 'overwrite') {
-          // Overwrite existing product
           const index = this.productList.indexOf(existingProduct);
           this.productList[index] = item;
+          this.openSnackBar(
+            this.#translateService.instant(
+              'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.OVERWRITE'
+            ) + item.product.name
+          );
         } else if (result === 'add') {
-          // Add quantity or details to the existing product
           existingProduct.quantity += item.quantity;
           existingProduct.price += item.price;
+          if (item.extraPiecesNeeded) {
+            if (existingProduct.extraPiecesNeeded) {
+              if (
+                existingProduct.extraPiecesNeeded + item.extraPiecesNeeded >
+                existingProduct.product.piece_per_pack
+              ) {
+                existingProduct.extraPiecesNeeded =
+                  (existingProduct.extraPiecesNeeded + item.extraPiecesNeeded) %
+                  existingProduct.product.piece_per_pack;
+                existingProduct.packsNeeded
+                  ? (existingProduct.packsNeeded += 1)
+                  : (existingProduct.packsNeeded = 1);
+              } else {
+                existingProduct.extraPiecesNeeded += item.extraPiecesNeeded;
+              }
+            } else {
+              existingProduct.extraPiecesNeeded = item.extraPiecesNeeded;
+            }
+          }
+          if (item.packsNeeded) {
+            existingProduct.packsNeeded
+              ? (existingProduct.packsNeeded += item.packsNeeded)
+              : (existingProduct.packsNeeded = item.packsNeeded);
+          }
+          this.openSnackBar(
+            this.#translateService.instant(
+              'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.ADD'
+            ) + item.product.name
+          );
         }
-        // If 'cancel', do nothing
       });
     } else {
       this.productList.push(item);
+      this.openSnackBar(
+        this.#translateService.instant(
+          'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.ADD'
+        ) + item.product.name
+      );
     }
+  }
+
+  openSnackBar(message: string) {
+    this._snackBar.open(message);
   }
 }

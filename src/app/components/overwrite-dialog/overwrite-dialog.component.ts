@@ -5,10 +5,11 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-overwrite-dialog',
-  imports: [MatDialogModule, MatButtonModule],
+  imports: [MatDialogModule, MatButtonModule, TranslateModule],
   templateUrl: './overwrite-dialog.component.html',
   styleUrl: './overwrite-dialog.component.scss',
 })

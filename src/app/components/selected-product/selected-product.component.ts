@@ -16,6 +16,8 @@ import { Category, Unit_id } from '../../models/enums';
 import { TranslateModule } from '@ngx-translate/core';
 import { ProductsService } from '../../services/query-services/products.service';
 import { take } from 'rxjs';
+import { ENTER_ANIMATION } from '../../models/animations';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-selected-product',
@@ -26,9 +28,11 @@ import { take } from 'rxjs';
     MatButtonModule,
     FormsModule,
     TranslateModule,
+    CommonModule,
   ],
   templateUrl: './selected-product.component.html',
   styleUrl: './selected-product.component.scss',
+  animations: [ENTER_ANIMATION],
 })
 export class SelectedProductComponent implements OnChanges {
   @Input({ required: true }) selectedProduct: Product | undefined;
@@ -47,6 +51,7 @@ export class SelectedProductComponent implements OnChanges {
   readonly #productService = inject(ProductsService);
 
   ngOnChanges(): void {
+    this.selectedCategory = Category.A;
     if (this.selectedProduct) {
       this.fetchPrices(this.selectedProduct);
       if (this.selectedProduct.unit_id === Unit_id.M2) {
@@ -66,7 +71,7 @@ export class SelectedProductComponent implements OnChanges {
           price: this.calculatedPrice,
           category: this.selectedCategory,
         });
-      } else if (this.selectedProduct.m2_brut) {
+      } else {
         this.addProduct.emit({
           product: this.selectedProduct,
           quantity:
@@ -178,8 +183,6 @@ export class SelectedProductComponent implements OnChanges {
         (this.selectedProduct.m2_brut / 10) *
         this.selectedPrice.price;
     }
-
-    this.calculatedPrice = Math.round(this.calculatedPrice);
   }
 
   m2_setUnit() {

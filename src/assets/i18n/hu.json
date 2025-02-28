@@ -54,6 +54,29 @@
       "TILE_BUTTONS": {
         "SHOW_PRODUCT_LIST": "Lista megtekintése",
         "ADD_PRODUCT": "Termék hozzáadása"
+      },
+      "OVERWRITE_POPUP": {
+        "TITLE": "Ezt már egyszer hozzáadtad.",
+        "DESCRIPTION_FIRST_PART": "A ",
+        "DESCRIPTION_SECOND_PART": " már hozzá van adva. Mit szeretnél csinálni?",
+        "OVERWRITE": "Kicserélni",
+        "ADD_ON": "Hozzáadni",
+        "CANCEL": "Kilépni"
+      },
+      "SUCCESS_BAR": {
+        "ADD": "Sikeresen hozzáadva: ",
+        "OVERWRITE": "Sikeresen kicserélve: "
+      },
+      "ITEM_DESCRIPTION": {
+        "UNIT_PRICE": "Darab ár: ",
+        "M2_NET": "Nettó m²: ",
+        "PIECE_PER_PACK": "db/köteg: "
+      },
+      "DELETE_ITEM_POPUP": {
+        "TITLE": "Törlés megerősítése",
+        "DESCRIPTION": "Biztos, hogy törölni szeretnéd?",
+        "CANCEL_BUTTON": "Mégse",
+        "DELETE_BUTTON": "Törlés"
       }
     }
   }

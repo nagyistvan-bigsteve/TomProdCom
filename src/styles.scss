@@ -23,8 +23,6 @@ body {
 body {
   margin: 0;
   font-family: Roboto, "Helvetica Neue", sans-serif;
-  background-color: rgb(57, 72, 60);
-  color: white;
 }
 
 :root {
@@ -42,29 +40,29 @@ body {
 
   @include mat.chips-overrides(
     (
-      label-text-color: white,
-      outline-width: 2px,
-      flat-disabled-selected-container-color: rgba(95, 1, 1, 0.55),
-      elevated-selected-container-color: rgba(95, 1, 1, 0.55),
+      label-text-color: rgb(57, 72, 60),
+      flat-disabled-selected-container-color: rgba(95, 1, 1, 1),
+      elevated-selected-container-color: rgba(95, 1, 1, 1),
       selected-label-text-color: white,
       disabled-label-text-color: white,
       with-icon-selected-icon-color: white,
       with-icon-disabled-icon-color: white,
       disabled-container-opacity: none,
       with-icon-disabled-icon-opacity: none,
-      focus-outline-color: rgb(110, 110, 117),
+      elevated-container-color: white,
+      focus-outline-color: transparent,
+      outline-color: transparent,
+      outline-width: 2px,
     )
   );
 
   @include mat.form-field-overrides(
     (
-      outlined-label-text-color: white,
-      outlined-input-text-color: white,
-      outlined-outline-width: 2px,
-      outlined-focus-outline-color: rgba(95, 1, 1, 0.55),
-      outlined-focus-label-text-color: white,
-      outlined-hover-label-text-color: white,
-      outlined-hover-outline-color: rgb(110, 110, 117),
+      filled-label-text-color: rgb(57, 72, 60),
+      filled-input-text-color: rgb(57, 72, 60),
+      filled-focus-label-text-color: rgb(57, 72, 60),
+      filled-hover-label-text-color: rgb(57, 72, 60),
+      filled-container-color: white,
     )
   );
 }
@@ -76,4 +74,8 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+
+.cdk-overlay-container {
+  z-index: 1000000 !important;
 }
