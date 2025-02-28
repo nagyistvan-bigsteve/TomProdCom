@@ -10,11 +10,7 @@ import { ENTER_ANIMATION, LEAVE_ANIMATION } from '../../models/animations';
 import { SelectedProductListComponent } from '../../components/selected-product-list/selected-product-list.component';
 import { OverwriteDialogComponent } from '../../components/overwrite-dialog/overwrite-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  MatSnackBar,
-  MatSnackBarConfig,
-  MatSnackBarModule,
-} from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { OverlayModule } from '@angular/cdk/overlay';
 
 @Component({
