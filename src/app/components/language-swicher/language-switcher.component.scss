@@ -22,7 +22,7 @@
   content: "";
   top: 1.5px;
   left: 1.5px;
-  background-image: url("~assets/flags/ro.png");
+  background-image: url("../assets/flags/ro.png");
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover;
@@ -35,7 +35,7 @@
 
 input:checked + .slider:before {
   transform: translateX(10px) rotateZ(90deg);
-  background-image: url("~assets/flags/hu.png");
+  background-image: url("../assets/flags/hu.png");
   background-repeat: no-repeat;
   background-position: center;
 }
