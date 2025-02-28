@@ -41,9 +41,9 @@
                 "output": "assets/i18n"
               },
               {
-                "glob": "**/*.png",
+                "glob": "**/*",
                 "input": "src/assets/flags",
-                "output": "assets/flags"
+                "output": "assets/images"
               },
               {
                 "glob": "**/*",
@@ -122,9 +122,9 @@
                 "output": "assets/i18n"
               },
               {
-                "glob": "**/*.png",
+                "glob": "**/*",
                 "input": "src/assets/flags",
-                "output": "assets/flags"
+                "output": "assets/images"
               },
               {
                 "glob": "**/*",
