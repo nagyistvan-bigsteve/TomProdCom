@@ -43,7 +43,7 @@
               {
                 "glob": "**/*",
                 "input": "src/assets/flags",
-                "output": "assets/images"
+                "output": "assets/flags"
               },
               {
                 "glob": "**/*",
@@ -124,7 +124,7 @@
               {
                 "glob": "**/*",
                 "input": "src/assets/flags",
-                "output": "assets/images"
+                "output": "assets/flags"
               },
               {
                 "glob": "**/*",
