@@ -34,6 +34,21 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "**/*.json",
+                "input": "src/assets/i18n",
+                "output": "assets/i18n"
+              },
+              {
+                "glob": "**/*.png",
+                "input": "src/assets/flags",
+                "output": "assets/flags"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets/images",
+                "output": "assets/images"
               }
             ],
             "styles": [
@@ -100,6 +115,21 @@
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
+              },
+              {
+                "glob": "**/*.json",
+                "input": "src/assets/i18n",
+                "output": "assets/i18n"
+              },
+              {
+                "glob": "**/*.png",
+                "input": "src/assets/flags",
+                "output": "assets/flags"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets/images",
+                "output": "assets/images"
               }
             ],
             "styles": [
