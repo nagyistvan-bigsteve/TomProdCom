@@ -17,6 +17,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
+            "baseHref": "/tom-prod-com/",
             "outputPath": "dist/tom-prod-com",
             "allowedCommonJsDependencies": ["@supabase/realtime-js"],
             "index": "src/index.html",
