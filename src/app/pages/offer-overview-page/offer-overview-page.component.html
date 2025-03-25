@@ -1,0 +1,25 @@
+<div class="offer-page-container">
+  <div class="mb-3">
+    <app-client-details class="full-width mb-3"></app-client-details>
+
+    <app-selected-product-list
+      [isInOverview]="true"
+      class="full-width"
+    ></app-selected-product-list>
+  </div>
+
+  <div class="w-100 d-flex flex-column justify-content-center">
+    <div class="d-flex w-100 align-items-center justify-content-evenly mb-3">
+      <mat-form-field appearance="outline" class="voucher-input">
+        <mat-label>Voucher</mat-label>
+        <input matInput [(ngModel)]="voucher" />
+      </mat-form-field>
+
+      <div class="fs-5">Total: {{ totalPrice | currency : "RON" }}</div>
+    </div>
+
+    <button mat-raised-button color="primary" (click)="confirmOffer()">
+      Confirm Offer
+    </button>
+  </div>
+</div>

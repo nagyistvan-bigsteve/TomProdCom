@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
   EventEmitter,
   inject,
@@ -7,7 +8,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Observable, take } from 'rxjs';
+import { Observable } from 'rxjs';
 import { ProductsService } from '../../services/query-services/products.service';
 import { Product, Products } from '../../models/models';
 import { Size_id, Unit_id } from '../../models/enums';
@@ -19,8 +20,8 @@ import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { _isTestEnvironment } from '@angular/cdk/platform';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatOptionSelectionChange } from '@angular/material/core';
 import { MatDividerModule } from '@angular/material/divider';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-product-list',
@@ -61,6 +62,7 @@ export class ProductSelectComponent {
   productsByFilter: Products = [];
 
   readonly #productService = inject(ProductsService);
+  readonly #destroyRef = inject(DestroyRef);
 
   constructor() {
     this.fetchProducts();
@@ -69,7 +71,7 @@ export class ProductSelectComponent {
   fetchProducts() {
     this.#productService
       .getProducts()
-      .pipe(take(1))
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((products) => {
         this.products = products;
         this.fetchProductGroups(products);
@@ -119,10 +121,12 @@ export class ProductSelectComponent {
     );
   }
 
-  optionSelected(event: MatOptionSelectionChange) {
-    this.selectedProduct.emit(
-      this.products.find((product) => product.name === event.source.value)
-    );
+  optionSelected(product: Product) {
+    this.selectedProduct.emit(product);
+  }
+
+  displayProductLabel(product: Product): string {
+    return product ? product.name : '';
   }
 
   onFilterChange() {

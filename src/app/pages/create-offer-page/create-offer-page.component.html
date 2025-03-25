@@ -1,4 +1,4 @@
-<div class="page-container w-100 pt-2">
+<div class="page-container w-100">
   <div
     class="d-flex flex-column px-2 add-product"
     [class]="{ 'select-product-off': !selectProductOn }"
@@ -37,10 +37,7 @@
     }"
   >
     @if(!selectProductOn) {
-    <app-selected-product-list
-      @enterAnimation
-      [productList]="productList"
-    ></app-selected-product-list>
+    <app-selected-product-list @enterAnimation></app-selected-product-list>
     } @else {
     <div
       class="d-flex flex-column justify-content-center align-items-center h-100 w-100 px-2 mb-3 rounded shadow select-product-tile"

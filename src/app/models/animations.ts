@@ -22,11 +22,11 @@ export const ENTER_AND_LEAVE_ANIMATION = [
   trigger('enterAndLeaveAnimation', [
     transition(':leave', [
       style({ opacity: 1 }),
-      animate('600ms', style({ opacity: 0 })),
+      animate('500ms', style({ opacity: 0 })),
     ]),
     transition(':enter', [
       style({ opacity: 0 }),
-      animate('600ms', style({ opacity: 1 })),
+      animate('500ms', style({ opacity: 1 })),
     ]),
   ]),
 ];

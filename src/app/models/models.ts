@@ -15,6 +15,8 @@ export type Product = {
   piece_per_pack: number;
 };
 
+export type ProductItems = ProductItem[];
+
 export type ProductItem = {
   product: Product;
   quantity: number;
@@ -28,11 +30,11 @@ export type Client = {
   id: number;
   type: ClientType;
   name: string;
-  address: string;
-  code: string;
+  address: string | null;
+  code: string | null;
   phone: string;
-  details: string;
-  deliveryAddress: string;
+  other_details: string | null;
+  delivery_address: string | null;
 };
 
 export type Operators = {

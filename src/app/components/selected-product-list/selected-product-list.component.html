@@ -1,179 +1,228 @@
-<div class="d-flex align-items-center w-100 mt-4 pb-3 overflow-auto">
-  <mat-accordion class="w-100" multi>
-    <mat-expansion-panel disabled>
-      <mat-expansion-panel-header class="px-3">
-        <div class="row w-100">
-          <div class="col col-5 ps-3">
-            <div class="d-flex justify-content-start align-items-center h-100">
-              {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_LIST.NAME" | translate }}
+<div class="d-flex flex-column justify-content-evenly h-100 w-100">
+  <div class="d-flex align-items-center w-100">
+    <mat-accordion
+      class="w-100"
+      [ngClass]="{ 'limited-height': isInOverview }"
+      multi
+    >
+      <mat-expansion-panel disabled>
+        <mat-expansion-panel-header class="px-3">
+          <div class="row w-100">
+            <div class="col col-5 ps-3">
+              <div
+                class="d-flex justify-content-start align-items-center h-100"
+              >
+                {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_LIST.NAME" | translate }}
+              </div>
             </div>
-          </div>
-          <div class="col col-4 p-0">
-            <div class="d-flex justify-content-end align-items-center h-100">
-              {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_LIST.QUANTITY" | translate }}
-            </div>
-          </div>
-          <div class="col col-3 p-0">
-            <div class="d-flex justify-content-end align-items-center h-100">
-              {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_LIST.PRICE" | translate }}
-            </div>
-          </div>
-        </div>
-      </mat-expansion-panel-header>
-    </mat-expansion-panel>
-    @for (item of productList; track $index) {
-    <mat-expansion-panel>
-      <mat-expansion-panel-header class="px-3">
-        <div class="row w-100">
-          <div class="col col-6 ps-3 pe-0">
-            <div
-              class="d-flex justify-content-start align-items-center h-100 overflow-auto"
-            >
-              <div>{{ item.product.name }}</div>
-              <div class="d-flex">
-                <span>&ensp;-&thinsp;</span>
+            <div class="col col-4 p-0">
+              <div class="d-flex justify-content-end align-items-center h-100">
                 {{
-                  "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category
-                    | translate
+                  "OFFER_PAGE.CREATE_OFFER.PRODUCT_LIST.QUANTITY" | translate
                 }}
               </div>
             </div>
+            <div class="col col-3 p-0">
+              <div class="d-flex justify-content-end align-items-center h-100">
+                {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_LIST.PRICE" | translate }}
+              </div>
+            </div>
           </div>
-          <div class="col col-3 p-0">
-            <div class="d-flex justify-content-end align-items-center h-100">
-              {{ item.quantity | number : "1.1-2" }}
-              @if (item.product.unit_id !== 3) {
+        </mat-expansion-panel-header>
+      </mat-expansion-panel>
+      @for (item of productList; track $index) {
+      <mat-expansion-panel>
+        <mat-expansion-panel-header class="px-3">
+          <div class="row w-100">
+            <div class="col col-6 ps-3 pe-0">
+              <div
+                class="d-flex justify-content-start align-items-center h-100 overflow-auto"
+              >
+                <div>{{ item.product.name }}</div>
+                <div class="d-flex">
+                  <span>&ensp;-&thinsp;</span>
+                  {{
+                    "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category
+                      | translate
+                  }}
+                </div>
+              </div>
+            </div>
+            <div class="col col-3 p-0">
+              <div class="d-flex justify-content-end align-items-center h-100">
+                {{ item.quantity | number : "1.0-2" }}
+                @if (item.product.unit_id !== 3) {
+                {{
+                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                    item.product.unit_id | translate
+                }}
+                } @else {
+                {{
+                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
+                    | translate
+                }}
+                }
+              </div>
+            </div>
+            <div class="col col-3 p-0">
+              <div class="d-flex justify-content-end align-items-center h-100">
+                {{ item.price | number : "1.0-2" }}
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel-header>
+
+        <div class="row align-items-center">
+          @switch (item.product.unit_id) { @case (1) {
+          <div class="col-10">
+            <div class="p-1">
               {{
-                "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                  item.product.unit_id | translate
-              }}
-              } @else {
-              {{
-                "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
+                "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.UNIT_PRICE"
                   | translate
               }}
-              }
+              {{ item.price / item.quantity | number : "1.0-1" }}
             </div>
           </div>
-          <div class="col col-3 p-0">
-            <div class="d-flex justify-content-end align-items-center h-100">
-              {{ item.price | number : "1.1-2" }}
+          <div class="col-2">
+            <button
+              class="btn delete-button d-flex align-items-center"
+              (click)="confirmDelete($index)"
+              mat-icon-button
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+          } @case (2) {
+          <div class="col-10">
+            <div class="row border-bottom p-1">
+              {{ item.packsNeeded }}p + {{ item.extraPiecesNeeded }}b
+            </div>
+            @if (item.packsNeeded && item.extraPiecesNeeded) {
+            <div class="row border-bottom p-1">
+              {{
+                "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.M2_NET" | translate
+              }}
+              {{
+                (item.product.piece_per_pack * item.packsNeeded +
+                  item.extraPiecesNeeded) *
+                  (item.product.m2_util / 10) | number : "1.0-2"
+              }}
+            </div>
+            }@else if (item.extraPiecesNeeded) {
+            <div class="row border-bottom p-1">
+              {{
+                "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.M2_NET" | translate
+              }}
+              {{
+                item.extraPiecesNeeded * (item.product.m2_util / 10)
+                  | number : "1.0-2"
+              }}
+            </div>
+            }
+            <div class="row p-1">
+              {{
+                "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.PIECE_PER_PACK"
+                  | translate
+              }}
+              {{ item.product.piece_per_pack }}
             </div>
           </div>
-        </div>
-      </mat-expansion-panel-header>
+          <div class="col-2">
+            <button
+              class="btn delete-button d-flex align-items-center"
+              (click)="confirmDelete($index)"
+              mat-icon-button
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+          } @case (3) {
+          <div class="col-10">
+            <div class="row border-bottom p-1">
+              m³:
+              {{
+                item.quantity *
+                  ((item.product.width *
+                    item.product.thickness *
+                    item.product.length) /
+                    1000000) | number : "1.0-3"
+              }}
+            </div>
+            <div class="row p-1">
+              {{
+                "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.UNIT_PRICE"
+                  | translate
+              }}
+              {{ item.price / item.quantity | number : "1.0-1" }}
+            </div>
+          </div>
 
-      <div class="row align-items-center">
-        @switch (item.product.unit_id) { @case (1) {
-        <div class="col-10">
-          <div class="p-1">
-            {{
-              "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.UNIT_PRICE" | translate
-            }}
-            {{ item.price / item.quantity | number : "1.1-1" }}
+          <div class="col-2">
+            <button
+              class="btn delete-button d-flex align-items-center"
+              (click)="confirmDelete($index)"
+              mat-icon-button
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
           </div>
-        </div>
-        <div class="col-2">
-          <button
-            class="btn delete-button d-flex align-items-center"
-            (click)="confirmDelete($index)"
-            mat-icon-button
-          >
-            <mat-icon>delete</mat-icon>
-          </button>
-        </div>
-        } @case (2) {
-        <div class="col-10">
-          <div class="row border-bottom p-1">
-            {{ item.packsNeeded }}p + {{ item.extraPiecesNeeded }}b
+          }@default {
+          <div class="col-10">
+            <div class="p-1">
+              {{
+                "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.UNIT_PRICE"
+                  | translate
+              }}
+              {{ item.price / item.quantity }}
+            </div>
           </div>
-          @if (item.packsNeeded && item.extraPiecesNeeded) {
-          <div class="row border-bottom p-1">
-            {{ "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.M2_NET" | translate }}
-            {{
-              (item.product.piece_per_pack * item.packsNeeded +
-                item.extraPiecesNeeded) *
-                (item.product.m2_util / 10) | number : "1.1-2"
-            }}
+          <div class="col-2">
+            <button
+              class="btn delete-button d-flex align-items-center"
+              (click)="confirmDelete($index)"
+              mat-icon-button
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
           </div>
-          }@else if (item.extraPiecesNeeded) {
-          <div class="row border-bottom p-1">
-            {{ "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.M2_NET" | translate }}
-            {{
-              item.extraPiecesNeeded * (item.product.m2_util / 10)
-                | number : "1.1-2"
-            }}
+          } }
+        </div>
+      </mat-expansion-panel>
+      } @if (!productList.length && isInOverview) {
+      <mat-expansion-panel disabled="true">
+        <mat-expansion-panel-header class="emty-panel pt-1">
+          <div class="d-flex justify-content-center">
+            <button
+              mat-button
+              class="button-background"
+              (click)="goToCreateOfferPage()"
+            >
+              Add
+            </button>
           </div>
-          }
-          <div class="row p-1">
-            {{
-              "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.PIECE_PER_PACK"
-                | translate
-            }}
-            {{ item.product.piece_per_pack }}
-          </div>
-        </div>
-        <div class="col-2">
-          <button
-            class="btn delete-button d-flex align-items-center"
-            (click)="confirmDelete($index)"
-            mat-icon-button
-          >
-            <mat-icon>delete</mat-icon>
-          </button>
-        </div>
-        } @case (3) {
-        <div class="col-10">
-          <div class="row border-bottom p-1">
-            m³:
-            {{
-              item.quantity *
-                ((item.product.width *
-                  item.product.thickness *
-                  item.product.length) /
-                  1000000) | number : "1.1-3"
-            }}
-          </div>
-          <div class="row p-1">
-            {{
-              "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.UNIT_PRICE" | translate
-            }}
-            {{ item.price / item.quantity | number : "1.1-1" }}
-          </div>
-        </div>
-
-        <div class="col-2">
-          <button
-            class="btn delete-button d-flex align-items-center"
-            (click)="confirmDelete($index)"
-            mat-icon-button
-          >
-            <mat-icon>delete</mat-icon>
-          </button>
-        </div>
-        }@default {
-        <div class="col-10">
-          <div class="p-1">
-            {{
-              "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.UNIT_PRICE" | translate
-            }}
-            {{ item.price / item.quantity }}
-          </div>
-        </div>
-        <div class="col-2">
-          <button
-            class="btn delete-button d-flex align-items-center"
-            (click)="confirmDelete($index)"
-            mat-icon-button
-          >
-            <mat-icon>delete</mat-icon>
-          </button>
-        </div>
-        } }
-      </div>
-    </mat-expansion-panel>
-    }
-  </mat-accordion>
+        </mat-expansion-panel-header>
+      </mat-expansion-panel>
+      }
+    </mat-accordion>
+  </div>
+  @if (totalPrice && !isInOverview) {
+  <div
+    (click)="goToClientPage()"
+    class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 p-3 mt-2 bg-white text-black fw-normal"
+  >
+    {{ "WORDS.TOTAL" | translate }}: {{ totalPrice | number : "1.0-2" }}
+    {{ "LANGUAGE.CURRENCY" | translate }}
+    <div class="d-flex justify-content-end">
+      <button
+        class="btn ms-2 forward-button d-flex justify-content-center align-items-center"
+        mat-icon-button
+        (click)="goToClientPage()"
+      >
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </div>
+  }
 </div>
 
 <ng-template #confirmDeleteDialog>

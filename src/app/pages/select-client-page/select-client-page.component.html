@@ -1,0 +1,22 @@
+<mat-form-field class="full-width pt-2">
+  <mat-label>Select a Client</mat-label>
+  <input
+    type="text"
+    matInput
+    [formControl]="clientSearch"
+    [matAutocomplete]="auto"
+  />
+  <mat-autocomplete
+    #auto="matAutocomplete"
+    (optionSelected)="selectClient($event.option.value)"
+    [displayWith]="displayClientLabel"
+  >
+    <mat-option
+      *ngFor="let client of filteredClients$ | async"
+      [value]="client"
+    >
+      {{ client.name }} ({{ client.type === 1 ? "PF" : "PJ" }})
+    </mat-option>
+  </mat-autocomplete>
+</mat-form-field>
+<app-add-client [selectedClient]="selectedClient"></app-add-client>

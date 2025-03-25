@@ -79,5 +79,8 @@
         "DELETE_BUTTON": "Ștergere"
       }
     }
+  },
+  "WORDS": {
+    "TOTAL": "Total"
   }
 }

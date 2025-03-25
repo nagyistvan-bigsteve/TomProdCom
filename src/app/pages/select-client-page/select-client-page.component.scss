@@ -1,0 +1,15 @@
+:host {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background-color: rgb(57, 72, 60);
+  color: white;
+}
+
+.full-width {
+  width: 85vw;
+}

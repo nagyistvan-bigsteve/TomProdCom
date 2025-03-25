@@ -1,0 +1,54 @@
+:host {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background-color: rgb(57, 72, 60);
+  color: white;
+}
+
+.offer-page-container {
+  height: 80vh;
+  max-height: 80vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+}
+
+.full-width {
+  width: 85vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: auto;
+}
+
+.voucher-input {
+  width: 25vw;
+}
+
+::ng-deep {
+  .voucher-input {
+    .mdc-text-field--outlined {
+      border-color: white !important;
+    }
+
+    .mdc-floating-label {
+      color: white !important;
+    }
+
+    .mat-mdc-notch-piece {
+      width: 100% !important;
+      text-align: center;
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+  }
+}

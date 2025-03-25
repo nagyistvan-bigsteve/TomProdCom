@@ -13,7 +13,7 @@
         aria-label="Select product category"
         [hideSingleSelectionIndicator]="true"
       >
-        @for (price of prices; track price) {
+        @for (price of prices; track $index) {
         <mat-chip-option
           [value]="price.category_id"
           [selected]="price.category_id === selectedCategory"
@@ -74,7 +74,7 @@
   >
     <div class="d-flex flex-column">
       @if (calculatedPrice) {
-      {{ this.calculatedPrice | number : "1.1-1" }}
+      {{ this.calculatedPrice | number : "1.0-1" }}
       {{ "LANGUAGE.CURRENCY" | translate }} } @if(packsNeeded ||
       extraPiecesNeeded){
       <div class="d-flex mt-3">

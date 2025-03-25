@@ -1,4 +1,4 @@
-import { inject, Injectable, ɵɵsetComponentScope } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../supabase.service';
 import { catchError, from, map, Observable, of, switchMap } from 'rxjs';
 import { Price, Product, Products } from '../../models/models';
@@ -46,21 +46,4 @@ export class ProductsService {
       })
     );
   }
-
-  // getUnits() {
-  //   return from(this.#supabaseService.client.from('units').select('*')).pipe(
-  //     map(({ data }) => data ?? []), // Ensure an empty array if null
-  //     catchError((error) => {
-  //       console.error('Error fetching products:', error);
-  //       return of([]); // Return an empty array on error
-  //     })
-  //   );
-  // }
-
-  // async function getTables() {
-  //   const { data, error } = await supabase.rpc('pg_tables'); // Fetches table names
-  //   console.log('Tables:', data);
-  // }
-
-  // getProductGroups()
 }

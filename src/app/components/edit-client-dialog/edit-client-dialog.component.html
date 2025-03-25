@@ -1,0 +1,76 @@
+<h2 mat-dialog-title>Edit Client</h2>
+<mat-dialog-content>
+  <form [formGroup]="clientForm">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Name</mat-label>
+      <input
+        matInput
+        [(ngModel)]="data.client.name"
+        formControlName="name"
+        required
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Type</mat-label>
+      <mat-select [(ngModel)]="data.client.type" formControlName="type">
+        <mat-option [value]="1">PF</mat-option>
+        <mat-option [value]="2">PJ</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Phone</mat-label>
+      <input
+        matInput
+        [(ngModel)]="data.client.phone"
+        formControlName="phone"
+        required
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Address</mat-label>
+      <input
+        matInput
+        [(ngModel)]="data.client.address"
+        formControlName="address"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Delivery Address</mat-label>
+      <input
+        matInput
+        [(ngModel)]="data.client.delivery_address"
+        formControlName="delivery_address"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Code</mat-label>
+      <input matInput [(ngModel)]="data.client.code" formControlName="code" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Details</mat-label>
+      <textarea
+        matInput
+        [(ngModel)]="data.client.other_details"
+        formControlName="other_details"
+      ></textarea>
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSave()"
+    [disabled]="clientForm.invalid"
+  >
+    Save
+  </button>
+</mat-dialog-actions>

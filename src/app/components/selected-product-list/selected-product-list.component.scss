@@ -3,10 +3,33 @@
     height: 100%;
     overflow: auto !important;
   }
+
+  .emty-panel {
+    .mat-content {
+      display: flex;
+      justify-content: center;
+    }
+  }
 }
 
 .delete-button {
   mat-icon {
     color: rgba(95, 1, 1, 1) !important;
   }
+}
+
+.forward-button {
+  mat-icon {
+    color: black !important;
+  }
+}
+
+.limited-height {
+  max-height: 50vh;
+  overflow: auto;
+}
+
+.button-background {
+  background-color: rgb(57, 72, 60);
+  color: white !important;
 }

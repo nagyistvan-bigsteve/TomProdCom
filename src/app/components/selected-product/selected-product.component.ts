@@ -1,5 +1,6 @@
 import {
   Component,
+  DestroyRef,
   EventEmitter,
   inject,
   Input,
@@ -18,6 +19,7 @@ import { ProductsService } from '../../services/query-services/products.service'
 import { take } from 'rxjs';
 import { ENTER_ANIMATION } from '../../models/animations';
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-selected-product',
@@ -49,6 +51,7 @@ export class SelectedProductComponent implements OnChanges {
   totalPiecesNeeded: number = 0;
 
   readonly #productService = inject(ProductsService);
+  readonly #destroyRef = inject(DestroyRef);
 
   ngOnChanges(): void {
     this.selectedCategory = Category.A;
@@ -88,7 +91,7 @@ export class SelectedProductComponent implements OnChanges {
   fetchPrices(product: Product): void {
     this.#productService
       .getPrices(product)
-      .pipe(take(1))
+      .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe(
         (prices) => {
           this.prices = prices;
