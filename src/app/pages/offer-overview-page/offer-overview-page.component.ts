@@ -8,8 +8,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { ProductItems } from '../../models/models';
-import { SelectedProductListComponent } from '../../components/selected-product-list/selected-product-list.component';
-import { ClientDetailsComponent } from '../../components/client-details/client-details.component';
+import { SelectedProductListComponent } from '../../components/product/selected-product-list/selected-product-list.component';
+import { ClientDetailsComponent } from '../../components/client/client-details/client-details.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-offer-overview',
@@ -25,6 +26,7 @@ import { ClientDetailsComponent } from '../../components/client-details/client-d
     FormsModule,
     SelectedProductListComponent,
     ClientDetailsComponent,
+    TranslateModule,
   ],
   templateUrl: './offer-overview-page.component.html',
   styleUrls: ['./offer-overview-page.component.scss'],

@@ -11,15 +11,17 @@
   <div class="w-100 d-flex flex-column justify-content-center">
     <div class="d-flex w-100 align-items-center justify-content-evenly mb-3">
       <mat-form-field appearance="outline" class="voucher-input">
-        <mat-label>Voucher</mat-label>
+        <mat-label>{{ "WORDS.VOUCHER" | translate }}</mat-label>
         <input matInput [(ngModel)]="voucher" />
       </mat-form-field>
 
-      <div class="fs-5">Total: {{ totalPrice | currency : "RON" }}</div>
+      <div class="fs-5">
+        {{ "WORDS.TOTAL" | translate }}: {{ totalPrice | currency : "RON" }}
+      </div>
     </div>
 
     <button mat-raised-button color="primary" (click)="confirmOffer()">
-      Confirm Offer
+      {{ "OVERVIEW_PAGE.BUTTONS.CONFIRM" | translate }}
     </button>
   </div>
 </div>

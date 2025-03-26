@@ -1,14 +1,14 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
-import { ProductSelectComponent } from '../../components/product-list/product-list.component';
+import { ProductSelectComponent } from '../../components/product/product-list/product-list.component';
 import { Product, ProductItem } from '../../models/models';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { SelectedProductComponent } from '../../components/selected-product/selected-product.component';
+import { SelectedProductComponent } from '../../components/product/selected-product/selected-product.component';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ENTER_ANIMATION, LEAVE_ANIMATION } from '../../models/animations';
-import { SelectedProductListComponent } from '../../components/selected-product-list/selected-product-list.component';
-import { OverwriteDialogComponent } from '../../components/overwrite-dialog/overwrite-dialog.component';
+import { SelectedProductListComponent } from '../../components/product/selected-product-list/selected-product-list.component';
+import { OverwriteDialogComponent } from '../../components/product/overwrite-dialog/overwrite-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { OverlayModule } from '@angular/cdk/overlay';

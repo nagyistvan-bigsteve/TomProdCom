@@ -10,7 +10,8 @@ import { ClientType } from '../../models/enums';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
-import { AddClientComponent } from '../../components/add-client/add-client.component';
+import { AddClientComponent } from '../../components/client/add-client/add-client.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'select-client-page',
@@ -23,6 +24,7 @@ import { AddClientComponent } from '../../components/add-client/add-client.compo
     MatAutocompleteModule,
     MatOptionModule,
     AddClientComponent,
+    TranslateModule,
   ],
   templateUrl: './select-client-page.component.html',
   styleUrl: './select-client-page.component.scss',

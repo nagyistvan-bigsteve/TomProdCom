@@ -3,8 +3,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { MatButtonModule } from '@angular/material/button';
 import { Language } from './models/enums';
 import { RouterModule } from '@angular/router';
-import { TopbarComponent } from './components/topbar/topbar.component';
-import { BottomNavbarComponent } from './components/bottom-navbar/bottom-navbar.component';
+import { TopbarComponent } from './components/app-container/topbar/topbar.component';
+import { BottomNavbarComponent } from './components/app-container/bottom-navbar/bottom-navbar.component';
 
 @Component({
   standalone: true,

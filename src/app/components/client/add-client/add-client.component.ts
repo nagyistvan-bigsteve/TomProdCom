@@ -5,21 +5,22 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { ClientsService } from '../../services/query-services/client.service';
-import { Client } from '../../models/models';
+import { ClientsService } from '../../../services/query-services/client.service';
+import { Client } from '../../../models/models';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { ClientType } from '../../models/enums';
+import { ClientType } from '../../../models/enums';
 import { MatIconModule } from '@angular/material/icon';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ENTER_ANIMATION } from '../../models/animations';
+import { ENTER_ANIMATION } from '../../../models/animations';
 import { Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-add-client',
@@ -34,6 +35,7 @@ import { Router } from '@angular/router';
     MatIconModule,
     MatOptionModule,
     MatSelectModule,
+    TranslateModule,
   ],
   templateUrl: './add-client.component.html',
   styleUrl: './add-client.component.scss',

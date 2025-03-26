@@ -9,10 +9,10 @@ import {
 } from '@angular/core';
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { TranslateModule } from '@ngx-translate/core';
-import { Client } from '../../models/models';
+import { Client } from '../../../models/models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatListModule } from '@angular/material/list';
-import { ClientsService } from '../../services/query-services/client.service';
+import { ClientsService } from '../../../services/query-services/client.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import {
@@ -43,6 +43,7 @@ import { Router } from '@angular/router';
     MatInputModule,
     MatOptionModule,
     MatButtonModule,
+    TranslateModule,
   ],
   templateUrl: './client-details.component.html',
   styleUrl: './client-details.component.scss',

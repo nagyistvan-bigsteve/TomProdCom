@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Language } from '../../models/enums';
+import { Language } from '../../../models/enums';
 
 @Component({
   selector: 'app-language-switcher',

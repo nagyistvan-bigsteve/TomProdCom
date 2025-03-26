@@ -5,7 +5,7 @@
     <mat-expansion-panel [expanded]="true">
       <mat-expansion-panel-header class="px-3">
         <div class="d-flex justify-content-center align-items-center">
-          Client informations
+          {{ "CLIENT_DETAILS.TITLE" | translate }}
         </div>
       </mat-expansion-panel-header>
       <div class="w-100 client-data">
@@ -15,18 +15,26 @@
               selectedClient.type === 1 ? "PF" : "PJ"
             }})
           </mat-list-item>
-          <mat-list-item> Phone: {{ selectedClient.phone }} </mat-list-item>
+          <mat-list-item>
+            {{ "ADD_CLIENT.PHONE" | translate }}: {{ selectedClient.phone }}
+          </mat-list-item>
           @if (selectedClient.code) {
-          <mat-list-item> Code: {{ selectedClient.code }} </mat-list-item>
+          <mat-list-item>
+            {{ "ADD_CLIENT.CODE" | translate }}: {{ selectedClient.code }}
+          </mat-list-item>
           } @if (selectedClient.address) {
-          <mat-list-item> Address: {{ selectedClient.address }} </mat-list-item>
+          <mat-list-item>
+            {{ "ADD_CLIENT.ADDRESS" | translate }}: {{ selectedClient.address }}
+          </mat-list-item>
           } @if (selectedClient.delivery_address) {
           <mat-list-item>
-            Delivery address: {{ selectedClient.delivery_address }}
+            {{ "ADD_CLIENT.DELIVERY_ADDRESS" | translate }}:
+            {{ selectedClient.delivery_address }}
           </mat-list-item>
           } @if (selectedClient.other_details) {
           <mat-list-item>
-            Details: {{ selectedClient.other_details }}
+            {{ "ADD_CLIENT.DETAILS" | translate }}:
+            {{ selectedClient.other_details }}
           </mat-list-item>
           }
         </mat-list>
@@ -37,7 +45,8 @@
               mat-button
               (click)="openEditDialog(selectedClient)"
             >
-              Edit
+              <mat-icon>edit</mat-icon>
+              {{ "CLIENT_DETAILS.EDIT_BUTTON" | translate }}
             </button>
           </div>
           <div class="d-flex align-items-center">
@@ -46,7 +55,8 @@
               mat-button
               (click)="goToClientPage()"
             >
-              Change
+              <mat-icon>change_circle</mat-icon>
+              {{ "CLIENT_DETAILS.CHANGE_BUTTON" | translate }}
             </button>
           </div>
         </div>
@@ -58,7 +68,7 @@
     <mat-expansion-panel disabled="true">
       <mat-expansion-panel-header class="px-3">
         <div class="d-flex justify-content-center align-items-center">
-          Client informations
+          {{ "CLIENT_DETAILS.TITLE" | translate }}
         </div>
       </mat-expansion-panel-header>
     </mat-expansion-panel>
@@ -70,7 +80,8 @@
             mat-button
             (click)="goToClientPage()"
           >
-            Add
+            <mat-icon>add</mat-icon>
+            {{ "CLIENT_DETAILS.ADD_BUTTON" | translate }}
           </button>
         </div>
       </mat-expansion-panel-header>

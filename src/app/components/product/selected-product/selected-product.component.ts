@@ -7,17 +7,17 @@ import {
   OnChanges,
   Output,
 } from '@angular/core';
-import { Price, Product, ProductItem } from '../../models/models';
+import { Price, Product, ProductItem } from '../../../models/models';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
-import { Category, Unit_id } from '../../models/enums';
+import { Category, Unit_id } from '../../../models/enums';
 import { TranslateModule } from '@ngx-translate/core';
-import { ProductsService } from '../../services/query-services/products.service';
+import { ProductsService } from '../../../services/query-services/products.service';
 import { take } from 'rxjs';
-import { ENTER_ANIMATION } from '../../models/animations';
+import { ENTER_ANIMATION } from '../../../models/animations';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 

@@ -9,9 +9,9 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
-import { ProductsService } from '../../services/query-services/products.service';
-import { Product, Products } from '../../models/models';
-import { Size_id, Unit_id } from '../../models/enums';
+import { ProductsService } from '../../../services/query-services/products.service';
+import { Product, Products } from '../../../models/models';
+import { Size_id, Unit_id } from '../../../models/enums';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';

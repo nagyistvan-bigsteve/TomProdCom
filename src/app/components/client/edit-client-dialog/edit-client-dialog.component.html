@@ -1,8 +1,8 @@
-<h2 mat-dialog-title>Edit Client</h2>
+<h2 mat-dialog-title>{{ "EDIT_CLIENT.TITLE" | translate }}</h2>
 <mat-dialog-content>
   <form [formGroup]="clientForm">
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Name</mat-label>
+      <mat-label>{{ "ADD_CLIENT.NAME" | translate }}</mat-label>
       <input
         matInput
         [(ngModel)]="data.client.name"
@@ -12,7 +12,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Type</mat-label>
+      <mat-label>{{ "ADD_CLIENT.TYPE" | translate }}</mat-label>
       <mat-select [(ngModel)]="data.client.type" formControlName="type">
         <mat-option [value]="1">PF</mat-option>
         <mat-option [value]="2">PJ</mat-option>
@@ -20,7 +20,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Phone</mat-label>
+      <mat-label>{{ "ADD_CLIENT.PHONE" | translate }}</mat-label>
       <input
         matInput
         [(ngModel)]="data.client.phone"
@@ -30,7 +30,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Address</mat-label>
+      <mat-label>{{ "ADD_CLIENT.ADDRESS" | translate }}</mat-label>
       <input
         matInput
         [(ngModel)]="data.client.address"
@@ -39,7 +39,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Delivery Address</mat-label>
+      <mat-label>{{ "ADD_CLIENT.DELIVERY_ADDRESS" | translate }}</mat-label>
       <input
         matInput
         [(ngModel)]="data.client.delivery_address"
@@ -48,12 +48,12 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Code</mat-label>
+      <mat-label>{{ "ADD_CLIENT.CODE" | translate }}</mat-label>
       <input matInput [(ngModel)]="data.client.code" formControlName="code" />
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Details</mat-label>
+      <mat-label>{{ "ADD_CLIENT.DETAILS" | translate }}</mat-label>
       <textarea
         matInput
         [(ngModel)]="data.client.other_details"
@@ -64,13 +64,15 @@
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-button (click)="onCancel()">
+    {{ "EDIT_CLIENT.CANCEL_BUTTON" | translate }}
+  </button>
   <button
     mat-raised-button
     color="primary"
     (click)="onSave()"
     [disabled]="clientForm.invalid"
   >
-    Save
+    {{ "EDIT_CLIENT.SAVE_BUTTON" | translate }}
   </button>
 </mat-dialog-actions>

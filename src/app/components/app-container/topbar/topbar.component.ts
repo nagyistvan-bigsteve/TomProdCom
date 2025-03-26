@@ -4,7 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { Location } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { ENTER_AND_LEAVE_ANIMATION } from '../../models/animations';
+import { ENTER_AND_LEAVE_ANIMATION } from '../../../models/animations';
 
 @Component({
   selector: 'app-topbar',

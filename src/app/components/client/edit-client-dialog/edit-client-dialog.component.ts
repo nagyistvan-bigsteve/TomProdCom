@@ -10,11 +10,12 @@ import {
   MatDialogModule,
   MatDialogRef,
 } from '@angular/material/dialog';
-import { Client } from '../../models/models';
+import { Client } from '../../../models/models';
 import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { MatButton } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-edit-client-dialog',
@@ -26,6 +27,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatOptionModule,
     MatButton,
     MatSelectModule,
+    TranslateModule,
   ],
   templateUrl: './edit-client-dialog.component.html',
   styleUrls: ['./edit-client-dialog.component.scss'],

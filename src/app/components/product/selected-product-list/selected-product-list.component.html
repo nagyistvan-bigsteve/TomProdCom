@@ -197,7 +197,10 @@
               class="button-background"
               (click)="goToCreateOfferPage()"
             >
-              Add
+              <mat-icon>add</mat-icon>
+              {{
+                "OFFER_PAGE.CREATE_OFFER.PRODUCT_LIST.ADD_BUTTON" | translate
+              }}
             </button>
           </div>
         </mat-expansion-panel-header>

@@ -49,7 +49,8 @@
         "NAME": "Nume",
         "QUALITY": "Clasa",
         "QUANTITY": "Cantitate",
-        "PRICE": "Preț"
+        "PRICE": "Preț",
+        "ADD_BUTTON": "Adaugare"
       },
       "TILE_BUTTONS": {
         "SHOW_PRODUCT_LIST": "Vezi lista de produse",
@@ -81,6 +82,38 @@
     }
   },
   "WORDS": {
-    "TOTAL": "Total"
+    "TOTAL": "Total",
+    "VOUCHER": "Voucher"
+  },
+  "OVERVIEW_PAGE": {
+    "BUTTONS": {
+      "CONFIRM": "Confirmare comanda"
+    }
+  },
+  "SELECT_CLIENT": {
+    "TITLE": "Alege client"
+  },
+  "ADD_CLIENT": {
+    "TITLE": "Adaugare client",
+    "NAME": "Nume",
+    "TYPE": "Tip",
+    "PHONE": "Telefon",
+    "CODE": "Cod",
+    "DETAILS": "Detalii",
+    "ADDRESS": "Adresa",
+    "DELIVERY_ADDRESS": "Adresa de livrare",
+    "ADD_BUTTON": "Adaugare",
+    "FORWARD_BUTTON": "Mai departe"
+  },
+  "CLIENT_DETAILS": {
+    "TITLE": "Informații client",
+    "EDIT_BUTTON": "Editare",
+    "CHANGE_BUTTON": "Schimbare",
+    "ADD_BUTTON": "Adaugare"
+  },
+  "EDIT_CLIENT": {
+    "TITLE": "Editare client",
+    "CANCEL_BUTTON": "Înapoi",
+    "SAVE_BUTTON": "Salvare"
   }
 }
