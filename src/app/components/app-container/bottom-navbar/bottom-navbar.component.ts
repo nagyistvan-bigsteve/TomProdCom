@@ -13,9 +13,13 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrl: './bottom-navbar.component.scss',
 })
 export class BottomNavbarComponent {
-  readonly #router = inject(Router);
+  private router = inject(Router);
 
-  toNewOfferPage() {
-    this.#router.navigate(['/offer']);
+  toNewOfferPage(): void {
+    this.router.navigate(['/offer']);
+  }
+
+  toOrdersPage(): void {
+    this.router.navigate(['/orders']);
   }
 }

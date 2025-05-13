@@ -30,7 +30,7 @@
           </div>
         </mat-expansion-panel-header>
       </mat-expansion-panel>
-      @for (item of productList; track $index) {
+      @for (item of productStore.productItems(); track $index) {
       <mat-expansion-panel>
         <mat-expansion-panel-header class="px-3">
           <div class="row w-100">
@@ -86,7 +86,7 @@
           <div class="col-2">
             <button
               class="btn delete-button d-flex align-items-center"
-              (click)="confirmDelete($index)"
+              (click)="confirmDelete(item)"
               mat-icon-button
             >
               <mat-icon>delete</mat-icon>
@@ -130,7 +130,7 @@
           <div class="col-2">
             <button
               class="btn delete-button d-flex align-items-center"
-              (click)="confirmDelete($index)"
+              (click)="confirmDelete(item)"
               mat-icon-button
             >
               <mat-icon>delete</mat-icon>
@@ -160,7 +160,7 @@
           <div class="col-2">
             <button
               class="btn delete-button d-flex align-items-center"
-              (click)="confirmDelete($index)"
+              (click)="confirmDelete(item)"
               mat-icon-button
             >
               <mat-icon>delete</mat-icon>
@@ -179,7 +179,7 @@
           <div class="col-2">
             <button
               class="btn delete-button d-flex align-items-center"
-              (click)="confirmDelete($index)"
+              (click)="confirmDelete(item)"
               mat-icon-button
             >
               <mat-icon>delete</mat-icon>
@@ -188,7 +188,7 @@
           } }
         </div>
       </mat-expansion-panel>
-      } @if (!productList.length && isInOverview) {
+      } @if (!productStore.productItems().length && isInOverview) {
       <mat-expansion-panel disabled="true">
         <mat-expansion-panel-header class="emty-panel pt-1">
           <div class="d-flex justify-content-center">

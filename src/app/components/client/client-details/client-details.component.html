@@ -1,8 +1,8 @@
 <div class="d-flex align-items-center w-100 overflow-auto">
-  @if (selectedClient) {
+  @if (clientStore.client()) {
 
   <mat-accordion class="w-100" multi>
-    <mat-expansion-panel [expanded]="true">
+    <mat-expansion-panel [expanded]="false">
       <mat-expansion-panel-header class="px-3">
         <div class="d-flex justify-content-center align-items-center">
           {{ "CLIENT_DETAILS.TITLE" | translate }}
@@ -11,30 +11,33 @@
       <div class="w-100 client-data">
         <mat-list class="m-0 p-0">
           <mat-list-item>
-            {{ selectedClient.name }}({{
-              selectedClient.type === 1 ? "PF" : "PJ"
+            {{ clientStore.client()?.name }}({{
+              clientStore.client()?.type === 1 ? "PF" : "PJ"
             }})
           </mat-list-item>
           <mat-list-item>
-            {{ "ADD_CLIENT.PHONE" | translate }}: {{ selectedClient.phone }}
+            {{ "ADD_CLIENT.PHONE" | translate }}:
+            {{ clientStore.client()?.phone }}
           </mat-list-item>
-          @if (selectedClient.code) {
+          @if (clientStore.client()?.code) {
           <mat-list-item>
-            {{ "ADD_CLIENT.CODE" | translate }}: {{ selectedClient.code }}
+            {{ "ADD_CLIENT.CODE" | translate }}:
+            {{ clientStore.client()?.code }}
           </mat-list-item>
-          } @if (selectedClient.address) {
+          } @if (clientStore.client()?.address) {
           <mat-list-item>
-            {{ "ADD_CLIENT.ADDRESS" | translate }}: {{ selectedClient.address }}
+            {{ "ADD_CLIENT.ADDRESS" | translate }}:
+            {{ clientStore.client()?.address }}
           </mat-list-item>
-          } @if (selectedClient.delivery_address) {
+          } @if (clientStore.client()?.delivery_address) {
           <mat-list-item>
             {{ "ADD_CLIENT.DELIVERY_ADDRESS" | translate }}:
-            {{ selectedClient.delivery_address }}
+            {{ clientStore.client()?.delivery_address }}
           </mat-list-item>
-          } @if (selectedClient.other_details) {
+          } @if (clientStore.client()?.other_details) {
           <mat-list-item>
             {{ "ADD_CLIENT.DETAILS" | translate }}:
-            {{ selectedClient.other_details }}
+            {{ clientStore.client()?.other_details }}
           </mat-list-item>
           }
         </mat-list>
@@ -43,7 +46,7 @@
             <button
               class="edit-button-background ms-1"
               mat-button
-              (click)="openEditDialog(selectedClient)"
+              (click)="openEditDialog(clientStore.client())"
             >
               <mat-icon>edit</mat-icon>
               {{ "CLIENT_DETAILS.EDIT_BUTTON" | translate }}

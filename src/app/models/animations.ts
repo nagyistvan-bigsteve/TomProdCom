@@ -13,7 +13,7 @@ export const LEAVE_ANIMATION = [
   trigger('leaveAnimation', [
     transition(':leave', [
       style({ opacity: 1 }),
-      animate('600ms', style({ opacity: 0 })),
+      animate('600ms ease-in-out', style({ opacity: 0 })),
     ]),
   ]),
 ];

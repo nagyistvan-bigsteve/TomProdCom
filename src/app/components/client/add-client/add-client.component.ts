@@ -21,6 +21,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { useClientStore } from '../../../services/store/client-store';
 
 @Component({
   selector: 'app-add-client',
@@ -42,12 +43,12 @@ import { TranslateModule } from '@ngx-translate/core';
   animations: [ENTER_ANIMATION],
 })
 export class AddClientComponent {
-  @Input() selectedClient: Client | null = null;
+  public readonly clientStore = inject(useClientStore);
 
-  readonly #clientsService = inject(ClientsService);
-  readonly #snackBar = inject(MatSnackBar);
-  readonly #destroyRef = inject(DestroyRef);
-  readonly #router = inject(Router);
+  private clientsService = inject(ClientsService);
+  private snackBar = inject(MatSnackBar);
+  private destroyRef = inject(DestroyRef);
+  private router = inject(Router);
 
   clientForm = new FormGroup({
     name: new FormControl<string>('', {
@@ -74,20 +75,20 @@ export class AddClientComponent {
   );
 
   toOfferOverview(): void {
-    this.#router.navigate(['offer/overview']);
+    this.router.navigate(['offer/overview']);
   }
 
   addClient() {
     if (this.clientForm.valid) {
       const newClient: Partial<Client> = this.clientForm.value;
-      this.#clientsService
+      this.clientsService
         .addClient(newClient as Client)
-        .pipe(takeUntilDestroyed(this.#destroyRef))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((response) => {
           if (response) {
-            sessionStorage.setItem('current-client', JSON.stringify(newClient));
-            this.selectedClient = newClient as Client;
-            this.#snackBar.open('Client added successfully', 'Close', {
+            newClient.id = (response as Client).id;
+            this.clientStore.setClient(newClient as Client);
+            this.snackBar.open('Client added successfully', 'Close', {
               duration: 3000,
             });
           }

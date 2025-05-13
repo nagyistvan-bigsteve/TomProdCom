@@ -1,4 +1,5 @@
-import { Category, ClientType, OrderStatus, Size_id, Unit_id } from './enums';
+import { UserRole } from '../services/store/auth-store';
+import { Category, ClientType, Size_id, Unit_id } from './enums';
 
 export type Products = Product[];
 
@@ -26,6 +27,25 @@ export type ProductItem = {
   extraPiecesNeeded?: number;
 };
 
+export type ExactOrderItem = {
+  product_id: number;
+  order_id: number;
+  quantity: number;
+  category_id: Category;
+  price: number;
+  item_status?: boolean;
+  packs_pieces?: string;
+};
+
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  password: string;
+  approved: boolean;
+  role: UserRole;
+};
+
 export type Client = {
   id: number;
   type: ClientType;
@@ -47,16 +67,26 @@ export type OrderItems = {
   id: number;
   productId: number;
   orderId: number;
-  statusCode: OrderStatus;
   quantity: number;
   categoryId: Category;
   price: number;
+  item_status: boolean;
+};
+
+export type OrderItemsResponse = {
+  id: number;
+  product: { id: number; name: string; unit_id: number };
+  orderId: number;
+  quantity: number;
+  category: { name: string };
+  price: number;
+  itemStatus: boolean;
+  packsPieces?: string;
 };
 
 export type Order = {
   id: number;
   clientId: number;
-  status: OrderStatus;
   dateOrderPlaced: Date;
   expectedDelivery: Date;
   dateOrderDelivered: Date;
@@ -64,6 +94,20 @@ export type Order = {
   operatorId: string;
   totalAmountFinal: number;
   comment: string;
+  voucher: string;
+};
+
+export type OrderResponse = {
+  id: number;
+  client: { id: number; name: string };
+  dateOrderPlaced: Date;
+  expectedDelivery: Date;
+  dateOrderDelivered: Date;
+  totalAmount: number;
+  totalAmountFinal: number;
+  comment: string;
+  voucher: string;
+  operator: { id: string; name: string };
 };
 
 export type Price = {

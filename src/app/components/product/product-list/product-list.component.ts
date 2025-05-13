@@ -61,17 +61,17 @@ export class ProductSelectComponent {
   filteredOptions: Product[] = [];
   productsByFilter: Products = [];
 
-  readonly #productService = inject(ProductsService);
-  readonly #destroyRef = inject(DestroyRef);
+  private productService = inject(ProductsService);
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
     this.fetchProducts();
   }
 
   fetchProducts() {
-    this.#productService
+    this.productService
       .getProducts()
-      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((products) => {
         this.products = products;
         this.fetchProductGroups(products);

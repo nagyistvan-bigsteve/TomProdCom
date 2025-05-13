@@ -7,10 +7,10 @@ import { Client } from '../../models/models';
   providedIn: 'root',
 })
 export class ClientsService {
-  readonly #supabaseService = inject(SupabaseService);
+  private supabaseService = inject(SupabaseService);
 
   getClients(): Observable<Client[]> {
-    return from(this.#supabaseService.client.from('clients').select('*')).pipe(
+    return from(this.supabaseService.client.from('clients').select('*')).pipe(
       map(({ data }) => data ?? []),
       catchError((error) => {
         console.error('Error fetching products:', error);
@@ -19,12 +19,16 @@ export class ClientsService {
     );
   }
 
-  addClient(client: Client): Observable<boolean> {
+  addClient(client: Client): Observable<Client | boolean> {
     return from(
-      this.#supabaseService.client.from('clients').insert([client])
+      this.supabaseService.client
+        .from('clients')
+        .insert([client])
+        .select()
+        .single()
     ).pipe(
-      map(() => {
-        return true;
+      map((response) => {
+        return response.data as unknown as Client;
       }),
       catchError((error) => {
         console.error('Error adding client:', error);
@@ -34,9 +38,8 @@ export class ClientsService {
   }
 
   updateClient(client: Client): Observable<boolean> {
-    console.log(client);
     return from(
-      this.#supabaseService.client
+      this.supabaseService.client
         .from('clients')
         .update(client)
         .eq('id', client.id)

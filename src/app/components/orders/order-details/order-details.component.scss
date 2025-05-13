@@ -1,0 +1,13 @@
+:host {
+  width: 100vw !important;
+  padding-left: 7vw;
+  padding-right: 7vw;
+  max-height: 82vh !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.item-box {
+  max-height: 60vh !important;
+  overflow-y: auto;
+}

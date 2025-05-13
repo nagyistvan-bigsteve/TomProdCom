@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { map, Observable, startWith, switchMap, take } from 'rxjs';
 import { ClientsService } from '../../services/query-services/client.service';
@@ -12,6 +12,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import { AddClientComponent } from '../../components/client/add-client/add-client.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { useClientStore } from '../../services/store/client-store';
 
 @Component({
   selector: 'select-client-page',
@@ -30,31 +31,25 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrl: './select-client-page.component.scss',
 })
 export class SelectClientPageComponent {
-  readonly #clientsService = inject(ClientsService);
+  private clientsService = inject(ClientsService);
+  readonly clientStore = inject(useClientStore);
 
-  clients$: Observable<Client[]> = this.#clientsService.getClients();
+  clients$: Observable<Client[]> = this.clientsService.getClients();
   filteredClients$: Observable<Client[]>;
-  selectedClient: Client | null = null;
 
-  clientSearch = new FormControl('');
+  clientSearch = new FormControl<Client>(this.clientStore.client()!);
 
   clientTypes = Object.values(ClientType).filter(
     (value) => typeof value === 'number'
   );
 
   constructor() {
-    if (sessionStorage.getItem('current-client')) {
-      this.selectedClient = JSON.parse(
-        sessionStorage.getItem('current-client')!
-      );
-    }
-
     this.filteredClients$ = this.clientSearch.valueChanges.pipe(
       startWith(''),
       map((value) => (typeof value === 'string' ? value.toLowerCase() : '')),
       map((search) =>
         search
-          ? this.#clientsService
+          ? this.clientsService
               .getClients()
               .pipe(
                 map((clients) =>
@@ -63,7 +58,7 @@ export class SelectClientPageComponent {
                   )
                 )
               )
-          : this.#clientsService.getClients()
+          : this.clientsService.getClients()
       ),
       switchMap((obs) => obs)
     );
@@ -74,7 +69,6 @@ export class SelectClientPageComponent {
   }
 
   selectClient(client: Client) {
-    sessionStorage.setItem('current-client', JSON.stringify(client));
-    this.selectedClient = client;
+    this.clientStore.setClient(client);
   }
 }

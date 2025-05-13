@@ -1,0 +1,25 @@
+@if (unapprovedUsers | async; as users) {
+<mat-accordion @enterAnimation class="w-100" multi>
+  <mat-expansion-panel [expanded]="users.length !== 0">
+    <mat-expansion-panel-header class="px-3">
+      <div class="d-flex justify-content-center align-items-center">
+        Unapproved users:
+      </div>
+    </mat-expansion-panel-header>
+    <div class="w-100 users-container">
+      @for (user of users; track $index) {
+      <div class="d-flex justify-content-between align-items-center py-1">
+        <div class="d-flex">
+          {{ user.name }}({{ user.email }},{{ user.role }})
+        </div>
+        <button mat-stroked-button (click)="approveUser(user.id)">
+          Approve
+        </button>
+      </div>
+      } @if (users.length === 0) {
+      <div class="fs-5 w-100">All users are approved</div>
+      }
+    </div>
+  </mat-expansion-panel>
+</mat-accordion>
+}

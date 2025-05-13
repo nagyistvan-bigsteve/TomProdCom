@@ -50,8 +50,8 @@ export class SelectedProductComponent implements OnChanges {
   extraPiecesNeeded: number = 0;
   totalPiecesNeeded: number = 0;
 
-  readonly #productService = inject(ProductsService);
-  readonly #destroyRef = inject(DestroyRef);
+  private productService = inject(ProductsService);
+  private destroyRef = inject(DestroyRef);
 
   ngOnChanges(): void {
     this.selectedCategory = Category.A;
@@ -89,9 +89,9 @@ export class SelectedProductComponent implements OnChanges {
   }
 
   fetchPrices(product: Product): void {
-    this.#productService
+    this.productService
       .getPrices(product)
-      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(
         (prices) => {
           this.prices = prices;

@@ -25,6 +25,19 @@ body {
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
+.voucher-input {
+  @include mat.form-field-overrides(
+    (
+      outlined-outline-width: 2px,
+      outlined-outline-color: white,
+      outlined-focus-outline-color: white,
+      outlined-caret-color: white,
+      outlined-label-text-color: white,
+      outlined-input-text-color: white,
+    )
+  );
+}
+
 :root {
   @include mat.divider-overrides(
     (

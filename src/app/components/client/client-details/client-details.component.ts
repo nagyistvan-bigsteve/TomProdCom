@@ -1,16 +1,8 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  DestroyRef,
-  inject,
-  OnInit,
-  TemplateRef,
-  ViewChild,
-} from '@angular/core';
+import { Component, inject, TemplateRef, ViewChild } from '@angular/core';
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { TranslateModule } from '@ngx-translate/core';
 import { Client } from '../../../models/models';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatListModule } from '@angular/material/list';
 import { ClientsService } from '../../../services/query-services/client.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -27,6 +19,8 @@ import { MatOptionModule } from '@angular/material/core';
 import { EditClientDialogComponent } from '../edit-client-dialog/edit-client-dialog.component';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
+import { useClientStore } from '../../../services/store/client-store';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-client-details',
@@ -48,42 +42,32 @@ import { Router } from '@angular/router';
   templateUrl: './client-details.component.html',
   styleUrl: './client-details.component.scss',
 })
-export class ClientDetailsComponent implements OnInit {
+export class ClientDetailsComponent {
   @ViewChild('editClientDialog') editClientDialog!: TemplateRef<any>;
 
-  readonly #destroyRef = inject(DestroyRef);
-  readonly #clientService = inject(ClientsService);
-  readonly #router = inject(Router);
+  private clientService = inject(ClientsService);
+  private router = inject(Router);
   readonly dialog = inject(MatDialog);
+  readonly clientStore = inject(useClientStore);
 
-  selectedClient: Client | null = null;
-
-  clientForm: FormGroup | null = this.selectedClient
+  clientForm: FormGroup | null = this.clientStore.client()
     ? inject(FormBuilder).group({
-        id: [this.selectedClient.id],
-        name: [this.selectedClient.name, Validators.required],
-        type: [this.selectedClient.type, Validators.required],
-        phone: [this.selectedClient.phone, Validators.required],
-        address: [this.selectedClient.address],
-        delivery_address: [this.selectedClient.delivery_address],
-        code: [this.selectedClient.code],
-        other_details: [this.selectedClient.other_details],
+        id: [this.clientStore.client()?.id],
+        name: [this.clientStore.client()?.name, Validators.required],
+        type: [this.clientStore.client()?.type, Validators.required],
+        phone: [this.clientStore.client()?.phone, Validators.required],
+        address: [this.clientStore.client()?.address],
+        delivery_address: [this.clientStore.client()?.delivery_address],
+        code: [this.clientStore.client()?.code],
+        other_details: [this.clientStore.client()?.other_details],
       })
     : null;
 
-  ngOnInit(): void {
-    if (sessionStorage.getItem('current-client')) {
-      this.selectedClient = JSON.parse(
-        sessionStorage.getItem('current-client')!
-      );
-    }
-  }
-
   goToClientPage(): void {
-    this.#router.navigate(['offer/client']);
+    this.router.navigate(['offer/client']);
   }
 
-  openEditDialog(client: Client) {
+  openEditDialog(client: Client | null) {
     const dialogRef = this.dialog.open(EditClientDialogComponent, {
       width: '400px',
       data: { client },
@@ -91,7 +75,11 @@ export class ClientDetailsComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((updatedClient) => {
       if (updatedClient) {
-        this.#clientService.updateClient(updatedClient).subscribe(() => {});
+        this.clientStore.updateClient(updatedClient);
+        this.clientService
+          .updateClient(updatedClient)
+          .pipe(take(1))
+          .subscribe();
       }
     });
   }

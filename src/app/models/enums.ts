@@ -1,8 +1,3 @@
-export enum OrderStatus {
-  OFFER = 1,
-  CONFIRMED = 2,
-}
-
 export enum Unit_id {
   UNDEFINED = 0,
   BUC = 1,

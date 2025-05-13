@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { ProductSelectComponent } from '../../components/product/product-list/product-list.component';
 import { Product, ProductItem } from '../../models/models';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -13,6 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { useProductStore } from '../../services/store/product-store';
 
 @Component({
   selector: 'app-create-offer-page',
@@ -32,51 +33,48 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   styleUrl: './create-offer-page.component.scss',
   animations: [ENTER_ANIMATION, LEAVE_ANIMATION],
 })
-export class CreateOfferPageComponent implements OnInit {
+export class CreateOfferPageComponent {
   selectedProduct: Product | undefined = undefined;
-  productList: ProductItem[] = [];
   selectProductOn: boolean = true;
-  readonly #translateService = inject(TranslateService);
-  readonly #destroyRef = inject(DestroyRef);
+  private translateService = inject(TranslateService);
+  private destroyRef = inject(DestroyRef);
   private _snackBar = inject(MatSnackBar);
   private _dialog = inject(MatDialog);
-
-  ngOnInit(): void {
-    if (sessionStorage.getItem('offer-products')) {
-      this.productList = JSON.parse(sessionStorage.getItem('offer-products')!);
-    }
-  }
+  readonly productStore = inject(useProductStore);
 
   getSelectedProduct(product: Product): void {
     this.selectedProduct = product;
   }
 
   addProductToList(item: ProductItem): void {
-    const existingProduct = this.productList.find(
-      (product) =>
-        product.category === item.category &&
-        product.product.name === item.product.name
-    );
+    const existingProduct = this.productStore
+      .productItems()
+      .find(
+        (product) =>
+          product.category === item.category &&
+          product.product.name === item.product.name
+      );
 
     if (existingProduct) {
+      const productList = this.productStore.productItems();
+
       const dialogRef = this._dialog.open(OverwriteDialogComponent, {
         data: { productName: item.product.name },
       });
 
       dialogRef
         .afterClosed()
-        .pipe(takeUntilDestroyed(this.#destroyRef))
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((result: any) => {
           if (result === 'overwrite') {
-            const index = this.productList.indexOf(existingProduct);
-            this.productList[index] = item;
+            const index = this.productStore
+              .productItems()
+              .indexOf(existingProduct);
+            productList[index] = item;
 
-            sessionStorage.setItem(
-              'offer-products',
-              JSON.stringify(this.productList)
-            );
+            this.productStore.setProductItems(productList);
             this.openSnackBar(
-              this.#translateService.instant(
+              this.translateService.instant(
                 'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.OVERWRITE'
               ) + item.product.name
             );
@@ -109,26 +107,24 @@ export class CreateOfferPageComponent implements OnInit {
                 : (existingProduct.packsNeeded = item.packsNeeded);
             }
 
-            sessionStorage.setItem(
-              'offer-products',
-              JSON.stringify(this.productList)
+            this.productStore.updateProductItem(
+              existingProduct.product.id,
+              existingProduct.category,
+              existingProduct
             );
+
             this.openSnackBar(
-              this.#translateService.instant(
+              this.translateService.instant(
                 'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.ADD'
               ) + item.product.name
             );
           }
         });
     } else {
-      this.productList.push(item);
+      this.productStore.addProductItem(item);
 
-      sessionStorage.setItem(
-        'offer-products',
-        JSON.stringify(this.productList)
-      );
       this.openSnackBar(
-        this.#translateService.instant(
+        this.translateService.instant(
           'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.ADD'
         ) + item.product.name
       );

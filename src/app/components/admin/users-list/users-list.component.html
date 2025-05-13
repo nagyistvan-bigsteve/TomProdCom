@@ -1,0 +1,45 @@
+@if (usersList | async; as users) {
+<mat-accordion class="w-100" multi>
+  <mat-expansion-panel [expanded]="users.length !== 0">
+    <mat-expansion-panel-header class="px-3">
+      <div class="d-flex justify-content-center align-items-center">Users:</div>
+    </mat-expansion-panel-header>
+    <div class="w-100">
+      <div>
+        <div class="text-danger fs-6">Admins:</div>
+        @for (user of users; track $index) { @if(user.role === 'admin') {
+        <div
+          @enterAnimation
+          class="d-flex justify-content-between align-items-center ps-2"
+        >
+          <div class="d-flex">{{ user.name }}({{ user.email }})</div>
+          <button
+            mat-icon-button
+            [disabled]="authStore.id() === user.id"
+            (click)="changeUserRole(user.id, user.role)"
+          >
+            <mat-icon class="text-danger">arrow_circle_down</mat-icon>
+          </button>
+        </div>
+        } }
+      </div>
+      <mat-divider class="my-3" />
+
+      <div>
+        <div class="fs-6">Users:</div>
+        @for (user of users; track $index) { @if(user.role === 'user') {
+        <div
+          @enterAnimation
+          class="d-flex justify-content-between align-items-center ps-2"
+        >
+          <div class="d-flex">{{ user.name }}({{ user.email }})</div>
+          <button mat-icon-button (click)="changeUserRole(user.id, user.role)">
+            <mat-icon class="text-success">arrow_circle_up</mat-icon>
+          </button>
+        </div>
+        } }
+      </div>
+    </div>
+  </mat-expansion-panel>
+</mat-accordion>
+}

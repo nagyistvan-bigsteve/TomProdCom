@@ -7,7 +7,6 @@ import {
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { ProductItems } from '../../../models/models';
 import { CommonModule, Location } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatDividerModule } from '@angular/material/divider';
@@ -17,6 +16,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { useProductStore } from '../../../services/store/product-store';
+import { ProductItem } from '../../../models/models';
 
 @Component({
   selector: 'app-selected-product-list',
@@ -37,55 +38,56 @@ export class SelectedProductListComponent implements OnInit {
   @ViewChild('confirmDeleteDialog') confirmDeleteDialog!: TemplateRef<any>;
   @Input() isInOverview: boolean = false;
 
-  productList: ProductItems = [];
   totalPrice: number = 0;
 
-  readonly #router = inject(Router);
+  private router = inject(Router);
   private _dialog = inject(MatDialog);
-  readonly #location = inject(Location);
-  readonly #destroyRef = inject(DestroyRef);
+  private location = inject(Location);
+  private destroyRef = inject(DestroyRef);
+  readonly productStore = inject(useProductStore);
 
   ngOnInit(): void {
-    if (sessionStorage.getItem('offer-products')) {
-      this.productList = JSON.parse(sessionStorage.getItem('offer-products')!);
+    this.getTotalPrice();
+  }
 
+  getTotalPrice(): void {
+    if (this.productStore.productItems()) {
       this.totalPrice = 0;
-      this.productList.forEach((item) => {
+      this.productStore.productItems()?.forEach((item) => {
         this.totalPrice = this.totalPrice + item.price;
       });
     }
   }
 
   goBack(): void {
-    this.#location.back();
+    this.location.back();
   }
 
   goToCreateOfferPage(): void {
-    this.#router.navigate(['/offer/create']);
+    this.router.navigate(['/offer/create']);
   }
 
   goToClientPage(): void {
-    sessionStorage.setItem('offer-products', JSON.stringify(this.productList));
-    this.#router.navigate(['/offer/client']);
+    if (!localStorage.getItem('client_data')) {
+      this.router.navigate(['/offer/client']);
+    } else {
+      this.router.navigate(['/offer/overview']);
+    }
   }
 
-  confirmDelete(index: number): void {
+  confirmDelete(item: ProductItem): void {
     const dialogRef = this._dialog.open(this.confirmDeleteDialog, {
       width: '300px',
     });
 
     dialogRef
       .afterClosed()
-      .pipe(takeUntilDestroyed(this.#destroyRef))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          this.deleteItem(index);
+          this.productStore.deleteProductById(item.product.id, item.category);
+          this.getTotalPrice();
         }
       });
-  }
-
-  deleteItem(index: number): void {
-    this.productList.splice(index, 1);
-    sessionStorage.setItem('offer-products', JSON.stringify(this.productList));
   }
 }

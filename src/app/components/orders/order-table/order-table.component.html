@@ -1,0 +1,137 @@
+<div class="filter-section d-flex flex-column w-100">
+  <mat-chip-listbox
+    [(ngModel)]="tableFilter"
+    (ngModelChange)="filterItems(false)"
+    aria-label="Filter table"
+  >
+    <mat-chip-option
+      [disabled]="tableFilter === 'all'"
+      value="all"
+      [selected]="tableFilter === 'all'"
+      >all</mat-chip-option
+    >
+    <mat-chip-option
+      [disabled]="tableFilter === 'open'"
+      value="open"
+      [selected]="tableFilter === 'open'"
+      >open</mat-chip-option
+    >
+    <mat-chip-option
+      [disabled]="tableFilter === 'closed'"
+      value="closed"
+      [selected]="tableFilter === 'closed'"
+      >closed</mat-chip-option
+    >
+  </mat-chip-listbox>
+
+  <mat-form-field class="mb-1">
+    <mat-label>Enter a date range</mat-label>
+    <mat-date-range-input [formGroup]="dateRange" [rangePicker]="picker">
+      <input matStartDate formControlName="start" placeholder="Start date" />
+      <input matEndDate formControlName="end" placeholder="End date" />
+    </mat-date-range-input>
+    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-date-range-picker #picker></mat-date-range-picker>
+
+    @if (dateRange.controls.start.hasError('matStartDateInvalid')) {
+    <mat-error>Invalid start date</mat-error>
+    } @if (dateRange.controls.end.hasError('matEndDateInvalid')) {
+    <mat-error>Invalid end date</mat-error>
+    }
+  </mat-form-field>
+</div>
+
+<table
+  mat-table
+  [dataSource]="dataSource"
+  multiTemplateDataRows
+  class="mat-elevation-z8 rounded overflow-hidden"
+>
+  @for (column of columnsToDisplay; track column) {
+  <ng-container matColumnDef="{{ column.value }}">
+    <th mat-header-cell *matHeaderCellDef>{{ column.name }}</th>
+    <td @leaveAnimation mat-cell *matCellDef="let order">
+      @switch (column.value) { @case ('client') {
+      {{ order.client.name }}
+      } @case ('operator') {
+      {{ order.operator.name }}
+      } @case ('totalAmountFinal') {
+      {{ order[column.value] | number : "1.0-2" }}
+      } @case ('dateOrderPlaced') {
+      {{ order[column.value] | date }}
+      } @case ('dateOrderDelivered') {
+      {{ order[column.value] | date }}
+      } @default {
+      {{ order[column.value] }}
+      } }
+    </td>
+  </ng-container>
+
+  }
+
+  <ng-container matColumnDef="expandedDetail">
+    <td
+      mat-cell
+      *matCellDef="let order"
+      [attr.colspan]="columnsToDisplayStrings.length"
+    >
+      <div
+        class="order-detail-wrapper"
+        [class.order-detail-wrapper-expanded]="isExpanded(order)"
+      >
+        <div class="order-detail" [ngClass]="{ 'py-1': isExpanded(order) }">
+          <div>
+            @if (order.voucher != '') {
+            <div class="order-detail-item detail-voucher">
+              Voucher: {{ order.voucher }}
+              {{ !isPercentageVoucher(order.voucher) ? "RON" : "" }}
+            </div>
+            } @if(!order.dateOrderDelivered) {
+            <div
+              class="order-detail-item rounded expected-delivery-bg"
+              [ngClass]="
+                isExpectedDeliveryInFuture(order.expectedDelivery)
+                  ? 'in-future'
+                  : 'in-past'
+              "
+            >
+              Expected delivery:
+              {{ order.expectedDelivery }}
+            </div>
+            }
+          </div>
+          <div
+            class="h-100 d-flex flex-column justify-content-center align-items-center"
+          >
+            <button (click)="showOrderDetails(order)" mat-raised-button>
+              Details
+            </button>
+            @if(authStore.role() === 'admin'){
+            <button
+              (click)="deleteOrder(order)"
+              mat-raised-button
+              class="delete-button mt-1"
+            >
+              Delete
+            </button>
+            }
+          </div>
+        </div>
+      </div>
+    </td>
+  </ng-container>
+
+  <tr mat-header-row *matHeaderRowDef="columnsToDisplayStrings"></tr>
+  <tr
+    mat-row
+    *matRowDef="let order; columns: columnsToDisplayStrings"
+    class="element-row"
+    [class.expanded-row]="isExpanded(order)"
+    (click)="toggle(order)"
+  ></tr>
+  <tr
+    mat-row
+    *matRowDef="let row; columns: ['expandedDetail']"
+    class="detail-row"
+  ></tr>
+</table>

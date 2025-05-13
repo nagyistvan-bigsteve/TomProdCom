@@ -1,4 +1,4 @@
-<mat-card class="mx-3 p-3" [ngClass]="{ 'reduced-height': selectedClient }">
+<mat-card class="mx-3 p-3" [ngClass]="{ 'reduced-height': clientStore.client }">
   <h3 class="pb-2">{{ "ADD_CLIENT.TITLE" | translate }}</h3>
   <mat-form-field appearance="outline" class="w-100">
     <mat-label>{{ "ADD_CLIENT.NAME" | translate }}</mat-label>
@@ -49,7 +49,7 @@
     {{ "ADD_CLIENT.ADD_BUTTON" | translate }}
   </button>
 </mat-card>
-@if (selectedClient) {
+@if (clientStore.client()) {
 <div @enterAnimation class="d-flex justify-content-center">
   <button class="mt-2 full-width" (click)="toOfferOverview()" mat-raised-button>
     {{ "ADD_CLIENT.FORWARD_BUTTON" | translate }}

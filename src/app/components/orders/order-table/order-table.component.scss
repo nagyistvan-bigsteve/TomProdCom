@@ -1,0 +1,79 @@
+:host {
+  max-height: 80vh !important;
+  overflow: scroll;
+}
+
+table {
+  width: 95vw !important;
+}
+
+tr.detail-row {
+  height: 0;
+}
+
+tr.order-row {
+  cursor: pointer;
+}
+
+tr.order-row:not(.expanded-row):hover {
+  background: whitesmoke;
+}
+
+tr.order-row:not(.expanded-row):active {
+  background: #efefef;
+}
+
+.order-row td {
+  border-bottom-width: 0;
+}
+
+.order-detail-wrapper {
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 0fr;
+  grid-template-columns: 100%;
+  transition: grid-template-rows 225ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.order-detail-wrapper-expanded {
+  grid-template-rows: 1fr;
+}
+
+.order-detail {
+  display: flex;
+  justify-content: space-between;
+  min-height: 0;
+
+  .order-detail-item {
+    padding: 0.5rem;
+  }
+}
+
+.in-past {
+  background-color: rgb(226, 74, 74);
+}
+.in-future {
+  background-color: rgb(98, 242, 187);
+}
+
+::ng-deep {
+  .detail-row {
+    background-color: #efefef !important;
+  }
+
+  .mat-mdc-raised-button {
+    color: rgb(72, 95, 77) !important;
+  }
+
+  .mat-mdc-raised-button.delete-button {
+    color: rgb(95, 1, 1) !important;
+  }
+
+  th.mdc-data-table__header-cell {
+    padding: 0px 8px !important;
+  }
+
+  .filter-section .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+}

@@ -12,9 +12,9 @@ import { ENTER_ANIMATION } from '../../models/animations';
   animations: ENTER_ANIMATION,
 })
 export class OfferPageComponent {
-  readonly #router = inject(Router);
+  private router = inject(Router);
 
   toCreateOfferPage(): void {
-    this.#router.navigate(['/offer/create']);
+    this.router.navigate(['/offer/create']);
   }
 }

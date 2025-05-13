@@ -1,16 +1,23 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../supabase.service';
 import { catchError, from, map, Observable, of, switchMap } from 'rxjs';
-import { Price, Product, Products } from '../../models/models';
+import {
+  Client,
+  ExactOrderItem,
+  Price,
+  Product,
+  ProductItems,
+  Products,
+} from '../../models/models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProductsService {
-  readonly #supabaseService = inject(SupabaseService);
+  private supabaseService = inject(SupabaseService);
 
   getProducts(): Observable<Products> {
-    return from(this.#supabaseService.client.from('products').select('*')).pipe(
+    return from(this.supabaseService.client.from('products').select('*')).pipe(
       map(({ data }) => data ?? []), // Ensure an empty array if null
       catchError((error) => {
         console.error('Error fetching products:', error);
@@ -21,7 +28,7 @@ export class ProductsService {
 
   getPrices(product: Product): Observable<Price[]> {
     return from(
-      this.#supabaseService.client
+      this.supabaseService.client
         .from('prices')
         .select('*')
         .or(`product_id.eq.${product.id}`)
@@ -34,7 +41,7 @@ export class ProductsService {
 
         // Otherwise, fetch prices where product_id is NULL and match unit_id & size_id
         return from(
-          this.#supabaseService.client.from('prices').select('*').match({
+          this.supabaseService.client.from('prices').select('*').match({
             unit_id: product.unit_id,
             size_id: product.size_id,
           })
