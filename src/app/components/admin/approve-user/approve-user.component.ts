@@ -4,10 +4,19 @@ import { useAuthStore } from '../../../services/store/auth-store';
 import { CommonModule } from '@angular/common';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-approve-user',
-  imports: [MatAccordion, MatExpansionModule, CommonModule, MatButtonModule],
+  imports: [
+    MatAccordion,
+    MatExpansionModule,
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDividerModule,
+  ],
   templateUrl: './approve-user.component.html',
   styleUrl: './approve-user.component.scss',
   animations: [ENTER_ANIMATION],
@@ -18,6 +27,12 @@ export class ApproveUserComponent {
 
   approveUser(id: string) {
     this.authStore.approveUser(id).then(() => {
+      this.unapprovedUsers = this.authStore.fetchUnapprovedUsers();
+    });
+  }
+
+  denieUser(id: string) {
+    this.authStore.denieUser(id).then(() => {
       this.unapprovedUsers = this.authStore.fetchUnapprovedUsers();
     });
   }

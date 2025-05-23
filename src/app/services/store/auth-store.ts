@@ -141,7 +141,9 @@ export const useAuthStore = signalStore(
 
       async logout() {
         try {
-          await supabaseService.client.auth.signOut();
+          await supabaseService.client.auth.signOut().then(() => {
+            router.navigate(['/auth']);
+          });
 
           patchState(store, {
             isAuthenticated: false,
@@ -153,7 +155,6 @@ export const useAuthStore = signalStore(
           });
 
           localStorage.removeItem('auth');
-          router.navigate(['/auth']);
           return { success: true };
         } catch (error) {
           console.error('Logout error:', error);
@@ -248,6 +249,32 @@ export const useAuthStore = signalStore(
         }
       },
 
+      async denieUser(id: string) {
+        try {
+          const { data, error } = await supabaseService.client
+            .from('profiles')
+            .delete()
+            .eq('id', id)
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          console.log(data);
+
+          patchState(store, {
+            unapprovedUsersNumber: store.unapprovedUsersNumber()! - 1,
+          });
+
+          persistState();
+
+          return data;
+        } catch (error) {
+          console.error('Failed to denie user: ', error);
+          return;
+        }
+      },
+
       async changeRoleForUser(id: string, oldRole: UserRole) {
         const newRole = oldRole === 'user' ? 'admin' : 'user';
 
@@ -260,6 +287,21 @@ export const useAuthStore = signalStore(
             .single();
 
           if (error) throw error;
+
+          if (newRole === 'admin') {
+            const { error } = await supabaseService.client
+              .from('admin_users')
+              .insert({ id: id });
+
+            if (error) throw error;
+          } else {
+            const { error } = await supabaseService.client
+              .from('admin_users')
+              .delete()
+              .eq('id', id);
+
+            if (error) throw error;
+          }
 
           return data;
         } catch (error) {

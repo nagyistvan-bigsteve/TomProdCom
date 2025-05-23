@@ -1,35 +1,6 @@
 <div class="px-3">
-  <form class="product-select w-100">
-    <mat-form-field class="w-100" appearance="fill">
-      <mat-label>
-        {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_SELECT.SELECT_LABEL" | translate }}
-      </mat-label>
-      <input
-        #input
-        type="text"
-        matInput
-        [formControl]="myControl"
-        [matAutocomplete]="auto"
-        (input)="filter()"
-        (focus)="filter()"
-      />
-      <mat-autocomplete
-        #auto="matAutocomplete"
-        requireSelection
-        (optionSelected)="optionSelected($event.option.value)"
-        [displayWith]="displayProductLabel"
-      >
-        @for (option of filteredOptions; track option) {
-        <mat-option [value]="option">{{ option.name }}</mat-option>
-        }
-      </mat-autocomplete>
-    </mat-form-field>
-  </form>
-
-  @if(isProductSelectet){ @if(!updateStock) {
   <div
-    @enterAndLeaveAnimation
-    class="edit-product d-flex flex-column align-items-center shadow rounded text-dark bg-white py-2 px-3 mb-2"
+    class="add-product d-flex flex-column align-items-center shadow rounded text-dark bg-white py-2 px-3 mb-2"
   >
     <form [formGroup]="productForm">
       <mat-form-field appearance="outline" class="full-width">
@@ -104,7 +75,7 @@
 
       @if(selectedProduct.unit_id === 2){
       <mat-form-field
-        @@enterAndLeaveAnimation
+        @enterAndLeaveAnimation
         appearance="outline"
         class="full-width"
       >
@@ -118,7 +89,7 @@
       </mat-form-field>
 
       <mat-form-field
-        @@enterAndLeaveAnimation
+        @enterAndLeaveAnimation
         appearance="outline"
         class="full-width"
       >
@@ -132,7 +103,7 @@
       </mat-form-field>
 
       <mat-form-field
-        @@enterAndLeaveAnimation
+        @enterAndLeaveAnimation
         appearance="outline"
         class="full-width"
       >
@@ -156,27 +127,4 @@
   >
     {{ "EDIT_CLIENT.SAVE_BUTTON" | translate }}
   </button>
-  } @else{ @if(currentStock){
-  <div
-    @enterAndLeaveAnimation
-    class="d-flex flex-column align-items-center shadow rounded text-dark bg-white pt-3 px-3 mb-2"
-  >
-    <form [formGroup]="stockForm">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Stock</mat-label>
-        <input
-          matInput
-          [(ngModel)]="currentStock.stock"
-          formControlName="stock"
-          type="number"
-          required
-        />
-      </mat-form-field>
-    </form>
-
-    <button class="w-100 mb-2" mat-flat-button (click)="onStockSave()">
-      {{ "EDIT_CLIENT.SAVE_BUTTON" | translate }}
-    </button>
-  </div>
-  } } }
 </div>

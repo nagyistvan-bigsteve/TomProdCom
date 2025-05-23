@@ -7,16 +7,23 @@
       </div>
     </mat-expansion-panel-header>
     <div class="w-100 users-container">
-      @for (user of users; track $index) {
-      <div class="d-flex justify-content-between align-items-center py-1">
-        <div class="d-flex">
-          {{ user.name }}({{ user.email }},{{ user.role }})
+      @for (user of users; track $index; let last = $last) {
+      <div class="d-flex mx-1 justify-content-between align-items-center py-1">
+        <div class="d-flex flex-column">
+          <div>{{ user.name }}</div>
+          <div>({{ user.email }})</div>
         </div>
-        <button mat-stroked-button (click)="approveUser(user.id)">
-          Approve
-        </button>
+        <div class="d-flex">
+          <button mat-icon-button (click)="approveUser(user.id)">
+            <mat-icon class="text-success">add_circle_outline</mat-icon>
+          </button>
+          <button mat-icon-button (click)="denieUser(user.id)">
+            <mat-icon class="text-danger">remove_circle_outline</mat-icon>
+          </button>
+        </div>
       </div>
-      } @if (users.length === 0) {
+      @if(!last) {
+      <mat-divider></mat-divider>} } @if (users.length === 0) {
       <div class="fs-5 w-100">All users are approved</div>
       }
     </div>

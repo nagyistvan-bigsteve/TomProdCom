@@ -90,4 +90,5 @@ export const routes: Routes = [
     component: WaitToApproveComponent,
   },
   { path: '', redirectTo: 'auth', pathMatch: 'full' },
+  { path: '**', redirectTo: 'auth' },
 ];

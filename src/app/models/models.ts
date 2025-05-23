@@ -1,3 +1,4 @@
+import { NumberValueAccessor } from '@angular/forms';
 import { UserRole } from '../services/store/auth-store';
 import { Category, ClientType, Size_id, Unit_id } from './enums';
 
@@ -14,6 +15,12 @@ export type Product = {
   m2_util: number;
   m2_brut: number;
   piece_per_pack: number;
+};
+
+export type Stock = {
+  id: number;
+  product_id: number;
+  stock: number;
 };
 
 export type ProductItems = ProductItem[];
@@ -111,10 +118,19 @@ export type OrderResponse = {
 };
 
 export type Price = {
-  id: number;
+  price_id: number;
   unit_id: Unit_id;
   category_id: Category;
   size_id: Size_id;
   price: number;
   product_id: number;
+};
+
+export type PriceResponse = {
+  price_id: number;
+  unit_id: Unit_id;
+  category_id: Category;
+  size_id: Size_id;
+  price: number;
+  product: { id: number; name: string };
 };

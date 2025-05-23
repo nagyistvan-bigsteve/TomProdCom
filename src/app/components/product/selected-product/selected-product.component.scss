@@ -13,3 +13,20 @@
 .card-text-color {
   color: white;
 }
+
+::ng-deep {
+  .danger-snackbar .mat-mdc-snackbar-surface {
+    white-space: pre-wrap;
+    background-color: rgb(155, 0, 0) !important;
+  }
+
+  .warning-snackbar .mat-mdc-snackbar-surface {
+    white-space: pre-wrap;
+    background-color: rgb(142, 142, 0) !important;
+  }
+
+  .success-snackbar .mat-mdc-snackbar-surface {
+    white-space: pre-wrap;
+    background-color: rgb(0, 89, 0) !important;
+  }
+}

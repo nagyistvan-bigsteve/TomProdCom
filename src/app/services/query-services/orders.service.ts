@@ -75,7 +75,6 @@ export class OrdersService {
         .eq('order_id', id)
     ).pipe(
       map(({ data }) => {
-        console.log('Raw response:', data); // Add this to debug the actual response
         return (data ?? []).map(
           (orderItem): OrderItemsResponse => ({
             id: orderItem.id,
@@ -108,6 +107,11 @@ export class OrdersService {
       .update({ date_order_delivered: currentDate })
       .eq('id', id);
 
+    await this.supabaseService.client
+      .from('order_items')
+      .update({ item_status: true })
+      .eq('order_id', id);
+
     if (error) {
       console.error('Failed to finish the order, ', error);
       return false;
@@ -134,17 +138,12 @@ export class OrdersService {
     this.getOrderItemsById(id)
       .pipe(
         take(1),
-        switchMap((items) => {
-          const itemIds = items.map((item) => item.id);
-          if (itemIds.length === 0) {
-            return of(null);
-          }
-
+        switchMap(() => {
           return from(
             this.supabaseService.client
               .from('order_items')
               .delete()
-              .in('id', itemIds)
+              .eq('order_id', id)
           );
         }),
         switchMap(() => {
@@ -167,19 +166,17 @@ export class OrdersService {
     voucher: string,
     client: Client,
     operator_id: string,
-    comment: string
+    comment: string,
+    expected_delivery: Date
   ) {
     const currentDate = new Date();
-    const expectedDelivery = new Date(
-      currentDate.getTime() + 3 * 24 * 60 * 60 * 1000
-    );
 
     const { data } = await this.supabaseService.client
       .from('orders')
       .insert({
         client_id: client.id,
         date_order_placed: currentDate,
-        expected_delivery: expectedDelivery,
+        expected_delivery,
         total_amount: totalPrice,
         total_amount_final: finalPrice,
         voucher,

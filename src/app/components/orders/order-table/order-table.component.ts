@@ -61,8 +61,12 @@ export class OrderTableComponent implements OnInit {
   ];
   columnsToDisplayStrings = this.columnsToDisplay.map((c) => c.value);
   expandedElement: OrderResponse | null = null;
+  displayedOrdersStat: {
+    numberOfOrders: number;
+    totalPrice: number;
+  } = { numberOfOrders: 0, totalPrice: 0 };
 
-  tableFilter: 'all' | 'open' | 'closed' = 'all';
+  tableFilter: 'all' | 'open' | 'closed' | 'expectedToday' = 'open';
   readonly dateRange = new FormGroup({
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
@@ -101,6 +105,7 @@ export class OrderTableComponent implements OnInit {
             Date.parse(end.toString())
         );
       });
+      this.setDisplayedOrdersStats(this.dataSource.data);
     } else {
       this.dataSource.data = data;
       this.filterItems(true);
@@ -108,16 +113,39 @@ export class OrderTableComponent implements OnInit {
   }
 
   filterItems(restore: boolean) {
-    if (this.tableFilter === 'all') {
-      this.dataSource.data = this.orders;
-    } else if (this.tableFilter === 'open') {
-      this.dataSource.data = this.orders.filter(
-        (item) => item.dateOrderDelivered == null
-      );
-    } else if (this.tableFilter === 'closed') {
-      this.dataSource.data = this.orders.filter(
-        (item) => item.dateOrderDelivered != null
-      );
+    switch (this.tableFilter) {
+      case 'all': {
+        this.dataSource.data = this.orders;
+        this.setDisplayedOrdersStats(this.dataSource.data);
+        break;
+      }
+      case 'open': {
+        this.dataSource.data = this.orders.filter(
+          (item) => item.dateOrderDelivered == null
+        );
+        this.setDisplayedOrdersStats(this.dataSource.data);
+        break;
+      }
+      case 'closed': {
+        this.dataSource.data = this.orders.filter(
+          (item) => item.dateOrderDelivered != null
+        );
+        this.setDisplayedOrdersStats(this.dataSource.data);
+        break;
+      }
+      case 'expectedToday': {
+        const currentDate = new Date();
+        this.dataSource.data = this.orders.filter(
+          (item) =>
+            new Date(item.expectedDelivery).getDay() === currentDate.getDay() &&
+            new Date(item.expectedDelivery).getMonth() ===
+              currentDate.getMonth() &&
+            new Date(item.expectedDelivery).getFullYear() ===
+              currentDate.getFullYear()
+        );
+        this.setDisplayedOrdersStats(this.dataSource.data);
+        break;
+      }
     }
     if (!restore) {
       this.filterByDate(
@@ -125,6 +153,15 @@ export class OrderTableComponent implements OnInit {
         this.dateRange.value.end,
         this.dataSource.data
       );
+    }
+  }
+
+  setDisplayedOrdersStats(data: OrderResponse[]): void {
+    this.displayedOrdersStat.numberOfOrders = data.length;
+    if (data.length) {
+      this.displayedOrdersStat.totalPrice = data
+        .map((item) => item.totalAmountFinal)
+        .reduce((prev, next) => prev + next);
     }
   }
 
@@ -142,7 +179,9 @@ export class OrderTableComponent implements OnInit {
 
   deleteOrder(order: OrderResponse): void {
     this.ordersService.deleteOrder(order.id).then(() => {
-      this.fetchOrders();
+      setTimeout(() => {
+        this.fetchOrders();
+      }, 500);
     });
   }
 
@@ -153,23 +192,4 @@ export class OrderTableComponent implements OnInit {
   isPercentageVoucher(voucher: string): boolean {
     return voucher.includes('%');
   }
-
-  // setFilterPredicate() {
-  //   this.dataSource.filterPredicate = (
-  //     data: OrderResponse,
-  //     filter: string
-  //   ) => {
-  //     const { search, status } = JSON.parse(filter);
-
-  //     const matchesSearch = data.name
-  //       ?.toLowerCase()
-  //       .includes(search.toLowerCase());
-  //     const matchesStatus =
-  //       status === 'all' ||
-  //       (status === 'open' && !data.date) ||
-  //       (status === 'closed' && data.date);
-
-  //     return matchesSearch && matchesStatus;
-  //   };
-  // }
 }

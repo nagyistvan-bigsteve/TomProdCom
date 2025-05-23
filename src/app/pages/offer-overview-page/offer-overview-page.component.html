@@ -28,12 +28,28 @@
 
 <ng-template #confirmOfferDialog>
   <h2 mat-dialog-title>{{ "OVERVIEW_PAGE.BUTTONS.CONFIRM" | translate }}</h2>
-  <mat-dialog-content>
-    <mat-form-field appearance="outline">
+  <mat-dialog-content class="text-center">
+    <mat-form-field class="w-100" appearance="outline">
       <mat-label>Write a comment</mat-label>
       <textarea matInput [(ngModel)]="comment"></textarea>
     </mat-form-field>
+
+    <mat-form-field class="w-100" appearance="outline">
+      <mat-label>Expected delivery</mat-label>
+      <input
+        matInput
+        [(ngModel)]="expectedDeliveryDate"
+        [min]="currentDate"
+        [matDatepicker]="picker"
+      />
+      <mat-datepicker-toggle
+        matIconSuffix
+        [for]="picker"
+      ></mat-datepicker-toggle>
+      <mat-datepicker touchUi #picker></mat-datepicker>
+    </mat-form-field>
   </mat-dialog-content>
+
   <mat-dialog-actions>
     <button mat-button [mat-dialog-close]="false">Back</button>
     <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Save</button>

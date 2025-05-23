@@ -24,10 +24,14 @@ import { useAuthStore } from '../../services/store/auth-store';
 import { OrdersService } from '../../services/query-services/orders.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-offer-overview',
   standalone: true,
+  providers: [provideNativeDateAdapter()],
   imports: [
     CommonModule,
     MatCardModule,
@@ -41,6 +45,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     ClientDetailsComponent,
     TranslateModule,
     MatDialogModule,
+    MatDatepickerModule,
   ],
   templateUrl: './offer-overview-page.component.html',
   styleUrls: ['./offer-overview-page.component.scss'],
@@ -48,15 +53,20 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class OfferOverviewPageComponent {
   @ViewChild('confirmOfferDialog') confirmOfferDialog!: TemplateRef<any>;
 
+  readonly currentDate = new Date();
   readonly productStore = inject(useProductStore);
   readonly clientStore = inject(useClientStore);
   readonly authStore = inject(useAuthStore);
+  private router = inject(Router);
   private ordersService = inject(OrdersService);
   private _dialog = inject(MatDialog);
   private destroyRef = inject(DestroyRef);
 
   comment: string = '';
   voucher: string = '';
+  expectedDeliveryDate: Date = new Date(
+    this.currentDate.getTime() + 3 * 24 * 60 * 60 * 1000
+  );
 
   get totalPrice(): number {
     let total = this.price;
@@ -91,6 +101,7 @@ export class OfferOverviewPageComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result === true) {
+          this.expectedDeliveryDate.setHours(6);
           this.ordersService
             .placeOrder(
               this.productStore.productItems(),
@@ -99,13 +110,16 @@ export class OfferOverviewPageComponent {
               this.voucher,
               this.clientStore.client()!,
               this.authStore.id()!,
-              this.comment
+              this.comment,
+              this.expectedDeliveryDate!
             )
             .then(() => {
               this.productStore.deleteProductItems();
               this.clientStore.deleteClient();
               this.voucher = '';
               this.comment = '';
+
+              this.router.navigate(['/orders']);
             });
         }
       });

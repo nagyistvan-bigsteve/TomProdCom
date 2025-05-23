@@ -7,7 +7,7 @@ import {
   OnChanges,
   Output,
 } from '@angular/core';
-import { Price, Product, ProductItem } from '../../../models/models';
+import { Price, Product, ProductItem, Stock } from '../../../models/models';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,6 +20,7 @@ import { take } from 'rxjs';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-selected-product',
@@ -31,6 +32,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     FormsModule,
     TranslateModule,
     CommonModule,
+    MatSnackBarModule,
   ],
   templateUrl: './selected-product.component.html',
   styleUrl: './selected-product.component.scss',
@@ -52,11 +54,15 @@ export class SelectedProductComponent implements OnChanges {
 
   private productService = inject(ProductsService);
   private destroyRef = inject(DestroyRef);
+  private snackBar = inject(MatSnackBar);
+
+  currentStock: Stock | null = null;
 
   ngOnChanges(): void {
     this.selectedCategory = Category.A;
     if (this.selectedProduct) {
       this.fetchPrices(this.selectedProduct);
+      this.fetchStock(this.selectedProduct);
       if (this.selectedProduct.unit_id === Unit_id.M2) {
         this.quantity = 0.5;
       } else {
@@ -106,12 +112,28 @@ export class SelectedProductComponent implements OnChanges {
       );
   }
 
+  fetchStock(product: Product): void {
+    this.productService.getProductStock(product.id).then((stock) => {
+      this.currentStock = stock;
+      const snackBarStyle = !this.currentStock?.stock
+        ? 'danger-snackbar'
+        : this.currentStock.stock <= 25
+        ? 'warning-snackbar'
+        : 'success-snackbar';
+      this.snackBar.open(`Stock: ${this.currentStock?.stock}}`, 'Close', {
+        duration: 4500,
+        panelClass: snackBarStyle,
+      });
+    });
+  }
+
   increaseQuantity(): void {
     if (this.selectedProduct && this.selectedProduct.unit_id === Unit_id.M2) {
       this.quantity = this.quantity + 0.5;
     } else {
       this.quantity++;
     }
+    this.verifyStock();
     this.calculatePrice();
   }
 
@@ -121,6 +143,7 @@ export class SelectedProductComponent implements OnChanges {
     } else {
       if (this.quantity > 1) this.quantity--;
     }
+    this.verifyStock();
     this.calculatePrice();
   }
 
@@ -134,6 +157,8 @@ export class SelectedProductComponent implements OnChanges {
         setTimeout(() => (this.quantity = 1));
       }
     }
+
+    this.verifyStock();
     this.calculatePrice();
   }
 
@@ -185,6 +210,30 @@ export class SelectedProductComponent implements OnChanges {
         this.totalPiecesNeeded *
         (this.selectedProduct.m2_brut / 10) *
         this.selectedPrice.price;
+    }
+  }
+
+  verifyStock(): void {
+    if (this.quantity > this.currentStock!.stock) {
+      this.snackBar.open('Out of stock', 'Close', {
+        duration: 3000,
+        panelClass: 'danger-snackbar',
+      });
+
+      return;
+    }
+
+    if (this.currentStock!.stock - this.quantity <= 20) {
+      this.snackBar.open(
+        `Limited stock \n Remaining total stock: ${
+          this.currentStock!.stock - this.quantity
+        }`,
+        'Close',
+        {
+          duration: 3000,
+          panelClass: 'warning-snackbar',
+        }
+      );
     }
   }
 

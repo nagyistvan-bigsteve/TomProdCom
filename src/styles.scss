@@ -39,6 +39,15 @@ body {
 }
 
 :root {
+  @include mat.button-toggle-overrides(
+    (
+      selected-state-text-color: white,
+      text-color: white,
+      selected-state-background-color: rgba(95, 1, 1, 1),
+      divider-color: black,
+    )
+  );
+
   @include mat.divider-overrides(
     (
       color: var(--bs-dark),

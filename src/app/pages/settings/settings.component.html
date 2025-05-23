@@ -1,1 +1,24 @@
-<p>settings works!</p>
+<div class="settings-page-container">
+  <div class="d-flex justify-content-center w-100 pb-2">
+    <mat-button-toggle-group [formControl]="settingControl">
+      <mat-button-toggle value="price">Price</mat-button-toggle>
+      <mat-button-toggle value="add_product">Add product</mat-button-toggle>
+      <mat-button-toggle value="update_product">Edit product</mat-button-toggle>
+      <mat-button-toggle value="stock">Stock</mat-button-toggle>
+    </mat-button-toggle-group>
+  </div>
+  @switch (settingControl.value) { @case ("price") {
+  <app-change-prices @enterAnimation class="w-100"></app-change-prices>
+  } @case ("update_product") {
+  <app-update-products @enterAnimation class="w-100"></app-update-products>
+  } @case ("add_product") {
+  <app-add-product @enterAnimation class="w-100"></app-add-product>
+  } @case ("stock") {
+  <app-update-products
+    [updateStock]="true"
+    @enterAnimation
+    class="w-100"
+  ></app-update-products>
+
+  } }
+</div>
