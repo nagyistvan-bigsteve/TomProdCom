@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { ENTER_ANIMATION } from '../../models/animations';
 import { ApproveUserComponent } from '../../components/admin/approve-user/approve-user.component';
 import { UsersListComponent } from '../../components/admin/users-list/users-list.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-user',
@@ -13,6 +14,7 @@ import { UsersListComponent } from '../../components/admin/users-list/users-list
     CommonModule,
     ApproveUserComponent,
     UsersListComponent,
+    TranslateModule,
   ],
   templateUrl: './user.component.html',
   styleUrl: './user.component.scss',

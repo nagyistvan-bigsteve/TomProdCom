@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { LoginComponent } from '../../components/auth/login/login.component';
 import { SignupComponent } from '../../components/auth/signup/signup.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-page-auth',
@@ -18,6 +19,7 @@ import { SignupComponent } from '../../components/auth/signup/signup.component';
     MatButtonModule,
     LoginComponent,
     SignupComponent,
+    TranslateModule,
   ],
   templateUrl: './auth-page.component.html',
   styleUrls: ['./auth-page.component.scss'],

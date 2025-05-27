@@ -3,7 +3,7 @@
   <mat-expansion-panel [expanded]="users.length !== 0">
     <mat-expansion-panel-header class="px-3">
       <div class="d-flex justify-content-center align-items-center">
-        Unapproved users:
+        {{ "AUTH.APPROVE.TITLE" | translate }}
       </div>
     </mat-expansion-panel-header>
     <div class="w-100 users-container">
@@ -24,7 +24,9 @@
       </div>
       @if(!last) {
       <mat-divider></mat-divider>} } @if (users.length === 0) {
-      <div class="fs-5 w-100">All users are approved</div>
+      <div class="fs-5 w-100">
+        {{ "AUTH.APPROVE.NO_LIST" | translate }}
+      </div>
       }
     </div>
   </mat-expansion-panel>

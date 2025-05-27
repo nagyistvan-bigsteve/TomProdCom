@@ -3,10 +3,12 @@
     <div
       class="d-flex justify-content-center align-items-center flex-column w-100 rounded bg-white text-dark py-3 shadow"
     >
-      <p>Hello {{ authStore.name() }}!</p>
-      <p>emai: {{ authStore.email() }}</p>
-      <p>role: {{ authStore.role() }}</p>
-      <button mat-flat-button (click)="authStore.logout()">Logout</button>
+      <p>{{ "USER.SALUTE" | translate }} {{ authStore.name() }}!</p>
+      <p>{{ "USER.EMAIL" | translate }} {{ authStore.email() }}</p>
+      <p>{{ "USER.ROLE" | translate }} {{ authStore.role() }}</p>
+      <button mat-flat-button (click)="authStore.logout()">
+        {{ "USER.LOG_OUT" | translate }}
+      </button>
     </div>
   </div>
 

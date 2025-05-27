@@ -25,6 +25,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-order-table',
@@ -38,6 +39,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
     MatFormFieldModule,
     MatDatepickerModule,
     ReactiveFormsModule,
+    TranslateModule,
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './order-table.component.html',
@@ -53,11 +55,11 @@ export class OrderTableComponent implements OnInit {
   orders: OrderResponse[] = [];
   dataSource = new MatTableDataSource<OrderResponse>([]);
   columnsToDisplay = [
-    { name: 'Client', value: 'client' },
-    { name: 'Order date', value: 'dateOrderPlaced' },
-    { name: 'Delivery date', value: 'dateOrderDelivered' },
-    { name: 'final amount', value: 'totalAmountFinal' },
-    { name: 'operator', value: 'operator' },
+    { name: 'CLIENT', value: 'client' },
+    { name: 'ORDER_PLACED', value: 'dateOrderPlaced' },
+    { name: 'ORDER_DELIVERED', value: 'dateOrderDelivered' },
+    { name: 'TOTAL_AMOUND_FINAL', value: 'totalAmountFinal' },
+    { name: 'OPERATOR', value: 'operator' },
   ];
   columnsToDisplayStrings = this.columnsToDisplay.map((c) => c.value);
   expandedElement: OrderResponse | null = null;

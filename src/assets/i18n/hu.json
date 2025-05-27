@@ -17,7 +17,7 @@
     },
     "CREATE_OFFER": {
       "UNIT_FILTER": {
-        "FILTER_LABEL": "Válassz mértékegységet:",
+        "FILTER_LABEL": "Válassz egységet:",
         "FILTER_OPTIONS": {
           "0": "mind",
           "1": "db",
@@ -88,6 +88,12 @@
   "OVERVIEW_PAGE": {
     "BUTTONS": {
       "CONFIRM": "Rendelés mentése"
+    },
+    "POPUP": {
+      "COMMENT": "Megjegyzés írása",
+      "EXPECTED_DELIVERY": "Várt szállítás",
+      "BACK_BUTTON": "Vissza",
+      "SAVE_BUTTON": "Mentés"
     }
   },
   "SELECT_CLIENT": {
@@ -115,5 +121,121 @@
     "TITLE": "Kliens szerkesztése",
     "CANCEL_BUTTON": "Mégse",
     "SAVE_BUTTON": "Mentés"
+  },
+  "AUTH": {
+    "EMAIL": "Email",
+    "PASSWORD": "Jelszó",
+    "SWITCH_SIGN_UP": "Még nem regisztráltál?",
+    "SWITCH_LOG_IN": "Már van fiókod?",
+    "SIGN_UP": {
+      "NAME": "Név",
+      "ENTER": "Regisztrálás"
+    },
+    "LOG_IN": {
+      "ENTER": "Bejelentkezés"
+    },
+    "WAIT_TO_APPROVE": {
+      "TITLE": "Várnod kell, amíg egy adminisztrátor jóváhagyja a fiókodat.",
+      "BUTTON": "Frissítés"
+    },
+    "APPROVE": {
+      "TITLE": "Új felhasználók:",
+      "NO_LIST": "A lista üres"
+    }
+  },
+  "SETTINGS": {
+    "TYPE": {
+      "ADD_PRODUCT": "Új Termék",
+      "EDIT_PRODUCT": "Termék",
+      "EDIT_PRICE": "Ár",
+      "EDIT_STOCK": "Készlet"
+    },
+    "ADD_PRODUCT": {
+      "NAME": "Név",
+      "UNIT": {
+        "TITLE": "Egység",
+        "BUC": "db",
+        "M2": "m²",
+        "M3": "m³",
+        "BOUNDLE": "köteg"
+      },
+      "SIZE": {
+        "TITLE": "Méret",
+        "NORMAL": "normál",
+        "EXTRA": "extra",
+        "EXTRA2": "extra+"
+      },
+      "LENGTH": "Hosszúság",
+      "WIDTH": "Szélesség",
+      "THICKNESS": "Vastagság",
+      "M2_BRUT": "m² brut",
+      "M2_UTIL": "m² util",
+      "PIECE_PER_PACK": "db/köteg",
+      "SAVE": "Mentés"
+    },
+    "EDIT_PRICE": {
+      "PRICE": "Ár",
+      "UPDATE_BUTTON": "Szerkesztés",
+      "NO_PRODUCT": "Nincs termék ebben a kategóriában"
+    },
+    "STOCK": "Készlet"
+  },
+  "USER": {
+    "SALUTE": "Helló ",
+    "EMAIL": "Email: ",
+    "ROLE": "Szerep: ",
+    "LOG_OUT": "Kijelentkezés",
+    "USER_LIST": {
+      "TITLE": "Felhasználók:",
+      "ADMINS": "Adminok:",
+      "USERS": "Közönséges:"
+    }
+  },
+  "ORDER": {
+    "TABLE": {
+      "FILTER": {
+        "ALL": "mind",
+        "OPEN": "nyitott",
+        "CLOSED": "bezárt",
+        "EXPECTED_TODAY": "mára várt",
+        "DATE_RANGE": "Válassz egy időszakot",
+        "START_DATE": "kezdet",
+        "END_DATE": "vég",
+        "INVALID_START": "Helytelen kezdeti idő",
+        "INVALID_END": "Helytelen vég idő"
+      },
+      "CONTENT": {
+        "CLIENT": "Kliens",
+        "ORDER_PLACED": "Rendelés dátuma",
+        "ORDER_DELIVERED": "Szállítás dátuma",
+        "TOTAL_AMOUND_FINAL": "Végső ár",
+        "OPERATOR": "Operátor",
+        "VOUCHER": "Voucher: ",
+        "EXPECTED_DELIVERY": "Várt szállítás: ",
+        "DETAILS_BUTTON": "Részletek",
+        "DELETE_BUTTON": "Törlés",
+        "NUMBER_OF_ORDERS": "Rendelések száma: ",
+        "TOTAL_PRICE": "Össz ár: {{price}} RON"
+      }
+    }
+  },
+  "SNACKBAR": {
+    "CLIENT": {
+      "ADD_SUCCESS": "Kliens sikeresen hozzáadva!"
+    },
+    "BUTTONS": {
+      "CLOSE": "Bezárás"
+    },
+    "ORDER": {
+      "UPDATE_SUCCESS": "Sikeresen frissítve!"
+    },
+    "GENERAL": {
+      "UPDATE_ERROR": "Hiba szerkesztéskor"
+    },
+    "PRODUCT": {
+      "STOCK": "Készlet: ",
+      "OUT_OF_STOCK": "A termék már nincs készleten!",
+      "LIMITED_STOCK": "Limitált készlet \n Megmaradt készlet: "
+    }
   }
 }

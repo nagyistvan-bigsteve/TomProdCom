@@ -14,7 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { Category, Unit_id } from '../../../models/enums';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProductsService } from '../../../services/query-services/products.service';
 import { take } from 'rxjs';
 import { ENTER_ANIMATION } from '../../../models/animations';
@@ -55,6 +55,7 @@ export class SelectedProductComponent implements OnChanges {
   private productService = inject(ProductsService);
   private destroyRef = inject(DestroyRef);
   private snackBar = inject(MatSnackBar);
+  private translateService = inject(TranslateService);
 
   currentStock: Stock | null = null;
 
@@ -120,10 +121,15 @@ export class SelectedProductComponent implements OnChanges {
         : this.currentStock.stock <= 25
         ? 'warning-snackbar'
         : 'success-snackbar';
-      this.snackBar.open(`Stock: ${this.currentStock?.stock}}`, 'Close', {
-        duration: 4500,
-        panelClass: snackBarStyle,
-      });
+      this.translateService
+        .get(['SNACKBAR.PRODUCT.STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
+        .subscribe((translations) => {
+          this.snackBar.open(
+            translations['SNACKBAR.PRODUCT.STOCK'] + this.currentStock?.stock,
+            translations['SNACKBAR.BUTTONS.CLOSE'],
+            { duration: 4500, panelClass: snackBarStyle }
+          );
+        });
     });
   }
 
@@ -215,25 +221,30 @@ export class SelectedProductComponent implements OnChanges {
 
   verifyStock(): void {
     if (this.quantity > this.currentStock!.stock) {
-      this.snackBar.open('Out of stock', 'Close', {
-        duration: 3000,
-        panelClass: 'danger-snackbar',
-      });
+      this.translateService
+        .get(['SNACKBAR.PRODUCT.OUT_OF_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
+        .subscribe((translations) => {
+          this.snackBar.open(
+            translations['SNACKBAR.PRODUCT.OUT_OF_STOCK'],
+            translations['SNACKBAR.BUTTONS.CLOSE'],
+            { duration: 3000, panelClass: 'danger-snackbar' }
+          );
+        });
 
       return;
     }
 
     if (this.currentStock!.stock - this.quantity <= 20) {
-      this.snackBar.open(
-        `Limited stock \n Remaining total stock: ${
-          this.currentStock!.stock - this.quantity
-        }`,
-        'Close',
-        {
-          duration: 3000,
-          panelClass: 'warning-snackbar',
-        }
-      );
+      this.translateService
+        .get(['SNACKBAR.PRODUCT.LIMITED_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
+        .subscribe((translations) => {
+          this.snackBar.open(
+            translations['SNACKBAR.PRODUCT.LIMITED_STOCK'] +
+              (this.currentStock!.stock - this.quantity),
+            translations['SNACKBAR.BUTTONS.CLOSE'],
+            { duration: 3000, panelClass: 'warning-snackbar' }
+          );
+        });
     }
   }
 

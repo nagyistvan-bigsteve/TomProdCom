@@ -6,6 +6,7 @@ import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-users-list',
@@ -16,6 +17,7 @@ import { MatDividerModule } from '@angular/material/divider';
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
+    TranslateModule,
   ],
   templateUrl: './users-list.component.html',
   styleUrl: './users-list.component.scss',

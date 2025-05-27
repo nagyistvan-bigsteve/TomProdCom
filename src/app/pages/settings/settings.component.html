@@ -1,10 +1,18 @@
 <div class="settings-page-container">
   <div class="d-flex justify-content-center w-100 pb-2">
     <mat-button-toggle-group [formControl]="settingControl">
-      <mat-button-toggle value="price">Price</mat-button-toggle>
-      <mat-button-toggle value="add_product">Add product</mat-button-toggle>
-      <mat-button-toggle value="update_product">Edit product</mat-button-toggle>
-      <mat-button-toggle value="stock">Stock</mat-button-toggle>
+      <mat-button-toggle value="add_product">{{
+        "SETTINGS.TYPE.ADD_PRODUCT" | translate
+      }}</mat-button-toggle>
+      <mat-button-toggle value="update_product">{{
+        "SETTINGS.TYPE.EDIT_PRODUCT" | translate
+      }}</mat-button-toggle>
+      <mat-button-toggle value="price">{{
+        "SETTINGS.TYPE.EDIT_PRICE" | translate
+      }}</mat-button-toggle>
+      <mat-button-toggle value="stock">{{
+        "SETTINGS.TYPE.EDIT_STOCK" | translate
+      }}</mat-button-toggle>
     </mat-button-toggle-group>
   </div>
   @switch (settingControl.value) { @case ("price") {

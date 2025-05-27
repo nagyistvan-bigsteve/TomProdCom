@@ -20,7 +20,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { Router } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { useClientStore } from '../../../services/store/client-store';
 
 @Component({
@@ -45,6 +45,7 @@ import { useClientStore } from '../../../services/store/client-store';
 export class AddClientComponent {
   public readonly clientStore = inject(useClientStore);
 
+  private translateService = inject(TranslateService);
   private clientsService = inject(ClientsService);
   private snackBar = inject(MatSnackBar);
   private destroyRef = inject(DestroyRef);
@@ -88,9 +89,15 @@ export class AddClientComponent {
           if (response) {
             newClient.id = (response as Client).id;
             this.clientStore.setClient(newClient as Client);
-            this.snackBar.open('Client added successfully', 'Close', {
-              duration: 3000,
-            });
+            this.translateService
+              .get(['SNACKBAR.CLIENT.ADD_SUCCESS', 'SNACKBAR.BUTTONS.CLOSE'])
+              .subscribe((translations) => {
+                this.snackBar.open(
+                  translations['SNACKBAR.CLIENT.ADD_SUCCESS'],
+                  translations['SNACKBAR.BUTTONS.CLOSE'],
+                  { duration: 3000 }
+                );
+              });
           }
         });
     }

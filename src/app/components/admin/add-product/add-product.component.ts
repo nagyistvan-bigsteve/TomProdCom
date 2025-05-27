@@ -1,15 +1,6 @@
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  inject,
-  ViewChild,
-} from '@angular/core';
-import { Product, Products } from '../../../models/models';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, inject } from '@angular/core';
 import {
   FormBuilder,
-  FormControl,
   FormsModule,
   ReactiveFormsModule,
   Validators,

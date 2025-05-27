@@ -50,7 +50,7 @@
 
     <div>
       <mat-form-field class="mt-2" @enterAndLeaveAnimation>
-        <mat-label>Price</mat-label>
+        <mat-label>{{ "SETTINGS.EDIT_PRICE.PRICE" | translate }}</mat-label>
         <input
           (ngModelChange)="priceInputChange($event)"
           [(ngModel)]="actualPrice"
@@ -66,11 +66,12 @@
         (click)="updateNewPrice()"
         mat-stroked-button
       >
-        Update
+        {{ "SETTINGS.EDIT_PRICE.UPDATE_BUTTON" | translate }}
       </button>
     </div>
-    @if(!selectedCurrentPrice && !unicItemSelected) { No product in this
-    category } @else { @if (productsInFilterRange.length) {
+    @if(!selectedCurrentPrice && !unicItemSelected) {
+    {{ "SETTINGS.EDIT_PRICE.NO_PRODUCT" | translate }} } @else { @if
+    (productsInFilterRange.length) {
     <div
       @enterAndLeaveAnimation
       class="d-flex flex-column align-items-center product-list-container rounded w-75 p-2"

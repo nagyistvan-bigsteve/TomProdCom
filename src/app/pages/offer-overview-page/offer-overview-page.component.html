@@ -30,12 +30,14 @@
   <h2 mat-dialog-title>{{ "OVERVIEW_PAGE.BUTTONS.CONFIRM" | translate }}</h2>
   <mat-dialog-content class="text-center">
     <mat-form-field class="w-100" appearance="outline">
-      <mat-label>Write a comment</mat-label>
+      <mat-label>{{ "OVERVIEW_PAGE.POPUP.COMMENT" | translate }}</mat-label>
       <textarea matInput [(ngModel)]="comment"></textarea>
     </mat-form-field>
 
     <mat-form-field class="w-100" appearance="outline">
-      <mat-label>Expected delivery</mat-label>
+      <mat-label>{{
+        "OVERVIEW_PAGE.POPUP.EXPECTED_DELIVERY" | translate
+      }}</mat-label>
       <input
         matInput
         [(ngModel)]="expectedDeliveryDate"
@@ -51,7 +53,11 @@
   </mat-dialog-content>
 
   <mat-dialog-actions>
-    <button mat-button [mat-dialog-close]="false">Back</button>
-    <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Save</button>
+    <button mat-button [mat-dialog-close]="false">
+      {{ "OVERVIEW_PAGE.POPUP.BACK_BUTTON" | translate }}
+    </button>
+    <button mat-button [mat-dialog-close]="true" cdkFocusInitial>
+      {{ "OVERVIEW_PAGE.POPUP.SAVE_BUTTON" | translate }}
+    </button>
   </mat-dialog-actions>
 </ng-template>

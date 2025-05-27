@@ -6,9 +6,17 @@
   <app-login (toggleAuth)="toggleFromLogin()"></app-login>
   }
   <p>
-    {{ isSignup() ? "Already have an account?" : "Don't have an account?" }}
+    {{
+      isSignup()
+        ? ("AUTH.SWITCH_LOG_IN" | translate)
+        : ("AUTH.SWITCH_SIGN_UP" | translate)
+    }}
     <a href="#" (click)="toggleMode($event)">
-      {{ isSignup() ? "Login" : "Sign Up" }}
+      {{
+        isSignup()
+          ? ("AUTH.LOG_IN.ENTER" | translate)
+          : ("AUTH.SIGN_UP.ENTER" | translate)
+      }}
     </a>
   </p>
 </div>

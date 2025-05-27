@@ -5,6 +5,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { UpdateProductsComponent } from '../../components/admin/update-products/update-products.component';
 import { ENTER_ANIMATION } from '../../models/animations';
 import { AddProductComponent } from '../../components/admin/add-product/add-product.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-settings',
@@ -14,6 +15,7 @@ import { AddProductComponent } from '../../components/admin/add-product/add-prod
     ReactiveFormsModule,
     UpdateProductsComponent,
     AddProductComponent,
+    TranslateModule,
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',

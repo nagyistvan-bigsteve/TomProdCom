@@ -8,42 +8,50 @@
       [disabled]="tableFilter === 'all'"
       value="all"
       [selected]="tableFilter === 'all'"
-      >all</mat-chip-option
+      >{{ "ORDER.TABLE.FILTER.ALL" | translate }}</mat-chip-option
     >
     <mat-chip-option
       [disabled]="tableFilter === 'open'"
       value="open"
       [selected]="tableFilter === 'open'"
-      >open</mat-chip-option
+      >{{ "ORDER.TABLE.FILTER.OPEN" | translate }}</mat-chip-option
     >
     <mat-chip-option
       [disabled]="tableFilter === 'closed'"
       value="closed"
       [selected]="tableFilter === 'closed'"
-      >closed</mat-chip-option
+      >{{ "ORDER.TABLE.FILTER.CLOSED" | translate }}</mat-chip-option
     >
     <mat-chip-option
       [disabled]="tableFilter === 'expectedToday'"
       value="expectedToday"
       [selected]="tableFilter === 'expectedToday'"
     >
-      expected today
+      {{ "ORDER.TABLE.FILTER.EXPECTED_TODAY" | translate }}
     </mat-chip-option>
   </mat-chip-listbox>
 
   <mat-form-field class="mb-1">
-    <mat-label>Enter a date range</mat-label>
+    <mat-label>{{ "ORDER.TABLE.FILTER.DATE_RANGE" | translate }}</mat-label>
     <mat-date-range-input [formGroup]="dateRange" [rangePicker]="picker">
-      <input matStartDate formControlName="start" placeholder="Start date" />
-      <input matEndDate formControlName="end" placeholder="End date" />
+      <input
+        matStartDate
+        formControlName="start"
+        [placeholder]="'ORDER.TABLE.FILTER.START_DATE' | translate"
+      />
+      <input
+        matEndDate
+        formControlName="end"
+        [placeholder]="'ORDER.TABLE.FILTER.END_DATE' | translate"
+      />
     </mat-date-range-input>
     <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
     <mat-date-range-picker #picker></mat-date-range-picker>
 
     @if (dateRange.controls.start.hasError('matStartDateInvalid')) {
-    <mat-error>Invalid start date</mat-error>
+    <mat-error>{{ "ORDER.TABLE.FILTER.INVALID_START" | translate }}</mat-error>
     } @if (dateRange.controls.end.hasError('matEndDateInvalid')) {
-    <mat-error>Invalid end date</mat-error>
+    <mat-error>{{ "ORDER.TABLE.FILTER.INVALID_END" | translate }}</mat-error>
     }
   </mat-form-field>
 </div>
@@ -56,7 +64,9 @@
 >
   @for (column of columnsToDisplay; track column) {
   <ng-container matColumnDef="{{ column.value }}">
-    <th mat-header-cell *matHeaderCellDef>{{ column.name }}</th>
+    <th mat-header-cell *matHeaderCellDef>
+      {{ "ORDER.TABLE.CONTENT." + column.name | translate }}
+    </th>
     <td @leaveAnimation mat-cell *matCellDef="let order">
       @switch (column.value) { @case ('client') {
       {{ order.client.name }}
@@ -90,7 +100,8 @@
           <div>
             @if (order.voucher != '') {
             <div class="order-detail-item detail-voucher">
-              Voucher: {{ order.voucher }}
+              {{ "ORDER.TABLE.CONTENT.VOUCHER" | translate }}
+              {{ order.voucher }}
               {{ !isPercentageVoucher(order.voucher) ? "RON" : "" }}
             </div>
             } @if(!order.dateOrderDelivered) {
@@ -102,7 +113,7 @@
                   : 'in-past'
               "
             >
-              Expected delivery:
+              {{ "ORDER.TABLE.CONTENT.EXPECTED_DELIVERY" | translate }}
               {{ order.expectedDelivery }}
             </div>
             }
@@ -111,7 +122,7 @@
             class="h-100 d-flex flex-column justify-content-center align-items-center"
           >
             <button (click)="showOrderDetails(order)" mat-raised-button>
-              Details
+              {{ "ORDER.TABLE.CONTENT.DETAILS_BUTTON" | translate }}
             </button>
             @if(authStore.role() === 'admin'){
             <button
@@ -119,7 +130,7 @@
               mat-raised-button
               class="delete-button mt-1"
             >
-              Delete
+              {{ "ORDER.TABLE.CONTENT.DELETE_BUTTON" | translate }}
             </button>
             }
           </div>
@@ -145,8 +156,16 @@
 @if(displayedOrdersStat.numberOfOrders){
 <div class="d-flex align-items-center justify-content-center mx-1">
   <div class="w-100 rounded shadow bg-white text-black mt-2 p-2">
-    <div>Number of orders: {{ displayedOrdersStat.numberOfOrders }}</div>
-    <div>Total price: {{ displayedOrdersStat.totalPrice }} RON</div>
+    <div>
+      {{ "ORDER.TABLE.CONTENT.NUMBER_OF_ORDERS" | translate }}
+      {{ displayedOrdersStat.numberOfOrders }}
+    </div>
+    <div>
+      {{
+        "ORDER.TABLE.CONTENT.TOTAL_PRICE"
+          | translate : { price: displayedOrdersStat.totalPrice }
+      }}
+    </div>
   </div>
 </div>
 }

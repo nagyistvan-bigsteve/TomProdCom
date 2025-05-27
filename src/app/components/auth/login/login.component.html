@@ -1,12 +1,12 @@
 <div @enterAnimation class="login-container">
   <form [formGroup]="loginForm" (ngSubmit)="login()">
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Email</mat-label>
+      <mat-label>{{ "AUTH.EMAIL" | translate }}</mat-label>
       <input matInput type="email" formControlName="email" required />
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Password</mat-label>
+      <mat-label>{{ "AUTH.PASSWORD" | translate }}</mat-label>
       <input matInput type="password" formControlName="password" required />
     </mat-form-field>
 
@@ -17,7 +17,7 @@
       class="full-width"
       [disabled]="loginForm.invalid"
     >
-      Login
+      {{ "AUTH.LOG_IN.ENTER" | translate }}
     </button>
   </form>
 

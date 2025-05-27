@@ -14,7 +14,7 @@ import { OrdersService } from '../../../services/query-services/orders.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 
@@ -41,6 +41,7 @@ export class OrderDetailsComponent implements OnInit {
   readonly destroyRef = inject(DestroyRef);
   readonly orderService = inject(OrdersService);
   private snackBar = inject(MatSnackBar);
+  private translateService = inject(TranslateService);
 
   ngOnInit(): void {
     this.orderService
@@ -58,9 +59,15 @@ export class OrderDetailsComponent implements OnInit {
   updateItemStatus(id: number, status: boolean, index: number) {
     this.orderService.orderItemStatusUpdate(id, status).then((status) => {
       if (!status) {
-        this.snackBar.open('Error during update', 'Close', {
-          duration: 3000,
-        });
+        this.translateService
+          .get(['SNACKBAR.GENERAL.UPDATE_ERROR', 'SNACKBAR.BUTTONS.CLOSE'])
+          .subscribe((translations) => {
+            this.snackBar.open(
+              translations['SNACKBAR.GENERAL.UPDATE_ERROR'],
+              translations['SNACKBAR.BUTTONS.CLOSE'],
+              { duration: 3000 }
+            );
+          });
         return;
       }
       this.orderItems![index].itemStatus = status;
@@ -70,14 +77,26 @@ export class OrderDetailsComponent implements OnInit {
   orderIsDelivered(id: number) {
     this.orderService.orderIsDelivered(id).then((status) => {
       if (status) {
-        this.snackBar.open('Order updated successfuly', 'Close', {
-          duration: 3000,
-        });
+        this.translateService
+          .get(['SNACKBAR.ORDER.UPDATE_SUCCESS', 'SNACKBAR.BUTTONS.CLOSE'])
+          .subscribe((translations) => {
+            this.snackBar.open(
+              translations['SNACKBAR.ORDER.UPDATE_SUCCESS'],
+              translations['SNACKBAR.BUTTONS.CLOSE'],
+              { duration: 3000 }
+            );
+          });
         this.closeDetails.emit();
       } else {
-        this.snackBar.open('Order update failed', 'Close', {
-          duration: 3000,
-        });
+        this.translateService
+          .get(['SNACKBAR.GENERAL.UPDATE_ERROR', 'SNACKBAR.BUTTONS.CLOSE'])
+          .subscribe((translations) => {
+            this.snackBar.open(
+              translations['SNACKBAR.GENERAL.UPDATE_ERROR'],
+              translations['SNACKBAR.BUTTONS.CLOSE'],
+              { duration: 3000 }
+            );
+          });
       }
     });
   }

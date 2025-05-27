@@ -13,6 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { useAuthStore } from '../../../services/store/auth-store';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
@@ -25,6 +26,7 @@ import { useAuthStore } from '../../../services/store/auth-store';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    TranslateModule,
   ],
   animations: [ENTER_ANIMATION],
 })

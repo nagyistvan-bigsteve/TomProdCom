@@ -31,7 +31,7 @@
         "FILTER_OPTIONS": {
           "0": "normal",
           "1": "extra",
-          "2": "extra²",
+          "2": "extra+",
           "3": "toate"
         }
       },
@@ -88,6 +88,12 @@
   "OVERVIEW_PAGE": {
     "BUTTONS": {
       "CONFIRM": "Confirmare comanda"
+    },
+    "POPUP": {
+      "COMMENT": "Adauga un comentariu",
+      "EXPECTED_DELIVERY": "Livrare așteptată",
+      "BACK_BUTTON": "Înapoi",
+      "SAVE_BUTTON": "Salvare"
     }
   },
   "SELECT_CLIENT": {
@@ -115,5 +121,121 @@
     "TITLE": "Editare client",
     "CANCEL_BUTTON": "Înapoi",
     "SAVE_BUTTON": "Salvare"
+  },
+  "AUTH": {
+    "EMAIL": "Email",
+    "PASSWORD": "Parolă",
+    "SWITCH_SIGN_UP": "Încă nu ai cont?",
+    "SWITCH_LOG_IN": "Deja ai un cont?",
+    "SIGN_UP": {
+      "NAME": "Nume",
+      "ENTER": "Registrare"
+    },
+    "LOG_IN": {
+      "ENTER": "Log in"
+    },
+    "WAIT_TO_APPROVE": {
+      "TITLE": "Trebuie să aștepți până când un administrator îți aprobă contul.",
+      "BUTTON": "Refresh"
+    },
+    "APPROVE": {
+      "TITLE": "Utilizatori neaprobați:",
+      "NO_LIST": "Lista e goală"
+    }
+  },
+  "SETTINGS": {
+    "TYPE": {
+      "ADD_PRODUCT": "Produs nou",
+      "EDIT_PRODUCT": "Produs",
+      "EDIT_PRICE": "Preț",
+      "EDIT_STOCK": "Stoc"
+    },
+    "ADD_PRODUCT": {
+      "NAME": "Nume",
+      "UNIT": {
+        "TITLE": "Unitate",
+        "BUC": "buc",
+        "M2": "m²",
+        "M3": "m³",
+        "BOUNDLE": "pachet"
+      },
+      "SIZE": {
+        "TITLE": "Mărime",
+        "NORMAL": "normal",
+        "EXTRA": "extra",
+        "EXTRA2": "extra+"
+      },
+      "LENGTH": "Lungime",
+      "WIDTH": "Lățime",
+      "THICKNESS": "Grosime",
+      "M2_BRUT": "m² brut",
+      "M2_UTIL": "m² util",
+      "PIECE_PER_PACK": "buc/pachet",
+      "SAVE": "Salvare"
+    },
+    "EDIT_PRICE": {
+      "PRICE": "Preț",
+      "UPDATE_BUTTON": "Actualizare",
+      "NO_PRODUCT": "Nu există produs în categorie"
+    },
+    "STOCK": "Stoc"
+  },
+  "USER": {
+    "SALUTE": "Salutare ",
+    "EMAIL": "Email: ",
+    "ROLE": "Rol: ",
+    "LOG_OUT": "Deconectare",
+    "USER_LIST": {
+      "TITLE": "Utilizatori:",
+      "ADMINS": "Admini:",
+      "USERS": "Obișnuit:"
+    }
+  },
+  "ORDER": {
+    "TABLE": {
+      "FILTER": {
+        "ALL": "toate",
+        "OPEN": "deshise",
+        "CLOSED": "finalizate",
+        "EXPECTED_TODAY": "astăzi",
+        "DATE_RANGE": "Selectează o perioadă",
+        "START_DATE": "început",
+        "END_DATE": "sfârșit",
+        "INVALID_START": "Dată de începere nevalidă",
+        "INVALID_END": "Dată de sfârșit nevalidă"
+      },
+      "CONTENT": {
+        "CLIENT": "Client",
+        "ORDER_PLACED": "Data comanda",
+        "ORDER_DELIVERED": "Data de livrare",
+        "TOTAL_AMOUND_FINAL": "Preț final",
+        "OPERATOR": "Operator",
+        "VOUCHER": "Voucher: ",
+        "EXPECTED_DELIVERY": "Livrare așteptată: ",
+        "DETAILS_BUTTON": "Detalii",
+        "DELETE_BUTTON": "Ștergere",
+        "NUMBER_OF_ORDERS": "Numărul de comenzi: ",
+        "TOTAL_PRICE": "Preț total: {{price}} RON"
+      }
+    }
+  },
+  "SNACKBAR": {
+    "CLIENT": {
+      "ADD_SUCCESS": "Client adăugat cu succes!"
+    },
+    "BUTTONS": {
+      "CLOSE": "Închide"
+    },
+    "ORDER": {
+      "UPDATE_SUCCESS": "Update cu succes!"
+    },
+    "GENERAL": {
+      "UPDATE_ERROR": "Problemă la updatare"
+    },
+    "PRODUCT": {
+      "STOCK": "Stoc: ",
+      "OUT_OF_STOCK": "Produsul nu mai e pe stoc!",
+      "LIMITED_STOCK": "Stock limitat \n Stock rămas: "
+    }
   }
 }
