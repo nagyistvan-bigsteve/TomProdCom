@@ -24,7 +24,11 @@ export const authGuard = (route: ActivatedRouteSnapshot) => {
     return true;
   }
 
-  if (authStore.isAuthenticated() && !requiresApproval) {
+  if (
+    authStore.isAuthenticated() &&
+    authStore.approved() &&
+    !requiresApproval
+  ) {
     router.navigate(['/offer']);
     return false;
   }

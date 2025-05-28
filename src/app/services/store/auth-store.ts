@@ -54,7 +54,6 @@ export const useAuthStore = signalStore(
     return {
       async signup(email: string, password: string, userName: string) {
         try {
-          // Create user in Supabase Auth
           const { data: authData, error: authError } =
             await supabaseService.client.auth.signUp({
               email,
@@ -66,24 +65,21 @@ export const useAuthStore = signalStore(
           const userId = authData.user?.id;
           if (!userId) throw new Error('User ID not found after signup');
 
-          // Create user profile in your custom users table
           const { error: profileError } = await supabaseService.client
             .from('profiles')
             .insert({
               id: userId,
               email,
-              role: 'user', // Default role
-              approved: false, // Default approval status
+              role: 'user',
+              approved: false,
               name: userName,
             });
 
           if (profileError) {
-            // If profile creation fails, we should clean up the auth user
             await supabaseService.client.auth.admin.deleteUser(userId);
             throw profileError;
           }
 
-          // Set the state (optionally - depending on if you want auto-login)
           patchState(store, {
             isAuthenticated: true,
             email,

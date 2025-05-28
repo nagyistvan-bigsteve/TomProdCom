@@ -56,13 +56,11 @@ export class SignupComponent {
     );
 
     if (error instanceof AuthError) {
-      console.error('Error during sign-up:', error.message);
       alert('Sign-up failed: ' + error.message);
       return;
     }
 
     if (error instanceof Error) {
-      console.error('Error saving profile:', error.message);
       alert('Error saving profile: ' + error.message);
       return;
     }
