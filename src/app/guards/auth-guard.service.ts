@@ -8,9 +8,7 @@ export const authGuard = (route: ActivatedRouteSnapshot) => {
   const requiredRole = route.data['requiredRole'];
   const requiresApproval = route.data['requiresApproval'];
 
-  // Check if user is authenticated
   if (authStore.isAuthenticated() && requiresApproval) {
-    // If approval is required
     if (!authStore.approved()) {
       router.navigate(['/wait-to-approve']);
       return false;
@@ -24,11 +22,11 @@ export const authGuard = (route: ActivatedRouteSnapshot) => {
     return true;
   }
 
-  if (
-    authStore.isAuthenticated() &&
-    authStore.approved() &&
-    !requiresApproval
-  ) {
+  if (authStore.isAuthenticated() && !requiresApproval) {
+    if (!authStore.approved()) {
+      return true;
+    }
+
     router.navigate(['/offer']);
     return false;
   }
