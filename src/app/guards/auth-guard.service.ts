@@ -22,16 +22,11 @@ export const authGuard = (route: ActivatedRouteSnapshot) => {
     return true;
   }
 
-  if (authStore.isAuthenticated() && !requiresApproval) {
-    if (!authStore.approved()) {
-      return true;
-    }
-
-    router.navigate(['/offer']);
-    return false;
-  }
-
   if (!requiresApproval) {
+    if (authStore.isAuthenticated() && authStore.approved()) {
+      router.navigate(['/offer']);
+      return false;
+    }
     return true;
   }
 
