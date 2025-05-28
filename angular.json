@@ -56,7 +56,7 @@
           },
           "configurations": {
             "production": {
-              "baseHref": "/tom-prod-com/",
+              "baseHref": "/",
               "budgets": [
                 {
                   "type": "initial",
