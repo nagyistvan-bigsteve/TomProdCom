@@ -13,7 +13,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { useAuthStore } from '../../../services/store/auth-store';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
@@ -35,6 +35,7 @@ export class LoginComponent {
 
   private router = inject(Router);
   private authStore = inject(useAuthStore);
+  private translateService = inject(TranslateService);
 
   loginForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -52,13 +53,13 @@ export class LoginComponent {
     const { success, error } = await this.authStore.login(email!, password!);
 
     if (error) {
-      alert('Incorrect email or password. Please try again.');
+      this.showAlert(this.translateService.instant('ALERT.INCORRECT_LOG_IN'));
       return;
     }
 
     if (success) {
       if (!this.authStore.approved()) {
-        alert('Your account is pending approval.');
+        this.showAlert(this.translateService.instant('ALERT.PENDING_APPROVAL'));
         this.router.navigate(['/wait-to-approve']);
         await this.authStore.logout();
         return;
@@ -66,6 +67,10 @@ export class LoginComponent {
 
       this.router.navigate(['/offer']);
     }
+  }
+
+  showAlert(message: string) {
+    alert(message);
   }
 
   // async resetPassword() {

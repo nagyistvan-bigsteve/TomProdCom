@@ -12,6 +12,16 @@
       <mat-icon>arrow_back</mat-icon></button
     >}
     <img class="rounded img-fluid w-25" src="assets/images/logo-outline.png" />
+    <button
+      mat-icon-button
+      *ngIf="installService.installPromptAvailable | async"
+      (click)="installApp()"
+      class="border border-1 ms-3"
+    >
+      <mat-icon class="d-flex align-items-center justify-content-center"
+        >download</mat-icon
+      >
+    </button>
   </div>
   <div class="d-flex align-items-center justify-content-center fs-2">
     @if (isAuthenticated) { @if(authStore.role() !== 'admin') {

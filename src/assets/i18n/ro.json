@@ -53,7 +53,7 @@
         "ADD_BUTTON": "Adaugare"
       },
       "TILE_BUTTONS": {
-        "SHOW_PRODUCT_LIST": "Vezi lista de produse",
+        "SHOW_PRODUCT_LIST": "Vezi produsele adăugate",
         "ADD_PRODUCT": "Adaugă produs nou"
       },
       "OVERWRITE_POPUP": {
@@ -129,7 +129,7 @@
     "SWITCH_LOG_IN": "Deja ai un cont?",
     "SIGN_UP": {
       "NAME": "Nume",
-      "ENTER": "Registrare"
+      "ENTER": "Înregistrare"
     },
     "LOG_IN": {
       "ENTER": "Log in"
@@ -237,5 +237,12 @@
       "OUT_OF_STOCK": "Produsul nu mai e pe stoc!",
       "LIMITED_STOCK": "Stock limitat \n Stock rămas: "
     }
+  },
+  "ALERT": {
+    "SIGN_UP_FAIL": "Înregistrare eșuată: ",
+    "SAVE_ACCOUNT_FAIL": "Eroare la salvare de profil: ",
+    "ACCOUNT_CREATED": "Înregistrare cu succes! Așteptare pentru aprobare...",
+    "INCORRECT_LOG_IN": "Email sau parola greșită. Încearcă din nou.",
+    "PENDING_APPROVAL": "Așteaptă pentru aprobare..."
   }
 }

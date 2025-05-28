@@ -14,7 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { useAuthStore } from '../../../services/store/auth-store';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-signup',
@@ -34,6 +34,7 @@ import { TranslateModule } from '@ngx-translate/core';
 export class SignupComponent {
   private router = inject(Router);
   private authStore = inject(useAuthStore);
+  private translateService = inject(TranslateService);
 
   signupForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -56,18 +57,24 @@ export class SignupComponent {
     );
 
     if (error instanceof AuthError) {
-      alert('Sign-up failed: ' + error.message);
+      this.translateService.instant('ALERT.SIGN_UP_FAIL') + error.message;
       return;
     }
 
     if (error instanceof Error) {
-      alert('Error saving profile: ' + error.message);
+      this.showAlert(
+        this.translateService.instant('ALERT.SAVE_ACCOUNT_FAIL') + error.message
+      );
       return;
     }
 
     if (success) {
-      alert('Account created! Waiting for admin approval.');
+      this.showAlert(this.translateService.instant('ALERT.ACCOUNT_CREATED'));
       this.router.navigate(['/wait-to-approve']);
     }
+  }
+
+  showAlert(message: string) {
+    alert(message);
   }
 }

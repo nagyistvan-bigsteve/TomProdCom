@@ -8,6 +8,7 @@ import { ENTER_AND_LEAVE_ANIMATION } from '../../../models/animations';
 import { useAuthStore } from '../../../services/store/auth-store';
 import { Router } from '@angular/router';
 import { MatBadgeModule } from '@angular/material/badge';
+import { InstallService } from '../../../services/install.service';
 
 @Component({
   selector: 'app-topbar',
@@ -28,9 +29,14 @@ export class TopbarComponent implements OnInit {
   private location = inject(Location);
   private router = inject(Router);
   public authStore = inject(useAuthStore);
+  public installService = inject(InstallService);
 
   ngOnInit(): void {
     this.authStore.fetchUnapprovedUsers();
+  }
+
+  installApp(): void {
+    this.installService.promptInstall();
   }
 
   goBack(): void {

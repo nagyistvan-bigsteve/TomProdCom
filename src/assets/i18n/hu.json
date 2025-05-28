@@ -53,7 +53,7 @@
         "ADD_BUTTON": "Hozzáadás"
       },
       "TILE_BUTTONS": {
-        "SHOW_PRODUCT_LIST": "Lista megtekintése",
+        "SHOW_PRODUCT_LIST": "Hozzáadott termékek",
         "ADD_PRODUCT": "Termék hozzáadása"
       },
       "OVERWRITE_POPUP": {
@@ -237,5 +237,12 @@
       "OUT_OF_STOCK": "A termék már nincs készleten!",
       "LIMITED_STOCK": "Limitált készlet \n Megmaradt készlet: "
     }
+  },
+  "ALERT": {
+    "SIGN_UP_FAIL": "Sikertelen regisztrálás: ",
+    "SAVE_ACCOUNT_FAIL": "Nem sikerült elmenteni a profilt: ",
+    "ACCOUNT_CREATED": "Sikeres regisztrálás! Jóváhagyás várása...",
+    "INCORRECT_LOG_IN": "Helytelen email vagy jelszó. Próbálkozz újra.",
+    "PENDING_APPROVAL": "Várakozás a jóváhagyásra..."
   }
 }
