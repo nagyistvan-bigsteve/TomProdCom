@@ -58,6 +58,7 @@
             [(ngModel)]="quantity"
             (change)="validateInput()"
             [value]="quantity"
+            (focus)="clearOnFirstFocus($event)"
             class="small-input rounded"
           />
         </div>
