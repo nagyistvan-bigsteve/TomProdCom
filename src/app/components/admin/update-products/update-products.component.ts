@@ -28,6 +28,8 @@ import {
   ENTER_ANIMATION,
 } from '../../../models/animations';
 import { MatButtonModule } from '@angular/material/button';
+import { Category } from '../../../models/enums';
+import { MatChipsModule } from '@angular/material/chips';
 
 @Component({
   selector: 'app-update-products',
@@ -41,6 +43,7 @@ import { MatButtonModule } from '@angular/material/button';
     FormsModule,
     TranslateModule,
     MatButtonModule,
+    MatChipsModule,
   ],
   templateUrl: './update-products.component.html',
   styleUrl: './update-products.component.scss',
@@ -56,6 +59,8 @@ export class UpdateProductsComponent implements OnInit {
   products: Products = [];
   filteredOptions: Products = [];
 
+  categoryEnum = Category;
+  selectedCategory: Category = Category.A;
   selectedProduct: any = {
     id: null,
     name: '',
@@ -90,6 +95,7 @@ export class UpdateProductsComponent implements OnInit {
   stockForm = this.fb.group({
     id: [this.currentStock?.id],
     product_id: [this.currentStock?.product_id],
+    category_id: [this.currentStock?.category],
     stock: [this.currentStock?.stock],
   });
 
@@ -106,15 +112,27 @@ export class UpdateProductsComponent implements OnInit {
       });
   }
 
+  fetchProductStock(productId: number, category: Category): void {
+    this.productService.getProductStock(productId, category).then((stock) => {
+      this.currentStock = stock;
+    });
+  }
+
   optionSelected(product: Product): void {
     this.isProductSelectet = true;
     this.selectedProduct = product;
 
     if (this.updateStock) {
-      this.productService.getProductStock(product.id).then((stock) => {
-        this.currentStock = stock;
-      });
+      this.fetchProductStock(product.id, this.selectedCategory);
     }
+  }
+
+  onCategoryChange(): void {
+    if (!this.isProductSelectet) {
+      return;
+    }
+
+    this.fetchProductStock(this.selectedProduct.id, this.selectedCategory);
   }
 
   onStockSave() {
@@ -137,12 +155,27 @@ export class UpdateProductsComponent implements OnInit {
   }
 
   filter(): void {
-    if (this.input) {
-      const filterValue = this.input.nativeElement.value.toLowerCase();
-      this.filteredOptions = this.products.filter((o) =>
-        o.name.toLowerCase().includes(filterValue)
-      );
+    if (!this.input) return;
+
+    const rawValue = this.input.nativeElement.value.toLowerCase();
+
+    if (!rawValue) {
+      this.filteredOptions = this.products;
+      return;
     }
+
+    const isNumeric = /^\d+$/.test(rawValue);
+
+    this.filteredOptions = this.products.filter((o) => {
+      const name = o.name.toLowerCase();
+
+      if (isNumeric) {
+        const nameDigits = name.replace(/\D+/g, '');
+        return nameDigits.includes(rawValue);
+      } else {
+        return name.includes(rawValue);
+      }
+    });
   }
 
   displayProductLabel(product: Product): string {

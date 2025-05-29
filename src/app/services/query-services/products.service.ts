@@ -60,12 +60,13 @@ export class ProductsService {
     }
   }
 
-  async getProductStock(id: number): Promise<Stock | null> {
+  async getProductStock(id: number, category: Category): Promise<Stock | null> {
     try {
       const { data, error } = await this.supabaseService.client
         .from('stocks')
         .select('*')
         .eq('product_id', id)
+        .eq('category_id', category)
         .single();
 
       if (error) throw error;

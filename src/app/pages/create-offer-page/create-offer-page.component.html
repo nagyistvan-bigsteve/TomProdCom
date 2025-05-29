@@ -51,6 +51,23 @@
           "OFFER_PAGE.CREATE_OFFER.TILE_BUTTONS.SHOW_PRODUCT_LIST" | translate
         }}
       </div>
+      <div class="short-list">
+        @for (item of productStore.productItems(); track $index; let last =
+        $last) {
+        <div class="d-flex justify-content-center p-1">
+          {{ item.product.name }} -
+          {{
+            "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category
+              | translate
+          }}
+          {{ item.quantity }}x
+        </div>
+        @if (!last) {
+        <div class="d-flex justify-content-center">
+          <mat-divider class="w-50"></mat-divider>
+        </div>
+        }}
+      </div>
     </div>
     }
   </div>

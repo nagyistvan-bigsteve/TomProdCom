@@ -20,6 +20,7 @@ export type Product = {
 export type Stock = {
   id: number;
   product_id: number;
+  category: Category;
   stock: number;
 };
 

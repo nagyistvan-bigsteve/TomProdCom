@@ -1,5 +1,49 @@
 <div class="px-3">
-  <form class="product-select w-100">
+  <form class="w-100">
+    @if (updateStock) {
+    <mat-chip-listbox
+      class="ms-2"
+      [(ngModel)]="selectedCategory"
+      (ngModelChange)="onCategoryChange()"
+      [hideSingleSelectionIndicator]="true"
+      [ngModelOptions]="{ standalone: true }"
+    >
+      <mat-chip-option
+        [value]="categoryEnum.A"
+        [selected]="categoryEnum.A === selectedCategory"
+        [disabled]="categoryEnum.A === selectedCategory"
+        >{{
+          "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.A | translate
+        }}</mat-chip-option
+      >
+      <mat-chip-option
+        [value]="categoryEnum.AB"
+        [selected]="categoryEnum.AB === selectedCategory"
+        [disabled]="categoryEnum.AB === selectedCategory"
+        >{{
+          "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.AB
+            | translate
+        }}</mat-chip-option
+      >
+      <mat-chip-option
+        [value]="categoryEnum.B"
+        [selected]="categoryEnum.B === selectedCategory"
+        [disabled]="categoryEnum.B === selectedCategory"
+        >{{
+          "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.B | translate
+        }}</mat-chip-option
+      >
+      <mat-chip-option
+        [value]="categoryEnum.T"
+        [selected]="categoryEnum.T === selectedCategory"
+        [disabled]="categoryEnum.T === selectedCategory"
+        >{{
+          "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.T | translate
+        }}</mat-chip-option
+      >
+    </mat-chip-listbox>
+    }
+
     <mat-form-field class="w-100" appearance="fill">
       <mat-label>
         {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_SELECT.SELECT_LABEL" | translate }}
