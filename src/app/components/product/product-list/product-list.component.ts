@@ -135,12 +135,27 @@ export class ProductSelectComponent {
   }
 
   filter(): void {
-    if (this.input) {
-      const filterValue = this.input.nativeElement.value.toLowerCase();
-      this.filteredOptions = this.productsByFilter.filter((o) =>
-        o.name.toLowerCase().includes(filterValue)
-      );
+    if (!this.input) return;
+
+    const rawValue = this.input.nativeElement.value.toLowerCase();
+
+    if (!rawValue) {
+      this.filteredOptions = this.productsByFilter;
+      return;
     }
+
+    const isNumeric = /^\d+$/.test(rawValue);
+
+    this.filteredOptions = this.productsByFilter.filter((o) => {
+      const name = o.name.toLowerCase();
+
+      if (isNumeric) {
+        const nameDigits = name.replace(/\D+/g, '');
+        return nameDigits.includes(rawValue);
+      } else {
+        return name.includes(rawValue);
+      }
+    });
   }
 
   private groupProductsByUnit(

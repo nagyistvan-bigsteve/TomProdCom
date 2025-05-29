@@ -14,6 +14,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { useProductStore } from '../../services/store/product-store';
+import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
   selector: 'app-create-offer-page',
@@ -27,6 +28,7 @@ import { useProductStore } from '../../services/store/product-store';
     SelectedProductListComponent,
     MatSnackBarModule,
     OverlayModule,
+    MatDividerModule,
   ],
   standalone: true,
   templateUrl: './create-offer-page.component.html',

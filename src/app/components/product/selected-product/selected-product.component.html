@@ -1,94 +1,95 @@
 @if (selectedProduct) {
 <div
   @enterAnimation
-  class="d-flex justify-content-evenly product-container shadow rounded w-100 p-2 card-text-color"
+  class="d-flex flex-column justify-content-evenly product-container shadow rounded w-100 p-2 card-text-color"
 >
-  <div class="d-flex align-items-center mw-50">
-    <div class="d-flex flex-column align-items-center">
-      {{ selectedProduct.name }}
-      <mat-chip-listbox
-        class="ms-2"
-        [(ngModel)]="selectedCategory"
-        (ngModelChange)="onCategoryChange()"
-        aria-label="Select product category"
-        [hideSingleSelectionIndicator]="true"
-      >
-        @for (price of prices; track $index) {
-        <mat-chip-option
-          [value]="price.category_id"
-          [selected]="price.category_id === selectedCategory"
-          [disabled]="price.category_id === selectedCategory"
-          >{{
-            "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + price.category_id
-              | translate
-          }}</mat-chip-option
+  <div class="d-flex w-100">
+    <div class="d-flex align-items-center w-100 justify-content-evenly">
+      <div class="d-flex flex-column align-items-center">
+        {{ selectedProduct.name }}
+        <mat-chip-listbox
+          class="ms-2"
+          [(ngModel)]="selectedCategory"
+          (ngModelChange)="onCategoryChange()"
+          aria-label="Select product category"
+          [hideSingleSelectionIndicator]="true"
         >
-        }
-      </mat-chip-listbox>
-    </div>
+          @for (price of prices; track $index) {
+          <mat-chip-option
+            [value]="price.category_id"
+            [selected]="price.category_id === selectedCategory"
+            [disabled]="price.category_id === selectedCategory"
+            >{{
+              "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + price.category_id
+                | translate
+            }}</mat-chip-option
+          >
+          }
+        </mat-chip-listbox>
+      </div>
 
-    <mat-divider vertical="true" class="h-100 mx-2"></mat-divider>
+      <mat-divider vertical="true" class="h-100 mx-2"></mat-divider>
 
-    <div
-      class="d-flex flex-column justify-content-center align-items-center mw-25"
-    >
-      <div class="d-flex justify-content-center align-items-center w-100">
-        @if (selectedProduct.unit_id === 3) {
-        {{ "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1" | translate }}
-        } @else if(selectedProduct.unit_id !== 2) {
-        {{
-          "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-            selectedProduct.unit_id | translate
-        }}} @else {
-        <div (click)="m2_setUnit()">
+      <div
+        class="d-flex flex-column justify-content-center align-items-center mw-50"
+      >
+        <div class="d-flex justify-content-center align-items-center w-100">
+          @if (selectedProduct.unit_id === 3) {
+          {{
+            "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1" | translate
+          }}
+          } @else if(selectedProduct.unit_id !== 2) {
           {{
             "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
               selectedProduct.unit_id | translate
-          }}
-          {{ m2_isBrut ? "BRUT" : "NET" }}
+          }}} @else {
+          <div (click)="m2_setUnit()">
+            {{
+              "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                selectedProduct.unit_id | translate
+            }}
+            {{ m2_isBrut ? "BRUT" : "NET" }}
+          </div>
+          }
         </div>
-        }
+        <div class="d-flex w-100">
+          <input
+            type="number"
+            [(ngModel)]="quantity"
+            (change)="validateInput()"
+            [value]="quantity"
+            class="small-input rounded"
+          />
+        </div>
       </div>
-      <div class="d-flex">
+      <mat-divider vertical="true" class="h-100 mx-2"></mat-divider>
+      <div class="d-flex text-center align-items-center justify-content-center">
         <div class="d-flex flex-column">
-          <button mat-icon-button (click)="increaseQuantity()">
-            <mat-icon class="fs-5">arrow_drop_up</mat-icon>
-          </button>
-          <button mat-icon-button (click)="decreaseQuantity()">
-            <mat-icon class="fs-5">arrow_drop_down</mat-icon>
-          </button>
+          @if (calculatedPrice) {
+          {{ this.calculatedPrice | number : "1.0-1" }}
+          {{ "LANGUAGE.CURRENCY" | translate }} } @if(packsNeeded ||
+          extraPiecesNeeded){
+          <div class="d-flex mt-3">
+            {{ packsNeeded ? packsNeeded + "p" : "" }}
+            {{ packsNeeded && extraPiecesNeeded ? "+" : "" }}
+            {{ extraPiecesNeeded ? extraPiecesNeeded + "b" : "" }}
+          </div>
+          }
         </div>
-        <input
-          type="number"
-          [(ngModel)]="quantity"
-          (change)="validateInput()"
-          [value]="quantity"
-          class="small-input rounded"
-        />
       </div>
     </div>
-    <mat-divider vertical="true" class="h-100 mx-2"></mat-divider>
   </div>
-  <div
-    class="d-flex text-center align-items-center justify-content-center mw-25"
-  >
-    <div class="d-flex flex-column">
-      @if (calculatedPrice) {
-      {{ this.calculatedPrice | number : "1.0-1" }}
-      {{ "LANGUAGE.CURRENCY" | translate }} } @if(packsNeeded ||
-      extraPiecesNeeded){
-      <div class="d-flex mt-3">
-        {{ packsNeeded ? packsNeeded + "p" : "" }}
-        {{ packsNeeded && extraPiecesNeeded ? "+" : "" }}
-        {{ extraPiecesNeeded ? extraPiecesNeeded + "b" : "" }}
-      </div>
-      }
-    </div>
+  <mat-divider class="m-2"></mat-divider>
+  <div class="ms-4">
+    @if(currentStock){
+    {{ "SNACKBAR.PRODUCT.STOCK" | translate }}
+    {{ currentStock.stock }}
+    }
   </div>
 </div>
 <div class="d-flex justify-content-center w-100">
   <button
-    class="btn bg-success d-flex align-items-center mt-2 z-3"
+    class="btn bg-success d-flex align-items-center mt-1 z-3"
     (click)="addNewProduct()"
     mat-icon-button
   >
