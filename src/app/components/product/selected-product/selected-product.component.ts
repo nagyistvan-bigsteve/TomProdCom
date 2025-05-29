@@ -56,12 +56,14 @@ export class SelectedProductComponent implements OnChanges {
   private destroyRef = inject(DestroyRef);
   private snackBar = inject(MatSnackBar);
   private translateService = inject(TranslateService);
+  private hasFocused = false;
 
   currentStock: Stock | null = null;
 
   ngOnChanges(): void {
     this.selectedCategory = Category.A;
     this.quantity = '';
+    this.hasFocused = false;
     if (this.selectedProduct) {
       this.fetchPrices(this.selectedProduct);
       this.fetchStock(this.selectedProduct);
@@ -149,6 +151,13 @@ export class SelectedProductComponent implements OnChanges {
       this.verifyStock();
       this.calculatePrice();
     });
+  }
+
+  clearOnFirstFocus(event: FocusEvent): void {
+    if (!this.hasFocused) {
+      (event.target as HTMLInputElement).value = '';
+      this.hasFocused = true;
+    }
   }
 
   onCategoryChange(): void {
