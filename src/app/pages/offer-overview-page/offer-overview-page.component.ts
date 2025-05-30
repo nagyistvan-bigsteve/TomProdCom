@@ -27,6 +27,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-offer-overview',
@@ -46,6 +48,8 @@ import { Router } from '@angular/router';
     TranslateModule,
     MatDialogModule,
     MatDatepickerModule,
+    MatCheckboxModule,
+    MatTooltipModule,
   ],
   templateUrl: './offer-overview-page.component.html',
   styleUrls: ['./offer-overview-page.component.scss'],
@@ -67,6 +71,7 @@ export class OfferOverviewPageComponent {
   expectedDeliveryDate: Date = new Date(
     this.currentDate.getTime() + 3 * 24 * 60 * 60 * 1000
   );
+  untilDeliveryDate: boolean = false;
 
   get totalPrice(): number {
     let total = this.price;
@@ -111,7 +116,8 @@ export class OfferOverviewPageComponent {
               this.clientStore.client()!,
               this.authStore.id()!,
               this.comment,
-              this.expectedDeliveryDate!
+              this.expectedDeliveryDate!,
+              this.untilDeliveryDate
             )
             .then(() => {
               this.productStore.deleteProductItems();

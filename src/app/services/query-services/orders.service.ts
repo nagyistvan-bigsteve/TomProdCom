@@ -3,8 +3,6 @@ import { SupabaseService } from '../supabase.service';
 import {
   Client,
   ExactOrderItem,
-  Order,
-  OrderItems,
   OrderItemsResponse,
   OrderResponse,
   ProductItems,
@@ -24,6 +22,7 @@ export class OrdersService {
     date_order_placed,
     expected_delivery,
     date_order_delivered,
+    until_delivery_date,
     total_amount,
     total_amount_final,
     comment,
@@ -42,6 +41,7 @@ export class OrdersService {
               ? order.operator[0]
               : order.operator || { id: 0, name: '' },
             dateOrderPlaced: order.date_order_placed,
+            untilDeliveryDate: order.until_delivery_date,
             expectedDelivery: order.expected_delivery,
             dateOrderDelivered: order.date_order_delivered,
             totalAmount: order.total_amount,
@@ -167,7 +167,8 @@ export class OrdersService {
     client: Client,
     operator_id: string,
     comment: string,
-    expected_delivery: Date
+    expected_delivery: Date,
+    until_delivery_date: boolean
   ) {
     const currentDate = new Date();
 
@@ -177,6 +178,7 @@ export class OrdersService {
         client_id: client.id,
         date_order_placed: currentDate,
         expected_delivery,
+        until_delivery_date,
         total_amount: totalPrice,
         total_amount_final: finalPrice,
         voucher,

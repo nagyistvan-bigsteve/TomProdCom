@@ -52,6 +52,13 @@
     </mat-form-field>
   </mat-dialog-content>
 
+  <mat-checkbox
+    class="ms-3"
+    [(ngModel)]="untilDeliveryDate"
+    [matTooltip]="'OVERVIEW_PAGE.POPUP.DELIVERY_CHECKBOX_TOOLTIP' | translate"
+    >{{ "OVERVIEW_PAGE.POPUP.DELIVERY_CHECKBOX" | translate }}</mat-checkbox
+  >
+
   <mat-dialog-actions>
     <button mat-button [mat-dialog-close]="false">
       {{ "OVERVIEW_PAGE.POPUP.BACK_BUTTON" | translate }}

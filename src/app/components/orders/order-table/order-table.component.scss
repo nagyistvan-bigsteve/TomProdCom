@@ -50,10 +50,7 @@ tr.order-row:not(.expanded-row):active {
 }
 
 .in-past {
-  background-color: rgb(226, 74, 74);
-}
-.in-future {
-  background-color: rgb(98, 242, 187);
+  color: #ba0000;
 }
 
 ::ng-deep {
@@ -75,5 +72,15 @@ tr.order-row:not(.expanded-row):active {
 
   .filter-section .mat-mdc-form-field-subscript-wrapper {
     display: none;
+  }
+}
+
+.until-delivery {
+  background-color: #deddddbb;
+  margin: 0 -4px;
+  padding: 0 4px;
+
+  .until-delivery-start {
+    color: #ba0000;
   }
 }

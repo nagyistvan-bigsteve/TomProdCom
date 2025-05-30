@@ -67,16 +67,32 @@
     <th mat-header-cell *matHeaderCellDef>
       {{ "ORDER.TABLE.CONTENT." + column.name | translate }}
     </th>
-    <td @leaveAnimation mat-cell *matCellDef="let order">
+    <td @leaveAnimation mat-cell *matCellDef="let order" class="px-2">
       @switch (column.value) { @case ('client') {
       {{ order.client.name }}
       } @case ('operator') {
       {{ order.operator.name }}
       } @case ('totalAmountFinal') {
       {{ order[column.value] | number : "1.0-2" }}
-      } @case ('dateOrderPlaced') {
-      {{ order[column.value] | date }}
-      } @case ('dateOrderDelivered') {
+      } @case ('expectedDelivery') { @if(order.untilDeliveryDate){
+      <div
+        class="until-delivery rounded"
+        [ngClass]="
+          !isExpectedDeliveryInFuture(order.expectedDelivery) ? 'in-past' : ''
+        "
+      >
+        {{ order[column.value] | date }}
+        <span class="until-delivery-start">*</span>
+      </div>
+      } @else{
+      <div
+        [ngClass]="
+          !isExpectedDeliveryInFuture(order.expectedDelivery) ? 'in-past' : ''
+        "
+      >
+        {{ order[column.value] | date }}
+      </div>
+      } } @case ('dateOrderPlaced') {
       {{ order[column.value] | date }}
       } @default {
       {{ order[column.value] }}
@@ -91,6 +107,7 @@
       mat-cell
       *matCellDef="let order"
       [attr.colspan]="columnsToDisplayStrings.length"
+      class="px-2"
     >
       <div
         class="order-detail-wrapper"
@@ -104,17 +121,14 @@
               {{ order.voucher }}
               {{ !isPercentageVoucher(order.voucher) ? "RON" : "" }}
             </div>
-            } @if(!order.dateOrderDelivered) {
-            <div
-              class="order-detail-item rounded expected-delivery-bg"
-              [ngClass]="
-                isExpectedDeliveryInFuture(order.expectedDelivery)
-                  ? 'in-future'
-                  : 'in-past'
-              "
-            >
-              {{ "ORDER.TABLE.CONTENT.EXPECTED_DELIVERY" | translate }}
-              {{ order.expectedDelivery }}
+            } @if(order.dateOrderDelivered){
+            <div class="order-detail-item rounded expected-delivery-bg w-100">
+              {{ "ORDER.TABLE.CONTENT.ORDER_DELIVERED" | translate }}
+              {{ order.dateOrderDelivered | date }}
+            </div>
+            } @if(order.comment != '') {
+            <div class="rounded border border-secondary border-1 p-2">
+              {{ order.comment }}
             </div>
             }
           </div>
@@ -128,7 +142,7 @@
             <button
               (click)="deleteOrder(order)"
               mat-raised-button
-              class="delete-button mt-1"
+              class="delete-button mt-1 w-100"
             >
               {{ "ORDER.TABLE.CONTENT.DELETE_BUTTON" | translate }}
             </button>
@@ -163,7 +177,8 @@
     <div>
       {{
         "ORDER.TABLE.CONTENT.TOTAL_PRICE"
-          | translate : { price: displayedOrdersStat.totalPrice }
+          | translate
+            : { price: displayedOrdersStat.totalPrice | number : "1.0-2" }
       }}
     </div>
   </div>
