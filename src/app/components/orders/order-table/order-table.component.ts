@@ -57,7 +57,7 @@ export class OrderTableComponent implements OnInit {
   columnsToDisplay = [
     { name: 'CLIENT', value: 'client' },
     { name: 'ORDER_PLACED', value: 'dateOrderPlaced' },
-    { name: 'ORDER_DELIVERED', value: 'dateOrderDelivered' },
+    { name: 'EXPECTED_DELIVERY', value: 'expectedDelivery' },
     { name: 'TOTAL_AMOUND_FINAL', value: 'totalAmountFinal' },
     { name: 'OPERATOR', value: 'operator' },
   ];
@@ -87,9 +87,22 @@ export class OrderTableComponent implements OnInit {
       .getOrders()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((orders) => {
-        this.orders = orders;
+        this.orders = this.sortTheOrders(orders);
         this.filterItems(false);
       });
+  }
+
+  sortTheOrders(orders: OrderResponse[]): OrderResponse[] {
+    return orders.sort((a, b) => {
+      const dateA = new Date(a.expectedDelivery).getTime();
+      const dateB = new Date(b.expectedDelivery).getTime();
+
+      if (dateA !== dateB) {
+        return dateA - dateB;
+      }
+
+      return Number(a.untilDeliveryDate) - Number(b.untilDeliveryDate);
+    });
   }
 
   filterByDate(

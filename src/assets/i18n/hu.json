@@ -92,6 +92,8 @@
     "POPUP": {
       "COMMENT": "Megjegyzés írása",
       "EXPECTED_DELIVERY": "Várt szállítás",
+      "DELIVERY_CHECKBOX": "Kiszállítás eddig az időpontig",
+      "DELIVERY_CHECKBOX_TOOLTIP": "Jelöld be, ha a kiszállításnak eddig az időpontig kell megtörténnie.",
       "BACK_BUTTON": "Vissza",
       "SAVE_BUTTON": "Mentés"
     }
@@ -196,7 +198,7 @@
       "FILTER": {
         "ALL": "mind",
         "OPEN": "nyitott",
-        "CLOSED": "bezárt",
+        "CLOSED": "kész",
         "EXPECTED_TODAY": "mára várt",
         "DATE_RANGE": "Válassz egy időszakot",
         "START_DATE": "kezdet",
@@ -207,11 +209,11 @@
       "CONTENT": {
         "CLIENT": "Kliens",
         "ORDER_PLACED": "Rendelés dátuma",
-        "ORDER_DELIVERED": "Szállítás dátuma",
+        "ORDER_DELIVERED": "Szállítás dátuma: ",
         "TOTAL_AMOUND_FINAL": "Végső ár",
         "OPERATOR": "Operátor",
         "VOUCHER": "Voucher: ",
-        "EXPECTED_DELIVERY": "Várt szállítás: ",
+        "EXPECTED_DELIVERY": "Várt szállítás",
         "DETAILS_BUTTON": "Részletek",
         "DELETE_BUTTON": "Törlés",
         "NUMBER_OF_ORDERS": "Rendelések száma: ",

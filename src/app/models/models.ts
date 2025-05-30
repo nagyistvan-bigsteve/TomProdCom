@@ -98,6 +98,7 @@ export type Order = {
   dateOrderPlaced: Date;
   expectedDelivery: Date;
   dateOrderDelivered: Date;
+  untilDeliveryDate: boolean;
   totalAmount: number;
   operatorId: string;
   totalAmountFinal: number;
@@ -111,6 +112,7 @@ export type OrderResponse = {
   dateOrderPlaced: Date;
   expectedDelivery: Date;
   dateOrderDelivered: Date;
+  untilDeliveryDate: boolean;
   totalAmount: number;
   totalAmountFinal: number;
   comment: string;
