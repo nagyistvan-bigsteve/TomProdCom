@@ -166,7 +166,7 @@
             } @if(order.paidAmount) {
             <div class="order-detail-item">
               {{ "ORDER.TABLE.CONTENT.PAID_AMOUNT" | translate }}
-              {{ order.paidAmount }}
+              {{ order.paidAmount | number : "1.0-2" }}
             </div>
             }
             <div class="order-detail-item">
@@ -244,7 +244,7 @@
     <div class="w-100 mt-2 fs-6">
       {{
         "ORDER.TABLE.CONTENT.PAY_DIALOG.DESCRIPTION"
-          | translate : { maxAmount: data.maxAmount }
+          | translate : { maxAmount: data.maxAmount | number : "1.0-2" }
       }}
     </div>
     <mat-form-field class="w-100 mt-4" appearance="outline">
