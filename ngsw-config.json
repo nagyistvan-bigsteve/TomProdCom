@@ -28,7 +28,7 @@
     },
     {
       "name": "i18n",
-      "installMode": "lazy",
+      "installMode": "prefetch",
       "updateMode": "prefetch",
       "resources": {
         "files": ["/assets/i18n/*.json"]
