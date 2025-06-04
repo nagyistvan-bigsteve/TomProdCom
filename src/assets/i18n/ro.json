@@ -94,6 +94,7 @@
       "EXPECTED_DELIVERY": "Livrare așteptată",
       "DELIVERY_CHECKBOX": "Livrare până la această dată",
       "DELIVERY_CHECKBOX_TOOLTIP": "Bifează dacă livrarea trebuie să aibă loc până la această dată.",
+      "FIRST_HOUR_CHECKBOX": "Livrare în prima ora",
       "BACK_BUTTON": "Înapoi",
       "SAVE_BUTTON": "Salvare"
     }
@@ -194,6 +195,12 @@
     }
   },
   "ORDER": {
+    "DETAILS": {
+      "DELIVERED_BUTTON": "A fost expediat",
+      "POPUP_TITLE": "Sigur ca a fost expediat?",
+      "POPUP_CONFIRM": "DA",
+      "POPUP_CANCEL": "NU"
+    },
     "TABLE": {
       "FILTER": {
         "ALL": "toate",
@@ -208,16 +215,29 @@
       },
       "CONTENT": {
         "CLIENT": "Client",
-        "ORDER_PLACED": "Data comanda",
+        "ORDER_PLACED": "Data comanda: ",
         "ORDER_DELIVERED": "Data de livrare: ",
         "TOTAL_AMOUND_FINAL": "Preț final",
-        "OPERATOR": "Operator",
+        "OPERATOR": "Operator: ",
+        "DELIVERY_PLACE": "Adresa",
         "VOUCHER": "Voucher: ",
+        "QUANTITY": "Cantitate",
         "EXPECTED_DELIVERY": "Livrare așteptată",
+        "EXPECTED_DELIVERY_TOOLTIP": "până {{date}} trebuie livrat.",
         "DETAILS_BUTTON": "Detalii",
         "DELETE_BUTTON": "Ștergere",
         "NUMBER_OF_ORDERS": "Numărul de comenzi: ",
-        "TOTAL_PRICE": "Preț total: {{price}} RON"
+        "TOTAL_PRICE": "Preț total: {{price}} RON",
+        "FIRST_HOUR": "Prima oră",
+        "PAID_AMOUNT": "Suma plătită în avans: ",
+        "PAY_DIALOG": {
+          "TITLE": "Suma plătită în avans",
+          "INPUT_LABEL": "Suma plătită",
+          "INPUT_PLACEHOLDER": "Introduceți suma",
+          "DESCRIPTION": "Suma de plată: {{maxAmount}} RON",
+          "CANCEL_BUTTON": "Înapoi",
+          "PAY_BUTTON": "Plătit"
+        }
       }
     }
   },

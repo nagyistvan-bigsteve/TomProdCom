@@ -94,6 +94,7 @@
       "EXPECTED_DELIVERY": "Várt szállítás",
       "DELIVERY_CHECKBOX": "Kiszállítás eddig az időpontig",
       "DELIVERY_CHECKBOX_TOOLTIP": "Jelöld be, ha a kiszállításnak eddig az időpontig kell megtörténnie.",
+      "FIRST_HOUR_CHECKBOX": "Kiszállítás az első órában",
       "BACK_BUTTON": "Vissza",
       "SAVE_BUTTON": "Mentés"
     }
@@ -194,6 +195,12 @@
     }
   },
   "ORDER": {
+    "DETAILS": {
+      "DELIVERED_BUTTON": "Ki lett szállítva",
+      "POPUP_TITLE": "Biztos ki lett szállítva?",
+      "POPUP_CONFIRM": "IGEN",
+      "POPUP_CANCEL": "NEM"
+    },
     "TABLE": {
       "FILTER": {
         "ALL": "mind",
@@ -208,16 +215,29 @@
       },
       "CONTENT": {
         "CLIENT": "Kliens",
-        "ORDER_PLACED": "Rendelés dátuma",
+        "ORDER_PLACED": "Rendelés dátuma: ",
         "ORDER_DELIVERED": "Szállítás dátuma: ",
         "TOTAL_AMOUND_FINAL": "Végső ár",
-        "OPERATOR": "Operátor",
+        "DELIVERY_PLACE": "Cím",
+        "OPERATOR": "Operátor: ",
+        "QUANTITY": "Mennyiség",
         "VOUCHER": "Voucher: ",
         "EXPECTED_DELIVERY": "Várt szállítás",
+        "EXPECTED_DELIVERY_TOOLTIP": "{{date}}-ig ki kell szállítani.",
         "DETAILS_BUTTON": "Részletek",
         "DELETE_BUTTON": "Törlés",
         "NUMBER_OF_ORDERS": "Rendelések száma: ",
-        "TOTAL_PRICE": "Össz ár: {{price}} RON"
+        "TOTAL_PRICE": "Össz ár: {{price}} RON",
+        "FIRST_HOUR": "Első órában",
+        "PAID_AMOUNT": "Előre fizetett összeg: ",
+        "PAY_DIALOG": {
+          "TITLE": "Előre fizetett összeg",
+          "INPUT_LABEL": "Fizetett összeg",
+          "INPUT_PLACEHOLDER": "Írd be az összeget",
+          "DESCRIPTION": "Fizetni való összeg: {{maxAmount}} RON",
+          "CANCEL_BUTTON": "Mégse",
+          "PAY_BUTTON": "Fizetett"
+        }
       }
     }
   },

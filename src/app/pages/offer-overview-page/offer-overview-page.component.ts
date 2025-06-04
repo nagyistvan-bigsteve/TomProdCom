@@ -29,6 +29,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { Unit_id } from '../../models/enums';
 
 @Component({
   selector: 'app-offer-overview',
@@ -72,6 +73,7 @@ export class OfferOverviewPageComponent {
     this.currentDate.getTime() + 3 * 24 * 60 * 60 * 1000
   );
   untilDeliveryDate: boolean = false;
+  forFirstHour: boolean = false;
 
   get totalPrice(): number {
     let total = this.price;
@@ -100,6 +102,18 @@ export class OfferOverviewPageComponent {
     const dialogRef = this._dialog.open(this.confirmOfferDialog, {
       width: '300px',
     });
+    let totalOrderQuantity = 0;
+
+    this.productStore.productItems().forEach((item) => {
+      const { unit_id, width, thickness, length } = item.product;
+
+      if (unit_id !== Unit_id.M2 && unit_id !== Unit_id.BUC) {
+        const volumeM3 = (width * thickness * length) / 1_000_000;
+        const multiplier = unit_id === Unit_id.BOUNDLE ? 10 : 1;
+
+        totalOrderQuantity += item.quantity * volumeM3 * multiplier;
+      }
+    });
 
     dialogRef
       .afterClosed()
@@ -117,7 +131,9 @@ export class OfferOverviewPageComponent {
               this.authStore.id()!,
               this.comment,
               this.expectedDeliveryDate!,
-              this.untilDeliveryDate
+              this.untilDeliveryDate,
+              this.forFirstHour,
+              totalOrderQuantity
             )
             .then(() => {
               this.productStore.deleteProductItems();

@@ -39,7 +39,7 @@
                 class="d-flex justify-content-start align-items-center h-100 overflow-auto"
               >
                 <div>{{ item.product.name }}</div>
-                <div class="d-flex">
+                <div class="d-flex" (click)="changeCategory($event, item)">
                   <span>&ensp;-&thinsp;</span>
                   {{
                     "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category
@@ -49,20 +49,42 @@
               </div>
             </div>
             <div class="col col-3 p-0">
-              <div class="d-flex justify-content-end align-items-center h-100">
-                {{ item.quantity | number : "1.0-2" }}
-                @if (item.product.unit_id !== 3) {
-                {{
-                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                    item.product.unit_id | translate
-                }}
-                } @else {
-                {{
-                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
-                    | translate
-                }}
-                }
-              </div>
+              <ng-container *ngIf="editingItem === item; else viewMode">
+                <div
+                  class="d-flex justify-content-end align-items-center h-100"
+                >
+                  <input
+                    type="number"
+                    [(ngModel)]="editableQuantity"
+                    (blur)="saveQuantity(item)"
+                    (keydown.enter)="saveQuantity(item)"
+                    class="form-control"
+                    style="max-width: 70px"
+                    autofocus
+                  />
+                </div>
+              </ng-container>
+
+              <ng-template #viewMode>
+                <div
+                  class="d-flex justify-content-end align-items-center h-100"
+                >
+                  <div (click)="enableEdit($event, item)">
+                    {{ item.quantity | number : "1.0-2" }}
+                    @if (item.product.unit_id !== 3) {
+                    {{
+                      "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                        item.product.unit_id | translate
+                    }}
+                    } @else {
+                    {{
+                      "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
+                        | translate
+                    }}
+                    }
+                  </div>
+                </div>
+              </ng-template>
             </div>
             <div class="col col-3 p-0">
               <div class="d-flex justify-content-end align-items-center h-100">
@@ -108,14 +130,17 @@
                   (item.product.m2_util / 10) | number : "1.0-2"
               }}
             </div>
-            }@else if (item.extraPiecesNeeded) {
+            }@else if(item.packsNeeded || item.extraPiecesNeeded) {
             <div class="row border-bottom p-1">
               {{
                 "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.M2_NET" | translate
               }}
               {{
-                item.extraPiecesNeeded * (item.product.m2_util / 10)
-                  | number : "1.0-2"
+                item.extraPiecesNeeded
+                  ? item.extraPiecesNeeded * (item.product.m2_util / 10)
+                  : (item.packsNeeded! *
+                      item.product.piece_per_pack *
+                      (item.product.m2_util / 10) | number : "1.0-2")
               }}
             </div>
             }

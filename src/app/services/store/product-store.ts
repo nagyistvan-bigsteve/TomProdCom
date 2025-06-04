@@ -5,7 +5,7 @@ import {
   withMethods,
   patchState,
 } from '@ngrx/signals';
-import { ProductItems, ProductItem } from '../../models/models';
+import { ProductItems, ProductItem, Price } from '../../models/models';
 import { Category } from '../../models/enums';
 
 // Define the state interface
@@ -63,15 +63,15 @@ export const useProductStore = signalStore(
         persistState();
       },
 
-      // Update a product item
       updateProductItem(
         productId: string | number,
         category: Category,
         updates: Partial<ProductItem>
       ) {
         const currentItems = store.productItems();
-
-        if (!currentItems) return;
+        if (!currentItems) {
+          return;
+        }
 
         const updatedItems = currentItems.map((item) =>
           item.category === category && item.product.id === productId
@@ -85,6 +85,55 @@ export const useProductStore = signalStore(
         });
 
         persistState();
+
+        this.checkForDuplicatedItems(productId, updates.category);
+      },
+
+      checkForDuplicatedItems(
+        productId: string | number,
+        category: Category | undefined
+      ) {
+        if (!category) {
+          return;
+        }
+        const currentItems = store.productItems();
+        if (!currentItems) {
+          return;
+        }
+
+        const matchingItems = currentItems.filter(
+          (item) => item.category === category && item.product.id === productId
+        );
+
+        let mergedItem: ProductItem | null = null;
+
+        if (matchingItems.length > 1) {
+          const baseItem = { ...matchingItems[0] };
+          const totalQuantity =
+            matchingItems[0].quantity + matchingItems[1].quantity;
+          const totalPrice = matchingItems[0].price + matchingItems[1].price;
+
+          mergedItem = {
+            ...baseItem,
+            quantity: totalQuantity,
+            price: totalPrice,
+          };
+
+          const updatedItems = [
+            ...currentItems.filter(
+              (item) =>
+                !(item.category === category && item.product.id === productId)
+            ),
+            mergedItem,
+          ];
+
+          patchState(store, {
+            productItems: updatedItems,
+            lastUpdated: new Date().toISOString(),
+          });
+
+          persistState();
+        }
       },
 
       // Delete all product items
@@ -117,13 +166,24 @@ export const useProductStore = signalStore(
       },
 
       // Update quantity for a specific product
-      updateQuantity(productId: string | number, quantity: number) {
+      updateQuantity(
+        productId: string | number,
+        category: Category,
+        quantity: number,
+        price: number
+      ) {
         const currentItems = store.productItems();
 
         if (!currentItems) return;
 
         const updatedItems = currentItems.map((item) =>
-          item.product.id === productId ? { ...item, quantity } : item
+          item.product.id === productId && item.category === category
+            ? {
+                ...item,
+                quantity,
+                price,
+              }
+            : item
         );
 
         patchState(store, {

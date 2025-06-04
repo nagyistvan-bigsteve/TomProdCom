@@ -5,6 +5,8 @@ import {
   inject,
   OnInit,
   Output,
+  TemplateRef,
+  ViewChild,
 } from '@angular/core';
 import { OrdersService } from '../../../services/query-services/orders.service';
 import { OrderResponse } from '../../../models/models';
@@ -26,6 +28,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { TranslateModule } from '@ngx-translate/core';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatInputModule } from '@angular/material/input';
 
 @Component({
   selector: 'app-order-table',
@@ -40,6 +45,9 @@ import { TranslateModule } from '@ngx-translate/core';
     MatDatepickerModule,
     ReactiveFormsModule,
     TranslateModule,
+    MatDialogModule,
+    MatTooltipModule,
+    MatInputModule,
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './order-table.component.html',
@@ -47,32 +55,38 @@ import { TranslateModule } from '@ngx-translate/core';
   animations: [LEAVE_ANIMATION],
 })
 export class OrderTableComponent implements OnInit {
+  @ViewChild('confirmDeleteDialog') confirmDeleteDialog!: TemplateRef<any>;
+  @ViewChild('paidAmountDialog') paidAmountDialog!: TemplateRef<any>;
   @Output() orderOutput = new EventEmitter<OrderResponse>();
 
   public readonly authStore = inject(useAuthStore);
   private readonly destroyRef = inject(DestroyRef);
+  private _dialog = inject(MatDialog);
   private ordersService = inject(OrdersService);
-  orders: OrderResponse[] = [];
-  dataSource = new MatTableDataSource<OrderResponse>([]);
-  columnsToDisplay = [
-    { name: 'CLIENT', value: 'client' },
-    { name: 'ORDER_PLACED', value: 'dateOrderPlaced' },
-    { name: 'EXPECTED_DELIVERY', value: 'expectedDelivery' },
-    { name: 'TOTAL_AMOUND_FINAL', value: 'totalAmountFinal' },
-    { name: 'OPERATOR', value: 'operator' },
-  ];
-  columnsToDisplayStrings = this.columnsToDisplay.map((c) => c.value);
-  expandedElement: OrderResponse | null = null;
-  displayedOrdersStat: {
-    numberOfOrders: number;
-    totalPrice: number;
-  } = { numberOfOrders: 0, totalPrice: 0 };
-
-  tableFilter: 'all' | 'open' | 'closed' | 'expectedToday' = 'open';
   readonly dateRange = new FormGroup({
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
   });
+
+  orders: OrderResponse[] = [];
+  dataSource = new MatTableDataSource<OrderResponse>([]);
+  paidAmount: number | null = null;
+
+  columnsToDisplay = [
+    { name: 'CLIENT', value: 'client' },
+    { name: 'DELIVERY_PLACE', value: 'clientDelivery' },
+    { name: 'EXPECTED_DELIVERY', value: 'expectedDelivery' },
+    { name: 'QUANTITY', value: 'quantity' },
+    { name: 'TOTAL_AMOUND_FINAL', value: 'totalAmountFinal' },
+  ];
+  columnsToDisplayStrings = this.columnsToDisplay.map((c) => c.value);
+  tableFilter: 'all' | 'open' | 'closed' | 'expectedToday' = 'open';
+  expandedElement: OrderResponse | null = null;
+
+  displayedOrdersStat: {
+    numberOfOrders: number;
+    totalPrice: number;
+  } = { numberOfOrders: 0, totalPrice: 0 };
 
   ngOnInit(): void {
     this.fetchOrders();
@@ -92,6 +106,35 @@ export class OrderTableComponent implements OnInit {
       });
   }
 
+  payOrder(
+    event: any,
+    orderId: number,
+    totalAmount: number,
+    alreadyPaidAmount: number
+  ): void {
+    event.stopPropagation();
+
+    this.paidAmount = null;
+
+    const dialogRef = this._dialog.open(this.paidAmountDialog, {
+      width: '300px',
+      data: { maxAmount: totalAmount - alreadyPaidAmount },
+    });
+
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (result === true && this.paidAmount) {
+          this.ordersService
+            .orderIsPaid(orderId, this.paidAmount + alreadyPaidAmount)
+            .then(() => {
+              this.fetchOrders();
+            });
+        }
+      });
+  }
+
   sortTheOrders(orders: OrderResponse[]): OrderResponse[] {
     return orders.sort((a, b) => {
       const dateA = new Date(a.expectedDelivery).getTime();
@@ -99,6 +142,11 @@ export class OrderTableComponent implements OnInit {
 
       if (dateA !== dateB) {
         return dateA - dateB;
+      }
+
+      const firstHourDiff = Number(b.forFirstHour) - Number(a.forFirstHour);
+      if (firstHourDiff !== 0) {
+        return firstHourDiff;
       }
 
       return Number(a.untilDeliveryDate) - Number(b.untilDeliveryDate);
@@ -156,7 +204,8 @@ export class OrderTableComponent implements OnInit {
             new Date(item.expectedDelivery).getMonth() ===
               currentDate.getMonth() &&
             new Date(item.expectedDelivery).getFullYear() ===
-              currentDate.getFullYear()
+              currentDate.getFullYear() &&
+            !item.dateOrderDelivered
         );
         this.setDisplayedOrdersStats(this.dataSource.data);
         break;
@@ -193,14 +242,32 @@ export class OrderTableComponent implements OnInit {
   }
 
   deleteOrder(order: OrderResponse): void {
-    this.ordersService.deleteOrder(order.id).then(() => {
-      setTimeout(() => {
-        this.fetchOrders();
-      }, 500);
+    const dialogRef = this._dialog.open(this.confirmDeleteDialog, {
+      width: '300px',
     });
+
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (result === true) {
+          this.ordersService.deleteOrder(order.id).then(() => {
+            setTimeout(() => {
+              this.fetchOrders();
+            }, 500);
+          });
+        }
+      });
   }
 
-  isExpectedDeliveryInFuture(expectedDelivery: Date): boolean {
+  isExpectedDeliveryInFuture(
+    expectedDelivery: Date,
+    dateOrderDelivered: Date
+  ): boolean {
+    if (dateOrderDelivered) {
+      return true;
+    }
+
     return Date.now() < Date.parse(expectedDelivery.toString());
   }
 

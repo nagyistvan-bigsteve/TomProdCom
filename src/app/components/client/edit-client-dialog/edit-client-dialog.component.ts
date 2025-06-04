@@ -46,7 +46,7 @@ export class EditClientDialogComponent {
       type: [data.client.type, Validators.required],
       phone: [data.client.phone, Validators.required],
       address: [data.client.address],
-      delivery_address: [data.client.delivery_address],
+      delivery_address: [data.client.delivery_address, Validators.required],
       code: [data.client.code],
       other_details: [data.client.other_details],
     });

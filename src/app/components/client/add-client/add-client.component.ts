@@ -67,7 +67,10 @@ export class AddClientComponent {
     address: new FormControl<string>(''),
     code: new FormControl<string>(''),
     other_details: new FormControl<string>(''),
-    delivery_address: new FormControl<string>(''),
+    delivery_address: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.required],
+    }),
   });
   clientSearch = new FormControl('');
 

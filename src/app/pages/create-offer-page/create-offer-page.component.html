@@ -60,7 +60,7 @@
             "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category
               | translate
           }}
-          {{ item.quantity }}x
+          {{ item.quantity | number : "1.0-2" }}x
         </div>
         @if (!last) {
         <div class="d-flex justify-content-center">

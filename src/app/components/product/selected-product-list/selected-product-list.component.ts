@@ -17,7 +17,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { useProductStore } from '../../../services/store/product-store';
-import { ProductItem } from '../../../models/models';
+import { Price, Product, ProductItem } from '../../../models/models';
+import { Category, Unit_id } from '../../../models/enums';
+import { ProductsService } from '../../../services/query-services/products.service';
+import { ProductUtil } from '../../../services/utils/product.util';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-selected-product-list',
@@ -30,6 +34,7 @@ import { ProductItem } from '../../../models/models';
     MatIconModule,
     MatDialogModule,
     MatButtonModule,
+    FormsModule,
   ],
   templateUrl: './selected-product-list.component.html',
   styleUrl: './selected-product-list.component.scss',
@@ -40,10 +45,15 @@ export class SelectedProductListComponent implements OnInit {
 
   totalPrice: number = 0;
 
+  editingItem: ProductItem | null = null;
+  editableQuantity: number | null = null;
+
   private router = inject(Router);
   private _dialog = inject(MatDialog);
   private location = inject(Location);
   private destroyRef = inject(DestroyRef);
+  private productService = inject(ProductsService);
+  private productUtil = inject(ProductUtil);
   readonly productStore = inject(useProductStore);
 
   ngOnInit(): void {
@@ -56,6 +66,71 @@ export class SelectedProductListComponent implements OnInit {
       this.productStore.productItems()?.forEach((item) => {
         this.totalPrice = this.totalPrice + item.price;
       });
+    }
+  }
+
+  changeCategory(event: any, item: ProductItem): void {
+    event.stopPropagation();
+
+    this.getPrice(this.updateCategory(item.category), item);
+  }
+
+  enableEdit(event: any, item: ProductItem): void {
+    event.stopPropagation();
+
+    this.editingItem = item;
+    this.editableQuantity = item.quantity;
+  }
+
+  saveQuantity(item: ProductItem): void {
+    if (this.editableQuantity != null) {
+      if (item.product.unit_id === Unit_id.M2) {
+        this.productService
+          .getPrice(item.product.unit_id, item.category, item.product.size_id)
+          .then((newPrice) => {
+            const { price, packsNeeded, extraPiecesNeeded, totalPiecesNeeded } =
+              this.productUtil.calculatePrice(
+                item.product,
+                newPrice?.price!,
+                this.editableQuantity!,
+                false
+              );
+
+            const updates: Partial<ProductItem> = {
+              price,
+              packsNeeded,
+              extraPiecesNeeded,
+              quantity: totalPiecesNeeded * (item.product.m2_brut / 10),
+            };
+
+            this.productStore.updateProductItem(
+              item.product.id,
+              item.category,
+              updates
+            );
+
+            this.editingItem = null;
+            this.editableQuantity = null;
+
+            this.getTotalPrice();
+          });
+      } else {
+        const price = (item.price / item.quantity) * this.editableQuantity;
+
+        item.quantity = this.editableQuantity;
+
+        this.productStore.updateQuantity(
+          item.product.id,
+          item.category,
+          item.quantity,
+          price
+        );
+
+        this.editingItem = null;
+        this.editableQuantity = null;
+
+        this.getTotalPrice();
+      }
     }
   }
 
@@ -89,5 +164,38 @@ export class SelectedProductListComponent implements OnInit {
           this.getTotalPrice();
         }
       });
+  }
+
+  private getPrice(newCategory: Category, item: ProductItem): void {
+    this.productService
+      .getPrice(item.product.unit_id, newCategory, item.product.size_id)
+      .then((newPrice) => {
+        if (!newPrice) {
+          this.getPrice(this.updateCategory(newCategory), item);
+        } else {
+          const actualNewPrice = this.productUtil.calculatePrice(
+            item.product,
+            newPrice.price,
+            item.quantity,
+            false
+          ).price;
+
+          this.productStore.updateProductItem(item.product.id, item.category, {
+            category: newCategory,
+            price: actualNewPrice,
+          });
+        }
+
+        this.getTotalPrice();
+      });
+  }
+
+  private updateCategory(category: Category): Category {
+    let newCategory = category + 1;
+    if (newCategory > Category.T) {
+      newCategory = Category.A;
+    }
+
+    return newCategory;
   }
 }

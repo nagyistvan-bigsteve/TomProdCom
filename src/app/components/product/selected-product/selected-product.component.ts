@@ -21,6 +21,7 @@ import { ENTER_ANIMATION } from '../../../models/animations';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ProductUtil } from '../../../services/utils/product.util';
 
 @Component({
   selector: 'app-selected-product',
@@ -56,6 +57,7 @@ export class SelectedProductComponent implements OnChanges {
   private destroyRef = inject(DestroyRef);
   private snackBar = inject(MatSnackBar);
   private translateService = inject(TranslateService);
+  private productUtil = inject(ProductUtil);
   private hasFocused = false;
 
   currentStock: Stock | null = null;
@@ -76,26 +78,28 @@ export class SelectedProductComponent implements OnChanges {
   }
 
   addNewProduct() {
-    if (this.selectedProduct) {
-      if (this.selectedProduct.unit_id !== Unit_id.M2) {
-        this.addProduct.emit({
-          product: this.selectedProduct,
-          quantity: +this.quantity,
-          price: this.calculatedPrice,
-          category: this.selectedCategory,
-        });
-      } else {
-        this.addProduct.emit({
-          product: this.selectedProduct,
-          quantity:
-            this.totalPiecesNeeded * (this.selectedProduct.m2_brut / 10),
-          price: this.calculatedPrice,
-          packsNeeded: this.packsNeeded,
-          extraPiecesNeeded: this.extraPiecesNeeded,
-          category: this.selectedCategory,
-        });
+    setTimeout(() => {
+      if (this.selectedProduct) {
+        if (this.selectedProduct.unit_id !== Unit_id.M2) {
+          this.addProduct.emit({
+            product: this.selectedProduct,
+            quantity: +this.quantity,
+            price: this.calculatedPrice,
+            category: this.selectedCategory,
+          });
+        } else {
+          this.addProduct.emit({
+            product: this.selectedProduct,
+            quantity:
+              this.totalPiecesNeeded * (this.selectedProduct.m2_brut / 10),
+            price: this.calculatedPrice,
+            packsNeeded: this.packsNeeded,
+            extraPiecesNeeded: this.extraPiecesNeeded,
+            category: this.selectedCategory,
+          });
+        }
       }
-    }
+    });
   }
 
   fetchPrices(product: Product): void {
@@ -138,7 +142,7 @@ export class SelectedProductComponent implements OnChanges {
 
   validateInput() {
     if (this.selectedProduct && this.selectedProduct.unit_id === Unit_id.M2) {
-      if (+this.quantity < 0.5 || isNaN(+this.quantity)) {
+      if (+this.quantity < 0 || isNaN(+this.quantity)) {
         setTimeout(() => (this.quantity = '0.5'));
       }
     } else {
@@ -170,49 +174,6 @@ export class SelectedProductComponent implements OnChanges {
     this.calculatePrice();
   }
 
-  calculatePrice(): void {
-    this.packsNeeded = 0;
-    this.extraPiecesNeeded = 0;
-    this.totalPiecesNeeded = 0;
-
-    if (!this.selectedProduct || !this.selectedPrice) return;
-    if (
-      this.selectedProduct.unit_id === Unit_id.BUC ||
-      this.selectedProduct.unit_id === Unit_id.BOUNDLE
-    ) {
-      this.calculatedPrice = +this.quantity * this.selectedPrice.price;
-    }
-
-    if (this.selectedProduct.unit_id === Unit_id.M3) {
-      this.calculatedPrice =
-        ((this.selectedProduct.width *
-          this.selectedProduct.length *
-          this.selectedProduct.thickness) /
-          1000000) *
-        this.selectedPrice.price *
-        +this.quantity;
-    }
-
-    if (this.selectedProduct.unit_id === Unit_id.M2) {
-      let m2_unit = this.m2_isBrut
-        ? this.selectedProduct.m2_brut
-        : this.selectedProduct.m2_util;
-
-      this.totalPiecesNeeded = Math.ceil(+this.quantity / (m2_unit / 10));
-      this.packsNeeded = Math.floor(
-        this.totalPiecesNeeded / this.selectedProduct.piece_per_pack
-      );
-
-      this.extraPiecesNeeded =
-        this.totalPiecesNeeded % this.selectedProduct.piece_per_pack;
-
-      this.calculatedPrice =
-        this.totalPiecesNeeded *
-        (this.selectedProduct.m2_brut / 10) *
-        this.selectedPrice.price;
-    }
-  }
-
   verifyStock(): void {
     if (+this.quantity > this.currentStock!.stock) {
       this.translateService
@@ -230,5 +191,20 @@ export class SelectedProductComponent implements OnChanges {
   m2_setUnit() {
     this.m2_isBrut = !this.m2_isBrut;
     this.calculatePrice();
+  }
+
+  private calculatePrice(): void {
+    const { price, packsNeeded, extraPiecesNeeded, totalPiecesNeeded } =
+      this.productUtil.calculatePrice(
+        this.selectedProduct!,
+        this.selectedPrice?.price!,
+        +this.quantity,
+        this.m2_isBrut
+      );
+
+    this.calculatedPrice = price;
+    this.packsNeeded = packsNeeded;
+    this.extraPiecesNeeded = extraPiecesNeeded;
+    this.totalPiecesNeeded = totalPiecesNeeded;
   }
 }

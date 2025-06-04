@@ -61,9 +61,23 @@
     {{ order.comment }}
   </div>
   } @if(!order.dateOrderDelivered){
-  <button class="mt-3" mat-flat-button (click)="orderIsDelivered(order.id)">
-    Order is delivered
+  <button class="mt-3" mat-flat-button (click)="confirmDelivered(order.id)">
+    {{ "ORDER.DETAILS.DELIVERED_BUTTON" | translate }}
   </button>
   }
 </div>
 }
+
+<ng-template #confirmDeliveredDialog>
+  <h2 class="text-center" mat-dialog-title>
+    {{ "ORDER.DETAILS.POPUP_TITLE" | translate }}
+  </h2>
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">
+      {{ "ORDER.DETAILS.POPUP_CANCEL" | translate }}
+    </button>
+    <button mat-raised-button color="warn" [mat-dialog-close]="true">
+      {{ "ORDER.DETAILS.POPUP_CONFIRM" | translate }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>
