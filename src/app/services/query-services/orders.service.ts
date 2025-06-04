@@ -18,13 +18,16 @@ export class OrdersService {
   getOrders(): Observable<OrderResponse[]> {
     return from(
       this.supabaseService.client.from('orders').select(`id,
-    client:client_id ( id, name ),
+    client:client_id ( id, name, delivery_address ),
     date_order_placed,
     expected_delivery,
     date_order_delivered,
     until_delivery_date,
+    total_quantity,
+    for_first_hour,
     total_amount,
     total_amount_final,
+    paid_amount,
     comment,
     voucher,
     operator:operator_id ( id, name )
@@ -36,16 +39,19 @@ export class OrdersService {
             id: order.id,
             client: Array.isArray(order.client)
               ? order.client[0]
-              : order.client || { id: 0, name: '' },
+              : order.client || { id: 0, name: '', delivery_address: '' },
             operator: Array.isArray(order.operator)
               ? order.operator[0]
               : order.operator || { id: 0, name: '' },
             dateOrderPlaced: order.date_order_placed,
             untilDeliveryDate: order.until_delivery_date,
+            forFirstHour: order.for_first_hour,
             expectedDelivery: order.expected_delivery,
             dateOrderDelivered: order.date_order_delivered,
             totalAmount: order.total_amount,
             totalAmountFinal: order.total_amount_final,
+            totalQuantity: order.total_quantity,
+            paidAmount: order.paid_amount,
             comment: order.comment,
             voucher: order.voucher,
           })
@@ -97,6 +103,20 @@ export class OrdersService {
         return of([]);
       })
     );
+  }
+
+  async orderIsPaid(id: number, paid_amount: number): Promise<boolean> {
+    const { error } = await this.supabaseService.client
+      .from('orders')
+      .update({ paid_amount })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to add the paid amount, ', error);
+      return false;
+    }
+
+    return true;
   }
 
   async orderIsDelivered(id: number): Promise<boolean> {
@@ -168,7 +188,9 @@ export class OrdersService {
     operator_id: string,
     comment: string,
     expected_delivery: Date,
-    until_delivery_date: boolean
+    until_delivery_date: boolean,
+    for_first_hour: boolean,
+    total_quantity: number
   ) {
     const currentDate = new Date();
 
@@ -179,11 +201,13 @@ export class OrdersService {
         date_order_placed: currentDate,
         expected_delivery,
         until_delivery_date,
+        for_first_hour,
         total_amount: totalPrice,
         total_amount_final: finalPrice,
         voucher,
         comment,
         operator_id,
+        total_quantity,
       })
       .select()
       .single();

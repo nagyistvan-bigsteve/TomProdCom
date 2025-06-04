@@ -70,30 +70,63 @@
     <td @leaveAnimation mat-cell *matCellDef="let order" class="px-2">
       @switch (column.value) { @case ('client') {
       {{ order.client.name }}
-      } @case ('operator') {
-      {{ order.operator.name }}
-      } @case ('totalAmountFinal') {
-      {{ order[column.value] | number : "1.0-2" }}
-      } @case ('expectedDelivery') { @if(order.untilDeliveryDate){
+      } @case ('clientDelivery') {
+      {{ order.client.delivery_address }}
+      } @case ('totalAmountFinal') { @if(order.dateOrderDelivered) {
+      <div>
+        {{ order[column.value] - order.paidAmount | number : "1.0-2" }}
+      </div>
+      } @else {
       <div
+        (click)="
+          payOrder($event, order.id, order.totalAmountFinal, order.paidAmount)
+        "
+      >
+        {{ order[column.value] - order.paidAmount | number : "1.0-2" }}
+      </div>
+      } } @case ('expectedDelivery') { @if(order.untilDeliveryDate){
+      <div
+        [matTooltip]="
+          'ORDER.TABLE.CONTENT.EXPECTED_DELIVERY_TOOLTIP'
+            | translate : { date: order.expectedDelivery | date : 'MM.dd' }
+        "
         class="until-delivery rounded"
         [ngClass]="
-          !isExpectedDeliveryInFuture(order.expectedDelivery) ? 'in-past' : ''
+          !isExpectedDeliveryInFuture(
+            order.expectedDelivery,
+            order.dateOrderDelivered
+          )
+            ? 'in-past'
+            : ''
         "
       >
         {{ order[column.value] | date }}
         <span class="until-delivery-start">*</span>
       </div>
+      {{
+        order.forFirstHour ? ("ORDER.TABLE.CONTENT.FIRST_HOUR" | translate) : ""
+      }}
       } @else{
       <div
         [ngClass]="
-          !isExpectedDeliveryInFuture(order.expectedDelivery) ? 'in-past' : ''
+          !isExpectedDeliveryInFuture(
+            order.expectedDelivery,
+            order.dateOrderDelivered
+          )
+            ? 'in-past'
+            : ''
         "
       >
         {{ order[column.value] | date }}
+        <br />
+        {{
+          order.forFirstHour
+            ? ("ORDER.TABLE.CONTENT.FIRST_HOUR" | translate)
+            : ""
+        }}
       </div>
-      } } @case ('dateOrderPlaced') {
-      {{ order[column.value] | date }}
+      } } @case ('quantity') {
+      <div class="ps-2">{{ order.totalQuantity | number : "1.0-2" }} m³</div>
       } @default {
       {{ order[column.value] }}
       } }
@@ -115,6 +148,10 @@
       >
         <div class="order-detail" [ngClass]="{ 'py-1': isExpanded(order) }">
           <div>
+            <div class="order-detail-item">
+              {{ "ORDER.TABLE.CONTENT.ORDER_PLACED" | translate }}
+              {{ order.dateOrderPlaced | date }}
+            </div>
             @if (order.voucher != '') {
             <div class="order-detail-item detail-voucher">
               {{ "ORDER.TABLE.CONTENT.VOUCHER" | translate }}
@@ -126,7 +163,17 @@
               {{ "ORDER.TABLE.CONTENT.ORDER_DELIVERED" | translate }}
               {{ order.dateOrderDelivered | date }}
             </div>
-            } @if(order.comment != '') {
+            } @if(order.paidAmount) {
+            <div class="order-detail-item">
+              {{ "ORDER.TABLE.CONTENT.PAID_AMOUNT" | translate }}
+              {{ order.paidAmount }}
+            </div>
+            }
+            <div class="order-detail-item">
+              {{ "ORDER.TABLE.CONTENT.OPERATOR" | translate }}
+              {{ order.operator.name }}
+            </div>
+            @if(order.comment != '') {
             <div class="rounded border border-secondary border-1 p-2">
               {{ order.comment }}
             </div>
@@ -135,7 +182,11 @@
           <div
             class="h-100 d-flex flex-column justify-content-center align-items-center"
           >
-            <button (click)="showOrderDetails(order)" mat-raised-button>
+            <button
+              class="w-100"
+              (click)="showOrderDetails(order)"
+              mat-raised-button
+            >
               {{ "ORDER.TABLE.CONTENT.DETAILS_BUTTON" | translate }}
             </button>
             @if(authStore.role() === 'admin'){
@@ -184,3 +235,70 @@
   </div>
 </div>
 }
+
+<ng-template #paidAmountDialog let-data>
+  <h2 mat-dialog-title>
+    {{ "ORDER.TABLE.CONTENT.PAY_DIALOG.TITLE" | translate }}
+  </h2>
+  <mat-dialog-content>
+    <div class="w-100 mt-2 fs-6">
+      {{
+        "ORDER.TABLE.CONTENT.PAY_DIALOG.DESCRIPTION"
+          | translate : { maxAmount: data.maxAmount }
+      }}
+    </div>
+    <mat-form-field class="w-100 mt-4" appearance="outline">
+      <mat-label>{{
+        "ORDER.TABLE.CONTENT.PAY_DIALOG.INPUT_LABEL" | translate
+      }}</mat-label>
+      <input
+        matInput
+        type="number"
+        [min]="0"
+        [max]="data.maxAmount"
+        [(ngModel)]="paidAmount"
+        #ngModelRef="ngModel"
+        [ngModelOptions]="{
+          standalone: true
+        }"
+        [placeholder]="
+          'ORDER.TABLE.CONTENT.PAY_DIALOG.INPUT_PLACEHOLDER' | translate
+        "
+      />
+    </mat-form-field>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">
+      {{ "ORDER.TABLE.CONTENT.PAY_DIALOG.CANCEL_BUTTON" | translate }}
+    </button>
+    <button
+      mat-raised-button
+      color="warn"
+      [disabled]="!ngModelRef.valid || paidAmount === null"
+      [mat-dialog-close]="true"
+    >
+      {{ "ORDER.TABLE.CONTENT.PAY_DIALOG.PAY_BUTTON" | translate }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #confirmDeleteDialog>
+  <h2 mat-dialog-title>
+    {{ "OFFER_PAGE.CREATE_OFFER.DELETE_ITEM_POPUP.TITLE" | translate }}
+  </h2>
+  <mat-dialog-content>
+    {{ "OFFER_PAGE.CREATE_OFFER.DELETE_ITEM_POPUP.DESCRIPTION" | translate }}
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">
+      {{
+        "OFFER_PAGE.CREATE_OFFER.DELETE_ITEM_POPUP.CANCEL_BUTTON" | translate
+      }}
+    </button>
+    <button mat-raised-button color="warn" [mat-dialog-close]="true">
+      {{
+        "OFFER_PAGE.CREATE_OFFER.DELETE_ITEM_POPUP.DELETE_BUTTON" | translate
+      }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>

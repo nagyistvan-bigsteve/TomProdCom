@@ -6,6 +6,8 @@ import {
   Input,
   OnInit,
   Output,
+  TemplateRef,
+  ViewChild,
 } from '@angular/core';
 import { OrderItemsResponse, OrderResponse } from '../../../models/models';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,6 +19,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-order-details',
@@ -28,11 +31,14 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
     TranslateModule,
     MatSnackBarModule,
     MatCheckboxModule,
+    MatDialogModule,
   ],
   templateUrl: './order-details.component.html',
   styleUrl: './order-details.component.scss',
 })
 export class OrderDetailsComponent implements OnInit {
+  @ViewChild('confirmDeliveredDialog')
+  confirmDeliveredDialog!: TemplateRef<any>;
   @Output() closeDetails = new EventEmitter<void>();
   @Input() order: OrderResponse | undefined;
 
@@ -42,6 +48,7 @@ export class OrderDetailsComponent implements OnInit {
   readonly orderService = inject(OrdersService);
   private snackBar = inject(MatSnackBar);
   private translateService = inject(TranslateService);
+  private _dialog = inject(MatDialog);
 
   ngOnInit(): void {
     this.orderService
@@ -72,6 +79,21 @@ export class OrderDetailsComponent implements OnInit {
       }
       this.orderItems![index].itemStatus = status;
     });
+  }
+
+  confirmDelivered(id: number): void {
+    const dialogRef = this._dialog.open(this.confirmDeliveredDialog, {
+      width: '300px',
+    });
+
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((result) => {
+        if (result === true) {
+          this.orderIsDelivered(id);
+        }
+      });
   }
 
   orderIsDelivered(id: number) {

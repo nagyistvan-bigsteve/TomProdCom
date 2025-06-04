@@ -2,12 +2,9 @@ import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../supabase.service';
 import { catchError, from, map, Observable, of, switchMap } from 'rxjs';
 import {
-  Client,
-  ExactOrderItem,
   Price,
   PriceResponse,
   Product,
-  ProductItems,
   Products,
   Stock,
 } from '../../models/models';

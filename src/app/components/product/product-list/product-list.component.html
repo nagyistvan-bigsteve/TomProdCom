@@ -61,7 +61,7 @@
         [formControl]="myControl"
         [matAutocomplete]="auto"
         (input)="filter()"
-        (focus)="filter()"
+        (focus)="onInputFocus()"
       />
       <mat-autocomplete
         #auto="matAutocomplete"

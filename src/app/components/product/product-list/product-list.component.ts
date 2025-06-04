@@ -63,6 +63,8 @@ export class ProductSelectComponent {
 
   private productService = inject(ProductsService);
   private destroyRef = inject(DestroyRef);
+  private justSelected: boolean = true;
+  private firstFocus: boolean = true;
 
   constructor() {
     this.fetchProducts();
@@ -123,6 +125,7 @@ export class ProductSelectComponent {
 
   optionSelected(product: Product) {
     this.selectedProduct.emit(product);
+    this.justSelected = true;
   }
 
   displayProductLabel(product: Product): string {
@@ -132,6 +135,23 @@ export class ProductSelectComponent {
   onFilterChange() {
     this.myControl.setValue('');
     this.productsByFilter = this.fetchProductsByFilters();
+  }
+
+  onInputFocus(): void {
+    if (this.firstFocus) {
+      this.filter();
+      this.firstFocus = false;
+    }
+
+    if (this.justSelected) {
+      this.justSelected = false;
+
+      return;
+    }
+
+    this.myControl.setValue('');
+
+    setTimeout(() => this.filter());
   }
 
   filter(): void {

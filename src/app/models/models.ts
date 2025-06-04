@@ -99,22 +99,28 @@ export type Order = {
   expectedDelivery: Date;
   dateOrderDelivered: Date;
   untilDeliveryDate: boolean;
+  forFirstHour: boolean;
   totalAmount: number;
   operatorId: string;
   totalAmountFinal: number;
+  totalQuantity: number;
+  paidAmount: number;
   comment: string;
   voucher: string;
 };
 
 export type OrderResponse = {
   id: number;
-  client: { id: number; name: string };
+  client: { id: number; name: string; delivery_address: string };
   dateOrderPlaced: Date;
   expectedDelivery: Date;
   dateOrderDelivered: Date;
   untilDeliveryDate: boolean;
+  forFirstHour: boolean;
   totalAmount: number;
   totalAmountFinal: number;
+  totalQuantity: number;
+  paidAmount: number;
   comment: string;
   voucher: string;
   operator: { id: string; name: string };
