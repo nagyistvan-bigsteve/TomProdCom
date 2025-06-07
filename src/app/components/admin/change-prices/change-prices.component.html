@@ -104,7 +104,8 @@
       }"
     >
       <div>
-        {{ item.product.name }}
+        {{ item.product.name }} -
+        {{ categoryOptions[item.category_id - 1].key }}
       </div>
       <div>
         {{ item.price }}

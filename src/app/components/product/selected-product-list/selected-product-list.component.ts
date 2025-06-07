@@ -17,7 +17,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { useProductStore } from '../../../services/store/product-store';
-import { Price, Product, ProductItem } from '../../../models/models';
+import { Price, ProductItem } from '../../../models/models';
 import { Category, Unit_id } from '../../../models/enums';
 import { ProductsService } from '../../../services/query-services/products.service';
 import { ProductUtil } from '../../../services/utils/product.util';
@@ -44,9 +44,13 @@ export class SelectedProductListComponent implements OnInit {
   @Input() isInOverview: boolean = false;
 
   totalPrice: number = 0;
+  totalPriceInA: number = 0;
+  totalPriceInB: number = 0;
 
   editingItem: ProductItem | null = null;
   editableQuantity: number | null = null;
+
+  prices: Price[] = [];
 
   private router = inject(Router);
   private _dialog = inject(MatDialog);
@@ -57,7 +61,13 @@ export class SelectedProductListComponent implements OnInit {
   readonly productStore = inject(useProductStore);
 
   ngOnInit(): void {
+    this.fetchPrices();
     this.getTotalPrice();
+
+    setTimeout(() => {
+      this.getTotalPriceInB();
+      this.getTotalPriceInA();
+    }, 500);
   }
 
   getTotalPrice(): void {
@@ -69,10 +79,32 @@ export class SelectedProductListComponent implements OnInit {
     }
   }
 
+  getTotalPriceInB(): void {
+    if (this.productStore.productItems()) {
+      this.totalPriceInB = 0;
+      this.productStore.productItems()?.forEach((item) => {
+        let priceInB = this.getCalculatedPrice(Category.B, item);
+        this.totalPriceInB =
+          this.totalPriceInB + (priceInB ? priceInB : item.price);
+      });
+    }
+  }
+
+  getTotalPriceInA(): void {
+    if (this.productStore.productItems()) {
+      this.totalPriceInA = 0;
+      this.productStore.productItems()?.forEach((item) => {
+        let priceInA = this.getCalculatedPrice(Category.A, item);
+        this.totalPriceInA =
+          this.totalPriceInA + (priceInA ? priceInA : item.price);
+      });
+    }
+  }
+
   changeCategory(event: any, item: ProductItem): void {
     event.stopPropagation();
 
-    this.getPrice(this.updateCategory(item.category), item);
+    this.updateCategory(this.switchCategory(item.category), item);
   }
 
   enableEdit(event: any, item: ProductItem): void {
@@ -85,35 +117,35 @@ export class SelectedProductListComponent implements OnInit {
   saveQuantity(item: ProductItem): void {
     if (this.editableQuantity != null) {
       if (item.product.unit_id === Unit_id.M2) {
-        this.productService
-          .getPrice(item.product.unit_id, item.category, item.product.size_id)
-          .then((newPrice) => {
-            const { price, packsNeeded, extraPiecesNeeded, totalPiecesNeeded } =
-              this.productUtil.calculatePrice(
-                item.product,
-                newPrice?.price!,
-                this.editableQuantity!,
-                false
-              );
+        const newPrice = this.getExactPrice(item.category, item);
 
-            const updates: Partial<ProductItem> = {
-              price,
-              packsNeeded,
-              extraPiecesNeeded,
-              quantity: totalPiecesNeeded * (item.product.m2_brut / 10),
-            };
+        const { price, packsNeeded, extraPiecesNeeded, totalPiecesNeeded } =
+          this.productUtil.calculatePrice(
+            item.product,
+            newPrice?.price!,
+            this.editableQuantity!,
+            false
+          );
 
-            this.productStore.updateProductItem(
-              item.product.id,
-              item.category,
-              updates
-            );
+        const updates: Partial<ProductItem> = {
+          price,
+          packsNeeded,
+          extraPiecesNeeded,
+          quantity: totalPiecesNeeded * (item.product.m2_brut / 10),
+        };
 
-            this.editingItem = null;
-            this.editableQuantity = null;
+        this.productStore.updateProductItem(
+          item.product.id,
+          item.category,
+          updates
+        );
 
-            this.getTotalPrice();
-          });
+        this.editingItem = null;
+        this.editableQuantity = null;
+
+        this.getTotalPrice();
+        this.getTotalPriceInB();
+        this.getTotalPriceInA();
       } else {
         const price = (item.price / item.quantity) * this.editableQuantity;
 
@@ -130,6 +162,8 @@ export class SelectedProductListComponent implements OnInit {
         this.editableQuantity = null;
 
         this.getTotalPrice();
+        this.getTotalPriceInB();
+        this.getTotalPriceInA();
       }
     }
   }
@@ -150,6 +184,44 @@ export class SelectedProductListComponent implements OnInit {
     }
   }
 
+  goToClientPageWithB(): void {
+    this.productStore.productItems().forEach((item) => {
+      let priceInB = this.getCalculatedPrice(Category.B, item);
+
+      if (priceInB) {
+        this.productStore.updateProductItem(item.product.id, item.category, {
+          category: Category.B,
+          price: this.getCalculatedPrice(Category.B, item),
+        });
+      }
+    });
+
+    if (!localStorage.getItem('client_data')) {
+      this.router.navigate(['/offer/client']);
+    } else {
+      this.router.navigate(['/offer/overview']);
+    }
+  }
+
+  goToClientPageWithA(): void {
+    this.productStore.productItems().forEach((item) => {
+      let priceInA = this.getCalculatedPrice(Category.A, item);
+
+      if (priceInA) {
+        this.productStore.updateProductItem(item.product.id, item.category, {
+          category: Category.A,
+          price: this.getCalculatedPrice(Category.A, item),
+        });
+      }
+    });
+
+    if (!localStorage.getItem('client_data')) {
+      this.router.navigate(['/offer/client']);
+    } else {
+      this.router.navigate(['/offer/overview']);
+    }
+  }
+
   confirmDelete(item: ProductItem): void {
     const dialogRef = this._dialog.open(this.confirmDeleteDialog, {
       width: '300px',
@@ -162,35 +234,84 @@ export class SelectedProductListComponent implements OnInit {
         if (result === true) {
           this.productStore.deleteProductById(item.product.id, item.category);
           this.getTotalPrice();
+          this.getTotalPriceInB();
+          this.getTotalPriceInA();
         }
       });
   }
 
-  private getPrice(newCategory: Category, item: ProductItem): void {
-    this.productService
-      .getPrice(item.product.unit_id, newCategory, item.product.size_id)
-      .then((newPrice) => {
-        if (!newPrice) {
-          this.getPrice(this.updateCategory(newCategory), item);
-        } else {
-          const actualNewPrice = this.productUtil.calculatePrice(
-            item.product,
-            newPrice.price,
-            item.quantity,
-            false
-          ).price;
+  private fetchPrices(): void {
+    this.productService.getAllPrices().then((prices) => {
+      if (!prices) {
+        return;
+      }
 
-          this.productStore.updateProductItem(item.product.id, item.category, {
-            category: newCategory,
-            price: actualNewPrice,
-          });
-        }
-
-        this.getTotalPrice();
-      });
+      this.prices = prices;
+    });
   }
 
-  private updateCategory(category: Category): Category {
+  private getCalculatedPrice(category: Category, item: ProductItem): number {
+    const newPrice = this.getExactPrice(category, item);
+
+    if (!newPrice) {
+      return 0;
+    }
+
+    const calculatedNewPrice = this.productUtil.calculatePrice(
+      item.product,
+      newPrice.price,
+      item.quantity,
+      false
+    ).price;
+
+    return calculatedNewPrice;
+  }
+
+  private updateCategory(newCategory: Category, item: ProductItem): void {
+    const newPrice = this.getExactPrice(newCategory, item);
+
+    if (!newPrice) {
+      this.updateCategory(this.switchCategory(newCategory), item);
+    } else {
+      const actualNewPrice = this.productUtil.calculatePrice(
+        item.product,
+        newPrice.price,
+        item.quantity,
+        false
+      ).price;
+
+      this.productStore.updateProductItem(item.product.id, item.category, {
+        category: newCategory,
+        price: actualNewPrice,
+      });
+    }
+
+    this.getTotalPrice();
+  }
+
+  private getExactPrice(newCategory: Category, item: ProductItem): Price {
+    const unicPrice = this.prices.find(
+      (price) => price.product_id === item.product.id
+    );
+
+    let exactPrice = unicPrice
+      ? this.prices.find(
+          (price) =>
+            price.category_id === newCategory &&
+            price.unit_id === item.product.unit_id &&
+            price.product_id === item.product.id
+        )
+      : this.prices.find(
+          (price) =>
+            price.category_id === newCategory &&
+            price.size_id === item.product.size_id &&
+            price.unit_id === item.product.unit_id
+        );
+
+    return exactPrice!;
+  }
+
+  private switchCategory(category: Category): Category {
     let newCategory = category + 1;
     if (newCategory > Category.T) {
       newCategory = Category.A;
