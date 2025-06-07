@@ -39,8 +39,10 @@
                 class="d-flex justify-content-start align-items-center h-100 overflow-auto"
               >
                 <div>{{ item.product.name }}</div>
-                <div class="d-flex" (click)="changeCategory($event, item)">
-                  <span>&ensp;-&thinsp;</span>
+                <div
+                  class="d-flex rounded border border-2 border-dark px-1 ms-1"
+                  (click)="changeCategory($event, item)"
+                >
                   {{
                     "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category
                       | translate
@@ -236,7 +238,7 @@
   @if (totalPrice && !isInOverview) {
   <div
     (click)="goToClientPage()"
-    class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 p-3 mt-2 bg-white text-black fw-normal"
+    class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 px-3 py-2 mt-2 bg-white text-black fw-normal"
   >
     {{ "WORDS.TOTAL" | translate }}: {{ totalPrice | number : "1.0-2" }}
     {{ "LANGUAGE.CURRENCY" | translate }}
@@ -245,6 +247,36 @@
         class="btn ms-2 forward-button d-flex justify-content-center align-items-center"
         mat-icon-button
         (click)="goToClientPage()"
+      >
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </div>
+  <div
+    class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 px-3 py-2 mt-2 bg-white text-black fw-normal"
+  >
+    {{ "WORDS.TOTAL" | translate }} B: {{ totalPriceInB | number : "1.0-2" }}
+    {{ "LANGUAGE.CURRENCY" | translate }}
+    <div class="d-flex justify-content-end">
+      <button
+        class="btn ms-2 forward-button d-flex justify-content-center align-items-center"
+        mat-icon-button
+        (click)="goToClientPageWithB()"
+      >
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </div>
+  <div
+    class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 px-3 py-2 mt-2 bg-white text-black fw-normal"
+  >
+    {{ "WORDS.TOTAL" | translate }} A: {{ totalPriceInA | number : "1.0-2" }}
+    {{ "LANGUAGE.CURRENCY" | translate }}
+    <div class="d-flex justify-content-end">
+      <button
+        class="btn ms-2 forward-button d-flex justify-content-center align-items-center"
+        mat-icon-button
+        (click)="goToClientPageWithA()"
       >
         <mat-icon>arrow_forward</mat-icon>
       </button>

@@ -127,6 +127,21 @@ export class ProductsService {
     }
   }
 
+  async getAllPrices(): Promise<Price[] | null> {
+    try {
+      const { data, error } = await this.supabaseService.client
+        .from('prices')
+        .select('*');
+
+      if (error) throw error;
+
+      return data as Price[];
+    } catch (error) {
+      console.error('Fail to fetch prices', error);
+      return null;
+    }
+  }
+
   async getPrice(
     unit_id: Unit_id,
     category: Category,
