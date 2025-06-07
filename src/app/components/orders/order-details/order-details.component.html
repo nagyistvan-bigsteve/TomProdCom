@@ -45,7 +45,7 @@
         }
         <div>{{ item.price | number : "1.0-2" }} RON</div>
       </div>
-      @if(!order.dateOrderDelivered){
+      @if(!order.dateOrderDelivered && !justOffers){
       <mat-checkbox
         [checked]="item.itemStatus"
         (change)="updateItemStatus(item.id, !item.itemStatus, i)"
@@ -60,13 +60,66 @@
   >
     {{ order.comment }}
   </div>
-  } @if(!order.dateOrderDelivered){
+  } @if(!order.dateOrderDelivered && !justOffers){
   <button class="mt-3" mat-flat-button (click)="confirmDelivered(order.id)">
     {{ "ORDER.DETAILS.DELIVERED_BUTTON" | translate }}
+  </button>
+  } @if(justOffers) {
+  <button class="mt-3" mat-flat-button (click)="transformOfferToOrder(order)">
+    {{ "ORDER.DETAILS.SIMPLE_TRANSFORM_BUTTON" | translate }}
+  </button>
+
+  <button
+    class="mt-3"
+    mat-raised-button
+    (click)="transformExactOfferToOrder(order)"
+  >
+    {{ "ORDER.DETAILS.TOTAL_TRANSFORM_BUTTON" | translate }}
   </button>
   }
 </div>
 }
+
+<ng-template #confirmTransformExactOfferDialog>
+  <h2 class="text-center" mat-dialog-title>
+    {{ "ORDER.DETAILS.TRANSFORM_POPUP" | translate }}
+  </h2>
+  <mat-dialog-content>
+    <div class="multiline-text">
+      {{ "ORDER.DETAILS.TOTAL_TRANSFORM_DESCRIPTION" | translate }}
+    </div>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">
+      {{ "ORDER.DETAILS.POPUP_CANCEL" | translate }}
+    </button>
+    <button mat-raised-button color="warn" [mat-dialog-close]="true">
+      {{ "ORDER.DETAILS.POPUP_CONFIRM" | translate }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #confirmTransformOfferDialog>
+  <h2 class="text-center" mat-dialog-title>
+    {{ "ORDER.DETAILS.TRANSFORM_POPUP" | translate }}
+  </h2>
+  <mat-dialog-content>
+    <div>
+      {{ "ORDER.DETAILS.SIMPLE_TRANSFORM_DESCRIPTION" | translate }}
+    </div>
+    <mat-checkbox class="ms-3 mt-2" [(ngModel)]="deleteOffer">{{
+      "ORDER.DETAILS.POPUP_CHECKBOX" | translate
+    }}</mat-checkbox>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">
+      {{ "ORDER.DETAILS.POPUP_CANCEL" | translate }}
+    </button>
+    <button mat-raised-button color="warn" [mat-dialog-close]="true">
+      {{ "ORDER.DETAILS.POPUP_CONFIRM" | translate }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>
 
 <ng-template #confirmDeliveredDialog>
   <h2 class="text-center" mat-dialog-title>

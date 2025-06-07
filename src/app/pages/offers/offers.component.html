@@ -1,0 +1,13 @@
+@if (!order) {<app-order-table
+  @enterAnimation
+  [justOffers]="true"
+  (orderOutput)="selectedOrder($event)"
+></app-order-table
+>} @else {
+<app-order-details
+  @enterAnimation
+  (closeDetails)="deselectOrder()"
+  [order]="order"
+  [justOffers]="true"
+></app-order-details>
+}

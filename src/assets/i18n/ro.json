@@ -8,7 +8,8 @@
   },
   "NAVBAR": {
     "OFFER_BUTTON": "Oferta nouă",
-    "HISTORY_BUTTON": "Comenzi"
+    "HISTORY_BUTTON": "Comenzi",
+    "OFFERS_BUTTON": "Oferte"
   },
   "OFFER_PAGE": {
     "FIRST_STEP": {
@@ -95,6 +96,7 @@
       "DELIVERY_CHECKBOX": "Livrare până la această dată",
       "DELIVERY_CHECKBOX_TOOLTIP": "Bifează dacă livrarea trebuie să aibă loc până la această dată.",
       "FIRST_HOUR_CHECKBOX": "Livrare în prima ora",
+      "JUST_OFFER_CHECKBOX": "Doar ofertă",
       "BACK_BUTTON": "Înapoi",
       "SAVE_BUTTON": "Salvare"
     }
@@ -197,9 +199,15 @@
   "ORDER": {
     "DETAILS": {
       "DELIVERED_BUTTON": "A fost expediat",
+      "TOTAL_TRANSFORM_BUTTON": "Transformare în comandă",
+      "TOTAL_TRANSFORM_DESCRIPTION": "Vrei să transformi într-o comandă așa cum este? \n Oferta o să dispară din tabela asta.",
+      "SIMPLE_TRANSFORM_DESCRIPTION": "Vrei să creezi o comandă pe baza ofertei?",
+      "SIMPLE_TRANSFORM_BUTTON": "Creare comandă",
       "POPUP_TITLE": "Sigur ca a fost expediat?",
       "POPUP_CONFIRM": "DA",
-      "POPUP_CANCEL": "NU"
+      "POPUP_CANCEL": "NU",
+      "TRANSFORM_POPUP": "Sigur vrei să transformi într-o comandă?",
+      "POPUP_CHECKBOX": "Șterge oferta!"
     },
     "TABLE": {
       "FILTER": {
@@ -216,6 +224,7 @@
       "CONTENT": {
         "CLIENT": "Client",
         "ORDER_PLACED": "Data comanda: ",
+        "OFFER_PLACED": "Data oferta",
         "ORDER_DELIVERED": "Data de livrare: ",
         "TOTAL_AMOUND_FINAL": "Preț final",
         "OPERATOR": "Operator: ",
@@ -223,6 +232,7 @@
         "VOUCHER": "Voucher: ",
         "QUANTITY": "Cantitate",
         "EXPECTED_DELIVERY": "Livrare așteptată",
+        "OFFER_EXPECTED_DELIVERY": "Livrare așteptată: ",
         "EXPECTED_DELIVERY_TOOLTIP": "până {{date}} trebuie livrat.",
         "DETAILS_BUTTON": "Detalii",
         "DELETE_BUTTON": "Ștergere",

@@ -8,7 +8,8 @@
   },
   "NAVBAR": {
     "OFFER_BUTTON": "Új ajánlat",
-    "HISTORY_BUTTON": "Rendelések"
+    "HISTORY_BUTTON": "Rendelések",
+    "OFFERS_BUTTON": "Ajánlatok"
   },
   "OFFER_PAGE": {
     "FIRST_STEP": {
@@ -95,6 +96,7 @@
       "DELIVERY_CHECKBOX": "Kiszállítás eddig az időpontig",
       "DELIVERY_CHECKBOX_TOOLTIP": "Jelöld be, ha a kiszállításnak eddig az időpontig kell megtörténnie.",
       "FIRST_HOUR_CHECKBOX": "Kiszállítás az első órában",
+      "JUST_OFFER_CHECKBOX": "Csak ajánlat",
       "BACK_BUTTON": "Vissza",
       "SAVE_BUTTON": "Mentés"
     }
@@ -197,9 +199,15 @@
   "ORDER": {
     "DETAILS": {
       "DELIVERED_BUTTON": "Ki lett szállítva",
+      "TOTAL_TRANSFORM_BUTTON": "Rendeléssé váltotatás",
+      "TOTAL_TRANSFORM_DESCRIPTION": "Rendeléssé akarod változtatni ezt az ajánlatot, úgy ahogy van? \n Az ajánlat el fog tűnni az ajánlatok táblázatból.",
+      "SIMPLE_TRANSFORM_DESCRIPTION": "Szeretnél rendelést készíteni ez az ajánlat alapján?",
+      "SIMPLE_TRANSFORM_BUTTON": "Rendelés készítése",
       "POPUP_TITLE": "Biztos ki lett szállítva?",
       "POPUP_CONFIRM": "IGEN",
-      "POPUP_CANCEL": "NEM"
+      "POPUP_CANCEL": "NEM",
+      "TRANSFORM_POPUP": "Biztos rendeléssé akarod változtatni",
+      "POPUP_CHECKBOX": "Ajánlat törlése!"
     },
     "TABLE": {
       "FILTER": {
@@ -216,6 +224,7 @@
       "CONTENT": {
         "CLIENT": "Kliens",
         "ORDER_PLACED": "Rendelés dátuma: ",
+        "OFFER_PLACED": "Ajánlat dátuma",
         "ORDER_DELIVERED": "Szállítás dátuma: ",
         "TOTAL_AMOUND_FINAL": "Végső ár",
         "DELIVERY_PLACE": "Cím",
@@ -223,6 +232,7 @@
         "QUANTITY": "Mennyiség",
         "VOUCHER": "Voucher: ",
         "EXPECTED_DELIVERY": "Várt szállítás",
+        "OFFER_EXPECTED_DELIVERY": "Várt szállítás: ",
         "EXPECTED_DELIVERY_TOOLTIP": "{{date}}-ig ki kell szállítani.",
         "DETAILS_BUTTON": "Részletek",
         "DELETE_BUTTON": "Törlés",

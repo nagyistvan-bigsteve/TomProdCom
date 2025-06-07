@@ -1,4 +1,5 @@
 <div class="filter-section d-flex flex-column w-100">
+  @if(!justOffers) {
   <mat-chip-listbox
     [(ngModel)]="tableFilter"
     (ngModelChange)="filterItems(false)"
@@ -30,6 +31,7 @@
       {{ "ORDER.TABLE.FILTER.EXPECTED_TODAY" | translate }}
     </mat-chip-option>
   </mat-chip-listbox>
+  }
 
   <mat-form-field class="mb-1">
     <mat-label>{{ "ORDER.TABLE.FILTER.DATE_RANGE" | translate }}</mat-label>
@@ -72,7 +74,8 @@
       {{ order.client.name }}
       } @case ('clientDelivery') {
       {{ order.client.delivery_address }}
-      } @case ('totalAmountFinal') { @if(order.dateOrderDelivered) {
+      } @case ('totalAmountFinal') { @if(order.dateOrderDelivered || justOffers)
+      {
       <div>
         {{ order[column.value] - order.paidAmount | number : "1.0-2" }}
       </div>
@@ -84,7 +87,8 @@
       >
         {{ order[column.value] - order.paidAmount | number : "1.0-2" }}
       </div>
-      } } @case ('expectedDelivery') { @if(order.untilDeliveryDate){
+      } } @case ('expectedDelivery') { @if(!justOffers) {
+      @if(order.untilDeliveryDate){
       <div
         [matTooltip]="
           'ORDER.TABLE.CONTENT.EXPECTED_DELIVERY_TOOLTIP'
@@ -125,6 +129,8 @@
             : ""
         }}
       </div>
+      } } @else {
+      {{ order.dateOrderPlaced | date }}
       } } @case ('quantity') {
       <div class="ps-2">{{ order.totalQuantity | number : "1.0-2" }} m³</div>
       } @default {
@@ -148,11 +154,17 @@
       >
         <div class="order-detail" [ngClass]="{ 'py-1': isExpanded(order) }">
           <div>
+            @if(!justOffers) {
             <div class="order-detail-item">
               {{ "ORDER.TABLE.CONTENT.ORDER_PLACED" | translate }}
               {{ order.dateOrderPlaced | date }}
             </div>
-            @if (order.voucher != '') {
+            } @else {
+            <div class="order-detail-item">
+              {{ "ORDER.TABLE.CONTENT.OFFER_EXPECTED_DELIVERY" | translate }}
+              {{ order.expectedDelivery | date }}
+            </div>
+            } @if (order.voucher != '') {
             <div class="order-detail-item detail-voucher">
               {{ "ORDER.TABLE.CONTENT.VOUCHER" | translate }}
               {{ order.voucher }}
@@ -218,7 +230,7 @@
     class="detail-row"
   ></tr>
 </table>
-@if(displayedOrdersStat.numberOfOrders){
+@if(displayedOrdersStat.numberOfOrders && !justOffers){
 <div class="d-flex align-items-center justify-content-center mx-1">
   <div class="w-100 rounded shadow bg-white text-black mt-2 p-2">
     <div>

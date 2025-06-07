@@ -3,6 +3,7 @@ import {
   DestroyRef,
   EventEmitter,
   inject,
+  Input,
   OnInit,
   Output,
   TemplateRef,
@@ -58,6 +59,7 @@ export class OrderTableComponent implements OnInit {
   @ViewChild('confirmDeleteDialog') confirmDeleteDialog!: TemplateRef<any>;
   @ViewChild('paidAmountDialog') paidAmountDialog!: TemplateRef<any>;
   @Output() orderOutput = new EventEmitter<OrderResponse>();
+  @Input() justOffers: boolean = false;
 
   public readonly authStore = inject(useAuthStore);
   private readonly destroyRef = inject(DestroyRef);
@@ -72,14 +74,8 @@ export class OrderTableComponent implements OnInit {
   dataSource = new MatTableDataSource<OrderResponse>([]);
   paidAmount: number | null = null;
 
-  columnsToDisplay = [
-    { name: 'CLIENT', value: 'client' },
-    { name: 'DELIVERY_PLACE', value: 'clientDelivery' },
-    { name: 'EXPECTED_DELIVERY', value: 'expectedDelivery' },
-    { name: 'QUANTITY', value: 'quantity' },
-    { name: 'TOTAL_AMOUND_FINAL', value: 'totalAmountFinal' },
-  ];
-  columnsToDisplayStrings = this.columnsToDisplay.map((c) => c.value);
+  columnsToDisplay: { name: string; value: string }[] = [];
+  columnsToDisplayStrings: string[] = [];
   tableFilter: 'all' | 'open' | 'closed' | 'expectedToday' = 'open';
   expandedElement: OrderResponse | null = null;
 
@@ -89,6 +85,7 @@ export class OrderTableComponent implements OnInit {
   } = { numberOfOrders: 0, totalPrice: 0 };
 
   ngOnInit(): void {
+    this.setTable();
     this.fetchOrders();
 
     this.dateRange.valueChanges.subscribe((range) => {
@@ -98,12 +95,27 @@ export class OrderTableComponent implements OnInit {
 
   fetchOrders(): void {
     this.ordersService
-      .getOrders()
+      .getOrders(this.justOffers)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((orders) => {
         this.orders = this.sortTheOrders(orders);
         this.filterItems(false);
       });
+  }
+
+  setTable(): void {
+    this.columnsToDisplay = [
+      { name: 'CLIENT', value: 'client' },
+      { name: 'DELIVERY_PLACE', value: 'clientDelivery' },
+      {
+        name: this.justOffers ? 'OFFER_PLACED' : 'EXPECTED_DELIVERY',
+        value: 'expectedDelivery',
+      },
+      { name: 'QUANTITY', value: 'quantity' },
+      { name: 'TOTAL_AMOUND_FINAL', value: 'totalAmountFinal' },
+    ];
+
+    this.columnsToDisplayStrings = this.columnsToDisplay.map((c) => c.value);
   }
 
   payOrder(

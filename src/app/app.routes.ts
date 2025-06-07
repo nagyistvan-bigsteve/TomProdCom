@@ -10,6 +10,7 @@ import { WaitToApproveComponent } from './pages/wait-to-approve/wait-to-approve.
 import { UserComponent } from './pages/user/user.component';
 import { OrdersComponent } from './pages/orders/orders.component';
 import { SettingsComponent } from './pages/settings/settings.component';
+import { OffersComponent } from './pages/offers/offers.component';
 
 export const routes: Routes = [
   {
@@ -55,6 +56,14 @@ export const routes: Routes = [
   {
     path: 'orders',
     component: OrdersComponent,
+    canActivate: [authGuard],
+    data: {
+      requiresApproval: true,
+    },
+  },
+  {
+    path: 'offers',
+    component: OffersComponent,
     canActivate: [authGuard],
     data: {
       requiresApproval: true,

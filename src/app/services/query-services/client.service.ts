@@ -19,6 +19,23 @@ export class ClientsService {
     );
   }
 
+  async getClientById(id: number): Promise<Client | null> {
+    try {
+      const { data, error } = await this.supabaseService.client
+        .from('clients')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      return data as Client;
+    } catch (error) {
+      console.error('Fail to fetch client by id', error);
+      return null;
+    }
+  }
+
   addClient(client: Client): Observable<Client | boolean> {
     return from(
       this.supabaseService.client

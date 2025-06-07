@@ -69,6 +69,7 @@ export class OfferOverviewPageComponent {
 
   comment: string = '';
   voucher: string = '';
+  justOffer: boolean = false;
   expectedDeliveryDate: Date = new Date(
     this.currentDate.getTime() + 3 * 24 * 60 * 60 * 1000
   );
@@ -133,7 +134,8 @@ export class OfferOverviewPageComponent {
               this.expectedDeliveryDate!,
               this.untilDeliveryDate,
               this.forFirstHour,
-              totalOrderQuantity
+              totalOrderQuantity,
+              this.justOffer
             )
             .then(() => {
               this.productStore.deleteProductItems();
@@ -141,7 +143,11 @@ export class OfferOverviewPageComponent {
               this.voucher = '';
               this.comment = '';
 
-              this.router.navigate(['/orders']);
+              if (!this.justOffer) {
+                this.router.navigate(['/orders']);
+              } else {
+                this.router.navigate(['offers']);
+              }
             });
         }
       });

@@ -15,9 +15,12 @@ import { catchError, from, map, Observable, of, switchMap, take } from 'rxjs';
 export class OrdersService {
   private supabaseService = inject(SupabaseService);
 
-  getOrders(): Observable<OrderResponse[]> {
+  getOrders(justOffers: boolean): Observable<OrderResponse[]> {
     return from(
-      this.supabaseService.client.from('orders').select(`id,
+      this.supabaseService.client
+        .from('orders')
+        .select(
+          `id,
     client:client_id ( id, name, delivery_address ),
     date_order_placed,
     expected_delivery,
@@ -31,7 +34,9 @@ export class OrdersService {
     comment,
     voucher,
     operator:operator_id ( id, name )
-    `)
+    `
+        )
+        .eq('just_offer', justOffers)
     ).pipe(
       map(({ data }) =>
         (data ?? []).map(
@@ -103,6 +108,20 @@ export class OrdersService {
         return of([]);
       })
     );
+  }
+
+  async transformOfferToOrder(id: number): Promise<boolean> {
+    const { error } = await this.supabaseService.client
+      .from('orders')
+      .update({ just_offer: false })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to transform offer to order, ', error);
+      return false;
+    }
+
+    return true;
   }
 
   async orderIsPaid(id: number, paid_amount: number): Promise<boolean> {
@@ -190,7 +209,8 @@ export class OrdersService {
     expected_delivery: Date,
     until_delivery_date: boolean,
     for_first_hour: boolean,
-    total_quantity: number
+    total_quantity: number,
+    just_offer: boolean
   ) {
     const currentDate = new Date();
 
@@ -208,6 +228,7 @@ export class OrdersService {
         comment,
         operator_id,
         total_quantity,
+        just_offer,
       })
       .select()
       .single();

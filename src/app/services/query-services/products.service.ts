@@ -26,6 +26,22 @@ export class ProductsService {
     );
   }
 
+  async getProductsByIds(ids: number[]): Promise<Products | null> {
+    try {
+      const { data, error } = await this.supabaseService.client
+        .from('products')
+        .select('*')
+        .in('id', ids);
+
+      if (error) throw error;
+
+      return data as Products;
+    } catch (error) {
+      console.error('Fail to fetch products by ids', error);
+      return null;
+    }
+  }
+
   async addProduct(product: Product): Promise<boolean> {
     try {
       const { error } = await this.supabaseService.client
