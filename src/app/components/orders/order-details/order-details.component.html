@@ -81,12 +81,13 @@
 
   <div class="d-flex flex-column bg-white text-dark rounded shadow p-3 mt-3">
     <div class="client-detail-item">
-      <b>
-        {{ order.client.type === 1 ? "PF" : "PJ" }}
-        {{ order.client.code }}
-      </b>
+      <b class="pe-1"> {{ order.client.type === 1 ? "PF " : "PJ " }} </b> :
+      {{ order.client.code }}
     </div>
-    <div class="client-detail-item pt-1">
+    <div
+      (click)="callNumber(order.client.phone)"
+      class="client-detail-item pt-1"
+    >
       <i class="material-icons">phone_iphone</i>:
       {{ order.client.phone }}
     </div>

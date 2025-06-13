@@ -114,6 +114,10 @@ export class OrderDetailsComponent implements OnInit {
       });
   }
 
+  callNumber(phone: string) {
+    window.location.href = `tel:${phone}`;
+  }
+
   closeDetailsComponent() {
     this.closeDetails.emit();
   }
