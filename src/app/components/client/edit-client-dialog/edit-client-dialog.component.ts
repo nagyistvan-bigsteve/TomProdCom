@@ -44,8 +44,6 @@ export class EditClientDialogComponent {
     private dialogRef: MatDialogRef<EditClientDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { client: Client }
   ) {
-    console.log(data);
-
     this.clientForm = this.fb.group({
       id: [data.client.id],
       name: [data.client.name, Validators.required],
