@@ -1,4 +1,4 @@
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, Input, OnInit } from '@angular/core';
 import { LanguageSwitcherComponent } from '../language-swicher/language-switcher.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule, Location } from '@angular/common';
@@ -9,6 +9,8 @@ import { useAuthStore } from '../../../services/store/auth-store';
 import { Router } from '@angular/router';
 import { MatBadgeModule } from '@angular/material/badge';
 import { InstallService } from '../../../services/install.service';
+import { ReactiveStorageService } from '../../../services/utils/reavtive-storage.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-topbar',
@@ -26,13 +28,25 @@ import { InstallService } from '../../../services/install.service';
 })
 export class TopbarComponent implements OnInit {
   @Input() isAuthenticated: boolean = true;
+
+  private storage = inject(ReactiveStorageService);
   private location = inject(Location);
   private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
   public authStore = inject(useAuthStore);
   public installService = inject(InstallService);
 
+  isOnDetailsPage = false;
+
   ngOnInit(): void {
     this.authStore.fetchUnapprovedUsers();
+
+    this.storage
+      .getValue$('on-details-page')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.isOnDetailsPage = value === 'true';
+      });
   }
 
   installApp(): void {
@@ -40,7 +54,11 @@ export class TopbarComponent implements OnInit {
   }
 
   goBack(): void {
-    this.location.back();
+    if (this.isOnDetailsPage) {
+      this.storage.removeValue('on-details-page');
+    } else {
+      this.location.back();
+    }
   }
 
   goToUserPage(): void {

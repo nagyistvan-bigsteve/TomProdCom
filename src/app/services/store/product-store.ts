@@ -5,16 +5,14 @@ import {
   withMethods,
   patchState,
 } from '@ngrx/signals';
-import { ProductItems, ProductItem, Price } from '../../models/models';
+import { ProductItems, ProductItem } from '../../models/models';
 import { Category } from '../../models/enums';
 
-// Define the state interface
 interface ProductDataState {
   productItems: ProductItems;
   lastUpdated: string | null;
 }
 
-// Local storage key
 const STORAGE_KEY = 'product_items_data';
 
 export const useProductStore = signalStore(
@@ -24,9 +22,7 @@ export const useProductStore = signalStore(
     lastUpdated: null,
   }),
 
-  // Methods for state manipulation
   withMethods((store) => {
-    // Helper function to persist state to localStorage
     const persistState = () => {
       const state = {
         productItems: store.productItems(),
@@ -37,7 +33,6 @@ export const useProductStore = signalStore(
     };
 
     return {
-      // Set product items
       setProductItems(productItems: ProductItems) {
         patchState(store, {
           productItems,
@@ -47,13 +42,11 @@ export const useProductStore = signalStore(
         persistState();
       },
 
-      // Add a single product item
       addProductItem(productItem: ProductItem) {
         const currentItems = store.productItems() || [];
         let updatedItems: ProductItems;
 
-        // Add new product item
-        updatedItems = [...currentItems, productItem];
+        updatedItems = [productItem, ...currentItems];
 
         patchState(store, {
           productItems: updatedItems,
@@ -136,7 +129,6 @@ export const useProductStore = signalStore(
         }
       },
 
-      // Delete all product items
       deleteProductItems() {
         patchState(store, {
           productItems: [],
@@ -146,13 +138,11 @@ export const useProductStore = signalStore(
         persistState();
       },
 
-      // Delete specific product by ID
       deleteProductById(productId: string | number, category: Category) {
         const currentItems = store.productItems();
 
         if (!currentItems) return;
 
-        // Filter out the item with the specified ID
         const updatedItems = currentItems.filter(
           (item) => item.product.id !== productId || item.category !== category
         );
@@ -165,7 +155,6 @@ export const useProductStore = signalStore(
         persistState();
       },
 
-      // Update quantity for a specific product
       updateQuantity(
         productId: string | number,
         category: Category,
@@ -196,11 +185,9 @@ export const useProductStore = signalStore(
     };
   }),
 
-  // Lifecycle hooks
   withHooks((store) => {
     return {
       onInit() {
-        // Load state from localStorage on initialization
         const storedData = localStorage.getItem(STORAGE_KEY);
 
         if (storedData) {
@@ -213,9 +200,7 @@ export const useProductStore = signalStore(
           }
         }
       },
-      onDestroy() {
-        // Optional cleanup if needed
-      },
+      onDestroy() {},
     };
   })
 );

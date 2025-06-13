@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, Input } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -22,6 +22,7 @@ import { ENTER_ANIMATION } from '../../../models/animations';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { useClientStore } from '../../../services/store/client-store';
+import { cuiValidator } from '../../../guards/cuiValidator';
 
 @Component({
   selector: 'app-add-client',
@@ -42,7 +43,7 @@ import { useClientStore } from '../../../services/store/client-store';
   styleUrl: './add-client.component.scss',
   animations: [ENTER_ANIMATION],
 })
-export class AddClientComponent {
+export class AddClientComponent implements OnInit {
   public readonly clientStore = inject(useClientStore);
 
   private translateService = inject(TranslateService);
@@ -62,15 +63,18 @@ export class AddClientComponent {
     }),
     phone: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.pattern('^[- +()0-9]+$')],
+      validators: [Validators.required, Validators.pattern(/^\d{10}$/)],
     }),
-    address: new FormControl<string>(''),
-    code: new FormControl<string>(''),
-    other_details: new FormControl<string>(''),
-    delivery_address: new FormControl<string>('', {
+    address: new FormControl<string>('', {
       nonNullable: true,
       validators: [Validators.required],
     }),
+    code: new FormControl<string>('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.pattern(/^\d{13}$/)],
+    }),
+    other_details: new FormControl<string>(''),
+    delivery_address: new FormControl<string>(''),
   });
   clientSearch = new FormControl('');
 
@@ -78,12 +82,35 @@ export class AddClientComponent {
     (value) => typeof value === 'number'
   );
 
+  ngOnInit(): void {
+    this.clientForm
+      .get('type')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((typeValue) => {
+        const codeControl = this.clientForm.get('code');
+
+        if (typeValue === 1) {
+          codeControl?.setValidators([
+            Validators.required,
+            Validators.pattern(/^\d{13}$/),
+          ]);
+        } else {
+          codeControl?.setValidators([Validators.required, cuiValidator()]);
+        }
+
+        codeControl?.updateValueAndValidity();
+      });
+  }
+
   toOfferOverview(): void {
     this.router.navigate(['offer/overview']);
   }
 
   addClient() {
     if (this.clientForm.valid) {
+      if (!this.clientForm.value.delivery_address) {
+        this.clientForm.value.delivery_address = this.clientForm.value.address;
+      }
       const newClient: Partial<Client> = this.clientForm.value;
       this.clientsService
         .addClient(newClient as Client)

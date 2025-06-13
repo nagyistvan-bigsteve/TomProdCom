@@ -111,7 +111,7 @@ export type Order = {
 
 export type OrderResponse = {
   id: number;
-  client: { id: number; name: string; delivery_address: string };
+  client: Client;
   dateOrderPlaced: Date;
   expectedDelivery: Date;
   dateOrderDelivered: Date;

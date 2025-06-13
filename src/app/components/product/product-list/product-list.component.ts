@@ -166,16 +166,18 @@ export class ProductSelectComponent {
 
     const isNumeric = /^\d+$/.test(rawValue);
 
-    this.filteredOptions = this.productsByFilter.filter((o) => {
-      const name = o.name.toLowerCase();
+    this.filteredOptions = this.productsByFilter
+      .filter((o) => {
+        const name = o.name.toLowerCase();
 
-      if (isNumeric) {
-        const nameDigits = name.replace(/\D+/g, '');
-        return nameDigits.includes(rawValue);
-      } else {
-        return name.includes(rawValue);
-      }
-    });
+        if (isNumeric) {
+          const nameDigits = name.replace(/\D+/g, '');
+          return nameDigits.includes(rawValue);
+        } else {
+          return name.includes(rawValue);
+        }
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
   }
 
   private groupProductsByUnit(
