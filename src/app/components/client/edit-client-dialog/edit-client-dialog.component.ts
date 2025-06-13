@@ -44,23 +44,26 @@ export class EditClientDialogComponent {
     private dialogRef: MatDialogRef<EditClientDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { client: Client }
   ) {
+    console.log(data);
+
     this.clientForm = this.fb.group({
       id: [data.client.id],
       name: [data.client.name, Validators.required],
       type: [data.client.type, Validators.required],
       phone: [
         data.client.phone,
-        Validators.required,
-        Validators.pattern(/^\d{10}$/),
+        [Validators.required, Validators.pattern(/^\d{10}$/)],
       ],
       address: [data.client.address, Validators.required],
       delivery_address: [data.client.delivery_address],
       code: [
         data.client.code,
-        Validators.required,
-        data.client.type === 1
-          ? Validators.pattern(/^\d{13}$/)
-          : cuiValidator(),
+        [
+          Validators.required,
+          data.client.type === 1
+            ? Validators.pattern(/^\d{13}$/)
+            : cuiValidator(),
+        ],
       ],
       other_details: [data.client.other_details],
     });
