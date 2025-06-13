@@ -109,7 +109,7 @@
     "NAME": "Név",
     "TYPE": "Típus",
     "PHONE": "Telefon",
-    "CODE": "Kód",
+    "CODE": "CNP/CUI",
     "DETAILS": "Részletek",
     "ADDRESS": "Cím",
     "DELIVERY_ADDRESS": "Szállítási cím",
@@ -207,7 +207,18 @@
       "POPUP_CONFIRM": "IGEN",
       "POPUP_CANCEL": "NEM",
       "TRANSFORM_POPUP": "Biztos rendeléssé akarod változtatni",
-      "POPUP_CHECKBOX": "Ajánlat törlése!"
+      "POPUP_CHECKBOX": "Ajánlat törlése!",
+      "SHOW_PRICE": "Ár megjelenítése",
+      "EDIT_OFFER": "Módosítás",
+      "EDIT_BUTTON": "Módosít",
+      "EDIT_DIALOG": {
+        "TITLE": "Ajánlat szerkesztése",
+        "DESCRIPTION": "{{product}} módosítása.",
+        "QUANTITY_INPUT": "Mennyiség",
+        "CATEGORY_INPUT": "Minőség",
+        "CANCEL_BUTTON": "Mégse",
+        "SAVE_BUTTON": "Mentés"
+      }
     },
     "TABLE": {
       "FILTER": {

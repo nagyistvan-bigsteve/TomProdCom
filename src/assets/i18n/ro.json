@@ -109,7 +109,7 @@
     "NAME": "Nume",
     "TYPE": "Tip",
     "PHONE": "Telefon",
-    "CODE": "Cod",
+    "CODE": "CNP/CUI",
     "DETAILS": "Detalii",
     "ADDRESS": "Adresa",
     "DELIVERY_ADDRESS": "Adresa de livrare",
@@ -207,7 +207,18 @@
       "POPUP_CONFIRM": "DA",
       "POPUP_CANCEL": "NU",
       "TRANSFORM_POPUP": "Sigur vrei să transformi într-o comandă?",
-      "POPUP_CHECKBOX": "Șterge oferta!"
+      "POPUP_CHECKBOX": "Șterge oferta!",
+      "SHOW_PRICE": "Afișează prețul",
+      "EDIT_OFFER": "Editare",
+      "EDIT_BUTTON": "Editare",
+      "EDIT_DIALOG": {
+        "TITLE": "Editare oferta",
+        "DESCRIPTION": "Editare {{product}}.",
+        "QUANTITY_INPUT": "Cantitate",
+        "CATEGORY_INPUT": "Calitate",
+        "CANCEL_BUTTON": "Înapoi",
+        "SAVE_BUTTON": "Salvare"
+      }
     },
     "TABLE": {
       "FILTER": {

@@ -43,7 +43,10 @@
             "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
               selectedProduct.unit_id | translate
           }}} @else {
-          <div (click)="m2_setUnit()">
+          <div
+            (click)="m2_setUnit()"
+            class="border border-1 border-dark rounded px-1 mb-1"
+          >
             {{
               "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
                 selectedProduct.unit_id | translate

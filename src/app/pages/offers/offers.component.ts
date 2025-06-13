@@ -1,9 +1,11 @@
-import { Component } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OrderTableComponent } from '../../components/orders/order-table/order-table.component';
 import { OrderResponse } from '../../models/models';
 import { OrderDetailsComponent } from '../../components/orders/order-details/order-details.component';
 import { ENTER_ANIMATION } from '../../models/animations';
+import { ReactiveStorageService } from '../../services/utils/reavtive-storage.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-offers',
@@ -15,11 +17,27 @@ import { ENTER_ANIMATION } from '../../models/animations';
 export class OffersComponent {
   order: OrderResponse | null = null;
 
+  private readonly storage = inject(ReactiveStorageService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  ngOnInit(): void {
+    this.storage
+      .getValue$('on-details-page')
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (!value) {
+          this.deselectOrder();
+        }
+      });
+  }
+
   selectedOrder(order: OrderResponse): void {
     this.order = order;
+    this.storage.setValue('on-details-page', 'true');
   }
 
   deselectOrder(): void {
     this.order = null;
+    this.storage.removeValue('on-details-page');
   }
 }

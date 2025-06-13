@@ -21,7 +21,7 @@ export class OrdersService {
         .from('orders')
         .select(
           `id,
-    client:client_id ( id, name, delivery_address ),
+    client:client_id ( id, name, delivery_address, type, address, code, phone, other_details ),
     date_order_placed,
     expected_delivery,
     date_order_delivered,
@@ -44,7 +44,16 @@ export class OrdersService {
             id: order.id,
             client: Array.isArray(order.client)
               ? order.client[0]
-              : order.client || { id: 0, name: '', delivery_address: '' },
+              : order.client || {
+                  id: 0,
+                  name: '',
+                  delivery_address: '',
+                  type: 1,
+                  address: '',
+                  code: '',
+                  phone: '',
+                  other_details: '',
+                },
             operator: Array.isArray(order.operator)
               ? order.operator[0]
               : order.operator || { id: 0, name: '' },
@@ -108,6 +117,44 @@ export class OrdersService {
         return of([]);
       })
     );
+  }
+
+  async editOrderItem(
+    id: number,
+    order_id: number,
+    item: Partial<{
+      category_id: number;
+      quantity: number;
+      packs_pieces: string;
+      price: number;
+    }>,
+    order: Partial<{
+      total_amount: number;
+      total_amount_final: number;
+      total_quantity: number;
+    }>
+  ): Promise<boolean> {
+    const { error: itemError } = await this.supabaseService.client
+      .from('order_items')
+      .update(item)
+      .eq('id', id);
+
+    if (itemError) {
+      console.error('Failed to update  order item', itemError);
+      return false;
+    }
+
+    const { error: orderError } = await this.supabaseService.client
+      .from('orders')
+      .update(order)
+      .eq('id', order_id);
+
+    if (orderError) {
+      console.error('Failed to update order', orderError);
+      return false;
+    }
+
+    return true;
   }
 
   async transformOfferToOrder(id: number): Promise<boolean> {
