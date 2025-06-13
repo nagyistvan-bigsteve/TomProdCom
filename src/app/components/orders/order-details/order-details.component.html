@@ -92,14 +92,20 @@
       {{ order.client.phone }}
     </div>
     @if(order.client.address !== order.client.delivery_address){
-    <div class="client-detail-item pt-1">
+    <div
+      (click)="openInMapsApp(order.client.delivery_address!)"
+      class="client-detail-item pt-1"
+    >
       <i class="material-icons">delivery_dining</i>
       : {{ order.client.delivery_address }}
     </div>
     <mat-divider class="mb-2" />
     <div class="client-detail-item">Address: {{ order.client.address }}</div>
     } @else {
-    <div class="client-detail-item">
+    <div
+      (click)="openInMapsApp(order.client.address!)"
+      class="client-detail-item"
+    >
       <i class="material-icons">delivery_dining</i>: {{ order.client.address }}
     </div>
     <mat-divider class="mb-2" />

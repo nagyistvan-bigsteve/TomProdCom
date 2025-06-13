@@ -118,6 +118,10 @@ export class OrderDetailsComponent implements OnInit {
     window.location.href = `tel:${phone}`;
   }
 
+  openInMapsApp(address: string) {
+    window.location.href = `geo:0,0?q=${encodeURIComponent(address)}`;
+  }
+
   closeDetailsComponent() {
     this.closeDetails.emit();
   }
