@@ -25,8 +25,11 @@
     @for (item of orderItems; let i = $index; let last = $last; track $index) {
     <div class="position-relative">
       <div
-        class="d-flex align-items-center justify-content-evenly flex-wrap py-3 pe-5"
-        [ngClass]="{ 'border-1 border-bottom': !last }"
+        class="d-flex align-items-center justify-content-evenly flex-wrap py-3"
+        [ngClass]="{
+          'border-1 border-bottom': !last,
+          'pe-5': !order.dateOrderDelivered && !justOffers
+        }"
       >
         <span class="text-nowrap">
           {{ item.product.name }} - <b>{{ item.category.name }}</b>
