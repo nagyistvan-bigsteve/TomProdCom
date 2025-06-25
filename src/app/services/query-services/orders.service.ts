@@ -113,7 +113,7 @@ export class OrdersService {
         );
       }),
       catchError((error) => {
-        console.error('Error fatching order items:', error);
+        console.error('Error fetching order items:', error);
         return of([]);
       })
     );

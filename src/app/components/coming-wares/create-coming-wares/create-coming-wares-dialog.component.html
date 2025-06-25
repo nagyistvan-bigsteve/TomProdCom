@@ -1,0 +1,97 @@
+<h2 mat-dialog-title>{{ "CREATE_COMING_WARE.TITLE" | translate }}</h2>
+<mat-dialog-content class="pt-3">
+  <form [formGroup]="comingWaresForm">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ "COMING_WARES.EXPECTED_DELIVERY" | translate }}</mat-label>
+      <input
+        matInput
+        [matDatepicker]="picker"
+        formControlName="expected_delivery"
+      />
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-datepicker #picker></mat-datepicker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ "COMING_WARES.NAME" | translate }}</mat-label>
+      <input matInput formControlName="name" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>{{ "COMING_WARES.COMMENT" | translate }}</mat-label>
+      <textarea matInput formControlName="comment"></textarea>
+    </mat-form-field>
+
+    <mat-checkbox formControlName="all_for_order">
+      {{ "COMING_WARES.ALL_FOR_ORDER" | translate }}
+    </mat-checkbox>
+
+    <h3 class="mt-2">{{ "COMING_WARES.ITEMS" | translate }}</h3>
+
+    <div formArrayName="items">
+      @for (item of items.controls; let i = $index; track $index) {
+      <div [formGroupName]="i" class="item-row border border-2 p-3 rounded">
+        #{{ i + 1 }}
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{
+            "COMING_WARES_ITEM.PRODUCT_ID" | translate
+          }}</mat-label>
+          <input
+            type="text"
+            matInput
+            formControlName="product"
+            [matAutocomplete]="auto"
+            (input)="filter(i, $event)"
+            (focus)="filter(i, $event)"
+          />
+          <mat-autocomplete
+            #auto="matAutocomplete"
+            requireSelection
+            [displayWith]="displayProductLabel"
+          >
+            @for (option of filteredOptions[i]; track option) {
+            <mat-option [value]="option">{{ option.name }}</mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ "COMING_WARES_ITEM.CATEGORY" | translate }}</mat-label>
+          <mat-select [formControlName]="'category'">
+            <mat-option
+              *ngFor="let option of categoryOptions"
+              [value]="option.value"
+            >
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>{{ "COMING_WARES_ITEM.QUANTITY" | translate }}</mat-label>
+          <input type="number" matInput formControlName="quantity" />
+        </mat-form-field>
+        @if (!comingWaresForm.value['all_for_order']) {
+        <mat-checkbox formControlName="for_order">
+          {{ "COMING_WARES_ITEM.FOR_ORDER" | translate }}
+        </mat-checkbox>
+        }
+      </div>
+      }
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">
+    {{ "DIALOG.CANCEL" | translate }}
+  </button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="onSave()"
+    [disabled]="!isFormValidExcludingLast()"
+  >
+    {{ "DIALOG.SAVE" | translate }}
+  </button>
+</mat-dialog-actions>

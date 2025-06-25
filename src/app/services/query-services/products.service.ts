@@ -91,6 +91,35 @@ export class ProductsService {
     }
   }
 
+  async addToProductStock(
+    id: number,
+    category: Category,
+    stock: number
+  ): Promise<boolean> {
+    try {
+      const currentStock = await this.getProductStock(id, category);
+
+      if (currentStock) {
+        stock = stock + currentStock.stock;
+
+        const { error } = await this.supabaseService.client
+          .from('stocks')
+          .update({ stock })
+          .eq('product_id', id)
+          .eq('category_id', category);
+
+        if (error) throw error;
+
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error('Fail to update stock', error);
+      return false;
+    }
+  }
+
   async updateStock(id: number, stock: number): Promise<boolean> {
     try {
       const { error } = await this.supabaseService.client

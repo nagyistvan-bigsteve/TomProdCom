@@ -25,12 +25,22 @@
   </div>
   <div class="d-flex align-items-center justify-content-center fs-2">
     @if (isAuthenticated) { @if(authStore.role() !== 'admin') {
+    <button mat-icon-button (click)="goToComingWaresPage()">
+      <mat-icon class="d-flex align-items-center justify-content-center"
+        >local_shipping</mat-icon
+      >
+    </button>
     <button mat-icon-button (click)="goToUserPage()">
       <mat-icon class="d-flex align-items-center justify-content-center"
         >account_circle</mat-icon
       >
     </button>
     } @else {
+    <button mat-icon-button (click)="goToComingWaresPage()">
+      <mat-icon class="d-flex align-items-center justify-content-center"
+        >local_shipping</mat-icon
+      >
+    </button>
     <button mat-icon-button (click)="goToSettingsPage()">
       <mat-icon class="d-flex align-items-center justify-content-center"
         >settings</mat-icon

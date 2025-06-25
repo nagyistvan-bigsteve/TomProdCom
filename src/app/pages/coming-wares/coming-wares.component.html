@@ -1,0 +1,50 @@
+@if(!isLoading()) {
+<div class="w-75 text-center mb-3">
+  <mat-button-toggle-group
+    [value]="showVerifieds()"
+    (change)="changeList()"
+    name="correctToggle"
+  >
+    <mat-button-toggle [value]="true">
+      {{ "CREATE_COMING_WARE.WARES_TOGGLE_TRUE" | translate }}
+    </mat-button-toggle>
+    <mat-button-toggle [value]="false">
+      {{ "CREATE_COMING_WARE.WARES_TOGGLE_FALSE" | translate }}
+    </mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+@for (item of comingWares(); let last = $last; let first = $first; track $index)
+{
+<div
+  class="d-flex bg-light text-dark flex-column w-75 border-top border-bottom border-secondary border-1 p-2"
+  (click)="goToDetailsPage(item.id)"
+  [ngClass]="{
+    'rounded-bottom': last,
+    'rounded-top': first,
+    'border-top-0': first,
+    'border-bottom-0': last
+  }"
+>
+  <div class="d-flex justify-content-evenly">
+    <div>{{ item.expected_delivery }}</div>
+    @if(item.name){
+    <div>{{ item.name }}</div>
+    }
+  </div>
+  @if (item.comment) {
+  <div class="text-center">{{ item.comment }}</div>
+  } @if(item.all_for_order){
+  <div class="text-center">{{ "COMING_WARES.ALL_FOR_ORDER" | translate }}</div>
+  }
+</div>
+} @if(!comingWares()?.length) {
+<div class="border border-1 rounded p-3 mb-4">
+  {{ "CREATE_COMING_WARE.EMPTY_LIST" | translate }}
+</div>
+} @if(authStore.role() === 'admin'){
+<button class="mt-4" mat-raised-button (click)="openCreateDialog()">
+  {{ "CREATE_COMING_WARE.TITLE" | translate }}
+</button>
+} }@else {
+<mat-spinner></mat-spinner>
+}

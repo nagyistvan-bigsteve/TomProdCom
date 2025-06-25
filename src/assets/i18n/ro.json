@@ -287,5 +287,50 @@
     "ACCOUNT_CREATED": "Înregistrare cu succes! Așteptare pentru aprobare...",
     "INCORRECT_LOG_IN": "Email sau parola greșită. Încearcă din nou.",
     "PENDING_APPROVAL": "Așteaptă pentru aprobare..."
+  },
+  "CREATE_COMING_WARE": {
+    "TITLE": "Creare marfă așteptată",
+    "EMPTY_LIST": "Lista este goală",
+    "WARES_LIST": "Marfă așteptată",
+    "WARES_HISTORY": "Marfă verificată",
+    "WARES_TOGGLE_TRUE": "Marfă verificată",
+    "WARES_TOGGLE_FALSE": "Marfă așteptată"
+  },
+  "COMING_WARES": {
+    "EXPECTED_DELIVERY": "Data estimată a livrării",
+    "TOTAL_QUANTITY": "Cantitate totală",
+    "ALL_FOR_ORDER": "Tot pentru comandă",
+    "COMMENT": "Comentariu",
+    "NAME": "Nume",
+    "ITEMS": "Articole"
+  },
+  "COMING_WARES_ITEM": {
+    "ORDER_ID": "ID comandă",
+    "PRODUCT_ID": "Produs",
+    "CATEGORY": "Categorie",
+    "QUANTITY": "Cantitate",
+    "FOR_ORDER": "Pentru comandă",
+    "SUBMIT_BUTTON": "Verificat",
+    "ITEMS_FOR_ORDER": "Produse pentru comandă:",
+    "ITEMS_FOR_STOCK": "Produse pentru stock:",
+    "DELETE": "Sterge comanda",
+    "INCORRECT_ITEM": "Ce nu este în regulă?",
+    "INCORRECT_ITEM_COMMENT": "Explică problema?",
+    "SUBMIT_POPUP": {
+      "TITLE": "Verificat",
+      "DESCRIPTION": "Ești sigur, că e verificat bine?",
+      "CANCEL_BUTTON": "Înapoi",
+      "DELETE_BUTTON": "Verificat!"
+    }
+  },
+  "DIALOG": {
+    "CANCEL": "Anulează",
+    "SAVE": "Salvează"
+  },
+  "DELETE_ITEM_POPUP": {
+    "TITLE": "Confirmare ștergere",
+    "DESCRIPTION": "Ești sigur, că vrei să ștergi?",
+    "CANCEL_BUTTON": "Înapoi",
+    "DELETE_BUTTON": "Ștergere"
   }
 }

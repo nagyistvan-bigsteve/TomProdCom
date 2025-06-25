@@ -287,5 +287,50 @@
     "ACCOUNT_CREATED": "Sikeres regisztrálás! Jóváhagyás várása...",
     "INCORRECT_LOG_IN": "Helytelen email vagy jelszó. Próbálkozz újra.",
     "PENDING_APPROVAL": "Várakozás a jóváhagyásra..."
+  },
+  "CREATE_COMING_WARE": {
+    "TITLE": "Beérkező áru létrehozása",
+    "EMPTY_LIST": "A lista üres",
+    "WARES_LIST": "Beérkező áruk",
+    "WARES_HISTORY": "Átnézett áruk",
+    "WARES_TOGGLE_TRUE": "Átnézett áruk",
+    "WARES_TOGGLE_FALSE": "Várt áruk"
+  },
+  "COMING_WARES": {
+    "EXPECTED_DELIVERY": "Várható szállítási dátum",
+    "TOTAL_QUANTITY": "Teljes mennyiség",
+    "ALL_FOR_ORDER": "Mind megrendelésre",
+    "COMMENT": "Megjegyzés",
+    "NAME": "Név",
+    "ITEMS": "Termékek"
+  },
+  "COMING_WARES_ITEM": {
+    "ORDER_ID": "Rendelés azonosító",
+    "PRODUCT_ID": "Termék",
+    "CATEGORY": "Kategória",
+    "QUANTITY": "Mennyiség",
+    "FOR_ORDER": "Megrendeléshez tartozik",
+    "SUBMIT_BUTTON": "Átnézve",
+    "ITEMS_FOR_ORDER": "Termékek rendelésre:",
+    "ITEMS_FOR_STOCK": "Termékek stock-ra:",
+    "DELETE": "Rendelés törlése",
+    "INCORRECT_ITEM": "Mi nincs rendben?",
+    "INCORRECT_ITEM_COMMENT": "Írd le a hibát",
+    "SUBMIT_POPUP": {
+      "TITLE": "Át van nézve",
+      "DESCRIPTION": "Biztos, hogy jól át van nézve minden?",
+      "CANCEL_BUTTON": "Mégse",
+      "DELETE_BUTTON": "Átnézve!"
+    }
+  },
+  "DIALOG": {
+    "CANCEL": "Mégse",
+    "SAVE": "Mentés"
+  },
+  "DELETE_ITEM_POPUP": {
+    "TITLE": "Törlés megerősítése",
+    "DESCRIPTION": "Biztos, hogy törölni szeretnéd?",
+    "CANCEL_BUTTON": "Mégse",
+    "DELETE_BUTTON": "Törlés"
   }
 }

@@ -11,6 +11,8 @@ import { UserComponent } from './pages/user/user.component';
 import { OrdersComponent } from './pages/orders/orders.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { OffersComponent } from './pages/offers/offers.component';
+import { ComingWaresComponent } from './pages/coming-wares/coming-wares.component';
+import { ComingWaresDetailsComponent } from './components/coming-wares/coming-wares-details/coming-wares-details.component';
 
 export const routes: Routes = [
   {
@@ -76,6 +78,22 @@ export const routes: Routes = [
     data: {
       requiresApproval: true,
       requiredRole: 'admin',
+    },
+  },
+  {
+    path: 'coming-wares',
+    component: ComingWaresComponent,
+    canActivate: [authGuard],
+    data: {
+      requiresApproval: true,
+    },
+  },
+  {
+    path: 'coming-wares/:id/:verified',
+    component: ComingWaresDetailsComponent,
+    canActivate: [authGuard],
+    data: {
+      requiresApproval: true,
     },
   },
   {

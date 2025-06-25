@@ -38,6 +38,24 @@ body {
   );
 }
 
+.submit-button {
+  @include mat.button-overrides(
+    (
+      filled-disabled-container-color: rgba(0, 65, 150, 0.244),
+      filled-disabled-label-text-color: white,
+    )
+  );
+}
+
+.submit-delete-button {
+  @include mat.button-overrides(
+    (
+      filled-container-color: rgba(184, 0, 0, 0.808),
+      filled-label-text-color: white,
+    )
+  );
+}
+
 :root {
   @include mat.button-toggle-overrides(
     (
@@ -45,6 +63,12 @@ body {
       text-color: white,
       selected-state-background-color: rgba(95, 1, 1, 1),
       divider-color: black,
+    )
+  );
+
+  @include mat.progress-spinner-overrides(
+    (
+      active-indicator-color: rgb(236, 236, 236),
     )
   );
 

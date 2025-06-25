@@ -1,0 +1,23 @@
+:host {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background-color: rgb(57, 72, 60);
+  color: white;
+}
+
+.details-page-container {
+  max-height: 82vh;
+  overflow-y: scroll;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bg-grey {
+  background-color: rgb(220, 220, 220) !important;
+}

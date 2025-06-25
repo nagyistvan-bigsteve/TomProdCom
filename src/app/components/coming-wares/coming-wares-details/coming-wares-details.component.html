@@ -1,0 +1,154 @@
+<div class="details-page-container w-100">
+  @if(!isLoading()) { @if (itemsForOrder().length) {
+  <ng-container
+    *ngTemplateOutlet="
+      itemsList;
+      context: {
+        items: itemsForOrder(),
+        label: 'COMING_WARES_ITEM.ITEMS_FOR_ORDER',
+        second: false
+      }
+    "
+  ></ng-container>
+  } @if (itemsForStock().length) {
+  <ng-container
+    *ngTemplateOutlet="
+      itemsList;
+      context: {
+        items: itemsForStock(),
+        label: 'COMING_WARES_ITEM.ITEMS_FOR_STOCK',
+        second: true
+      }
+    "
+  ></ng-container>
+  } @if(comingWaresItems().length){
+  <div
+    class="d-flex flex-column align-items-center justify-content-center mt-3 mb-2 w-100"
+  >
+    @if(!isVerified()){
+    <button
+      [disabled]="isAnyItemUnset()"
+      class="w-75 submit-button"
+      [ngClass]="{ 'border border-1': isAnyItemUnset() }"
+      mat-flat-button
+      (click)="submitWares()"
+    >
+      {{ "COMING_WARES_ITEM.SUBMIT_BUTTON" | translate }}</button
+    >}
+    <button
+      class="w-75 submit-delete-button mt-2"
+      mat-flat-button
+      (click)="deleteWares()"
+    >
+      {{ "COMING_WARES_ITEM.DELETE" | translate }}
+    </button>
+  </div>
+  } } @else {
+  <mat-spinner></mat-spinner>
+  }
+</div>
+
+<ng-template #itemsList let-items="items" let-label="label" let-second="second">
+  <div class="mb-1" [ngClass]="{ 'mt-3': second }">{{ label | translate }}</div>
+  <div class="bg-white text-dark p-2 rounded w-75">
+    @for (item of items; let last = $last; track $index) {
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex flex-column w-100 py-1">
+        <div class="text-center w-100">{{ item.product.name }}</div>
+        <div class="d-flex justify-content-evenly mt-1">
+          <div>
+            {{ "COMING_WARES_ITEM.CATEGORY" | translate }}:
+            {{ item.category.name }}
+          </div>
+          <div>
+            {{ "COMING_WARES_ITEM.QUANTITY" | translate }}: {{ item.quantity }}
+          </div>
+        </div>
+        @if(item.is_correct === false && item.comment) {
+        <div
+          @enterAndLeaveAnimation
+          class="text-center text-danger bg-grey rounded my-1"
+        >
+          {{ item.comment }}
+        </div>
+        }
+      </div>
+      <div>
+        <button
+          class="d-flex align-items-center justify-content-center"
+          mat-icon-button
+          (click)="cycleStatus(item)"
+          [disabled]="isVerified()"
+        >
+          @if(item.is_correct === null) {
+          <mat-icon class="text-dark">check_box_outline_blank</mat-icon>
+          } @if(item.is_correct) {
+          <mat-icon class="text-success">check</mat-icon>
+          } @if(item.is_correct === false) {
+          <mat-icon class="text-danger">close</mat-icon>
+          }
+        </button>
+      </div>
+    </div>
+    @if(!last) { <mat-divider /> } }
+  </div>
+</ng-template>
+
+<ng-template #commentDialog let-dialogRef="dialogRef">
+  <mat-dialog-content>
+    <mat-form-field appearance="outline" class="w-100 mt-3">
+      <mat-label>{{
+        "COMING_WARES_ITEM.INCORRECT_ITEM" | translate
+      }}</mat-label>
+      <textarea
+        matInput
+        [ngModel]="commentText()"
+        (ngModelChange)="commentText.set($event)"
+        rows="2"
+        [placeholder]="'COMING_WARES_ITEM.INCORRECT_ITEM_COMMENT' | translate"
+      ></textarea>
+    </mat-form-field>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">
+      {{ "DIALOG.CANCEL" | translate }}
+    </button>
+    <button mat-raised-button color="primary" (click)="saveComment(dialogRef)">
+      {{ "DIALOG.SAVE" | translate }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #confirmSubmitDialog>
+  <h2 class="text-center" mat-dialog-title>
+    {{ "COMING_WARES_ITEM.SUBMIT_POPUP.TITLE" | translate }}
+  </h2>
+  <mat-dialog-content>
+    {{ "COMING_WARES_ITEM.SUBMIT_POPUP.DESCRIPTION" | translate }}
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">
+      {{ "COMING_WARES_ITEM.SUBMIT_POPUP.CANCEL_BUTTON" | translate }}
+    </button>
+    <button mat-raised-button color="warn" [mat-dialog-close]="true">
+      {{ "COMING_WARES_ITEM.SUBMIT_POPUP.DELETE_BUTTON" | translate }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<ng-template #confirmDeleteDialog>
+  <h2 class="text-center" mat-dialog-title>
+    {{ "DELETE_ITEM_POPUP.TITLE" | translate }}
+  </h2>
+  <mat-dialog-content>
+    {{ "DELETE_ITEM_POPUP.DESCRIPTION" | translate }}
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">
+      {{ "DELETE_ITEM_POPUP.CANCEL_BUTTON" | translate }}
+    </button>
+    <button mat-raised-button color="warn" [mat-dialog-close]="true">
+      {{ "DELETE_ITEM_POPUP.DELETE_BUTTON" | translate }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>
