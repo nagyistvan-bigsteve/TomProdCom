@@ -68,4 +68,8 @@ export class TopbarComponent implements OnInit {
   goToSettingsPage(): void {
     this.router.navigate(['/settings']);
   }
+
+  goToComingWaresPage(): void {
+    this.router.navigate(['/coming-wares']);
+  }
 }

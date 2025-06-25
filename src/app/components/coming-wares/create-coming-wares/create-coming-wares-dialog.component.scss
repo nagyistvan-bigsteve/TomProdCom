@@ -1,0 +1,16 @@
+.full-width {
+  width: 100%;
+}
+
+.small-field {
+  width: 150px;
+  margin-right: 8px;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}

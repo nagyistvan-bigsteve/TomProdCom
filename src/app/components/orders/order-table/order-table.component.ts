@@ -59,6 +59,7 @@ export class OrderTableComponent implements OnInit {
   @ViewChild('confirmDeleteDialog') confirmDeleteDialog!: TemplateRef<any>;
   @ViewChild('paidAmountDialog') paidAmountDialog!: TemplateRef<any>;
   @Output() orderOutput = new EventEmitter<OrderResponse>();
+  @Output() isLoading = new EventEmitter<boolean>();
   @Input() justOffers: boolean = false;
 
   public readonly authStore = inject(useAuthStore);
@@ -85,6 +86,7 @@ export class OrderTableComponent implements OnInit {
   } = { numberOfOrders: 0, totalPrice: 0 };
 
   ngOnInit(): void {
+    this.isLoading.emit(true);
     this.setTable();
     this.fetchOrders();
 
@@ -98,6 +100,7 @@ export class OrderTableComponent implements OnInit {
       .getOrders(this.justOffers)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((orders) => {
+        this.isLoading.emit(false);
         this.orders = this.sortTheOrders(orders);
         this.filterItems(false);
       });

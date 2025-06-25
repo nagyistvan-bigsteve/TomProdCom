@@ -143,3 +143,37 @@ export type PriceResponse = {
   price: number;
   product: { id: number; name: string };
 };
+
+export type ComingWares = {
+  id: number;
+  expected_delivery: Date;
+  name: string;
+  total_quantity: number;
+  all_for_order: boolean;
+  comment: string;
+  verified: boolean;
+};
+
+export type ComingWaresItems = ComingWaresItem[];
+
+export type ComingWaresItem = {
+  id?: number;
+  order_id: number;
+  product_id: number;
+  category: Category;
+  quantity: number;
+  for_order: boolean;
+  is_correct?: boolean | null;
+  comment: string;
+};
+
+export type ComingWaresItemResponse = {
+  id: number;
+  order_id: number;
+  product: { id: number; name: string; unit_id: Unit_id };
+  category: { name: string };
+  quantity: number;
+  for_order: boolean;
+  is_correct?: boolean | null;
+  comment: string;
+};

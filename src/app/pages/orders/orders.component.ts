@@ -1,20 +1,28 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { OrderTableComponent } from '../../components/orders/order-table/order-table.component';
 import { OrderResponse } from '../../models/models';
 import { OrderDetailsComponent } from '../../components/orders/order-details/order-details.component';
 import { ENTER_ANIMATION } from '../../models/animations';
 import { ReactiveStorageService } from '../../services/utils/reavtive-storage.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-orders',
-  imports: [OrderTableComponent, OrderDetailsComponent],
+  imports: [
+    CommonModule,
+    OrderTableComponent,
+    OrderDetailsComponent,
+    MatProgressSpinnerModule,
+  ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
   animations: [ENTER_ANIMATION],
 })
 export class OrdersComponent implements OnInit {
   order: OrderResponse | null = null;
+  isLoading = signal(true);
 
   private readonly storage = inject(ReactiveStorageService);
   private readonly destroyRef = inject(DestroyRef);
