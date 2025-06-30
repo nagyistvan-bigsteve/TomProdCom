@@ -46,12 +46,7 @@ export class ResetPasswordComponent {
   token: string | null = null;
 
   ngOnInit() {
-    this.route.queryParams.subscribe((params) => {
-      this.token = params['token'];
-      if (!this.token) {
-        this.goToAuthPage();
-      }
-    });
+    this.setSessionByParams();
   }
 
   goToAuthPage(): void {
@@ -59,51 +54,44 @@ export class ResetPasswordComponent {
   }
 
   async resetPassword() {
-    if (!this.checkPasswords()) {
+    if (!this.validatePasswords()) {
       return;
     }
 
-    const { data, error } =
-      await this.supabaseService.client.auth.exchangeCodeForSession(
-        this.token!
-      );
+    const password = this.resetPasswordForm.value.password!;
 
-    console.error(error);
+    const { error } = await this.supabaseService.client.auth.updateUser({
+      password,
+    });
 
-    if (data) {
-      const { error } = await this.supabaseService.client.auth.updateUser(
-        this.resetPasswordForm.value.password as UserAttributes
-      );
-
-      if (error) {
-        this.showAlert(
-          this.translateService.instant('RESET_PASSWORD.RESET_ERROR') +
-            error.message
-        );
-        return;
-      }
-
+    if (error) {
       this.showAlert(
-        this.translateService.instant('RESET_PASSWORD.RESET_SUCCESS')
+        this.translateService.instant('RESET_PASSWORD.RESET_ERROR') +
+          ': ' +
+          error.message
       );
-      this.router.navigate(['/auth']);
-    } else {
-      this.showAlert(
-        this.translateService.instant('RESET_PASSWORD.INVALID_LINK')
-      );
+      return;
     }
+
+    this.showAlert(
+      this.translateService.instant('RESET_PASSWORD.RESET_SUCCESS')
+    );
+    this.goToAuthPage();
   }
 
-  showAlert(message: string) {
+  private showAlert(message: string) {
     alert(message);
   }
 
-  checkPasswords(): boolean {
+  private validatePasswords(): boolean {
+    const { password, confirmPassword } = this.resetPasswordForm.value;
+
     if (this.resetPasswordForm.invalid) {
+      this.showAlert(
+        this.translateService.instant('RESET_PASSWORD.INVALID_FORM')
+      );
       return false;
     }
-
-    const { password, confirmPassword } = this.resetPasswordForm.value;
 
     if (password !== confirmPassword) {
       this.showAlert(this.translateService.instant('RESET_PASSWORD.MISMATCH'));
@@ -111,5 +99,34 @@ export class ResetPasswordComponent {
     }
 
     return true;
+  }
+
+  private setSessionByParams(): void {
+    this.route.queryParams.subscribe(async (params) => {
+      const access_token = params['access_token'];
+      const refresh_token = params['refresh_token'];
+
+      if (!access_token || !refresh_token) {
+        this.showAlert(
+          this.translateService.instant('RESET_PASSWORD.INVALID_LINK')
+        );
+        this.goToAuthPage();
+        return;
+      }
+
+      const { error } = await this.supabaseService.client.auth.setSession({
+        access_token,
+        refresh_token,
+      });
+
+      if (error) {
+        this.showAlert(
+          this.translateService.instant('RESET_PASSWORD.SESSION_ERROR') +
+            ': ' +
+            error.message
+        );
+        this.goToAuthPage();
+      }
+    });
   }
 }

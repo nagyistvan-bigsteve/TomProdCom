@@ -350,6 +350,8 @@
     "MINLENGTH": "A jelszónak legalább 6 karakter hosszúnak kell lennie",
     "ENTER_EMAIL_FIRST": "Kérjük, először add meg az e-mail címedet.",
     "EMAIL_SENT_SUCCESS": "Ellenőrizd az e-mailedet a jelszó visszaállítási utasításokért.",
-    "EMAIL_SENT_ERROR": "Hiba történt a jelszó visszaállító e-mail küldésekor."
+    "EMAIL_SENT_ERROR": "Hiba történt a jelszó visszaállító e-mail küldésekor.",
+    "SESSION_ERROR": "Bejelentkezési hiba",
+    "INVALID_FORM": "Kérlek töltsd ki helyesen az összes mezőt."
   }
 }

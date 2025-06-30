@@ -350,6 +350,8 @@
     "MINLENGTH": "Parola trebuie să conțină cel puțin 6 caractere",
     "ENTER_EMAIL_FIRST": "Te rugăm să introduci mai întâi adresa de e-mail.",
     "EMAIL_SENT_SUCCESS": "Verifică-ți e-mailul pentru instrucțiuni de resetare a parolei.",
-    "EMAIL_SENT_ERROR": "Eroare la trimiterea e-mailului de resetare a parolei."
+    "EMAIL_SENT_ERROR": "Eroare la trimiterea e-mailului de resetare a parolei.",
+    "SESSION_ERROR": "Eroare de autentificare",
+    "INVALID_FORM": "Te rugăm să completezi toate câmpurile corect."
   }
 }

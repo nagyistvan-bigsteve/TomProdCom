@@ -85,7 +85,10 @@ export class LoginComponent {
     }
 
     const { error } =
-      await this.supabaseService.client.auth.resetPasswordForEmail(email);
+      await this.supabaseService.client.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://tom-prod-com.web.app/reset-password',
+      });
+
     if (error) {
       this.showAlert(
         this.translateService.instant('RESET_PASSWORD.EMAIL_SENT_ERROR')
