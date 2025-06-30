@@ -106,6 +106,10 @@ export const routes: Routes = [
   },
   {
     path: 'reset-password',
+    canActivate: [authGuard],
+    data: {
+      requiresApproval: false,
+    },
     component: ResetPasswordComponent,
   },
   {

@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { createClient, UserAttributes } from '@supabase/supabase-js';
-import { environment } from '../../../environments/environment';
+import { UserAttributes } from '@supabase/supabase-js';
 import { CommonModule } from '@angular/common';
 import {
   FormControl,
@@ -12,11 +11,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router } from '@angular/router';
-
-const supabase = createClient(
-  environment.supabaseUrl,
-  environment.supabaseAnonKey
-);
+import { SupabaseService } from '../../services/supabase.service';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-reset-password',
@@ -26,6 +22,7 @@ const supabase = createClient(
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    TranslateModule,
   ],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.scss',
@@ -44,46 +41,75 @@ export class ResetPasswordComponent {
 
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private supabaseService = inject(SupabaseService);
+  private translateService = inject(TranslateService);
   token: string | null = null;
 
   ngOnInit() {
-    // Get the token from the URL query parameters
     this.route.queryParams.subscribe((params) => {
-      this.token = params['token']; // This token will be part of the URL query parameters
+      this.token = params['token'];
+      if (!this.token) {
+        this.goToAuthPage();
+      }
     });
   }
 
+  goToAuthPage(): void {
+    this.router.navigate(['/auth']);
+  }
+
   async resetPassword() {
-    if (this.resetPasswordForm.invalid) return;
+    if (!this.checkPasswords()) {
+      return;
+    }
+
+    const { data, error } =
+      await this.supabaseService.client.auth.exchangeCodeForSession(
+        this.token!
+      );
+
+    console.error(error);
+
+    if (data) {
+      const { error } = await this.supabaseService.client.auth.updateUser(
+        this.resetPasswordForm.value.password as UserAttributes
+      );
+
+      if (error) {
+        this.showAlert(
+          this.translateService.instant('RESET_PASSWORD.RESET_ERROR') +
+            error.message
+        );
+        return;
+      }
+
+      this.showAlert(
+        this.translateService.instant('RESET_PASSWORD.RESET_SUCCESS')
+      );
+      this.router.navigate(['/auth']);
+    } else {
+      this.showAlert(
+        this.translateService.instant('RESET_PASSWORD.INVALID_LINK')
+      );
+    }
+  }
+
+  showAlert(message: string) {
+    alert(message);
+  }
+
+  checkPasswords(): boolean {
+    if (this.resetPasswordForm.invalid) {
+      return false;
+    }
 
     const { password, confirmPassword } = this.resetPasswordForm.value;
 
     if (password !== confirmPassword) {
-      alert("Passwords don't match.");
-      return;
+      this.showAlert(this.translateService.instant('RESET_PASSWORD.MISMATCH'));
+      return false;
     }
 
-    const { data, error } = await supabase.auth.exchangeCodeForSession(
-      this.token!
-    );
-
-    console.log(error);
-
-    // If token is available, proceed to reset password using token
-    if (data) {
-      const { error } = await supabase.auth.updateUser(
-        password as UserAttributes
-      );
-
-      if (error) {
-        alert('Error resetting password: ' + error.message);
-        return;
-      }
-
-      alert('Your password has been successfully reset!');
-      this.router.navigate(['/login']);
-    } else {
-      alert('Invalid reset link.');
-    }
+    return true;
   }
 }

@@ -332,5 +332,24 @@
     "DESCRIPTION": "Ești sigur, că vrei să ștergi?",
     "CANCEL_BUTTON": "Înapoi",
     "DELETE_BUTTON": "Ștergere"
+  },
+  "RESET_PASSWORD": {
+    "RESET_BUTTON": "Ai uitat parola?",
+    "TITLE": "Resetează parola",
+    "PASSWORD": "Parolă",
+    "CONFIRM_PASSWORD": "Confirmă parola",
+    "PLACEHOLDER_PASSWORD": "Introdu parola nouă",
+    "PLACEHOLDER_CONFIRM_PASSWORD": "Reintrodu parola nouă",
+    "SUBMIT": "Salvează parola",
+    "BACK_TO_LOGIN": "Înapoi la log in",
+    "MISMATCH": "Parolele nu coincid.",
+    "INVALID_LINK": "Link-ul de resetare este invalid.",
+    "RESET_SUCCESS": "Parola a fost resetată cu succes!",
+    "RESET_ERROR": "A apărut o eroare la resetarea parolei: ",
+    "REQUIRED": "Acest câmp este obligatoriu",
+    "MINLENGTH": "Parola trebuie să conțină cel puțin 6 caractere",
+    "ENTER_EMAIL_FIRST": "Te rugăm să introduci mai întâi adresa de e-mail.",
+    "EMAIL_SENT_SUCCESS": "Verifică-ți e-mailul pentru instrucțiuni de resetare a parolei.",
+    "EMAIL_SENT_ERROR": "Eroare la trimiterea e-mailului de resetare a parolei."
   }
 }

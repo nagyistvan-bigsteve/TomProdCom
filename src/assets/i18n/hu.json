@@ -332,5 +332,24 @@
     "DESCRIPTION": "Biztos, hogy törölni szeretnéd?",
     "CANCEL_BUTTON": "Mégse",
     "DELETE_BUTTON": "Törlés"
+  },
+  "RESET_PASSWORD": {
+    "RESET_BUTTON": "Elfelejtetted a jelszavad?",
+    "TITLE": "Jelszó visszaállítása",
+    "PASSWORD": "Jelszó",
+    "CONFIRM_PASSWORD": "Jelszó megerősítése",
+    "PLACEHOLDER_PASSWORD": "Add meg az új jelszót",
+    "PLACEHOLDER_CONFIRM_PASSWORD": "Add meg újra a jelszót",
+    "SUBMIT": "Jelszó mentése",
+    "BACK_TO_LOGIN": "Vissza a bejelentkezéshez",
+    "MISMATCH": "A jelszavak nem egyeznek.",
+    "INVALID_LINK": "A visszaállító link érvénytelen.",
+    "RESET_SUCCESS": "A jelszót sikeresen visszaállítottad!",
+    "RESET_ERROR": "Hiba történt a jelszó visszaállításakor: ",
+    "REQUIRED": "Ez a mező kötelező",
+    "MINLENGTH": "A jelszónak legalább 6 karakter hosszúnak kell lennie",
+    "ENTER_EMAIL_FIRST": "Kérjük, először add meg az e-mail címedet.",
+    "EMAIL_SENT_SUCCESS": "Ellenőrizd az e-mailedet a jelszó visszaállítási utasításokért.",
+    "EMAIL_SENT_ERROR": "Hiba történt a jelszó visszaállító e-mail küldésekor."
   }
 }

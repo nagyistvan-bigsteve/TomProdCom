@@ -14,6 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { useAuthStore } from '../../../services/store/auth-store';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { SupabaseService } from '../../../services/supabase.service';
 
 @Component({
   selector: 'app-login',
@@ -36,6 +37,7 @@ export class LoginComponent {
   private router = inject(Router);
   private authStore = inject(useAuthStore);
   private translateService = inject(TranslateService);
+  private supabaseService = inject(SupabaseService);
 
   loginForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -73,18 +75,25 @@ export class LoginComponent {
     alert(message);
   }
 
-  // async resetPassword() {
-  //   const email = this.loginForm.get('email')?.value;
-  //   if (!email) {
-  //     alert('Please enter your email first.');
-  //     return;
-  //   }
+  async resetPassword() {
+    const email = this.loginForm.get('email')?.value;
+    if (!email) {
+      this.showAlert(
+        this.translateService.instant('RESET_PASSWORD.ENTER_EMAIL_FIRST')
+      );
+      return;
+    }
 
-  //   const { error } = await supabase.auth.resetPasswordForEmail(email);
-  //   if (error) {
-  //     alert('Error sending password reset email.');
-  //   } else {
-  //     alert('Check your email for password reset instructions.');
-  //   }
-  // }
+    const { error } =
+      await this.supabaseService.client.auth.resetPasswordForEmail(email);
+    if (error) {
+      this.showAlert(
+        this.translateService.instant('RESET_PASSWORD.EMAIL_SENT_ERROR')
+      );
+    } else {
+      this.showAlert(
+        this.translateService.instant('RESET_PASSWORD.EMAIL_SENT_SUCCESS')
+      );
+    }
+  }
 }
