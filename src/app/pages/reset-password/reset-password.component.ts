@@ -28,6 +28,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   styleUrl: './reset-password.component.scss',
 })
 export class ResetPasswordComponent {
+  accessToken: string | null = null;
+
   resetPasswordForm = new FormGroup({
     password: new FormControl('', [
       Validators.required,
@@ -40,7 +42,6 @@ export class ResetPasswordComponent {
   });
 
   private router = inject(Router);
-  private route = inject(ActivatedRoute);
   private supabaseService = inject(SupabaseService);
   private translateService = inject(TranslateService);
   token: string | null = null;
@@ -60,23 +61,41 @@ export class ResetPasswordComponent {
 
     const password = this.resetPasswordForm.value.password!;
 
-    const { error } = await this.supabaseService.client.auth.updateUser({
-      password,
-    });
+    try {
+      const { data, error: sessionError } =
+        await this.supabaseService.client.auth.setSession({
+          access_token: this.accessToken!,
+          refresh_token: '',
+        });
 
-    if (error) {
+      if (sessionError) {
+        throw sessionError;
+      }
+
+      const { error } = await this.supabaseService.client.auth.updateUser({
+        password: password!,
+      });
+
+      if (error) {
+        this.showAlert(
+          this.translateService.instant('RESET_PASSWORD.RESET_ERROR') +
+            ': ' +
+            +error.message
+        );
+        return;
+      }
+
+      this.showAlert(
+        this.translateService.instant('RESET_PASSWORD.RESET_SUCCESS')
+      );
+      this.goToAuthPage();
+    } catch (err: any) {
       this.showAlert(
         this.translateService.instant('RESET_PASSWORD.RESET_ERROR') +
           ': ' +
-          error.message
+          +err.message
       );
-      return;
     }
-
-    this.showAlert(
-      this.translateService.instant('RESET_PASSWORD.RESET_SUCCESS')
-    );
-    this.goToAuthPage();
   }
 
   private showAlert(message: string) {
@@ -102,31 +121,15 @@ export class ResetPasswordComponent {
   }
 
   private setSessionByParams(): void {
-    this.route.queryParams.subscribe(async (params) => {
-      const access_token = params['access_token'];
-      const refresh_token = params['refresh_token'];
+    const fragment = window.location.hash.substring(1);
+    const params = new URLSearchParams(fragment);
+    this.accessToken = params.get('access_token');
 
-      if (!access_token || !refresh_token) {
-        this.showAlert(
-          this.translateService.instant('RESET_PASSWORD.INVALID_LINK')
-        );
-        this.goToAuthPage();
-        return;
-      }
-
-      const { error } = await this.supabaseService.client.auth.setSession({
-        access_token,
-        refresh_token,
-      });
-
-      if (error) {
-        this.showAlert(
-          this.translateService.instant('RESET_PASSWORD.SESSION_ERROR') +
-            ': ' +
-            error.message
-        );
-        this.goToAuthPage();
-      }
-    });
+    if (!this.accessToken) {
+      this.showAlert(
+        this.translateService.instant('RESET_PASSWORD.INVALID_LINK')
+      );
+      this.goToAuthPage();
+    }
   }
 }
