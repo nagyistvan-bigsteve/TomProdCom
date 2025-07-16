@@ -353,5 +353,18 @@
     "EMAIL_SENT_ERROR": "Eroare la trimiterea e-mailului de resetare a parolei.",
     "SESSION_ERROR": "Eroare de autentificare",
     "INVALID_FORM": "Te rugăm să completezi toate câmpurile corect."
+  },
+  "PRINT_POPUP": {
+    "TITLE_ORDER": "Comanda",
+    "TITLE_OFFER": "Oferta",
+    "CLIENT": "Client: ",
+    "ADDRESS": "Adresa: ",
+    "DATE": "Data comenzi: ",
+    "TABLE": {
+      "NAME": "Nume",
+      "QUANTITY": "Cantitate",
+      "PRICE": "Preț"
+    },
+    "TOTAL_PRICE": "<strong>Preț total:</strong> {{price}} RON"
   }
 }

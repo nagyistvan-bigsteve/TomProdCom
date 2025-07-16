@@ -353,5 +353,18 @@
     "EMAIL_SENT_ERROR": "Hiba történt a jelszó visszaállító e-mail küldésekor.",
     "SESSION_ERROR": "Bejelentkezési hiba",
     "INVALID_FORM": "Kérlek töltsd ki helyesen az összes mezőt."
+  },
+  "PRINT_POPUP": {
+    "TITLE_ORDER": "Rendelés",
+    "TITLE_OFFER": "Ajánlat",
+    "CLIENT": "Kliens: ",
+    "ADDRESS": "Cím: ",
+    "DATE": "Rendelés dátuma: ",
+    "TABLE": {
+      "NAME": "Név",
+      "QUANTITY": "Mennyiség",
+      "PRICE": "Ár"
+    },
+    "TOTAL_PRICE": "Össz ár: {{price}} RON"
   }
 }
