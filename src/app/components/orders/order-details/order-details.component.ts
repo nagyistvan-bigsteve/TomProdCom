@@ -88,6 +88,8 @@ export class OrderDetailsComponent implements OnInit {
   editForm: FormGroup | null = null;
   categories: { value: Category; label: string }[] = [];
 
+  isPrinting = false;
+
   private readonly productStore = inject(useProductStore);
   private readonly destroyRef = inject(DestroyRef);
   private readonly orderService = inject(OrdersService);
@@ -103,6 +105,10 @@ export class OrderDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchOrderItems();
+
+    window.onafterprint = () => {
+      this.isPrinting = false;
+    };
   }
 
   fetchOrderItems(): void {
@@ -122,31 +128,12 @@ export class OrderDetailsComponent implements OnInit {
     window.location.href = `geo:0,0?q=${encodeURIComponent(address)}`;
   }
 
-  print(): void {
-    const printContent = document.getElementById('print-section');
-    const WindowPrt = window.open('', '', 'width=900,height=650');
-
-    if (WindowPrt && printContent) {
-      WindowPrt.document.write(`
-      <html>
-        <head>
-          <title>Print</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-            th { background: #f2f2f2; }
-          </style>
-        </head>
-        <body>
-          ${printContent.innerHTML}
-        </body>
-      </html>
-    `);
-      WindowPrt.document.close();
-      WindowPrt.focus();
-      WindowPrt.print();
-    }
+  print() {
+    this.isPrinting = true;
+    setTimeout(() => {
+      window.print();
+      this.isPrinting = false;
+    }, 100);
   }
 
   closeDetailsComponent() {
