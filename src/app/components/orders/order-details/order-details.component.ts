@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   EventEmitter,
@@ -98,6 +99,7 @@ export class OrderDetailsComponent implements OnInit {
   private readonly clientService = inject(ClientsService);
   private readonly clientStore = inject(useClientStore);
   private readonly router = inject(Router);
+  private readonly changeDetection = inject(ChangeDetectorRef);
   private snackBar = inject(MatSnackBar);
   private translateService = inject(TranslateService);
   private _dialog = inject(MatDialog);
@@ -130,10 +132,16 @@ export class OrderDetailsComponent implements OnInit {
 
   print() {
     this.isPrinting = true;
+    this.changeDetection.detectChanges();
+
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         window.print();
-        this.isPrinting = false;
+
+        setTimeout(() => {
+          this.isPrinting = false;
+          this.changeDetection.detectChanges();
+        }, 1000);
       });
     });
   }
