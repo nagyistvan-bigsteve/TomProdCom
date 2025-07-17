@@ -130,10 +130,12 @@ export class OrderDetailsComponent implements OnInit {
 
   print() {
     this.isPrinting = true;
-    setTimeout(() => {
-      window.print();
-      this.isPrinting = false;
-    }, 100);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.print();
+        this.isPrinting = false;
+      });
+    });
   }
 
   closeDetailsComponent() {
