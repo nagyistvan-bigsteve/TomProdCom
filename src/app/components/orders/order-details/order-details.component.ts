@@ -136,12 +136,14 @@ export class OrderDetailsComponent implements OnInit {
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        window.print();
+        requestAnimationFrame(() => {
+          window.print();
 
-        setTimeout(() => {
-          this.isPrinting = false;
-          this.changeDetection.detectChanges();
-        }, 1000);
+          setTimeout(() => {
+            this.isPrinting = false;
+            this.changeDetection.detectChanges();
+          }, 1000);
+        });
       });
     });
   }
