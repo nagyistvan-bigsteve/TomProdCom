@@ -365,6 +365,7 @@
       "QUANTITY": "Mennyiség",
       "PRICE": "Ár"
     },
-    "TOTAL_PRICE": "Össz ár: {{price}} RON"
+    "PRICE_DETAILS": "Össz érték: {{total_price}} RON. Előre fizetett összeg: {{paid_amount}} RON.",
+    "REMAINED_PRICE": "Fizetendő összeg: "
   }
 }

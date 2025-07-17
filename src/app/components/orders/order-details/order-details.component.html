@@ -1,5 +1,5 @@
 @if(order){
-<div class="d-flex flex-column w-100 pb-3">
+<div id="content" class="d-flex flex-column w-100 pb-3">
   <div class="d-flex align-items-center justify-content-between w-100 px-1">
     {{ order.client.name }} - {{ order.dateOrderPlaced | date : "yyyy.MM.dd" }}
     <div class="d-flex">
@@ -245,21 +245,22 @@
   </mat-dialog-actions>
 </ng-template>
 
-<div id="print-section" class="print-area">
+@if(isPrinting) {
+<div class="mt-2" id="print-section" class="print-area">
   @if (justOffers) {
   <h2>{{ "PRINT_POPUP.TITLE_OFFER" | translate }} #{{ order?.id }}</h2>
   } @else {
   <h2>{{ "PRINT_POPUP.TITLE_ORDER" | translate }} #{{ order?.id }}</h2>
   }
-  <div style="display: flex; padding: 5px 0 10px 0">
-    <div style="padding-right: 20px">
+  <div class="d-flex pt-1 pb-2">
+    <div class="pe-3">
       <strong>{{ "PRINT_POPUP.CLIENT" | translate }}</strong>
       {{ order?.client?.name }}
     </div>
     <div><strong>Tel:</strong> {{ order?.client?.phone }}</div>
   </div>
-  <div style="display: flex; padding: 10px 0">
-    <div style="padding-right: 20px">
+  <div class="d-flex py-2">
+    <div class="pe-3">
       <strong> {{ order?.client?.type === 1 ? "PF " : "PJ " }} </strong> :
       {{ order?.client?.code }}
     </div>
@@ -268,7 +269,7 @@
       {{ order?.client?.delivery_address }}
     </div>
   </div>
-  <div style="padding: 5px 0">
+  <div class="pt-1 pt-0">
     <strong>{{ "PRINT_POPUP.DATE" | translate }}</strong>
     {{ order?.dateOrderPlaced | date }}
   </div>
@@ -283,9 +284,7 @@
     </thead>
     <tbody>
       <tr *ngFor="let item of orderItems">
-        <td>
-          {{ item.product.name }} - <b>{{ item.category.name }}</b>
-        </td>
+        <td>{{ item.product.name }} - {{ item.category.name }}</td>
         <td>
           @if(item.packsPieces) {
           <span class="text-nowrap">
@@ -316,9 +315,21 @@
     </tbody>
   </table>
 
-  <p
-    [innerHTML]="
-      'PRINT_POPUP.TOTAL_PRICE' | translate : { price: order?.totalAmountFinal }
-    "
-  ></p>
+  <div class="mt-2">
+    {{
+      "PRINT_POPUP.PRICE_DETAILS"
+        | translate
+          : {
+              total_price: order?.totalAmountFinal,
+              paid_amount: order?.paidAmount!
+            }
+    }}
+  </div>
+  <div class="mt-2 py-1 px-2 border border-1 border-dark">
+    <strong>
+      {{ "PRINT_POPUP.REMAINED_PRICE" | translate }}
+    </strong>
+    {{ order?.totalAmountFinal! - order?.paidAmount! | number : "1.0-2" }} RON
+  </div>
 </div>
+}

@@ -365,6 +365,7 @@
       "QUANTITY": "Cantitate",
       "PRICE": "Preț"
     },
-    "TOTAL_PRICE": "<strong>Preț total:</strong> {{price}} RON"
+    "PRICE_DETAILS": "Valoare totală: {{total_price}} RON. Deja platit: {{paid_amount}} RON.",
+    "REMAINED_PRICE": "De plată: "
   }
 }
