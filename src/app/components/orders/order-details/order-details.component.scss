@@ -24,6 +24,10 @@
   width: fit-content;
 }
 
+#print-section {
+  display: none !important;
+}
+
 @media print {
   body * {
     visibility: hidden !important;
@@ -54,6 +58,7 @@
   }
 
   #print-section {
+    display: block !important;
     z-index: 9999;
     position: absolute;
     top: 0;
