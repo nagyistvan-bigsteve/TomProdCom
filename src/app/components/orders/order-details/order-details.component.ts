@@ -7,6 +7,7 @@ import {
   Input,
   OnInit,
   Output,
+  signal,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
@@ -44,6 +45,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ProductUtil } from '../../../services/utils/product.util';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-order-details',
@@ -61,6 +63,7 @@ import { ProductUtil } from '../../../services/utils/product.util';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './order-details.component.html',
   styleUrl: './order-details.component.scss',
@@ -90,6 +93,8 @@ export class OrderDetailsComponent implements OnInit {
   categories: { value: Category; label: string }[] = [];
 
   isPrinting = false;
+
+  isLoading = signal(false);
 
   private readonly productStore = inject(useProductStore);
   private readonly destroyRef = inject(DestroyRef);
@@ -143,6 +148,7 @@ export class OrderDetailsComponent implements OnInit {
     this.changeDetection.detectChanges();
 
     const delay = 2000;
+    this.isLoading.set(true);
 
     setTimeout(() => {
       document.body.offsetHeight;
@@ -151,6 +157,7 @@ export class OrderDetailsComponent implements OnInit {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             window.print();
+            this.isLoading.set(false);
           });
         });
       });

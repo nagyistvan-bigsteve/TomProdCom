@@ -1,5 +1,6 @@
 @if(order){
 <div id="content" class="d-flex flex-column w-100 pb-3">
+  @if(!isLoading()) {
   <div class="d-flex align-items-center justify-content-between w-100 px-1">
     {{ order.client.name }} - {{ order.dateOrderPlaced | date : "yyyy.MM.dd" }}
     <div class="d-flex">
@@ -142,6 +143,10 @@
   >
     {{ "ORDER.DETAILS.TOTAL_TRANSFORM_BUTTON" | translate }}
   </button>
+  } } @else {
+  <div class="d-flex justify-content-center w-100">
+    <mat-spinner></mat-spinner>
+  </div>
   }
 </div>
 }
@@ -314,6 +319,14 @@
       </tr>
     </tbody>
   </table>
+
+  @if(order?.client?.other_details){
+  <div class="pt-2">{{ order?.client?.other_details }}</div>
+  } @if(order?.comment) {
+  <div class="pb-2">
+    {{ order?.comment }}
+  </div>
+  }
 
   <div class="mt-2">
     {{
