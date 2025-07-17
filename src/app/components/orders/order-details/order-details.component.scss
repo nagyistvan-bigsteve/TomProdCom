@@ -33,6 +33,12 @@
     visibility: hidden !important;
   }
 
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
   table {
     width: 100%;
     border-collapse: collapse;
@@ -59,14 +65,15 @@
 
   #print-section {
     display: block !important;
-    z-index: 9999;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding-top: 10px;
-    background-color: white;
-    color: black;
+    visibility: visible !important;
+    position: static !important;
+    z-index: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    background-color: white !important;
+    color: black !important;
+    padding: 10px !important;
+    margin: 0 !important;
   }
 }
 

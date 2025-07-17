@@ -108,9 +108,17 @@ export class OrderDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.fetchOrderItems();
 
-    window.onafterprint = () => {
-      this.isPrinting = false;
-    };
+    window.addEventListener('beforeprint', () => {
+      this.isPrinting = true;
+      this.changeDetection.detectChanges();
+    });
+
+    window.addEventListener('afterprint', () => {
+      setTimeout(() => {
+        this.isPrinting = false;
+        this.changeDetection.detectChanges();
+      }, 100);
+    });
   }
 
   fetchOrderItems(): void {
@@ -134,18 +142,19 @@ export class OrderDetailsComponent implements OnInit {
     this.isPrinting = true;
     this.changeDetection.detectChanges();
 
-    requestAnimationFrame(() => {
+    const delay = 2000;
+
+    setTimeout(() => {
+      document.body.offsetHeight;
+
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          window.print();
-
-          setTimeout(() => {
-            this.isPrinting = false;
-            this.changeDetection.detectChanges();
-          }, 1000);
+          requestAnimationFrame(() => {
+            window.print();
+          });
         });
       });
-    });
+    }, delay);
   }
 
   closeDetailsComponent() {
