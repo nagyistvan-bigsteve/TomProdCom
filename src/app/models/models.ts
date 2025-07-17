@@ -83,7 +83,14 @@ export type OrderItems = {
 
 export type OrderItemsResponse = {
   id: number;
-  product: { id: number; name: string; unit_id: number };
+  product: {
+    id: number;
+    name: string;
+    unit_id: number;
+    thickness: number;
+    width: number;
+    length: number;
+  };
   orderId: number;
   quantity: number;
   category: { name: string };

@@ -284,6 +284,7 @@
       <tr>
         <th>{{ "PRINT_POPUP.TABLE.NAME" | translate }}</th>
         <th>{{ "PRINT_POPUP.TABLE.QUANTITY" | translate }}</th>
+        <th>{{ "PRINT_POPUP.TABLE.QUANTITY" | translate }} m³</th>
         <th>{{ "PRINT_POPUP.TABLE.PRICE" | translate }}</th>
       </tr>
     </thead>
@@ -315,7 +316,17 @@
             }} </span
           >}
         </td>
-        <td>{{ item.price }} RON</td>
+        <td>
+          {{
+            ((item.product.width *
+              item.product.thickness *
+              item.product.length) /
+              1000000) *
+              item.quantity | number : "1.0-4"
+          }}
+          m³
+        </td>
+        <td>{{ item.price | number : "1.0-2" }} RON</td>
       </tr>
     </tbody>
   </table>

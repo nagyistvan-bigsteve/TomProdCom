@@ -84,7 +84,7 @@ export class OrdersService {
         .from('order_items')
         .select(
           `id, 
-          product:product_id!inner (id, name, unit_id), 
+          product:product_id!inner (id, name, unit_id, width, length, thickness), 
           quantity,
           order_id,
           category:category_id!inner (name), 
@@ -100,7 +100,14 @@ export class OrdersService {
             id: orderItem.id,
             product: Array.isArray(orderItem.product)
               ? orderItem.product[0]
-              : orderItem.product || { id: 0, name: '', unit_id: 0 },
+              : orderItem.product || {
+                  id: 0,
+                  name: '',
+                  unit_id: 0,
+                  width: 0,
+                  length: 0,
+                  thickness: 0,
+                },
             orderId: orderItem.order_id,
             quantity: orderItem.quantity,
             category: Array.isArray(orderItem.category)
