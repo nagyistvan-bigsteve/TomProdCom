@@ -69,7 +69,7 @@
     <th mat-header-cell *matHeaderCellDef>
       {{ "ORDER.TABLE.CONTENT." + column.name | translate }}
     </th>
-    <td @leaveAnimation mat-cell *matCellDef="let order" class="px-2">
+    <td @leaveAnimation mat-cell *matCellDef="let order" class="px-1">
       @switch (column.value) { @case ('client') {
       {{ order.client.name }}
       } @case ('clientDelivery') {
@@ -146,7 +146,7 @@
       mat-cell
       *matCellDef="let order"
       [attr.colspan]="columnsToDisplayStrings.length"
-      class="px-2"
+      class="px-1"
     >
       <div
         class="order-detail-wrapper"
