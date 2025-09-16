@@ -17,7 +17,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { useProductStore } from '../../../services/store/product-store';
-import { Price, ProductItem } from '../../../models/models';
+import { Price2, ProductItem } from '../../../models/models';
 import { Category, Unit_id } from '../../../models/enums';
 import { ProductsService } from '../../../services/query-services/products.service';
 import { ProductUtil } from '../../../services/utils/product.util';
@@ -50,7 +50,7 @@ export class SelectedProductListComponent implements OnInit {
   editingItem: ProductItem | null = null;
   editableQuantity: number | null = null;
 
-  prices: Price[] = [];
+  prices: Price2[] = [];
 
   private router = inject(Router);
   private _dialog = inject(MatDialog);
@@ -289,7 +289,7 @@ export class SelectedProductListComponent implements OnInit {
     this.getTotalPrice();
   }
 
-  private getExactPrice(newCategory: Category, item: ProductItem): Price {
+  private getExactPrice(newCategory: Category, item: ProductItem): Price2 {
     const unicPrice = this.prices.find(
       (price) => price.product_id === item.product.id
     );
@@ -305,7 +305,8 @@ export class SelectedProductListComponent implements OnInit {
           (price) =>
             price.category_id === newCategory &&
             price.size_id === item.product.size_id &&
-            price.unit_id === item.product.unit_id
+            price.unit_id === item.product.unit_id &&
+            price.is_board === !item.product.width
         );
 
     return exactPrice!;

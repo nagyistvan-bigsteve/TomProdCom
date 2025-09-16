@@ -6,7 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { Category, Size_id, Unit_id } from '../../../models/enums';
 import { MatDividerModule } from '@angular/material/divider';
 import { ProductsService } from '../../../services/query-services/products.service';
-import { Price, PriceResponse, Products } from '../../../models/models';
+import { Price2, PriceResponse2, Products } from '../../../models/models';
 import {
   ENTER_AND_LEAVE_ANIMATION,
   ENTER_ANIMATION,
@@ -41,14 +41,14 @@ export class ChangePricesComponent implements OnInit {
   selectedUnit: Unit_id = Unit_id.M3;
   selectedSize: Size_id = Size_id.NORMAL;
   selectedCategory: Category = Category.A;
-  selectedCurrentPrice: Price | null = null;
+  selectedCurrentPrice: Price2 | null = null;
   actualPrice: number = 0;
   isNewPrice: boolean = false;
   unicItemSelected: boolean = false;
   selectedUnicItem: { id: number; price: number } = { id: 0, price: 0 };
 
   productsInFilterRange: Products = [];
-  unicPriceList: PriceResponse[] = [];
+  unicPriceList: PriceResponse2[] = [];
 
   private readonly productService = inject(ProductsService);
 
@@ -106,7 +106,7 @@ export class ChangePricesComponent implements OnInit {
     const currentPrice = this.unicItemSelected
       ? this.selectedUnicItem.price
       : this.selectedCurrentPrice
-      ? this.selectedCurrentPrice!.price_id
+      ? this.selectedCurrentPrice!.id
       : 0;
     if (event !== currentPrice) {
       this.isNewPrice = true;
@@ -118,7 +118,6 @@ export class ChangePricesComponent implements OnInit {
 
   updateNewPrice(): void {
     if (this.isNewPrice && this.actualPrice) {
-      console.log(this.unicItemSelected, this.selectedCurrentPrice);
       if (!this.unicItemSelected && !this.selectedCurrentPrice) {
         this.addNewPrice();
       } else {
@@ -126,7 +125,7 @@ export class ChangePricesComponent implements OnInit {
           .changePrice(
             this.unicItemSelected
               ? this.selectedUnicItem.id
-              : this.selectedCurrentPrice!.price_id,
+              : this.selectedCurrentPrice!.id,
             this.actualPrice
           )
           .then(() => {
@@ -148,13 +147,13 @@ export class ChangePricesComponent implements OnInit {
   }
 
   addNewPrice(): void {
-    const price: Partial<Price> = {
+    const price: Partial<Price2> = {
       unit_id: this.selectedUnit,
       size_id: this.selectedSize,
       category_id: this.selectedCategory,
       price: this.actualPrice,
     };
-    this.productService.addPrice(price as Price).then(() => {
+    this.productService.addPrice(price as Price2).then(() => {
       this.onFilterChange();
     });
   }
@@ -166,7 +165,7 @@ export class ChangePricesComponent implements OnInit {
   }
 
   findSelectedUnitItem(selectedId: number): string {
-    return this.unicPriceList.find((product) => product.price_id === selectedId)
+    return this.unicPriceList.find((product) => product.id === selectedId)
       ?.product.name!;
   }
 }

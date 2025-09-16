@@ -41,6 +41,10 @@ export class ProductUtil {
         ((product.width * product.length * product.thickness) / 1000000) *
         price *
         +quantity;
+
+      if (!product.width) {
+        calculatedPrice = price * +quantity;
+      }
     }
 
     if (product.unit_id === Unit_id.M2) {

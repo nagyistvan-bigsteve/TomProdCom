@@ -14,7 +14,7 @@ import {
 import {
   OrderItemsResponse,
   OrderResponse,
-  Price,
+  Price2,
   Product,
   ProductItems,
 } from '../../../models/models';
@@ -191,7 +191,7 @@ export class OrderDetailsComponent implements OnInit {
     order: OrderResponse,
     item: OrderItemsResponse,
     product: Product,
-    prices: Price[]
+    prices: Price2[]
   ): void {
     this.editForm = this.fb.group({
       quantity: [item.quantity, [Validators.required, Validators.min(0)]],

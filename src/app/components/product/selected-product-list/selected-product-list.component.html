@@ -80,8 +80,10 @@
                     }}
                     } @else {
                     {{
-                      "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
-                        | translate
+                      (!item.product.width
+                        ? "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.3"
+                        : "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
+                      ) | translate
                     }}
                     }
                   </div>
@@ -166,7 +168,7 @@
           } @case (3) {
           <div class="col-10">
             <div class="row border-bottom p-1">
-              m³:
+              @if(item.product.width) { m³:
               {{
                 item.quantity *
                   ((item.product.width *
@@ -174,7 +176,14 @@
                     item.product.length) /
                     1000000) | number : "1.0-3"
               }}
+              } @else { m²:
+              {{
+                item.quantity / (item.product.thickness / 100)
+                  | number : "1.0-2"
+              }}
+              }
             </div>
+            @if(item.product.width){s
             <div class="row p-1">
               {{
                 "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.UNIT_PRICE"
@@ -182,6 +191,12 @@
               }}
               {{ item.price / item.quantity | number : "1.0-1" }}
             </div>
+            } @else {
+            <div class="row p-1">
+              {{ "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.M3" | translate }}
+              {{ item.price / item.quantity | number : "1.0-1" }}
+            </div>
+            }
           </div>
 
           <div class="col-2">

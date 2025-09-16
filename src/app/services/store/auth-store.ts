@@ -256,8 +256,6 @@ export const useAuthStore = signalStore(
 
           if (error) throw error;
 
-          console.log(data);
-
           patchState(store, {
             unapprovedUsersNumber: store.unapprovedUsersNumber()! - 1,
           });

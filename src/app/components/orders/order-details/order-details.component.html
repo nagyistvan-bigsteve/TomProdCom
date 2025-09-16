@@ -56,7 +56,10 @@
         <span class="text-nowrap">
           {{ item.quantity }}
           {{
-            "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1" | translate
+            (item.product.width
+              ? "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
+              : "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.3"
+            ) | translate
           }}
         </span>
         } @if(!item.packsPieces && item.product.unit_id !== 3) {
@@ -302,10 +305,19 @@
           </span>
           } @if(!item.packsPieces && item.product.unit_id === 3) {
           <span class="text-nowrap">
+            @if(item.product.width) {
             {{ item.quantity }}
             {{
-              "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1" | translate
+              "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
+                | translate
+            }}} @else {
+            {{
+              item.quantity / (item.product.thickness / 100) | number : "1.0-2"
             }}
+            {{
+              "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.2" | translate
+            }}
+            }
           </span>
           } @if(!item.packsPieces && item.product.unit_id !== 3) {
           <span class="text-nowrap">
@@ -317,6 +329,7 @@
           >}
         </td>
         <td>
+          @if(item.product.width) {
           {{
             ((item.product.width *
               item.product.thickness *
@@ -324,7 +337,9 @@
               1000000) *
               item.quantity | number : "1.0-4"
           }}
-          m³
+          } @else {
+          {{ item.quantity | number : "1.0-2" }}
+          } m³
         </td>
         <td>{{ item.price | number : "1.0-2" }} RON</td>
       </tr>
