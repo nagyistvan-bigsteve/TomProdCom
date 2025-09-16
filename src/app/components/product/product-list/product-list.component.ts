@@ -137,6 +137,25 @@ export class ProductSelectComponent {
     this.productsByFilter = this.fetchProductsByFilters();
   }
 
+  disableSizeChip(productsBySize: {
+    size: Size_id;
+    products: Products;
+  }): boolean {
+    if (this.selectedSize === productsBySize.size) {
+      return true;
+    }
+
+    if (
+      this.selectedUnit !== Unit_id.UNDEFINED &&
+      !productsBySize.products.filter((p) => p.unit_id === this.selectedUnit)
+        .length
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
   onInputFocus(): void {
     if (this.firstFocus) {
       this.filter();

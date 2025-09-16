@@ -7,7 +7,7 @@ import {
   OnChanges,
   Output,
 } from '@angular/core';
-import { Price, Product, ProductItem, Stock } from '../../../models/models';
+import { Price2, Product, ProductItem, Stock } from '../../../models/models';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
@@ -16,7 +16,6 @@ import { FormsModule } from '@angular/forms';
 import { Category, Unit_id } from '../../../models/enums';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProductsService } from '../../../services/query-services/products.service';
-import { take } from 'rxjs';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -43,9 +42,9 @@ export class SelectedProductComponent implements OnChanges {
   @Input({ required: true }) selectedProduct: Product | undefined;
   @Output() addProduct = new EventEmitter<ProductItem>();
 
-  prices: Price[] = [];
+  prices: Price2[] = [];
   selectedCategory: Category = Category.A;
-  selectedPrice: Price | undefined;
+  selectedPrice: Price2 | undefined;
   calculatedPrice: number = 0;
   quantity: string = '1';
   m2_isBrut: boolean = false;
@@ -68,7 +67,6 @@ export class SelectedProductComponent implements OnChanges {
     this.hasFocused = false;
     if (this.selectedProduct) {
       this.fetchPrices(this.selectedProduct);
-      this.fetchStock(this.selectedProduct);
       if (this.selectedProduct.unit_id === Unit_id.M2) {
         this.quantity = '0.5';
       } else {
@@ -109,10 +107,12 @@ export class SelectedProductComponent implements OnChanges {
       .subscribe(
         (prices) => {
           this.prices = prices;
+          this.selectedCategory = prices[0].category_id;
           this.selectedPrice = this.prices.find(
             (price) => price.category_id === this.selectedCategory
           );
           this.calculatePrice();
+          this.fetchStock(this.selectedProduct!);
         },
         () => {
           this.fetchPrices(product);
@@ -141,13 +141,17 @@ export class SelectedProductComponent implements OnChanges {
   }
 
   validateInput() {
-    if (this.selectedProduct && this.selectedProduct.unit_id === Unit_id.M2) {
+    if (
+      this.selectedProduct &&
+      (this.selectedProduct.unit_id === Unit_id.M2 ||
+        !this.selectedProduct?.width)
+    ) {
       if (+this.quantity < 0 || isNaN(+this.quantity)) {
-        setTimeout(() => (this.quantity = '0.5'));
+        setTimeout(() => (this.quantity = '0.5'), 500);
       }
     } else {
       if (+this.quantity < 1 || isNaN(+this.quantity)) {
-        setTimeout(() => (this.quantity = '1'));
+        setTimeout(() => (this.quantity = '1'), 500);
       }
     }
 

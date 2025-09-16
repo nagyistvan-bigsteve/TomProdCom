@@ -37,7 +37,7 @@
     >
       @for (productsBySize of productsBySizes; track productsBySize) {
       <mat-chip-option
-        [disabled]="productsBySize.size === selectedSize"
+        [disabled]="disableSizeChip(productsBySize)"
         [value]="productsBySize.size"
         [selected]="productsBySize.size === selectedSize"
         >{{

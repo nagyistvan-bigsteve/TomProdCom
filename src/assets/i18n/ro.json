@@ -72,7 +72,8 @@
       "ITEM_DESCRIPTION": {
         "UNIT_PRICE": "Preț buc: ",
         "M2_NET": "Net m²: ",
-        "PIECE_PER_PACK": "buc/pachet: "
+        "PIECE_PER_PACK": "buc/pachet: ",
+        "M3": "Preț m³: "
       },
       "DELETE_ITEM_POPUP": {
         "TITLE": "Confirmare ștergere",

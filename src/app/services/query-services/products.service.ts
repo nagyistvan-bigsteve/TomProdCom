@@ -2,8 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../supabase.service';
 import { catchError, from, map, Observable, of, switchMap } from 'rxjs';
 import {
-  Price,
-  PriceResponse,
+  Price2,
+  PriceResponse2,
   Product,
   Products,
   Stock,
@@ -156,15 +156,15 @@ export class ProductsService {
     }
   }
 
-  async getAllPrices(): Promise<Price[] | null> {
+  async getAllPrices(): Promise<Price2[] | null> {
     try {
       const { data, error } = await this.supabaseService.client
-        .from('prices')
+        .from('prices_new')
         .select('*');
 
       if (error) throw error;
 
-      return data as Price[];
+      return data as Price2[];
     } catch (error) {
       console.error('Fail to fetch prices', error);
       return null;
@@ -175,10 +175,10 @@ export class ProductsService {
     unit_id: Unit_id,
     category: Category,
     size_id: Size_id
-  ): Promise<Price | null> {
+  ): Promise<Price2 | null> {
     try {
       const { data, error } = await this.supabaseService.client
-        .from('prices')
+        .from('prices_new')
         .select('*')
         .eq('unit_id', unit_id)
         .eq('size_id', size_id)
@@ -187,32 +187,33 @@ export class ProductsService {
 
       if (error) throw error;
 
-      return data as Price;
+      return data as Price2;
     } catch (error) {
       console.error('Fail to fetch price by filter', error);
       return null;
     }
   }
 
-  async getUnicPriceList(): Promise<PriceResponse[] | []> {
+  async getUnicPriceList(): Promise<PriceResponse2[] | []> {
     try {
       const { data, error } = await this.supabaseService.client
-        .from('prices')
+        .from('prices_new')
         .select(
-          `price_id,
+          `id,
           unit_id,
           category_id,
           size_id,
           price,
-          product:product_id (id, name)`
+          product:product_id (id, name),
+          is_board`
         )
         .not('product_id', 'is', null);
 
       if (error) throw error;
 
       return (data ?? []).map(
-        (price): PriceResponse => ({
-          price_id: price.price_id,
+        (price): PriceResponse2 => ({
+          id: price.id,
           unit_id: price.unit_id,
           category_id: price.category_id,
           size_id: price.size_id,
@@ -220,6 +221,7 @@ export class ProductsService {
           product: Array.isArray(price.product)
             ? price.product[0]
             : price.product || { id: 0, name: '' },
+          is_board: price.is_board,
         })
       );
     } catch (error) {
@@ -231,7 +233,7 @@ export class ProductsService {
   async changePrice(id: number, new_price: number): Promise<boolean> {
     try {
       const { error } = await this.supabaseService.client
-        .from('prices')
+        .from('prices_new')
         .update({ price: new_price })
         .eq('price_id', id);
 
@@ -244,10 +246,10 @@ export class ProductsService {
     }
   }
 
-  async addPrice(price: Price): Promise<boolean> {
+  async addPrice(price: Price2): Promise<boolean> {
     try {
       const { error } = await this.supabaseService.client
-        .from('prices')
+        .from('prices_new')
         .insert(price);
 
       if (error) throw error;
@@ -259,10 +261,10 @@ export class ProductsService {
     }
   }
 
-  getPrices(product: Product): Observable<Price[]> {
+  getPrices(product: Product): Observable<Price2[]> {
     return from(
       this.supabaseService.client
-        .from('prices')
+        .from('prices_new')
         .select('*')
         .or(`product_id.eq.${product.id}`)
     ).pipe(
@@ -274,9 +276,10 @@ export class ProductsService {
 
         // Otherwise, fetch prices where product_id is NULL and match unit_id & size_id
         return from(
-          this.supabaseService.client.from('prices').select('*').match({
+          this.supabaseService.client.from('prices_new').select('*').match({
             unit_id: product.unit_id,
             size_id: product.size_id,
+            is_board: !product.width,
           })
         ).pipe(map(({ data }) => data ?? []));
       }),

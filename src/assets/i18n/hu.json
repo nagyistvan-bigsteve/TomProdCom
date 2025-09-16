@@ -72,7 +72,8 @@
       "ITEM_DESCRIPTION": {
         "UNIT_PRICE": "Darab ár: ",
         "M2_NET": "Nettó m²: ",
-        "PIECE_PER_PACK": "db/köteg: "
+        "PIECE_PER_PACK": "db/köteg: ",
+        "M3": "m³ ár: "
       },
       "DELETE_ITEM_POPUP": {
         "TITLE": "Törlés megerősítése",
