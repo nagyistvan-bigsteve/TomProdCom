@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormControl,
@@ -12,6 +12,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { SupabaseService } from '../../services/supabase.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 @Component({
   selector: 'app-reset-password',
@@ -22,13 +23,19 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     MatInputModule,
     MatButtonModule,
     TranslateModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.scss',
 })
-export class ResetPasswordComponent implements OnInit {
-  accessToken: string | null = null;
-  refreshToken: string | null = null;
+export class ResetPasswordComponent implements OnInit, OnDestroy {
+  private router = inject(Router);
+  private supabaseService = inject(SupabaseService).client;
+  private translateService = inject(TranslateService);
+
+  private authSubscription: any;
+
+  showForm = false;
 
   resetPasswordForm = new FormGroup({
     password: new FormControl('', [
@@ -41,14 +48,22 @@ export class ResetPasswordComponent implements OnInit {
     ]),
   });
 
-  private router = inject(Router);
-  private supabaseService = inject(SupabaseService);
-  private translateService = inject(TranslateService);
-
-  token: string | null = null;
-
   ngOnInit() {
-    this.setSessionByParams();
+    this.authSubscription = this.supabaseService.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY' && session) {
+          this.showForm = true;
+        }
+      }
+    );
+
+    this.supabaseService.auth.getSession().then(({ data: { session } }) => {
+      if (session) this.showForm = true;
+    });
+  }
+
+  ngOnDestroy() {
+    this.authSubscription?.data.subscription.unsubscribe();
   }
 
   goToAuthPage(): void {
@@ -63,25 +78,15 @@ export class ResetPasswordComponent implements OnInit {
     const password = this.resetPasswordForm.value.password!;
 
     try {
-      const { data, error: sessionError } =
-        await this.supabaseService.client.auth.setSession({
-          access_token: this.accessToken!,
-          refresh_token: this.refreshToken!,
-        });
-
-      if (sessionError) {
-        throw sessionError;
-      }
-
-      const { error } = await this.supabaseService.client.auth.updateUser({
-        password: password!,
+      const { error } = await this.supabaseService.auth.updateUser({
+        password,
       });
 
       if (error) {
         this.showAlert(
           this.translateService.instant('RESET_PASSWORD.RESET_ERROR') +
             ': ' +
-            +error.message
+            error.message
         );
         return;
       }
@@ -119,21 +124,5 @@ export class ResetPasswordComponent implements OnInit {
     }
 
     return true;
-  }
-
-  private setSessionByParams(): void {
-    this.supabaseService.client.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' && session) {
-        this.accessToken = session.access_token;
-        this.refreshToken = session.refresh_token;
-      }
-    });
-
-    if (!this.accessToken || !this.refreshToken) {
-      this.showAlert(
-        this.translateService.instant('RESET_PASSWORD.INVALID_LINK')
-      );
-      this.goToAuthPage();
-    }
   }
 }
