@@ -1,5 +1,4 @@
 import { Component, inject } from '@angular/core';
-import { UserAttributes } from '@supabase/supabase-js';
 import { CommonModule } from '@angular/common';
 import {
   FormControl,
@@ -10,7 +9,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { SupabaseService } from '../../services/supabase.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
@@ -29,6 +28,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 })
 export class ResetPasswordComponent {
   accessToken: string | null = null;
+  refreshToken: string | null = null;
 
   resetPasswordForm = new FormGroup({
     password: new FormControl('', [
@@ -44,6 +44,7 @@ export class ResetPasswordComponent {
   private router = inject(Router);
   private supabaseService = inject(SupabaseService);
   private translateService = inject(TranslateService);
+
   token: string | null = null;
 
   ngOnInit() {
@@ -65,7 +66,7 @@ export class ResetPasswordComponent {
       const { data, error: sessionError } =
         await this.supabaseService.client.auth.setSession({
           access_token: this.accessToken!,
-          refresh_token: '',
+          refresh_token: this.refreshToken!,
         });
 
       if (sessionError) {
@@ -123,9 +124,11 @@ export class ResetPasswordComponent {
   private setSessionByParams(): void {
     const fragment = window.location.hash.substring(1);
     const params = new URLSearchParams(fragment);
-    this.accessToken = params.get('access_token');
 
-    if (!this.accessToken) {
+    this.accessToken = params.get('access_token');
+    this.refreshToken = params.get('refresh_token');
+
+    if (!this.accessToken || !this.refreshToken) {
       this.showAlert(
         this.translateService.instant('RESET_PASSWORD.INVALID_LINK')
       );
