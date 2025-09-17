@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormControl,
@@ -26,7 +26,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.scss',
 })
-export class ResetPasswordComponent {
+export class ResetPasswordComponent implements OnInit {
   accessToken: string | null = null;
   refreshToken: string | null = null;
 
