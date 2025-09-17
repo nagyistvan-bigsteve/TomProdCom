@@ -122,11 +122,12 @@ export class ResetPasswordComponent {
   }
 
   private setSessionByParams(): void {
-    const fragment = window.location.hash.substring(1);
-    const params = new URLSearchParams(fragment);
-
-    this.accessToken = params.get('access_token');
-    this.refreshToken = params.get('refresh_token');
+    this.supabaseService.client.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' && session) {
+        this.accessToken = session.access_token;
+        this.refreshToken = session.refresh_token;
+      }
+    });
 
     if (!this.accessToken || !this.refreshToken) {
       this.showAlert(
