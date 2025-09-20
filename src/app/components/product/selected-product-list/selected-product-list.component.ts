@@ -305,8 +305,7 @@ export class SelectedProductListComponent implements OnInit {
           (price) =>
             price.category_id === newCategory &&
             price.size_id === item.product.size_id &&
-            price.unit_id === item.product.unit_id &&
-            price.is_board === !item.product.width
+            price.unit_id === item.product.unit_id
         );
 
     return exactPrice!;

@@ -152,9 +152,8 @@
   "SETTINGS": {
     "TYPE": {
       "ADD_PRODUCT": "Produs nou",
-      "EDIT_PRODUCT": "Produs",
-      "EDIT_PRICE": "Preț",
-      "EDIT_STOCK": "Stoc"
+      "EDIT_PRODUCT": "Editare produs",
+      "EDIT_PRICE": "Editare preț"
     },
     "ADD_PRODUCT": {
       "NAME": "Nume",
@@ -179,12 +178,27 @@
       "PIECE_PER_PACK": "buc/pachet",
       "SAVE": "Salvare"
     },
+    "ADD_PRICE": {
+      "TITLE": "Adaugă preț unic",
+      "DESCRIPTION": "Ignoră categoriile inutile. Adaugă ceva doar în cazul în care prețul este UNIC!",
+      "A": "Preț A",
+      "AB": "Preț AB",
+      "B": "Preț B",
+      "T": "Preț T"
+    },
     "EDIT_PRICE": {
       "PRICE": "Preț",
       "UPDATE_BUTTON": "Actualizare",
-      "NO_PRODUCT": "Nu există produs în categorie"
+      "NO_PRODUCT": "Nu există produs în categorie",
+      "PRICE_TYPE": {
+        "UNIC": "Preț unic",
+        "M3": "m³",
+        "NEW": "Fără preț"
+      },
+      "UNIC_SEARCH": "Produse cu preț unic"
     },
-    "STOCK": "Stoc"
+    "STOCK": "Stoc",
+    "PRODUCT": "Produs"
   },
   "USER": {
     "SALUTE": "Salutare ",

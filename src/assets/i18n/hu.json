@@ -152,9 +152,8 @@
   "SETTINGS": {
     "TYPE": {
       "ADD_PRODUCT": "Új Termék",
-      "EDIT_PRODUCT": "Termék",
-      "EDIT_PRICE": "Ár",
-      "EDIT_STOCK": "Készlet"
+      "EDIT_PRODUCT": "Termék szerk.",
+      "EDIT_PRICE": "Ár szerk."
     },
     "ADD_PRODUCT": {
       "NAME": "Név",
@@ -179,12 +178,27 @@
       "PIECE_PER_PACK": "db/köteg",
       "SAVE": "Mentés"
     },
+    "ADD_PRICE": {
+      "TITLE": "Adj hozzá egyedi árat",
+      "DESCRIPTION": "Ignoráld a nem szükséges kategóriákat. Csak akkor adj hozzá árat, ha az EGYEDI!",
+      "A": "A ár",
+      "AB": "AB ár",
+      "B": "B ár",
+      "T": "T ár"
+    },
     "EDIT_PRICE": {
       "PRICE": "Ár",
       "UPDATE_BUTTON": "Szerkesztés",
-      "NO_PRODUCT": "Nincs termék ebben a kategóriában"
+      "NO_PRODUCT": "Nincs termék ebben a kategóriában",
+      "PRICE_TYPE": {
+        "UNIC": "Egyedi ár",
+        "M3": "m³",
+        "NEW": "Ár nélkül"
+      },
+      "UNIC_SEARCH": "Egyedi áru termékek"
     },
-    "STOCK": "Készlet"
+    "STOCK": "Készlet",
+    "PRODUCT": "Termék"
   },
   "USER": {
     "SALUTE": "Helló ",
