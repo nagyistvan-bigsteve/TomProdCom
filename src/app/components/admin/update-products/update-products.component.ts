@@ -23,13 +23,11 @@ import {
   Validators,
 } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import {
-  ENTER_AND_LEAVE_ANIMATION,
-  ENTER_ANIMATION,
-} from '../../../models/animations';
+import { ENTER_AND_LEAVE_ANIMATION } from '../../../models/animations';
 import { MatButtonModule } from '@angular/material/button';
 import { Category } from '../../../models/enums';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 @Component({
   selector: 'app-update-products',
@@ -44,6 +42,7 @@ import { MatChipsModule } from '@angular/material/chips';
     TranslateModule,
     MatButtonModule,
     MatChipsModule,
+    MatButtonToggleModule,
   ],
   templateUrl: './update-products.component.html',
   styleUrl: './update-products.component.scss',
@@ -51,7 +50,7 @@ import { MatChipsModule } from '@angular/material/chips';
 })
 export class UpdateProductsComponent implements OnInit {
   @ViewChild('input') input: ElementRef<HTMLInputElement> | null = null;
-  @Input() updateStock: boolean = false;
+  updateStock: boolean = false;
 
   private readonly productService = inject(ProductsService);
   private readonly destroyRef = inject(DestroyRef);
@@ -84,18 +83,23 @@ export class UpdateProductsComponent implements OnInit {
     size_id: [this.selectedProduct.size_id, Validators.required],
     length: [this.selectedProduct.length, Validators.required],
     thickness: [this.selectedProduct.thickness, Validators.required],
-    width: [this.selectedProduct.width, Validators.required],
+    width: [this.selectedProduct.width],
     m2_brut: [this.selectedProduct.m2_brut],
     m2_util: [this.selectedProduct.m2_util],
     piece_per_pack: [this.selectedProduct.piece_per_pack],
   });
 
-  currentStock: Stock | null = null;
+  currentStock: Stock = {
+    id: 0,
+    product_id: 0,
+    category_id: Category.A,
+    stock: 0,
+  };
 
   stockForm = this.fb.group({
     id: [this.currentStock?.id],
     product_id: [this.currentStock?.product_id],
-    category_id: [this.currentStock?.category],
+    category_id: [this.currentStock?.category_id],
     stock: [this.currentStock?.stock],
   });
 
@@ -114,7 +118,16 @@ export class UpdateProductsComponent implements OnInit {
 
   fetchProductStock(productId: number, category: Category): void {
     this.productService.getProductStock(productId, category).then((stock) => {
-      this.currentStock = stock;
+      if (stock) {
+        this.currentStock = stock;
+      } else {
+        this.currentStock = {
+          id: 0,
+          product_id: productId,
+          category_id: category,
+          stock: 0,
+        };
+      }
     });
   }
 
@@ -136,11 +149,17 @@ export class UpdateProductsComponent implements OnInit {
   }
 
   onStockSave() {
-    if (this.currentStock) {
+    if (this.currentStock.id) {
       this.productService.updateStock(
         this.currentStock.id,
         this.currentStock.stock
       );
+    } else {
+      this.productService.addStock({
+        stock: this.currentStock.stock,
+        product_id: this.currentStock.product_id,
+        category_id: this.currentStock.category_id,
+      });
     }
   }
 

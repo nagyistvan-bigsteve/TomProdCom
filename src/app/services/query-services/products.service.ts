@@ -42,18 +42,20 @@ export class ProductsService {
     }
   }
 
-  async addProduct(product: Product): Promise<boolean> {
+  async addProduct(product: Product): Promise<Product | null> {
     try {
-      const { error } = await this.supabaseService.client
+      const { data, error } = await this.supabaseService.client
         .from('products')
-        .insert(product);
+        .insert(product)
+        .select()
+        .single();
 
       if (error) throw error;
 
-      return true;
+      return data;
     } catch (error) {
       console.error('Fail to add product', error);
-      return false;
+      return null;
     }
   }
 
@@ -136,6 +138,21 @@ export class ProductsService {
     }
   }
 
+  async addStock(stock: Partial<Stock>): Promise<boolean> {
+    try {
+      const { error } = await this.supabaseService.client
+        .from('stocks')
+        .insert(stock);
+
+      if (error) throw error;
+
+      return true;
+    } catch (error) {
+      console.error('Fail to add stock', error);
+      return false;
+    }
+  }
+
   async getProductsByFilter(
     unit_id: Unit_id,
     size_id: Size_id
@@ -183,6 +200,7 @@ export class ProductsService {
         .eq('unit_id', unit_id)
         .eq('size_id', size_id)
         .eq('category_id', category)
+        .is('product_id', null)
         .single();
 
       if (error) throw error;
@@ -204,8 +222,7 @@ export class ProductsService {
           category_id,
           size_id,
           price,
-          product:product_id (id, name),
-          is_board`
+          product:product_id (id, name)`
         )
         .not('product_id', 'is', null);
 
@@ -221,11 +238,25 @@ export class ProductsService {
           product: Array.isArray(price.product)
             ? price.product[0]
             : price.product || { id: 0, name: '' },
-          is_board: price.is_board,
         })
       );
     } catch (error) {
       console.error('Fail to fetch unic prices', error);
+      return [];
+    }
+  }
+
+  async getProductsWithoutPrice(): Promise<Products | []> {
+    try {
+      const { data, error } = await this.supabaseService.client.rpc(
+        'products_without_prices'
+      );
+
+      if (error) throw error;
+
+      return data;
+    } catch (error) {
+      console.error('Failed to fetch products without prices', error);
       return [];
     }
   }
@@ -246,7 +277,7 @@ export class ProductsService {
     }
   }
 
-  async addPrice(price: Price2): Promise<boolean> {
+  async addPrice(price: Partial<Price2>): Promise<boolean> {
     try {
       const { error } = await this.supabaseService.client
         .from('prices_new')
@@ -279,7 +310,6 @@ export class ProductsService {
           this.supabaseService.client.from('prices_new').select('*').match({
             unit_id: product.unit_id,
             size_id: product.size_id,
-            is_board: !product.width,
           })
         ).pipe(map(({ data }) => data ?? []));
       }),

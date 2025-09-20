@@ -76,7 +76,6 @@
           [(ngModel)]="selectedProduct.width"
           formControlName="width"
           type="number"
-          required
         />
       </mat-form-field>
 
@@ -150,3 +149,53 @@
     {{ "SETTINGS.ADD_PRODUCT.SAVE" | translate }}
   </button>
 </div>
+
+<ng-template #addPriceDialog let-dialogRef="dialogRef">
+  <mat-dialog-content>
+    <h2>{{ "SETTINGS.ADD_PRICE.TITLE" | translate }}</h2>
+    {{ "SETTINGS.ADD_PRICE.DESCRIPTION" | translate }}
+    <mat-form-field appearance="outline" class="w-100 mt-3">
+      <mat-label> {{ "SETTINGS.ADD_PRICE.A" | translate }} </mat-label>
+      <input
+        matInput
+        [ngModel]="newPriceA()"
+        (ngModelChange)="newPriceA.set($event)"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100 mt-3">
+      <mat-label>{{ "SETTINGS.ADD_PRICE.AB" | translate }}</mat-label>
+      <input
+        matInput
+        [ngModel]="newPriceAB()"
+        (ngModelChange)="newPriceAB.set($event)"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100 mt-3">
+      <mat-label>{{ "SETTINGS.ADD_PRICE.B" | translate }}</mat-label>
+      <input
+        matInput
+        [ngModel]="newPriceB()"
+        (ngModelChange)="newPriceB.set($event)"
+      />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100 mt-3">
+      <mat-label>{{ "SETTINGS.ADD_PRICE.T" | translate }}</mat-label>
+      <input
+        matInput
+        [ngModel]="newPriceT()"
+        (ngModelChange)="newPriceT.set($event)"
+      />
+    </mat-form-field>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="dialogRef.close()">
+      {{ "DIALOG.CANCEL" | translate }}
+    </button>
+    <button mat-raised-button color="primary" (click)="addPrice(dialogRef)">
+      {{ "DIALOG.SAVE" | translate }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>

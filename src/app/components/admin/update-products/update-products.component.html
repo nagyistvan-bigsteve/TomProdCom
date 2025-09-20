@@ -1,3 +1,18 @@
+<div class="px-3 mb-1 w-100 d-flex justify-content-right">
+  <mat-button-toggle-group
+    class="w-100"
+    [value]="updateStock"
+    (change)="updateStock = $event.value"
+  >
+    <mat-button-toggle class="w-100" [checked]="!updateStock" [value]="false">{{
+      "SETTINGS.PRODUCT" | translate
+    }}</mat-button-toggle>
+    <mat-button-toggle class="w-100" [checked]="updateStock" [value]="true">{{
+      "SETTINGS.STOCK" | translate
+    }}</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
 <div class="px-3">
   <form class="w-100">
     @if (updateStock) {
@@ -149,7 +164,6 @@
           [(ngModel)]="selectedProduct.width"
           formControlName="width"
           type="number"
-          required
         />
       </mat-form-field>
 
@@ -168,7 +182,7 @@
 
       @if(selectedProduct.unit_id === 2){
       <mat-form-field
-        @@enterAndLeaveAnimation
+        @enterAndLeaveAnimation
         appearance="outline"
         class="full-width"
       >
@@ -182,7 +196,7 @@
       </mat-form-field>
 
       <mat-form-field
-        @@enterAndLeaveAnimation
+        @enterAndLeaveAnimation
         appearance="outline"
         class="full-width"
       >
@@ -196,7 +210,7 @@
       </mat-form-field>
 
       <mat-form-field
-        @@enterAndLeaveAnimation
+        @enterAndLeaveAnimation
         appearance="outline"
         class="full-width"
       >
@@ -222,7 +236,7 @@
   >
     {{ "SETTINGS.ADD_PRODUCT.SAVE" | translate }}
   </button>
-  } @else{ @if(currentStock){
+  } @else{
   <div
     @enterAndLeaveAnimation
     class="d-flex flex-column align-items-center shadow rounded text-dark bg-white pt-3 px-3 mb-2"
@@ -244,5 +258,5 @@
       {{ "SETTINGS.ADD_PRODUCT.SAVE" | translate }}
     </button>
   </div>
-  } } }
+  } }
 </div>

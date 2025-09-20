@@ -10,9 +10,6 @@
       <mat-button-toggle value="price">{{
         "SETTINGS.TYPE.EDIT_PRICE" | translate
       }}</mat-button-toggle>
-      <mat-button-toggle value="stock">{{
-        "SETTINGS.TYPE.EDIT_STOCK" | translate
-      }}</mat-button-toggle>
     </mat-button-toggle-group>
   </div>
   @switch (settingControl.value) { @case ("price") {
@@ -21,12 +18,5 @@
   <app-update-products @enterAnimation class="w-100"></app-update-products>
   } @case ("add_product") {
   <app-add-product @enterAnimation class="w-100"></app-add-product>
-  } @case ("stock") {
-  <app-update-products
-    [updateStock]="true"
-    @enterAnimation
-    class="w-100"
-  ></app-update-products>
-
   } }
 </div>
