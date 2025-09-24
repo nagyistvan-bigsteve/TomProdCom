@@ -307,10 +307,14 @@ export class ProductsService {
 
         // Otherwise, fetch prices where product_id is NULL and match unit_id & size_id
         return from(
-          this.supabaseService.client.from('prices_new').select('*').match({
-            unit_id: product.unit_id,
-            size_id: product.size_id,
-          })
+          this.supabaseService.client
+            .from('prices_new')
+            .select('*')
+            .match({
+              unit_id: product.unit_id,
+              size_id: product.size_id,
+            })
+            .is('product_id', null)
         ).pipe(map(({ data }) => data ?? []));
       }),
       catchError((error) => {
