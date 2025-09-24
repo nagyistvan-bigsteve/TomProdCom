@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   DestroyRef,
   effect,
@@ -29,6 +28,7 @@ import { ProductsService } from '../../../services/query-services/products.servi
 import { ProductUtil } from '../../../services/utils/product.util';
 import { FormsModule } from '@angular/forms';
 import { useClientStore } from '../../../services/store/client-store';
+import { ENTER_ANIMATION } from '../../../models/animations';
 
 @Component({
   selector: 'app-selected-product-list',
@@ -45,7 +45,7 @@ import { useClientStore } from '../../../services/store/client-store';
   ],
   templateUrl: './selected-product-list.component.html',
   styleUrl: './selected-product-list.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [ENTER_ANIMATION],
 })
 export class SelectedProductListComponent implements OnInit, OnChanges {
   @ViewChild('confirmDeleteDialog') confirmDeleteDialog!: TemplateRef<any>;
