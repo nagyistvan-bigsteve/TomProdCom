@@ -2,8 +2,6 @@ import {
   Component,
   DestroyRef,
   inject,
-  model,
-  signal,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
@@ -17,7 +15,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { SelectedProductListComponent } from '../../components/product/selected-product-list/selected-product-list.component';
 import { ClientDetailsComponent } from '../../components/client/client-details/client-details.component';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { useProductStore } from '../../services/store/product-store';
 import { useClientStore } from '../../services/store/client-store';
 import { useAuthStore } from '../../services/store/auth-store';
@@ -29,7 +27,11 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Unit_id } from '../../models/enums';
+import { Category, ClientType, Unit_id } from '../../models/enums';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { Price2 } from '../../models/models';
 
 @Component({
   selector: 'app-offer-overview',
@@ -51,6 +53,9 @@ import { Unit_id } from '../../models/enums';
     MatDatepickerModule,
     MatCheckboxModule,
     MatTooltipModule,
+    MatProgressSpinnerModule,
+    MatIconModule,
+    MatExpansionModule,
   ],
   templateUrl: './offer-overview-page.component.html',
   styleUrls: ['./offer-overview-page.component.scss'],
@@ -66,6 +71,9 @@ export class OfferOverviewPageComponent {
   private ordersService = inject(OrdersService);
   private _dialog = inject(MatDialog);
   private destroyRef = inject(DestroyRef);
+  private translateService = inject(TranslateService);
+
+  isLoaded: boolean = false;
 
   comment: string = '';
   voucher: string = '';
@@ -75,6 +83,13 @@ export class OfferOverviewPageComponent {
   );
   untilDeliveryDate: boolean = false;
   forFirstHour: boolean = false;
+
+  usedPriceCategories: {
+    unit: Unit_id;
+    category: Category;
+    price: number[];
+    discount: number;
+  }[] = [];
 
   get totalPrice(): number {
     let total = this.price;
@@ -99,6 +114,83 @@ export class OfferOverviewPageComponent {
       .reduce((sum, product) => sum + product.price, 0);
   }
 
+  updateDiscount(category: Category, unit: Unit_id, discount: number) {
+    this.usedPriceCategories = this.usedPriceCategories.map((p) =>
+      p.category === category && p.unit === unit
+        ? { ...p, discount: p.discount + discount }
+        : p
+    );
+  }
+
+  getPriceList(prices: Price2[]): void {
+    const isClientPJ: boolean =
+      this.clientStore.client()?.type === ClientType.PJ;
+
+    let copyForDiscount = this.usedPriceCategories;
+    this.usedPriceCategories = [];
+
+    prices.sort((a, b) => a.unit_id - b.unit_id);
+
+    prices.forEach((price) => {
+      if (
+        !this.usedPriceCategories.find(
+          (p) => p.category === price.category_id && p.unit === price.unit_id
+        )
+      ) {
+        let actualPrice: number[] = [];
+        let exactCategory = prices.filter(
+          (p) =>
+            p.category_id === price.category_id && p.unit_id === price.unit_id
+        );
+
+        exactCategory = exactCategory.filter(
+          (obj, index, self) =>
+            index === self.findIndex((t) => t.price === obj.price)
+        );
+
+        exactCategory.forEach((catPrice) => {
+          if (catPrice.product_id) {
+            if (catPrice.unit_id === Unit_id.BOUNDLE) {
+              actualPrice.push(
+                isClientPJ ? catPrice.price - 5 : catPrice.price
+              );
+            } else if (catPrice.unit_id === Unit_id.M3) {
+              actualPrice.push(
+                isClientPJ ? catPrice.price - 100 : catPrice.price
+              );
+            } else {
+              actualPrice.push(catPrice.price);
+            }
+          } else {
+            if (catPrice.unit_id === Unit_id.M3) {
+              actualPrice.push(
+                isClientPJ ? catPrice.price - 100 : catPrice.price
+              );
+            }
+          }
+        });
+
+        this.usedPriceCategories.push({
+          category: price.category_id,
+          unit: price.unit_id,
+          price: actualPrice,
+          discount: copyForDiscount.find(
+            (p) => p.category === price.category_id && p.unit === price.unit_id
+          )
+            ? copyForDiscount.find(
+                (p) =>
+                  p.category === price.category_id && p.unit === price.unit_id
+              )!.discount
+            : 0,
+        });
+      }
+    });
+  }
+
+  loaded(): void {
+    this.isLoaded = true;
+  }
+
   confirmOffer() {
     const dialogRef = this._dialog.open(this.confirmOfferDialog, {
       width: '300px',
@@ -113,6 +205,24 @@ export class OfferOverviewPageComponent {
         const multiplier = unit_id === Unit_id.BOUNDLE ? 10 : 1;
 
         totalOrderQuantity += item.quantity * volumeM3 * multiplier;
+      }
+    });
+
+    if (this.clientStore.client()?.type === ClientType.PJ) {
+      this.comment = 'PJ discount \n';
+    }
+
+    this.usedPriceCategories.forEach((p) => {
+      if (p.discount) {
+        let category = this.translateService.instant(
+          'OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY.' + p.category
+        );
+        let unit = this.translateService.instant(
+          'OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.' + p.unit
+        );
+
+        this.comment +=
+          category + ' - ' + unit + ' (' + p.discount + ' RON) \n';
       }
     });
 
@@ -149,6 +259,8 @@ export class OfferOverviewPageComponent {
                 this.router.navigate(['offers']);
               }
             });
+        } else {
+          this.comment = '';
         }
       });
   }
