@@ -138,18 +138,20 @@ export class ProductsService {
     }
   }
 
-  async addStock(stock: Partial<Stock>): Promise<boolean> {
+  async addStock(stock: Partial<Stock>): Promise<Stock | null> {
     try {
-      const { error } = await this.supabaseService.client
+      const { data, error } = await this.supabaseService.client
         .from('stocks')
-        .insert(stock);
+        .insert(stock)
+        .select()
+        .single();
 
       if (error) throw error;
 
-      return true;
+      return data;
     } catch (error) {
       console.error('Fail to add stock', error);
-      return false;
+      return null;
     }
   }
 

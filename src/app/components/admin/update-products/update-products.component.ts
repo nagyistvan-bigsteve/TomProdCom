@@ -155,11 +155,17 @@ export class UpdateProductsComponent implements OnInit {
         this.currentStock.stock
       );
     } else {
-      this.productService.addStock({
-        stock: this.currentStock.stock,
-        product_id: this.currentStock.product_id,
-        category_id: this.currentStock.category_id,
-      });
+      this.productService
+        .addStock({
+          stock: this.currentStock.stock,
+          product_id: this.currentStock.product_id,
+          category_id: this.currentStock.category_id,
+        })
+        .then((response) => {
+          if (response) {
+            this.currentStock = response;
+          }
+        });
     }
   }
 
