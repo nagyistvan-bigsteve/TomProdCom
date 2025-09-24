@@ -100,6 +100,9 @@
       "JUST_OFFER_CHECKBOX": "Doar ofertă",
       "BACK_BUTTON": "Înapoi",
       "SAVE_BUTTON": "Salvare"
+    },
+    "PRICES": {
+      "TITLE": "Prețuri folosite"
     }
   },
   "SELECT_CLIENT": {

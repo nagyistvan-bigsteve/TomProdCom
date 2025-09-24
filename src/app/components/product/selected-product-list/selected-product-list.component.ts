@@ -1,10 +1,16 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  effect,
+  EventEmitter,
   inject,
   Input,
+  OnChanges,
   OnInit,
+  Output,
   TemplateRef,
+  untracked,
   ViewChild,
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
@@ -18,10 +24,11 @@ import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { useProductStore } from '../../../services/store/product-store';
 import { Price2, ProductItem } from '../../../models/models';
-import { Category, Unit_id } from '../../../models/enums';
+import { Category, ClientType, Unit_id } from '../../../models/enums';
 import { ProductsService } from '../../../services/query-services/products.service';
 import { ProductUtil } from '../../../services/utils/product.util';
 import { FormsModule } from '@angular/forms';
+import { useClientStore } from '../../../services/store/client-store';
 
 @Component({
   selector: 'app-selected-product-list',
@@ -38,12 +45,22 @@ import { FormsModule } from '@angular/forms';
   ],
   templateUrl: './selected-product-list.component.html',
   styleUrl: './selected-product-list.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SelectedProductListComponent implements OnInit {
+export class SelectedProductListComponent implements OnInit, OnChanges {
   @ViewChild('confirmDeleteDialog') confirmDeleteDialog!: TemplateRef<any>;
+  @Output() isLoaded = new EventEmitter<void>();
+  @Output() pricesOutput = new EventEmitter<Price2[]>();
   @Input() isInOverview: boolean = false;
+  @Input() discount: {
+    unit: Unit_id;
+    category: Category;
+    price: number[];
+    discount: number;
+  }[] = [];
 
   totalPrice: number = 0;
+
   totalPriceInA: number = 0;
   totalPriceInB: number = 0;
 
@@ -51,6 +68,7 @@ export class SelectedProductListComponent implements OnInit {
   editableQuantity: number | null = null;
 
   prices: Price2[] = [];
+  usedPrices: Price2[] = [];
 
   private router = inject(Router);
   private _dialog = inject(MatDialog);
@@ -59,15 +77,25 @@ export class SelectedProductListComponent implements OnInit {
   private productService = inject(ProductsService);
   private productUtil = inject(ProductUtil);
   readonly productStore = inject(useProductStore);
+  readonly clientStore = inject(useClientStore);
 
   ngOnInit(): void {
     this.fetchPrices();
-    this.getTotalPrice();
+  }
 
-    setTimeout(() => {
-      this.getTotalPriceInB();
-      this.getTotalPriceInA();
-    }, 500);
+  ngOnChanges(): void {
+    this.compareSavedPrice();
+  }
+
+  constructor() {
+    effect(() => {
+      if (this.clientStore.client() && this.prices.length) {
+        untracked(() => {
+          this.compareSavedPrice();
+          this.getUsedPrices();
+        });
+      }
+    });
   }
 
   getTotalPrice(): void {
@@ -122,7 +150,7 @@ export class SelectedProductListComponent implements OnInit {
         const { price, packsNeeded, extraPiecesNeeded, totalPiecesNeeded } =
           this.productUtil.calculatePrice(
             item.product,
-            newPrice?.price!,
+            newPrice,
             this.editableQuantity!,
             true
           );
@@ -233,11 +261,59 @@ export class SelectedProductListComponent implements OnInit {
       .subscribe((result) => {
         if (result === true) {
           this.productStore.deleteProductById(item.product.id, item.category);
+          this.compareSavedPrice();
+          this.getUsedPrices();
           this.getTotalPrice();
           this.getTotalPriceInB();
           this.getTotalPriceInA();
         }
       });
+  }
+
+  private getUsedPrices(): void {
+    this.usedPrices = [];
+
+    this.productStore.productItems().forEach((item) => {
+      const unicPrice = this.prices.find(
+        (price) => price.product_id === item.product.id
+      );
+
+      let exactPrice = unicPrice
+        ? this.prices.find(
+            (price) =>
+              price.category_id === item.category &&
+              price.unit_id === item.product.unit_id &&
+              price.product_id === item.product.id
+          )
+        : this.prices.find(
+            (price) =>
+              price.category_id === item.category &&
+              price.size_id === item.product.size_id &&
+              price.unit_id === item.product.unit_id
+          );
+
+      if (!exactPrice) {
+        return;
+      }
+
+      if (!this.usedPrices.find((p) => p.id === exactPrice.id)) {
+        this.usedPrices.push(exactPrice);
+      }
+    });
+
+    this.pricesOutput.emit(this.usedPrices);
+  }
+
+  private compareSavedPrice(): void {
+    this.productStore.productItems().forEach((item) => {
+      let calculatedPrice = this.getCalculatedPrice(item.category, item);
+
+      if (calculatedPrice != item.price) {
+        this.productStore.updateProductItem(item.product.id, item.category, {
+          price: calculatedPrice,
+        });
+      }
+    });
   }
 
   private fetchPrices(): void {
@@ -247,6 +323,15 @@ export class SelectedProductListComponent implements OnInit {
       }
 
       this.prices = prices;
+
+      this.compareSavedPrice();
+      this.getUsedPrices();
+
+      this.getTotalPrice();
+      this.getTotalPriceInB();
+      this.getTotalPriceInA();
+
+      this.isLoaded.emit();
     });
   }
 
@@ -259,7 +344,7 @@ export class SelectedProductListComponent implements OnInit {
 
     const calculatedNewPrice = this.productUtil.calculatePrice(
       item.product,
-      newPrice.price,
+      newPrice,
       item.quantity,
       true
     ).price;
@@ -275,7 +360,7 @@ export class SelectedProductListComponent implements OnInit {
     } else {
       const actualNewPrice = this.productUtil.calculatePrice(
         item.product,
-        newPrice.price,
+        newPrice,
         item.quantity,
         true
       ).price;
@@ -284,12 +369,16 @@ export class SelectedProductListComponent implements OnInit {
         category: newCategory,
         price: actualNewPrice,
       });
-    }
 
-    this.getTotalPrice();
+      this.getTotalPrice();
+      this.getUsedPrices();
+    }
   }
 
-  private getExactPrice(newCategory: Category, item: ProductItem): Price2 {
+  private getExactPrice(newCategory: Category, item: ProductItem): number {
+    const isClientPJ: boolean =
+      this.clientStore.client()?.type === ClientType.PJ;
+
     const unicPrice = this.prices.find(
       (price) => price.product_id === item.product.id
     );
@@ -300,13 +389,31 @@ export class SelectedProductListComponent implements OnInit {
             price.category_id === newCategory &&
             price.unit_id === item.product.unit_id &&
             price.product_id === item.product.id
-        )
+        )?.price
       : this.prices.find(
           (price) =>
             price.category_id === newCategory &&
             price.size_id === item.product.size_id &&
             price.unit_id === item.product.unit_id
-        );
+        )?.price;
+
+    if (isClientPJ && exactPrice) {
+      if (item.product.unit_id === Unit_id.M3) {
+        exactPrice = exactPrice - 100;
+      }
+      if (item.product.unit_id === Unit_id.BOUNDLE) {
+        exactPrice = exactPrice - 5;
+      }
+    }
+
+    if (this.discount.length) {
+      let discount = this.discount.find(
+        (d) => d.category === newCategory && d.unit === item.product.unit_id
+      )?.discount;
+      if (discount) {
+        exactPrice! += discount;
+      }
+    }
 
     return exactPrice!;
   }
