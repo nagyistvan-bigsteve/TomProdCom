@@ -75,6 +75,10 @@ tr.order-row:not(.expanded-row):active {
   }
 }
 
+.multiline-text {
+  white-space: pre-line;
+}
+
 .until-delivery {
   background-color: #deddddbb;
   margin: 0 -4px;

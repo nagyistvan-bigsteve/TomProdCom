@@ -222,7 +222,7 @@ export class OfferOverviewPageComponent {
         );
 
         this.comment +=
-          category + ' - ' + unit + ' (' + p.discount + ' RON) \n';
+          category + ' - ' + unit + ' (' + p.discount + ' RON/' + unit + ')\n';
       }
     });
 
