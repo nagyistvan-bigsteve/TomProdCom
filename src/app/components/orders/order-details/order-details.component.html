@@ -255,124 +255,156 @@
 </ng-template>
 
 @if(isPrinting) {
-<div class="mt-2" id="print-section" class="print-area">
-  @if (justOffers) {
-  <h2>{{ "PRINT_POPUP.TITLE_OFFER" | translate }} #{{ order?.id }}</h2>
-  } @else {
-  <h2>{{ "PRINT_POPUP.TITLE_ORDER" | translate }} #{{ order?.id }}</h2>
-  }
-  <div class="d-flex pt-1 pb-2">
-    <div class="pe-3">
-      <strong>{{ "PRINT_POPUP.CLIENT" | translate }}</strong>
-      {{ order?.client?.name }}
-    </div>
-    <div><strong>Tel:</strong> {{ order?.client?.phone }}</div>
-  </div>
-  <div class="d-flex py-2">
-    <div class="pe-3">
-      <strong> {{ order?.client?.type === 1 ? "PF " : "PJ " }} </strong> :
-      {{ order?.client?.code }}
-    </div>
-    <div>
-      <strong>{{ "PRINT_POPUP.ADDRESS" | translate }} </strong>
-      {{ order?.client?.delivery_address }}
-    </div>
-  </div>
-  <div class="pt-1 pt-0">
-    <strong>{{ "PRINT_POPUP.DATE" | translate }}</strong>
-    {{ order?.dateOrderPlaced | date }}
+<div class="mt-2" id="print-section">
+  <div id="print-header">
+    <app-pdf-header />
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>{{ "PRINT_POPUP.TABLE.NAME" | translate }}</th>
-        <th>{{ "PRINT_POPUP.TABLE.QUANTITY" | translate }}</th>
-        <th>{{ "PRINT_POPUP.TABLE.QUANTITY" | translate }} m³</th>
-        <th>{{ "PRINT_POPUP.TABLE.PRICE" | translate }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let item of orderItems">
-        <td>{{ item.product.name }} - {{ item.category.name }}</td>
-        <td>
-          @if(item.packsPieces) {
-          <span class="text-nowrap">
-            {{ item.packsPieces }} ({{ item.quantity | number : "1.0-2" }}
-            {{
-              "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                item.product.unit_id | translate
-            }})
-          </span>
-          } @if(!item.packsPieces && item.product.unit_id === 3) {
-          <span class="text-nowrap">
-            @if(item.product.width) {
-            {{ item.quantity }}
-            {{
-              "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
-                | translate
-            }}} @else {
-            {{
-              item.quantity / (item.product.thickness / 100) | number : "1.0-2"
-            }}
-            {{
-              "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.2" | translate
-            }}
-            }
-          </span>
-          } @if(!item.packsPieces && item.product.unit_id !== 3) {
-          <span class="text-nowrap">
-            {{ item.quantity }}
-            {{
-              "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                item.product.unit_id | translate
-            }} </span
-          >}
-        </td>
-        <td>
-          @if(item.product.width) {
+  <div id="print-content">
+    <div class="pdf-title-details">
+      @if (justOffers) {
+      <h2 class="text-center w-100">
+        {{ "PRINT_POPUP.TITLE_OFFER" | translate }} #{{ order?.id }}
+      </h2>
+      } @else {
+      <h2 class="text-center w-100">
+        {{ "PRINT_POPUP.TITLE_ORDER" | translate }} #{{ order?.id }}
+      </h2>
+      }
+      <div class="d-flex pt-1 pb-2">
+        <div class="pe-3">
+          <strong>{{ "PRINT_POPUP.CLIENT" | translate }}</strong>
+          {{ order?.client?.name }}
+        </div>
+        <div><strong>Tel:</strong> {{ order?.client?.phone }}</div>
+      </div>
+      <div class="d-flex py-2">
+        <div class="pe-3">
+          <strong> {{ order?.client?.type === 1 ? "PF " : "PJ " }} </strong> :
+          {{ order?.client?.code }}
+        </div>
+        <div>
+          <strong>{{ "PRINT_POPUP.ADDRESS" | translate }} </strong>
+          {{ order?.client?.delivery_address }}
+        </div>
+      </div>
+      <div class="pt-1 pt-0">
+        <strong>{{ "PRINT_POPUP.DATE" | translate }}</strong>
+        {{ order?.dateOrderPlaced | date }}
+      </div>
+    </div>
+
+    <div class="table-and-details">
+      <table class="table-breaked">
+        <thead>
+          <tr class="no-border">
+            <td class="no-border blank-header">&nbsp;</td>
+          </tr>
+          <tr>
+            <th>{{ "PRINT_POPUP.TABLE.NAME" | translate }}</th>
+            <th>{{ "PRINT_POPUP.TABLE.QUANTITY" | translate }}</th>
+            <th>{{ "PRINT_POPUP.TABLE.QUANTITY" | translate }} m³</th>
+            <th>{{ "PRINT_POPUP.TABLE.PRICE" | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of orderItems">
+            <td>{{ item.product.name }} - {{ item.category.name }}</td>
+            <td>
+              @if(item.packsPieces) {
+              <span class="text-nowrap">
+                {{ item.packsPieces }} ({{ item.quantity | number : "1.0-2" }}
+                {{
+                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                    item.product.unit_id | translate
+                }})
+              </span>
+              } @if(!item.packsPieces && item.product.unit_id === 3) {
+              <span class="text-nowrap">
+                @if(item.product.width) {
+                {{ item.quantity }}
+                {{
+                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
+                    | translate
+                }}} @else {
+                {{
+                  item.quantity / (item.product.thickness / 100)
+                    | number : "1.0-2"
+                }}
+                {{
+                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.2"
+                    | translate
+                }}
+                }
+              </span>
+              } @if(!item.packsPieces && item.product.unit_id !== 3) {
+              <span class="text-nowrap">
+                {{ item.quantity }}
+                {{
+                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                    item.product.unit_id | translate
+                }} </span
+              >}
+            </td>
+            <td>
+              @if(item.product.width) {
+              {{
+                ((item.product.width *
+                  item.product.thickness *
+                  item.product.length) /
+                  1000000) *
+                  item.quantity | number : "1.0-4"
+              }}
+              } @else {
+              {{ item.quantity | number : "1.0-2" }}
+              } m³
+            </td>
+            <td>{{ item.price | number : "1.0-2" }} RON</td>
+          </tr>
+        </tbody>
+        <tfoot class="footer-repeat">
+          <tr class="no-border">
+            <td class="no-border blank-footer">&nbsp;</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="pdf-bottom-details">
+        <mat-divider />
+        @if(order?.client?.other_details){
+        <div class="pt-2">
+          {{ order?.client?.other_details }}
+        </div>
+        <mat-divider class="w-25 my-1" />
+        } @if(order?.comment) {
+        <div class="pb-2 multiline-text">
+          {{ order?.comment }}
+        </div>
+        }
+
+        <div class="mt-2">
           {{
-            ((item.product.width *
-              item.product.thickness *
-              item.product.length) /
-              1000000) *
-              item.quantity | number : "1.0-4"
+            "PRINT_POPUP.PRICE_DETAILS"
+              | translate
+                : {
+                    total_price: order?.totalAmountFinal | number : "1.0-2",
+                    paid_amount: order?.paidAmount! | number : "1.0-2"
+                  }
           }}
-          } @else {
-          {{ item.quantity | number : "1.0-2" }}
-          } m³
-        </td>
-        <td>{{ item.price | number : "1.0-2" }} RON</td>
-      </tr>
-    </tbody>
-  </table>
+        </div>
+        <div class="mt-2 py-1 px-2 border border-1 border-dark">
+          <strong>
+            {{ "PRINT_POPUP.REMAINED_PRICE" | translate }}
+          </strong>
+          {{ order?.totalAmountFinal! - order?.paidAmount! | number : "1.0-2" }}
+          RON
+        </div>
+      </div>
+    </div>
+  </div>
 
-  @if(order?.client?.other_details){
-  <div class="pt-2">
-    {{ order?.client?.other_details }}
-  </div>
-  <mat-divider class="w-25 my-1" />
-  } @if(order?.comment) {
-  <div class="pb-2 multiline-text">
-    {{ order?.comment }}
-  </div>
-  }
-
-  <div class="mt-2">
-    {{
-      "PRINT_POPUP.PRICE_DETAILS"
-        | translate
-          : {
-              total_price: order?.totalAmountFinal,
-              paid_amount: order?.paidAmount!
-            }
-    }}
-  </div>
-  <div class="mt-2 py-1 px-2 border border-1 border-dark">
-    <strong>
-      {{ "PRINT_POPUP.REMAINED_PRICE" | translate }}
-    </strong>
-    {{ order?.totalAmountFinal! - order?.paidAmount! | number : "1.0-2" }} RON
+  <div id="print-footer">
+    <app-pdf-footer />
   </div>
 </div>
 }

@@ -385,5 +385,16 @@
     },
     "PRICE_DETAILS": "Össz érték: {{total_price}} RON. Előre fizetett összeg: {{paid_amount}} RON.",
     "REMAINED_PRICE": "Fizetendő összeg: "
+  },
+  "PDF": {
+    "HEADER": {
+      "ADDRESS": "Nusfalău, Str. Toldi Miklos, nr.31/E, Jud. Sălaj",
+      "TEL": "Tel.: +40 725 089 357",
+      "EMAIL": "tomprodcom@gmail.com"
+    },
+    "FOOTER": {
+      "SLOGAN": "Megbízható partnered a fűrészáru és tetőszerkezetek terén",
+      "FACEBOOK": "facebook: tomprodcom"
+    }
   }
 }

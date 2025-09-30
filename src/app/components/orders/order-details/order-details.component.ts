@@ -46,6 +46,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ProductUtil } from '../../../services/utils/product.util';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { PDFHeaderComponent } from '../../pdf/pdf-header/pdf-header.component';
+import { PDFFooterComponent } from '../../pdf/pdf-footer/pdf-footer.component';
 
 @Component({
   selector: 'app-order-details',
@@ -64,6 +66,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatInputModule,
     MatSelectModule,
     MatProgressSpinnerModule,
+    PDFHeaderComponent,
+    PDFFooterComponent,
   ],
   templateUrl: './order-details.component.html',
   styleUrl: './order-details.component.scss',
