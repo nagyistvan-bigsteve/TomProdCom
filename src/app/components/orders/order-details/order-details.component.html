@@ -370,7 +370,6 @@
       </table>
 
       <div class="pdf-bottom-details">
-        <mat-divider />
         @if(order?.client?.other_details){
         <div class="pt-2">
           {{ order?.client?.other_details }}
@@ -382,7 +381,7 @@
         </div>
         }
 
-        <div class="mt-2">
+        <div>
           {{
             "PRINT_POPUP.PRICE_DETAILS"
               | translate
@@ -392,7 +391,7 @@
                   }
           }}
         </div>
-        <div class="mt-2 py-1 px-2 border border-1 border-dark">
+        <div class="mt-1 py-1 px-2 border border-1 border-dark">
           <strong>
             {{ "PRINT_POPUP.REMAINED_PRICE" | translate }}
           </strong>

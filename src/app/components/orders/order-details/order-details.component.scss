@@ -105,6 +105,8 @@
   }
 
   .pdf-bottom-details {
+    margin-top: -15mm !important;
+    padding-bottom: 15mm !important;
     page-break-before: avoid;
     page-break-inside: avoid;
   }
