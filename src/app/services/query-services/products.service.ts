@@ -268,7 +268,7 @@ export class ProductsService {
       const { error } = await this.supabaseService.client
         .from('prices_new')
         .update({ price: new_price })
-        .eq('price_id', id);
+        .eq('id', id);
 
       if (error) throw error;
 
