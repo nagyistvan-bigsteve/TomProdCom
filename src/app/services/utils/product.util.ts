@@ -50,7 +50,9 @@ export class ProductUtil {
     if (product.unit_id === Unit_id.M2) {
       let m2_unit = m2_isBrut ? product.m2_brut : product.m2_util;
 
-      totalPiecesNeeded = Math.ceil(+quantity / (m2_unit / 10));
+      totalPiecesNeeded = Math.ceil(
+        +quantity / (m2_unit / product.piece_per_pack)
+      );
 
       packsNeeded = Math.floor(totalPiecesNeeded / product.piece_per_pack);
 

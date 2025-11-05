@@ -347,7 +347,7 @@
               >}
             </td>
             <td>
-              @if(item.product.width) {
+              @if(item.packsPieces) { - } @else if(item.product.width) {
               {{
                 ((item.product.width *
                   item.product.thickness *
@@ -357,7 +357,7 @@
               }}
               } @else {
               {{ item.quantity | number : "1.0-2" }}
-              } m³
+              } @if(!item.packsPieces){ m³ }
             </td>
             <td>{{ item.price | number : "1.0-2" }} RON</td>
           </tr>

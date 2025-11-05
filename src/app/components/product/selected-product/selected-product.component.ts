@@ -47,7 +47,7 @@ export class SelectedProductComponent implements OnChanges {
   selectedPrice: Price2 | undefined;
   calculatedPrice: number = 0;
   quantity: string = '1';
-  m2_isBrut: boolean = false;
+  m2_isBrut: boolean = true;
   packsNeeded: number = 0;
   extraPiecesNeeded: number = 0;
   totalPiecesNeeded: number = 0;
