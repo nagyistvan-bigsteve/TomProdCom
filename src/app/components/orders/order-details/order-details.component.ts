@@ -172,7 +172,6 @@ export class OrderDetailsComponent implements OnInit {
         footerHeightMM,
         availableHeight,
         contentWidthMM,
-        contentHeightMM,
         totalPages,
         dataContainerHeightMM,
         tableHeightMM,
@@ -287,33 +286,47 @@ export class OrderDetailsComponent implements OnInit {
 
       // Convert PDF to blob and open print dialog
       const pdfBlob = pdf.output('blob');
-
       const pdfUrl = URL.createObjectURL(pdfBlob);
 
-      // Open in new window/tab and trigger print
-      const printWindow = window.open(pdfUrl, '_blank');
+      // Create hidden iframe for printing
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = 'none';
 
-      if (printWindow) {
-        printWindow.onload = () => {
-          printWindow.focus();
-          printWindow.print();
+      document.body.appendChild(iframe);
 
-          // Clean up after printing
-          printWindow.onafterprint = () => {
+      iframe.onload = () => {
+        // Give the PDF time to load in the iframe
+        setTimeout(() => {
+          try {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+
+            // Clean up after a delay (to allow print dialog to open)
+            setTimeout(() => {
+              document.body.removeChild(iframe);
+              URL.revokeObjectURL(pdfUrl);
+            }, 120000);
+          } catch (error) {
+            console.error('Print error:', error);
+            // Fallback: download the PDF
+            document.body.removeChild(iframe);
             URL.revokeObjectURL(pdfUrl);
-            printWindow.close();
-          };
-        };
-      } else {
-        // Fallback: if popup blocked, download the PDF
-        const orderType = this.justOffers ? 'offer' : 'order';
-        const filename = `${orderType}_#${this.order?.id}.pdf`;
-        pdf.save(filename);
 
-        alert(
-          'Popup blocked. PDF downloaded instead. Please allow popups for direct printing.'
-        );
-      }
+            const orderType = this.justOffers ? 'offer' : 'order';
+            const filename = `${orderType}_#${this.order?.id}.pdf`;
+            pdf.save(filename);
+
+            alert('Could not open print dialog. PDF downloaded instead.');
+          }
+        }, 250);
+      };
+
+      iframe.src = pdfUrl;
 
       this.isPrinting.set(false);
       this.changeDetection.detectChanges();
@@ -436,7 +449,6 @@ export class OrderDetailsComponent implements OnInit {
     footerHeightMM: number;
     availableHeight: number;
     contentWidthMM: number;
-    contentHeightMM: number;
     totalPages: number;
     dataContainerHeightMM: number;
     tableHeightMM: number;
@@ -478,7 +490,6 @@ export class OrderDetailsComponent implements OnInit {
       footerHeightMM,
       availableHeight,
       contentWidthMM,
-      contentHeightMM,
       totalPages,
       dataContainerHeightMM,
       tableHeightMM,
