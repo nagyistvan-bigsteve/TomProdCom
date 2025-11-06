@@ -776,7 +776,7 @@ export class OrderDetailsComponent implements OnInit {
     }
 
     if (item.product.width) {
-      let quntity = new Intl.NumberFormat('en-US', {
+      let quntity = +new Intl.NumberFormat('en-US', {
         minimumIntegerDigits: 1,
         minimumFractionDigits: 0,
         maximumFractionDigits: 3,
@@ -785,6 +785,10 @@ export class OrderDetailsComponent implements OnInit {
           1000000) *
           item.quantity
       );
+
+      if (item.product.unit_id === Unit_id.BOUNDLE) {
+        quntity = quntity * 10;
+      }
 
       return quntity + 'm³';
     } else {
