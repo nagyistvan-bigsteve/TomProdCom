@@ -206,11 +206,15 @@ export class OrderDetailsComponent implements OnInit {
         const rowHeightMM =
           (tableHeightMM - 2.5) / (this.orderItems!.length + 2);
 
-        const extraMargin =
+        let extraMargin =
           rowHeightMM +
           2.5 -
           (availableHeight - dataContainerHeightMM) /
             (this.orderItems!.length + 2);
+
+        if (availableHeight >= tableHeightMM + dataContainerHeightMM) {
+          extraMargin = 0;
+        }
 
         // Calculate content position for this page
         const contentYOffset = (pageNum - 1) * availableHeight - extraMargin;
