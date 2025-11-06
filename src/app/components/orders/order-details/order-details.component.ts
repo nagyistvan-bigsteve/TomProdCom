@@ -284,49 +284,21 @@ export class OrderDetailsComponent implements OnInit {
         );
       }
 
-      // Convert PDF to blob and open print dialog
-      const pdfBlob = pdf.output('blob');
-      const pdfUrl = URL.createObjectURL(pdfBlob);
+      // Detect if iOS/Safari
+      const isIOS =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+        !(window as any).MSStream;
+      const isSafari = /^((?!chrome|android).)*safari/i.test(
+        navigator.userAgent
+      );
 
-      // Create hidden iframe for printing
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = 'none';
-
-      document.body.appendChild(iframe);
-
-      iframe.onload = () => {
-        // Give the PDF time to load in the iframe
-        setTimeout(() => {
-          try {
-            iframe.contentWindow?.focus();
-            iframe.contentWindow?.print();
-
-            // Clean up after a delay (to allow print dialog to open)
-            setTimeout(() => {
-              document.body.removeChild(iframe);
-              URL.revokeObjectURL(pdfUrl);
-            }, 120000);
-          } catch (error) {
-            console.error('Print error:', error);
-            // Fallback: download the PDF
-            document.body.removeChild(iframe);
-            URL.revokeObjectURL(pdfUrl);
-
-            const orderType = this.justOffers ? 'offer' : 'order';
-            const filename = `${orderType}_#${this.order?.id}.pdf`;
-            pdf.save(filename);
-
-            alert('Could not open print dialog. PDF downloaded instead.');
-          }
-        }, 250);
-      };
-
-      iframe.src = pdfUrl;
+      if (isIOS || isSafari) {
+        // For iOS/Safari: Use native share/print
+        this.printPDFiOS(pdf);
+      } else {
+        // For other browsers: Use iframe method
+        this.printPDFStandard(pdf);
+      }
 
       this.isPrinting.set(false);
       this.changeDetection.detectChanges();
@@ -338,6 +310,75 @@ export class OrderDetailsComponent implements OnInit {
       this.isPrinting.set(false);
       this.changeDetection.detectChanges();
     }
+  }
+
+  private printPDFiOS(pdf: jsPDF) {
+    // For iOS: Open PDF in new tab (iOS will show native share/print options)
+    const pdfBlob = pdf.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+
+    // Open in new window - iOS will handle it natively
+    const printWindow = window.open(pdfUrl, '_blank');
+
+    if (!printWindow) {
+      // Fallback: download if popup blocked
+      const orderType = this.justOffers ? 'offer' : 'order';
+      const filename = `${orderType}_${
+        this.order?.id
+      }_${new Date().getTime()}.pdf`;
+      pdf.save(filename);
+    }
+
+    // Cleanup after delay (user should have opened it by then)
+    setTimeout(() => {
+      URL.revokeObjectURL(pdfUrl);
+    }, 10000);
+  }
+
+  private printPDFStandard(pdf: jsPDF) {
+    // Convert PDF to blob and open print dialog
+    const pdfBlob = pdf.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+
+    // Create hidden iframe for printing
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+
+    document.body.appendChild(iframe);
+
+    iframe.onload = () => {
+      // Give the PDF time to load in the iframe
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+
+          // Clean up after a delay (to allow print dialog to open)
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+            URL.revokeObjectURL(pdfUrl);
+          }, 120000);
+        } catch (error) {
+          console.error('Print error:', error);
+          // Fallback: download the PDF
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(pdfUrl);
+
+          const orderType = this.justOffers ? 'offer' : 'order';
+          const filename = `${orderType}_#${this.order?.id}.pdf`;
+          pdf.save(filename);
+
+          alert('Could not open print dialog. PDF downloaded instead.');
+        }
+      }, 250);
+    };
+
+    iframe.src = pdfUrl;
   }
 
   private async getPdfElements(): Promise<{
