@@ -25,34 +25,87 @@
 }
 
 #print-section {
-  display: none !important;
-}
+  display: none;
+  position: fixed;
+  top: -20000px;
+  left: -20000px;
+  width: 190mm;
+  background: white;
+  font-family: Arial, "Helvetica Neue", sans-serif;
+  color: #000;
+  font-size: 14px;
 
-@media print {
-  @page {
-    margin-top: 5mm !important;
-    margin-bottom: 0mm !important;
+  &.active {
+    display: block;
   }
 
-  body * {
-    visibility: hidden !important;
+  #print-header {
+    z-index: 999999 !important;
   }
 
-  html,
-  body {
-    height: auto !important;
-    overflow: visible !important;
+  .data-container {
+    font-size: 13px;
+    margin: 0 7.5mm;
+
+    .title {
+      font-size: 15px;
+    }
+  }
+
+  .container-with-bg {
+    background-image: url("../../../../assets/images/leaves.png");
+    background-size: contain;
+    background-position-x: 15mm;
+    background-repeat: no-repeat;
+    position: relative;
+    height: 100%;
+    padding-bottom: 5mm;
+  }
+
+  .container-with-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.85);
+    z-index: 1;
+  }
+
+  .container-with-bg > * {
+    position: relative;
+    z-index: 2;
+    color: black;
+  }
+
+  .table-and-details {
+    background-image: url("../../../../assets/images/logo_full_bg.png");
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    position: relative;
+  }
+
+  .table-and-details::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 1;
+  }
+
+  .table-and-details > * {
+    position: relative;
+    z-index: 2;
+    color: black;
   }
 
   table {
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+    margin-top: 2.5mm;
     table-layout: fixed;
   }
+
   th,
   td {
-    border: 1px solid #000 !important;
     padding: 6px 8px;
     text-align: left;
     box-sizing: border-box;
@@ -66,84 +119,11 @@
   .table-breaked {
     page-break-before: auto;
   }
-  .no-border {
-    border: none !important;
 
-    .blank-footer {
-      height: 15mm !important;
-    }
-
-    .blank-header {
-      height: 30mm !important;
-    }
-  }
-  .footer-repeat {
-    display: table-footer-group;
-  }
-
-  #print-content {
-    margin-top: 30mm !important;
-    margin-bottom: 20mm !important;
-  }
-
-  #print-header {
-    position: fixed;
-    height: 25mm !important;
-    width: 100%;
-    top: 0;
-  }
-
-  #print-footer {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    height: 15mm !important;
-  }
-
-  .pdf-title-details {
-    margin-bottom: -30mm !important;
-  }
-
-  .pdf-bottom-details {
-    margin-top: -15mm !important;
-    padding-bottom: 15mm !important;
-    page-break-before: avoid;
-    page-break-inside: avoid;
-  }
-
-  .table-and-details {
-    page-break-inside: auto;
-  }
-
-  #print-section {
-    display: block !important;
-    visibility: visible !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    z-index: auto !important;
-    width: 100% !important;
-    height: 100% !important;
-    background-color: white !important;
-    color: black !important;
-    padding: 10px !important;
-    margin: 0 !important;
-  }
-  #print-section,
-  #print-section * {
-    visibility: visible !important;
-  }
-}
-
-::ng-deep {
-  @media print {
-    app-topbar,
-    app-bottom-navbar {
-      display: none !important;
-    }
-
-    #content {
-      display: none !important;
-    }
+  table,
+  th,
+  td {
+    border: 1px solid #000 !important;
+    border-collapse: collapse !important;
   }
 }

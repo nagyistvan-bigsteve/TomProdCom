@@ -8,6 +8,7 @@
         class="d-flex align-items-center"
         mat-icon-button
         (click)="print()"
+        [disabled]="isLoading()"
       >
         <mat-icon>print</mat-icon>
       </button>
@@ -254,57 +255,74 @@
   </mat-dialog-actions>
 </ng-template>
 
-@if(isPrinting) {
-<div class="mt-2" id="print-section">
-  <div id="print-header">
-    <app-pdf-header />
+@if(isPrinting()) {
+<div id="print-section" [class.active]="isPrinting()">
+  <div id="print-header" class="overflow-visible">
+    <app-pdf-header
+      class="overflow-visible"
+      [id]="order!.id"
+      [deliveryDate]="order!.expectedDelivery ? order!.expectedDelivery : null"
+      [justOffer]="justOffers"
+      [orderDate]="order!.dateOrderPlaced"
+    />
   </div>
 
   <div id="print-content">
-    <div class="pdf-title-details">
-      @if (justOffers) {
-      <h2 class="text-center w-100">
-        {{ "PRINT_POPUP.TITLE_OFFER" | translate }} #{{ order?.id }}
-      </h2>
-      } @else {
-      <h2 class="text-center w-100">
-        {{ "PRINT_POPUP.TITLE_ORDER" | translate }} #{{ order?.id }}
-      </h2>
-      }
-      <div class="d-flex pt-1 pb-2">
-        <div class="pe-3">
-          <strong>{{ "PRINT_POPUP.CLIENT" | translate }}</strong>
-          {{ order?.client?.name }}
-        </div>
-        <div><strong>Tel:</strong> {{ order?.client?.phone }}</div>
-      </div>
-      <div class="d-flex py-2">
-        <div class="pe-3">
-          <strong> {{ order?.client?.type === 1 ? "PF " : "PJ " }} </strong> :
-          {{ order?.client?.code }}
-        </div>
-        <div>
-          <strong>{{ "PRINT_POPUP.ADDRESS" | translate }} </strong>
-          {{ order?.client?.delivery_address }}
+    <div class="d-flex w-100 data-container">
+      <div class="w-50 container-with-bg">
+        <div class="d-flex flex-column">
+          <div class="title mb-2 text-uppercase">
+            <strong>{{ "TOMPRODCOM.TITLE" | translate }}</strong>
+          </div>
+          <div>{{ "TOMPRODCOM.NAME" | translate }}</div>
+          <div><strong>CUI: </strong> {{ "TOMPRODCOM.CUI" | translate }}</div>
+          <div>
+            <strong>{{ "PRINT_POPUP.ADDRESS" | translate }}</strong>
+            {{ "TOMPRODCOM.ADDRESS" | translate }}
+          </div>
+          <div>
+            <strong>Email: </strong>{{ "TOMPRODCOM.EMAIL" | translate }}
+          </div>
+          <div><strong>Site: </strong>{{ "TOMPRODCOM.SITE" | translate }}</div>
+          <div>
+            <strong>Tel: </strong>{{ "TOMPRODCOM.PHONE1" | translate }} /
+            {{ "TOMPRODCOM.PHONE1" | translate }}
+          </div>
         </div>
       </div>
-      <div class="pt-1 pt-0">
-        <strong>{{ "PRINT_POPUP.DATE" | translate }}</strong>
-        {{ order?.dateOrderPlaced | date }}
+      <div class="w-50">
+        <div class="d-flex flex-column">
+          <div class="title mb-2 text-uppercase">
+            <strong>{{ "PRINT_POPUP.CLIENT" | translate }}</strong>
+          </div>
+          <div>{{ order?.client?.name }}</div>
+          <div>
+            <strong>{{ order?.client?.type === 1 ? "CNP " : "CUI " }}</strong>
+            : {{ order?.client?.code }}
+          </div>
+          <div>
+            <strong>{{ "PRINT_POPUP.ADDRESS" | translate }}</strong>
+            {{ order?.client?.address }}
+          </div>
+          <div class="mt-1">
+            <strong>Tel:</strong> {{ order?.client?.phone }}
+          </div>
+          <div>
+            <strong>{{ "PRINT_POPUP.DELIVERY_ADDRESS" | translate }}</strong>
+            {{ order?.client?.delivery_address }}
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="table-and-details">
       <table class="table-breaked">
         <thead>
-          <tr class="no-border">
-            <td class="no-border blank-header">&nbsp;</td>
-          </tr>
           <tr>
-            <th>{{ "PRINT_POPUP.TABLE.NAME" | translate }}</th>
-            <th>{{ "PRINT_POPUP.TABLE.QUANTITY" | translate }}</th>
-            <th>{{ "PRINT_POPUP.TABLE.QUANTITY" | translate }} m³</th>
-            <th>{{ "PRINT_POPUP.TABLE.PRICE" | translate }}</th>
+            <th>{{ translate("PRINT_POPUP.TABLE.NAME") }}</th>
+            <th>{{ translate("PRINT_POPUP.TABLE.QUANTITY") }}</th>
+            <th>{{ translate("PRINT_POPUP.TABLE.QUANTITY") }} m³</th>
+            <th>{{ translate("PRINT_POPUP.TABLE.PRICE") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -315,8 +333,10 @@
               <span class="text-nowrap">
                 {{ item.packsPieces }} ({{ item.quantity | number : "1.0-2" }}
                 {{
-                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                    item.product.unit_id | translate
+                  translate(
+                    "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                      item.product.unit_id
+                  )
                 }})
               </span>
               } @if(!item.packsPieces && item.product.unit_id === 3) {
@@ -324,16 +344,19 @@
                 @if(item.product.width) {
                 {{ item.quantity }}
                 {{
-                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
-                    | translate
-                }}} @else {
+                  translate(
+                    "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
+                  )
+                }}
+                } @else {
                 {{
                   item.quantity / (item.product.thickness / 100)
                     | number : "1.0-2"
                 }}
                 {{
-                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.2"
-                    | translate
+                  translate(
+                    "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.2"
+                  )
                 }}
                 }
               </span>
@@ -341,36 +364,46 @@
               <span class="text-nowrap">
                 {{ item.quantity }}
                 {{
-                  "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                    item.product.unit_id | translate
-                }} </span
-              >}
+                  translate(
+                    "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                      item.product.unit_id
+                  )
+                }}
+              </span>
+              }
             </td>
             <td>
-              @if(item.packsPieces) { - } @else if(item.product.width) {
-              {{
-                ((item.product.width *
-                  item.product.thickness *
-                  item.product.length) /
-                  1000000) *
-                  item.quantity | number : "1.0-4"
-              }}
-              } @else {
-              {{ item.quantity | number : "1.0-2" }}
-              } @if(!item.packsPieces){ m³ }
+              {{ getTotalMQ(item) }}
             </td>
             <td>{{ item.price | number : "1.0-2" }} RON</td>
           </tr>
         </tbody>
-        <tfoot class="footer-repeat">
-          <tr class="no-border">
-            <td class="no-border blank-footer">&nbsp;</td>
+        <tfoot>
+          <tr>
+            <th colspan="2">{{ "WORDS.TOTAL" | translate }}:</th>
+            <th>{{ order?.totalQuantity | number : "1.0-3" }} m³</th>
+            <th>{{ order?.totalAmountFinal | number : "1.0-2" }} RON</th>
           </tr>
         </tfoot>
       </table>
 
       <div class="pdf-bottom-details">
-        @if(order?.client?.other_details){
+        <div>
+          {{
+            translate("PRINT_POPUP.PRICE_DETAILS", {
+              total_price: order?.totalAmountFinal | number : "1.0-2",
+              paid_amount: order?.paidAmount! | number : "1.0-2"
+            })
+          }}
+        </div>
+
+        <div class="mt-1 py-1 px-2 border border-1 border-dark">
+          <strong>{{ translate("PRINT_POPUP.REMAINED_PRICE") }}</strong>
+          {{ order?.totalAmountFinal! - order?.paidAmount! | number : "1.0-2" }}
+          RON
+        </div>
+
+        @if(order?.client?.other_details) {
         <div class="pt-2">
           {{ order?.client?.other_details }}
         </div>
@@ -380,24 +413,6 @@
           {{ order?.comment }}
         </div>
         }
-
-        <div>
-          {{
-            "PRINT_POPUP.PRICE_DETAILS"
-              | translate
-                : {
-                    total_price: order?.totalAmountFinal | number : "1.0-2",
-                    paid_amount: order?.paidAmount! | number : "1.0-2"
-                  }
-          }}
-        </div>
-        <div class="mt-1 py-1 px-2 border border-1 border-dark">
-          <strong>
-            {{ "PRINT_POPUP.REMAINED_PRICE" | translate }}
-          </strong>
-          {{ order?.totalAmountFinal! - order?.paidAmount! | number : "1.0-2" }}
-          RON
-        </div>
       </div>
     </div>
   </div>

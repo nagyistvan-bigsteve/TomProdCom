@@ -48,6 +48,8 @@ import { ProductUtil } from '../../../services/utils/product.util';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { PDFHeaderComponent } from '../../pdf/pdf-header/pdf-header.component';
 import { PDFFooterComponent } from '../../pdf/pdf-footer/pdf-footer.component';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-order-details',
@@ -96,8 +98,7 @@ export class OrderDetailsComponent implements OnInit {
   editForm: FormGroup | null = null;
   categories: { value: Category; label: string }[] = [];
 
-  isPrinting = false;
-
+  isPrinting = signal(false);
   isLoading = signal(false);
 
   private readonly productStore = inject(useProductStore);
@@ -116,18 +117,6 @@ export class OrderDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchOrderItems();
-
-    window.addEventListener('beforeprint', () => {
-      this.isPrinting = true;
-      this.changeDetection.detectChanges();
-    });
-
-    window.addEventListener('afterprint', () => {
-      setTimeout(() => {
-        this.isPrinting = false;
-        this.changeDetection.detectChanges();
-      }, 100);
-    });
   }
 
   fetchOrderItems(): void {
@@ -147,25 +136,357 @@ export class OrderDetailsComponent implements OnInit {
     window.location.href = `geo:0,0?q=${encodeURIComponent(address)}`;
   }
 
-  print() {
-    this.isPrinting = true;
-    this.changeDetection.detectChanges();
+  async print() {
+    try {
+      this.isLoading.set(true);
+      this.isPrinting.set(true);
+      this.changeDetection.detectChanges();
 
-    const delay = 2000;
-    this.isLoading.set(true);
+      const {
+        headerElement,
+        contentElement,
+        footerElement,
+        dataContainerElement,
+        tableElement,
+      } = await this.getPdfElements();
 
-    setTimeout(() => {
-      document.body.offsetHeight;
+      const {
+        headerCanvas,
+        contentCanvas,
+        footerCanvas,
+        dataContainerCanvas,
+        tableCanvas,
+      } = await this.capturePrintElements(
+        headerElement,
+        contentElement,
+        footerElement,
+        dataContainerElement,
+        tableElement
+      );
 
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            window.print();
-            this.isLoading.set(false);
-          });
-        });
+      const {
+        pdfWidth,
+        pdfHeight,
+        margin,
+        headerHeightMM,
+        footerHeightMM,
+        availableHeight,
+        contentWidthMM,
+        contentHeightMM,
+        totalPages,
+        dataContainerHeightMM,
+        tableHeightMM,
+      } = this.createPDFDimensions(
+        headerCanvas,
+        contentCanvas,
+        footerCanvas,
+        dataContainerCanvas,
+        tableCanvas
+      );
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
       });
-    }, delay);
+
+      const headerImgData = headerCanvas.toDataURL('image/png');
+      const footerImgData = footerCanvas.toDataURL('image/png');
+
+      // Add pages
+      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        if (pageNum > 1) {
+          pdf.addPage();
+        }
+
+        // Add header
+        pdf.addImage(headerImgData, 'PNG', 0, 0, pdfWidth, headerHeightMM);
+
+        const rowHeightMM =
+          (tableHeightMM - 2.5) / (this.orderItems!.length + 2);
+
+        const extraMargin =
+          rowHeightMM +
+          2.5 -
+          (availableHeight - dataContainerHeightMM) /
+            (this.orderItems!.length + 2);
+
+        // Calculate content position for this page
+        const contentYOffset = (pageNum - 1) * availableHeight - extraMargin;
+        const sourceY = (contentYOffset * contentCanvas.width) / contentWidthMM;
+        const sourceHeight =
+          (availableHeight * contentCanvas.width) / contentWidthMM;
+
+        // Create a temporary canvas for this page's content slice
+        const pageCanvas = document.createElement('canvas');
+        const ctx = pageCanvas.getContext('2d');
+
+        pageCanvas.width = contentCanvas.width;
+        pageCanvas.height = Math.min(
+          sourceHeight,
+          contentCanvas.height - sourceY
+        );
+
+        if (ctx) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+
+          ctx.drawImage(
+            contentCanvas,
+            0,
+            sourceY,
+            contentCanvas.width,
+            pageCanvas.height,
+            0,
+            0,
+            pageCanvas.width,
+            pageCanvas.height
+          );
+
+          const pageContentImg = pageCanvas.toDataURL('image/png');
+          const pageContentHeight =
+            (pageCanvas.height * contentWidthMM) / pageCanvas.width;
+
+          // Add content for this page
+          pdf.addImage(
+            pageContentImg,
+            'PNG',
+            margin,
+            headerHeightMM - 7.5,
+            contentWidthMM,
+            pageContentHeight
+          );
+        }
+
+        // Add footer
+        const footerY = pdfHeight - footerHeightMM - margin;
+        pdf.addImage(
+          footerImgData,
+          'PNG',
+          margin,
+          footerY,
+          pdfWidth - margin * 2,
+          footerHeightMM
+        );
+
+        // Add page number in bottom right corner
+        pdf.setFontSize(15);
+        pdf.setTextColor(100, 100, 100);
+        pdf.text(
+          `${pageNum}/${totalPages}`,
+          pdfWidth - margin - 15,
+          pdfHeight - margin - 3,
+          { align: 'right' }
+        );
+      }
+
+      // Convert PDF to blob and open print dialog
+      const pdfBlob = pdf.output('blob');
+
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      // Open in new window/tab and trigger print
+      const printWindow = window.open(pdfUrl, '_blank');
+
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.focus();
+          printWindow.print();
+
+          // Clean up after printing
+          printWindow.onafterprint = () => {
+            URL.revokeObjectURL(pdfUrl);
+            printWindow.close();
+          };
+        };
+      } else {
+        // Fallback: if popup blocked, download the PDF
+        const orderType = this.justOffers ? 'offer' : 'order';
+        const filename = `${orderType}_#${this.order?.id}.pdf`;
+        pdf.save(filename);
+
+        alert(
+          'Popup blocked. PDF downloaded instead. Please allow popups for direct printing.'
+        );
+      }
+
+      this.isPrinting.set(false);
+      this.changeDetection.detectChanges();
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error generating PDF. Please try again.');
+    } finally {
+      this.isLoading.set(false);
+      this.isPrinting.set(false);
+      this.changeDetection.detectChanges();
+    }
+  }
+
+  private async getPdfElements(): Promise<{
+    headerElement: HTMLElement;
+    contentElement: HTMLElement;
+    footerElement: HTMLElement;
+    dataContainerElement: HTMLElement;
+    tableElement: HTMLElement;
+  }> {
+    await this.delay(500);
+
+    const headerElement = document.getElementById('print-header');
+    const contentElement = document.getElementById('print-content');
+    const footerElement = document.getElementById('print-footer');
+    const dataContainerElement = document.querySelector(
+      '.data-container'
+    ) as HTMLElement;
+    const tableElement = document.querySelector(
+      '.table-breaked'
+    ) as HTMLElement;
+
+    if (
+      !headerElement ||
+      !contentElement ||
+      !footerElement ||
+      !dataContainerElement ||
+      !tableElement
+    ) {
+      throw new Error('Required elements not found');
+    }
+
+    return {
+      headerElement,
+      contentElement,
+      footerElement,
+      dataContainerElement,
+      tableElement,
+    };
+  }
+
+  private async capturePrintElements(
+    headerElement: HTMLElement,
+    contentElement: HTMLElement,
+    footerElement: HTMLElement,
+    dataContainerElement: HTMLElement,
+    tableElement: HTMLElement
+  ): Promise<{
+    headerCanvas: HTMLCanvasElement;
+    contentCanvas: HTMLCanvasElement;
+    footerCanvas: HTMLCanvasElement;
+    dataContainerCanvas: HTMLCanvasElement;
+    tableCanvas: HTMLCanvasElement;
+  }> {
+    const headerCanvas = await html2canvas(headerElement, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    });
+
+    const footerCanvas = await html2canvas(footerElement, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    });
+
+    const contentCanvas = await html2canvas(contentElement, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    });
+
+    const dataContainerCanvas = await html2canvas(dataContainerElement, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    });
+
+    const tableCanvas = await html2canvas(tableElement, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    });
+
+    return {
+      headerCanvas,
+      contentCanvas,
+      footerCanvas,
+      dataContainerCanvas,
+      tableCanvas,
+    };
+  }
+
+  private createPDFDimensions(
+    headerCanvas: HTMLCanvasElement,
+    contentCanvas: HTMLCanvasElement,
+    footerCanvas: HTMLCanvasElement,
+    dataContainerCanvas: HTMLCanvasElement,
+    tableCanvas: HTMLCanvasElement
+  ): {
+    pdfWidth: number;
+    pdfHeight: number;
+    margin: number;
+    headerHeightMM: number;
+    footerHeightMM: number;
+    availableHeight: number;
+    contentWidthMM: number;
+    contentHeightMM: number;
+    totalPages: number;
+    dataContainerHeightMM: number;
+    tableHeightMM: number;
+  } {
+    // A4 dimensions in mm
+    const pdfWidth = 210;
+    const pdfHeight = 297;
+    const margin = 10;
+
+    // Calculate header and footer heights in mm
+    const headerHeightMM =
+      (headerCanvas.height * pdfWidth) / headerCanvas.width;
+    const footerHeightMM =
+      (footerCanvas.height * pdfWidth) / footerCanvas.width;
+
+    // Available content height per page
+    const availableHeight =
+      pdfHeight - headerHeightMM - footerHeightMM - margin;
+
+    // Calculate content dimensions
+    const contentWidthMM = pdfWidth - margin * 2;
+    const contentHeightMM =
+      (contentCanvas.height * contentWidthMM) / contentCanvas.width;
+
+    const dataContainerHeightMM =
+      (dataContainerCanvas.height * contentWidthMM) / dataContainerCanvas.width;
+
+    const tableHeightMM =
+      (tableCanvas.height * contentWidthMM) / tableCanvas.width;
+
+    // Calculate number of pages needed
+    const totalPages = Math.ceil(contentHeightMM / availableHeight);
+
+    return {
+      pdfWidth,
+      pdfHeight,
+      margin,
+      headerHeightMM,
+      footerHeightMM,
+      availableHeight,
+      contentWidthMM,
+      contentHeightMM,
+      totalPages,
+      dataContainerHeightMM,
+      tableHeightMM,
+    };
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  translate(key: string, params?: any): string {
+    return this.translateService.instant(key, params);
   }
 
   closeDetailsComponent() {
@@ -432,5 +753,27 @@ export class OrderDetailsComponent implements OnInit {
 
   getCategoryId(name: string): number {
     return Category[name as keyof typeof Category];
+  }
+
+  getTotalMQ(item: OrderItemsResponse): string {
+    if (item.packsPieces) {
+      return '-';
+    }
+
+    if (item.product.width) {
+      let quntity = new Intl.NumberFormat('en-US', {
+        minimumIntegerDigits: 1,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 3,
+      }).format(
+        ((item.product.width * item.product.thickness * item.product.length) /
+          1000000) *
+          item.quantity
+      );
+
+      return quntity + 'm³';
+    } else {
+      return item.quantity + 'm³';
+    }
   }
 }
