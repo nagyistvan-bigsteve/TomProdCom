@@ -127,3 +127,21 @@
     border-collapse: collapse !important;
   }
 }
+
+.edit-order-popup-list {
+  max-height: 60vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.add-form-conteiner {
+  background-color: rgb(57, 72, 60) !important;
+  margin: -8px;
+  padding: 8px;
+}
+
+::ng-deep {
+  .comment-edit-input .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+}

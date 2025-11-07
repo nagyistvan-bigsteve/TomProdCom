@@ -15,6 +15,13 @@
       <button
         class="d-flex align-items-center"
         mat-icon-button
+        (click)="openEditDialog()"
+      >
+        <mat-icon>edit_note</mat-icon>
+      </button>
+      <button
+        class="d-flex align-items-center"
+        mat-icon-button
         (click)="closeDetailsComponent()"
       >
         <mat-icon>cancel</mat-icon>
@@ -23,23 +30,12 @@
   </div>
   <mat-divider class="my-3"></mat-divider>
   <div class="bg-white text-dark rounded shadow p-3">
-    <div class="d-flex justify-content-between w-100">
-      <mat-checkbox [(ngModel)]="showPrice">{{
-        "ORDER.DETAILS.SHOW_PRICE" | translate
-      }}</mat-checkbox>
-      @if(!justOffers && !order.dateOrderDelivered) {
-      <mat-checkbox [(ngModel)]="editMode">{{
-        "ORDER.DETAILS.EDIT_OFFER" | translate
-      }}</mat-checkbox>
-      }
-    </div>
     @for (item of orderItems; let i = $index; let last = $last; track $index) {
     <div class="position-relative">
       <div
-        class="d-flex align-items-center justify-content-evenly flex-wrap py-3"
+        class="d-flex align-items-center justify-content-between flex-wrap py-2 px-1"
         [ngClass]="{
-          'border-1 border-bottom': !last,
-          'pe-5': !order.dateOrderDelivered && !justOffers
+          'border-1 border-bottom': !last
         }"
       >
         <span class="text-nowrap">
@@ -71,24 +67,9 @@
               item.product.unit_id | translate
           }}
         </span>
-        } @if(showPrice) {
-        <span class="text-nowrap">{{ item.price | number : "1.0-2" }} RON</span>
         }
+        <span class="text-nowrap">{{ item.price | number : "1.0-1" }} RON</span>
       </div>
-      @if(!order.dateOrderDelivered && !justOffers && !editMode){
-      <mat-checkbox
-        [checked]="item.itemStatus"
-        (change)="updateItemStatus(item.id, !item.itemStatus, i)"
-        class="position-absolute top-50 end-0 translate-middle-y"
-      />} @if(editMode) {
-      <button
-        class="position-absolute top-50 end-0 translate-middle-y"
-        mat-button
-        (click)="editItem(item, order)"
-      >
-        {{ "ORDER.DETAILS.EDIT_BUTTON" | translate }}
-      </button>
-      }
     </div>
     }
   </div>
@@ -159,47 +140,175 @@
 }
 
 <ng-template #editOfferDialog>
-  <h2 class="text-center" mat-dialog-title>
-    {{ "ORDER.DETAILS.EDIT_DIALOG.TITLE" | translate }}
-  </h2>
-
-  <mat-dialog-content [formGroup]="editForm!" class="d-flex flex-column gap-3">
-    {{
-      "ORDER.DETAILS.EDIT_DIALOG.DESCRIPTION"
-        | translate : { product: selectedOffer?.product?.name }
-    }}
-    <mat-form-field class="mt-2" appearance="outline">
-      <mat-label>
-        {{ "ORDER.DETAILS.EDIT_DIALOG.QUANTITY_INPUT" | translate }}
-      </mat-label>
-      <input matInput type="number" formControlName="quantity" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>
-        {{ "ORDER.DETAILS.EDIT_DIALOG.CATEGORY_INPUT" | translate }}
-      </mat-label>
-      <mat-select formControlName="category">
-        <mat-option *ngFor="let cat of categories" [value]="cat.value">
-          {{ cat.label }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </mat-dialog-content>
-
-  <mat-dialog-actions align="end">
-    <button mat-button [mat-dialog-close]="false">
-      {{ "ORDER.DETAILS.EDIT_DIALOG.CANCEL_BUTTON" | translate }}
-    </button>
+  <div class="d-flex justify-content-between align-items-center">
+    <h2 class="text-center w-80" mat-dialog-title>
+      {{ "ORDER.DETAILS.EDIT_DIALOG.TITLE" | translate }}
+    </h2>
     <button
-      mat-raised-button
-      color="warn"
-      [disabled]="editForm!.invalid"
-      [mat-dialog-close]="true"
+      class="d-flex align-items-center justify-content-center me-4"
+      mat-icon-button
+      [mat-dialog-close]="false"
     >
-      {{ "ORDER.DETAILS.EDIT_DIALOG.SAVE_BUTTON" | translate }}
+      <i class="material-icons">cancel</i>
     </button>
-  </mat-dialog-actions>
+  </div>
+
+  <mat-dialog-content class="d-flex flex-column comment-edit-input gap-3">
+    <mat-form-field class="w-100" appearance="outline">
+      <mat-label>{{ "OVERVIEW_PAGE.POPUP.COMMENT" | translate }}</mat-label>
+      <textarea [rows]="3" matInput [(ngModel)]="orderComment"></textarea>
+    </mat-form-field>
+
+    <div class="edit-order-popup-list">
+      @for (item of orderItems; let i = $index; let last = $last; track $index)
+      {
+      <div
+        class="d-flex align-items-center justify-content-between flex-wrap py-2 w-100"
+        [ngClass]="{
+          'border-1 border-bottom': !last
+        }"
+      >
+        <span class="text-nowrap">
+          {{ item.product.name }} - <b>{{ item.category.name }}</b>
+        </span>
+
+        @if(item.packsPieces) {
+        <span class="text-nowrap">
+          {{ item.packsPieces }} ({{ item.quantity | number : "1.0-2" }}
+          {{
+            "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+              item.product.unit_id | translate
+          }})
+        </span>
+        } @if(!item.packsPieces && item.product.unit_id === 3) {
+        <span class="text-nowrap">
+          {{ item.quantity }}
+          {{
+            (item.product.width
+              ? "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
+              : "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.3"
+            ) | translate
+          }}
+        </span>
+        } @if(!item.packsPieces && item.product.unit_id !== 3) {
+        <span class="text-nowrap">
+          {{ item.quantity }}
+          {{
+            "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+              item.product.unit_id | translate
+          }}
+        </span>
+        }
+
+        <button mat-icon-button (click)="deleteOrderItem(item)">
+          <i class="material-icons">delete</i>
+        </button>
+      </div>
+      }
+    </div>
+
+    <div class="add-form-conteiner rounded">
+      <form class="w-100">
+        <mat-chip-listbox
+          class="ms-2"
+          [(ngModel)]="selectedCategory"
+          [hideSingleSelectionIndicator]="true"
+          [ngModelOptions]="{ standalone: true }"
+        >
+          <mat-chip-option
+            [value]="categoryEnum.A"
+            [selected]="categoryEnum.A === selectedCategory"
+            [disabled]="
+              categoryEnum.A === selectedCategory || !enableCategory[0].enable
+            "
+            >{{
+              "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.A
+                | translate
+            }}</mat-chip-option
+          >
+          <mat-chip-option
+            [value]="categoryEnum.AB"
+            [selected]="categoryEnum.AB === selectedCategory"
+            [disabled]="
+              categoryEnum.AB === selectedCategory || !enableCategory[1].enable
+            "
+            >{{
+              "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.AB
+                | translate
+            }}</mat-chip-option
+          >
+          <mat-chip-option
+            [value]="categoryEnum.B"
+            [selected]="categoryEnum.B === selectedCategory"
+            [disabled]="
+              categoryEnum.B === selectedCategory || !enableCategory[2].enable
+            "
+            >{{
+              "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.B
+                | translate
+            }}</mat-chip-option
+          >
+          <mat-chip-option
+            [value]="categoryEnum.T"
+            [selected]="categoryEnum.T === selectedCategory"
+            [disabled]="
+              categoryEnum.T === selectedCategory || !enableCategory[3].enable
+            "
+            >{{
+              "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.T
+                | translate
+            }}</mat-chip-option
+          >
+        </mat-chip-listbox>
+
+        <mat-form-field class="w-100" appearance="fill">
+          <mat-label>
+            {{
+              "OFFER_PAGE.CREATE_OFFER.PRODUCT_SELECT.SELECT_LABEL" | translate
+            }}
+          </mat-label>
+          <input
+            #input
+            type="text"
+            matInput
+            [formControl]="myControl"
+            [matAutocomplete]="auto"
+            (input)="filter()"
+            (focus)="filter()"
+          />
+          <mat-autocomplete
+            #auto="matAutocomplete"
+            requireSelection
+            (optionSelected)="optionSelected($event.option.value)"
+            [displayWith]="displayProductLabel"
+          >
+            @for (option of filteredOptions; track option) {
+            <mat-option [value]="option">{{ option.name }}</mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+        <div class="d-flex w-100">
+          <mat-form-field class="mt-2 w-50" appearance="fill">
+            <mat-label>
+              {{ "PRINT_POPUP.TABLE.QUANTITY" | translate }}
+            </mat-label>
+            <input
+              matInput
+              [(ngModel)]="selectedProductQuantity"
+              type="number"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </mat-form-field>
+
+          <div class="d-flex align-items-center justify-content-end w-50">
+            <button mat-icon-button (click)="addOrderItem()">
+              <i class="material-icons text-white fs-1">add_circle</i>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </mat-dialog-content>
 </ng-template>
 
 <ng-template #confirmTransformExactOfferDialog>
@@ -375,7 +484,8 @@
               }
             </td>
             <td>
-              {{ getTotalMQ(item) }}
+              @if(getTotalMQ(item)) {
+              {{ getTotalMQ(item) }}m³ } @else { - }
             </td>
             <td>{{ item.price | number : "1.0-2" }} RON</td>
           </tr>

@@ -165,6 +165,101 @@ export class OrdersService {
     return true;
   }
 
+  async addOrderItem(
+    order: OrderResponse,
+    item: Partial<OrderItemsResponse>,
+    itemQuantity: number
+  ): Promise<boolean> {
+    const { error: insertError } = await this.supabaseService.client
+      .from('order_items')
+      .insert({
+        product_id: item.product?.id,
+        order_id: order.id,
+        quantity: item.quantity,
+        category_id: item.category?.name,
+        price: item.price,
+        item_status: false,
+        packs_pieces: item.packsPieces,
+      });
+
+    if (insertError) {
+      console.error('Failed to insert order item', insertError);
+      return false;
+    }
+
+    const { error: updateError } = await this.supabaseService.client
+      .from('orders')
+      .update({
+        total_amount: order.totalAmount + item.price!,
+        total_amount_final: order.totalAmountFinal + item.price!,
+        total_quantity:
+          +order.totalQuantity +
+          (+item.category!.name === 2 ? 0 : itemQuantity),
+      })
+      .eq('id', order.id);
+
+    if (updateError) {
+      console.error(
+        'Failed to update the order after inserting a new item',
+        updateError
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  async deleteOrderItem(
+    order: OrderResponse,
+    item: OrderItemsResponse,
+    itemQuantity: number
+  ): Promise<boolean> {
+    const { error: deleteError } = await this.supabaseService.client
+      .from('order_items')
+      .delete()
+      .eq('id', item.id);
+
+    if (deleteError) {
+      console.error('Failed to delete order item', deleteError);
+      return false;
+    }
+
+    const { error: updateError } = await this.supabaseService.client
+      .from('orders')
+      .update({
+        total_amount: order.totalAmount - item.price,
+        total_amount_final: order.totalAmountFinal - item.price,
+        total_quantity:
+          +order.totalQuantity -
+          (+item.category!.name === 2 ? 0 : itemQuantity),
+      })
+      .eq('id', order.id);
+
+    if (updateError) {
+      console.error(
+        'Failed to update the order after item deletion',
+        updateError
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  async updateOrderComment(id: number, newComment: string): Promise<boolean> {
+    const { error } = await this.supabaseService.client
+      .from('orders')
+      .update({ comment: newComment })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to update the comment, ', error);
+      return false;
+    }
+
+    return true;
+  }
+
   async transformOfferToOrder(id: number): Promise<boolean> {
     const { error } = await this.supabaseService.client
       .from('orders')
