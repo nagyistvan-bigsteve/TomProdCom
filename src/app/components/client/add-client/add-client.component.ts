@@ -63,7 +63,12 @@ export class AddClientComponent implements OnInit {
     }),
     phone: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.pattern(/^\d{10}$/)],
+      validators: [
+        Validators.required,
+        Validators.pattern(
+          /^(?:\+?(?:3[0-9]{1,2}|4[0-9]{1,2}|2[0-9]|1[0-9]|7[0-9])\s?|0)(?:\s?\d[\s\-()]?){6,12}\d$/
+        ),
+      ],
     }),
     address: new FormControl<string>('', {
       nonNullable: true,
