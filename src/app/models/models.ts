@@ -62,7 +62,6 @@ export type Client = {
   code: string | null;
   phone: string;
   other_details: string | null;
-  delivery_address: string | null;
 };
 
 export type Operators = {
@@ -131,16 +130,8 @@ export type OrderResponse = {
   comment: string;
   voucher: string;
   operator: { id: string; name: string };
+  delivery_address: string;
 };
-
-// export type Price = {
-//   price_id: number;
-//   unit_id: Unit_id;
-//   category_id: Category;
-//   size_id: Size_id;
-//   price: number;
-//   product_id: number;
-// };
 
 export type Price2 = {
   id: number;
@@ -150,15 +141,6 @@ export type Price2 = {
   price: number;
   product_id: number;
 };
-
-// export type PriceResponse = {
-//   price_id: number;
-//   unit_id: Unit_id;
-//   category_id: Category;
-//   size_id: Size_id;
-//   price: number;
-//   product: { id: number; name: string };
-// };
 
 export type PriceResponse2 = {
   id: number;

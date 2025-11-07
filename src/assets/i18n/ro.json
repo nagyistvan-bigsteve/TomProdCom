@@ -98,6 +98,8 @@
       "DELIVERY_CHECKBOX_TOOLTIP": "Bifează dacă livrarea trebuie să aibă loc până la această dată.",
       "FIRST_HOUR_CHECKBOX": "Livrare în prima ora",
       "JUST_OFFER_CHECKBOX": "Doar ofertă",
+      "SAME_ADDRESS": "Corespunde cu sediu",
+      "DELIVERY_ADDRESS": "Adresa de descărcare",
       "BACK_BUTTON": "Înapoi",
       "SAVE_BUTTON": "Salvare"
     },

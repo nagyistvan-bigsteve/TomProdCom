@@ -21,7 +21,7 @@ export class OrdersService {
         .from('orders')
         .select(
           `id,
-    client:client_id ( id, name, delivery_address, type, address, code, phone, other_details ),
+    client:client_id ( id, name,  type, address, code, phone, other_details ),
     date_order_placed,
     expected_delivery,
     date_order_delivered,
@@ -33,7 +33,8 @@ export class OrdersService {
     paid_amount,
     comment,
     voucher,
-    operator:operator_id ( id, name )
+    operator:operator_id ( id, name ),
+    delivery_address
     `
         )
         .eq('just_offer', justOffers)
@@ -47,7 +48,6 @@ export class OrdersService {
               : order.client || {
                   id: 0,
                   name: '',
-                  delivery_address: '',
                   type: 1,
                   address: '',
                   code: '',
@@ -68,6 +68,7 @@ export class OrdersService {
             paidAmount: order.paid_amount,
             comment: order.comment,
             voucher: order.voucher,
+            delivery_address: order.delivery_address,
           })
         )
       ),
@@ -264,7 +265,8 @@ export class OrdersService {
     until_delivery_date: boolean,
     for_first_hour: boolean,
     total_quantity: number,
-    just_offer: boolean
+    just_offer: boolean,
+    delivery_address: string
   ) {
     const currentDate = new Date();
 
@@ -283,6 +285,7 @@ export class OrdersService {
         operator_id,
         total_quantity,
         just_offer,
+        delivery_address,
       })
       .select()
       .single();

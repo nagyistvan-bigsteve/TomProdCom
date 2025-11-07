@@ -29,11 +29,6 @@
             {{ "ADD_CLIENT.ADDRESS" | translate }}:
             {{ clientStore.client()?.address }}
           </mat-list-item>
-          } @if (clientStore.client()?.delivery_address) {
-          <mat-list-item>
-            {{ "ADD_CLIENT.DELIVERY_ADDRESS" | translate }}:
-            {{ clientStore.client()?.delivery_address }}
-          </mat-list-item>
           } @if (clientStore.client()?.other_details) {
           <mat-list-item>
             {{ "ADD_CLIENT.DETAILS" | translate }}:

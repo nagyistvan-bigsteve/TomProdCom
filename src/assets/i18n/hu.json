@@ -98,6 +98,8 @@
       "DELIVERY_CHECKBOX_TOOLTIP": "Jelöld be, ha a kiszállításnak eddig az időpontig kell megtörténnie.",
       "FIRST_HOUR_CHECKBOX": "Kiszállítás az első órában",
       "JUST_OFFER_CHECKBOX": "Csak ajánlat",
+      "SAME_ADDRESS": "Megyezik a székhellyel",
+      "DELIVERY_ADDRESS": "Szállítási cím",
       "BACK_BUTTON": "Vissza",
       "SAVE_BUTTON": "Mentés"
     },

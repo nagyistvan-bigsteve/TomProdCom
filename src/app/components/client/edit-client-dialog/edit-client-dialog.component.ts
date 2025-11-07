@@ -53,7 +53,6 @@ export class EditClientDialogComponent {
         [Validators.required, Validators.pattern(/^\d{10}$/)],
       ],
       address: [data.client.address, Validators.required],
-      delivery_address: [data.client.delivery_address],
       code: [
         data.client.code,
         [
@@ -87,9 +86,6 @@ export class EditClientDialogComponent {
 
   onSave() {
     if (this.clientForm.valid) {
-      if (!this.clientForm.value.delivery_address) {
-        this.clientForm.value.delivery_address = this.clientForm.value.address;
-      }
       this.clientForm.value.id = this.data.client.id;
       this.dialogRef.close(this.clientForm.value);
     }

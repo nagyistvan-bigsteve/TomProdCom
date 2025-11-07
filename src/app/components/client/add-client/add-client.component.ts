@@ -79,7 +79,6 @@ export class AddClientComponent implements OnInit {
       validators: [Validators.required, Validators.pattern(/^\d{13}$/)],
     }),
     other_details: new FormControl<string>(''),
-    delivery_address: new FormControl<string>(''),
   });
   clientSearch = new FormControl('');
 
@@ -113,9 +112,6 @@ export class AddClientComponent implements OnInit {
 
   addClient() {
     if (this.clientForm.valid) {
-      if (!this.clientForm.value.delivery_address) {
-        this.clientForm.value.delivery_address = this.clientForm.value.address;
-      }
       const newClient: Partial<Client> = this.clientForm.value;
       this.clientsService
         .addClient(newClient as Client)

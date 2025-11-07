@@ -95,7 +95,7 @@
 
   <div class="d-flex flex-column bg-white text-dark rounded shadow p-3 mt-3">
     <div class="client-detail-item">
-      <b class="pe-1"> {{ order.client.type === 1 ? "PF " : "PJ " }} </b> :
+      <b class="pe-1"> {{ order.client.type === 1 ? "CNP " : "CUI " }} </b> :
       {{ order.client.code }}
     </div>
     <div
@@ -105,16 +105,18 @@
       <i class="material-icons">phone_iphone</i>:
       {{ order.client.phone }}
     </div>
-    @if(order.client.address !== order.client.delivery_address){
+    @if(order.client.address !== order.delivery_address){
     <div
-      (click)="openInMapsApp(order.client.delivery_address!)"
+      (click)="openInMapsApp(order.delivery_address!)"
       class="client-detail-item pt-1"
     >
       <i class="material-icons">delivery_dining</i>
-      : {{ order.client.delivery_address }}
+      : {{ order.delivery_address }}
     </div>
     <mat-divider class="mb-2" />
-    <div class="client-detail-item">Address: {{ order.client.address }}</div>
+    <div class="client-detail-item">
+      {{ "PRINT_POPUP.ADDRESS" | translate }} {{ order.client.address }}
+    </div>
     } @else {
     <div
       (click)="openInMapsApp(order.client.address!)"
@@ -309,7 +311,7 @@
           </div>
           <div>
             <strong>{{ "PRINT_POPUP.DELIVERY_ADDRESS" | translate }}</strong>
-            {{ order?.client?.delivery_address }}
+            {{ order?.delivery_address }}
           </div>
         </div>
       </div>

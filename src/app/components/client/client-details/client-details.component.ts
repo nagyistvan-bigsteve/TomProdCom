@@ -57,7 +57,6 @@ export class ClientDetailsComponent {
         type: [this.clientStore.client()?.type, Validators.required],
         phone: [this.clientStore.client()?.phone, Validators.required],
         address: [this.clientStore.client()?.address],
-        delivery_address: [this.clientStore.client()?.delivery_address],
         code: [this.clientStore.client()?.code],
         other_details: [this.clientStore.client()?.other_details],
       })

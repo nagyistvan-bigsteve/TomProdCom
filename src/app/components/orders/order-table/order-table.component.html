@@ -80,7 +80,7 @@
       {{ "ORDER.TABLE.CONTENT.DELIVERY_PLACE" | translate }}
     </th>
     <td mat-cell *matCellDef="let order">
-      {{ order.client.delivery_address }}
+      {{ order.delivery_address }}
     </td>
   </ng-container>
 
@@ -174,7 +174,7 @@
     <td
       mat-cell
       *matCellDef="let order"
-      [attr.colspan]="columnsToDisplayStrings.length"
+      [attr.colspan]="displayedColumns.length"
       class="px-1"
     >
       <div

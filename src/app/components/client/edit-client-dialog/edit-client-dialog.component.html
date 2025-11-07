@@ -39,15 +39,6 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ "ADD_CLIENT.DELIVERY_ADDRESS" | translate }}</mat-label>
-      <input
-        matInput
-        [(ngModel)]="data.client.delivery_address"
-        formControlName="delivery_address"
-      />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
       <mat-label>{{ "ADD_CLIENT.CODE" | translate }}</mat-label>
       <input matInput [(ngModel)]="data.client.code" formControlName="code" />
     </mat-form-field>

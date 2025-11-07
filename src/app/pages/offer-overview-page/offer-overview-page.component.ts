@@ -32,6 +32,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { Price2 } from '../../models/models';
+import { ENTER_AND_LEAVE_ANIMATION } from '../../models/animations';
 
 @Component({
   selector: 'app-offer-overview',
@@ -59,6 +60,7 @@ import { Price2 } from '../../models/models';
   ],
   templateUrl: './offer-overview-page.component.html',
   styleUrls: ['./offer-overview-page.component.scss'],
+  animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class OfferOverviewPageComponent {
   @ViewChild('confirmOfferDialog') confirmOfferDialog!: TemplateRef<any>;
@@ -74,6 +76,9 @@ export class OfferOverviewPageComponent {
   private translateService = inject(TranslateService);
 
   isLoaded: boolean = false;
+
+  sameAddress: boolean = false;
+  delivery_address: string = '';
 
   comment: string = '';
   voucher: string = '';
@@ -209,7 +214,7 @@ export class OfferOverviewPageComponent {
     });
 
     if (this.clientStore.client()?.type === ClientType.PJ) {
-      this.comment = 'PJ discount \n';
+      this.comment = 'Taxare inversa - fără TVA\n';
     }
 
     this.usedPriceCategories.forEach((p) => {
@@ -245,7 +250,10 @@ export class OfferOverviewPageComponent {
               this.untilDeliveryDate,
               this.forFirstHour,
               totalOrderQuantity,
-              this.justOffer
+              this.justOffer,
+              this.delivery_address
+                ? this.delivery_address
+                : this.clientStore.client()!.address!
             )
             .then(() => {
               this.productStore.deleteProductItems();
