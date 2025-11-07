@@ -1,10 +1,7 @@
 :host {
+  max-width: 96vw;
   max-height: 80vh !important;
   overflow: scroll;
-}
-
-table {
-  width: 95vw !important;
 }
 
 tr.detail-row {
@@ -37,6 +34,25 @@ tr.order-row:not(.expanded-row):active {
 
 .order-detail-wrapper-expanded {
   grid-template-rows: 1fr;
+}
+
+.order-table {
+  width: 100 !important;
+
+  tr {
+    td {
+      font-size: 13px !important;
+      padding: 0 !important;
+      max-width: 20vw !important;
+      overflow: auto;
+      word-wrap: break-word;
+      text-wrap: wrap;
+    }
+
+    td.client-name {
+      max-width: 25vw !important;
+    }
+  }
 }
 
 .order-detail {
@@ -81,8 +97,6 @@ tr.order-row:not(.expanded-row):active {
 
 .until-delivery {
   background-color: #deddddbb;
-  margin: 0 -4px;
-  padding: 0 4px;
 
   .until-delivery-start {
     color: #ba0000;

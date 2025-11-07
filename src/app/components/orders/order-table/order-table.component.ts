@@ -79,6 +79,13 @@ export class OrderTableComponent implements OnInit {
   columnsToDisplayStrings: string[] = [];
   tableFilter: 'all' | 'open' | 'closed' | 'expectedToday' = 'open';
   expandedElement: OrderResponse | null = null;
+  displayedColumns: string[] = [
+    'CLIENT',
+    'DELIVERY_PLACE',
+    this.justOffers ? 'OFFER_PLACED' : 'EXPECTED_DELIVERY',
+    'QUANTITY',
+    'TOTAL_AMOUND_FINAL',
+  ];
 
   displayedOrdersStat: {
     numberOfOrders: number;
@@ -87,7 +94,6 @@ export class OrderTableComponent implements OnInit {
 
   ngOnInit(): void {
     this.isLoading.emit(true);
-    this.setTable();
     this.fetchOrders();
 
     this.dateRange.valueChanges.subscribe((range) => {
@@ -104,21 +110,6 @@ export class OrderTableComponent implements OnInit {
         this.orders = this.sortTheOrders(orders);
         this.filterItems(false);
       });
-  }
-
-  setTable(): void {
-    this.columnsToDisplay = [
-      { name: 'CLIENT', value: 'client' },
-      { name: 'DELIVERY_PLACE', value: 'clientDelivery' },
-      {
-        name: this.justOffers ? 'OFFER_PLACED' : 'EXPECTED_DELIVERY',
-        value: 'expectedDelivery',
-      },
-      { name: 'QUANTITY', value: 'quantity' },
-      { name: 'TOTAL_AMOUND_FINAL', value: 'totalAmountFinal' },
-    ];
-
-    this.columnsToDisplayStrings = this.columnsToDisplay.map((c) => c.value);
   }
 
   payOrder(
