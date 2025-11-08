@@ -377,9 +377,9 @@
   "PRINT_POPUP": {
     "TITLE_ORDER": "Comanda",
     "TITLE_OFFER": "Oferta",
-    "CLIENT": "Client: ",
+    "CLIENT": "Sediu: ",
     "ADDRESS": "Adresa: ",
-    "DELIVERY_ADDRESS": "Adresa de livrare: ",
+    "DELIVERY_ADDRESS": "Adresa de descărcare:",
     "DATE": "Data comenzi: ",
     "TABLE": {
       "NAME": "Nume",

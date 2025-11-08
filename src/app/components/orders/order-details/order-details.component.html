@@ -86,7 +86,6 @@
       <i class="material-icons">phone_iphone</i>:
       {{ order.client.phone }}
     </div>
-    @if(order.client.address !== order.delivery_address){
     <div
       (click)="openInMapsApp(order.delivery_address!)"
       class="client-detail-item pt-1"
@@ -94,19 +93,12 @@
       <i class="material-icons">delivery_dining</i>
       : {{ order.delivery_address }}
     </div>
-    <mat-divider class="mb-2" />
+    <mat-divider class="mb-1" />
     <div class="client-detail-item">
       {{ "PRINT_POPUP.ADDRESS" | translate }} {{ order.client.address }}
     </div>
-    } @else {
-    <div
-      (click)="openInMapsApp(order.client.address!)"
-      class="client-detail-item"
-    >
-      <i class="material-icons">delivery_dining</i>: {{ order.client.address }}
-    </div>
-    <mat-divider class="mb-2 mt-1" />
-    } @if(order.client.other_details){
+    <mat-divider class="mb-1" />
+    @if(order.client.other_details){
     <div class="client-detail-item">{{ order.client.other_details }}</div>
     <mat-divider class="mb-2 mt-1" />
     } @if(order.comment) {
@@ -417,6 +409,10 @@
           </div>
           <div class="mt-1">
             <strong>Tel:</strong> {{ order?.client?.phone }}
+          </div>
+          <div>
+            <strong>{{ "PRINT_POPUP.ADDRESS" | translate }}</strong>
+            {{ order?.client?.address }}
           </div>
           <div>
             <strong>{{ "PRINT_POPUP.DELIVERY_ADDRESS" | translate }}</strong>
