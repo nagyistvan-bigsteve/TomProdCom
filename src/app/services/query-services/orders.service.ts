@@ -167,8 +167,7 @@ export class OrdersService {
 
   async addOrderItem(
     order: OrderResponse,
-    item: Partial<OrderItemsResponse>,
-    itemQuantity: number
+    item: Partial<OrderItemsResponse>
   ): Promise<boolean> {
     const { error: insertError } = await this.supabaseService.client
       .from('order_items')
@@ -187,33 +186,10 @@ export class OrdersService {
       return false;
     }
 
-    const { error: updateError } = await this.supabaseService.client
-      .from('orders')
-      .update({
-        total_amount: order.totalAmount + item.price!,
-        total_amount_final: order.totalAmountFinal + item.price!,
-        total_quantity:
-          +order.totalQuantity +
-          (+item.category!.name === 2 ? 0 : itemQuantity),
-      })
-      .eq('id', order.id);
-
-    if (updateError) {
-      console.error(
-        'Failed to update the order after inserting a new item',
-        updateError
-      );
-      return false;
-    }
-
     return true;
   }
 
-  async deleteOrderItem(
-    order: OrderResponse,
-    item: OrderItemsResponse,
-    itemQuantity: number
-  ): Promise<boolean> {
+  async deleteOrderItem(item: OrderItemsResponse): Promise<boolean> {
     const { error: deleteError } = await this.supabaseService.client
       .from('order_items')
       .delete()
@@ -224,16 +200,23 @@ export class OrdersService {
       return false;
     }
 
+    return true;
+  }
+
+  async updateOrderTotals(
+    id: number,
+    totalAmount: number,
+    totalFinalAmount: number,
+    totalQuantity: number
+  ): Promise<boolean> {
     const { error: updateError } = await this.supabaseService.client
       .from('orders')
       .update({
-        total_amount: order.totalAmount - item.price,
-        total_amount_final: order.totalAmountFinal - item.price,
-        total_quantity:
-          +order.totalQuantity -
-          (+item.category!.name === 2 ? 0 : itemQuantity),
+        total_amount: totalAmount,
+        total_amount_final: totalFinalAmount,
+        total_quantity: totalQuantity,
       })
-      .eq('id', order.id);
+      .eq('id', id);
 
     if (updateError) {
       console.error(

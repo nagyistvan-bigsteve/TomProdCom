@@ -490,7 +490,7 @@
           <tr>
             <th colspan="2">{{ "WORDS.TOTAL" | translate }}:</th>
             <th>{{ order?.totalQuantity | number : "1.0-3" }} m³</th>
-            <th>{{ order?.totalAmountFinal | number : "1.0-2" }} RON</th>
+            <th>{{ order?.totalAmount | number : "1.0-2" }} RON</th>
           </tr>
         </tfoot>
       </table>
@@ -499,10 +499,12 @@
         <div>
           {{
             translate("PRINT_POPUP.PRICE_DETAILS", {
-              total_price: order?.totalAmountFinal | number : "1.0-2",
+              total_price: order?.totalAmount | number : "1.0-2",
               paid_amount: order?.paidAmount! | number : "1.0-2"
             })
           }}
+          @if(order?.voucher) {(Voucher:
+          {{ order?.voucher }}@if(!isPercentageVoucher(order?.voucher!)){ RON})}
         </div>
 
         <div class="mt-1 py-1 px-2 border border-1 border-dark">

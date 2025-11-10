@@ -631,46 +631,46 @@ export class OrderDetailsComponent implements OnInit {
         (this.selectedProduct.m2_brut / this.selectedProduct.piece_per_pack);
     }
 
-    const totalMQ = this.getTotalMQ({
-      id: 1,
-      product: this.selectedProduct,
-      orderId: this.order!.id,
-      quantity: this.selectedProductQuantity,
-      category: { name: this.selectedCategory.toString() },
-      price,
-      itemStatus: false,
-      packsPieces,
-    });
-
     this.orderService
-      .addOrderItem(
-        this.order!,
-        {
-          product: this.selectedProduct,
-          orderId: this.order!.id,
-          quantity: this.selectedProductQuantity,
-          category: { name: this.selectedCategory.toString() },
-          price,
-          packsPieces,
-        },
-        totalMQ
-      )
+      .addOrderItem(this.order!, {
+        product: this.selectedProduct,
+        orderId: this.order!.id,
+        quantity: this.selectedProductQuantity,
+        category: { name: this.selectedCategory.toString() },
+        price,
+        packsPieces,
+      })
       .then((result) => {
         if (result) {
           this.fetchOrderItems();
+          setTimeout(() => {
+            const total = this.getUpdateOrderTotals();
+            this.orderService.updateOrderTotals(
+              this.order!.id,
+              total.totalAmount,
+              total.totalAmountFinal,
+              total.totalQuantity
+            );
+          }, 250);
         }
       });
   }
 
   deleteOrderItem(item: OrderItemsResponse): void {
-    const totalMQ = this.getTotalMQ(item);
-    this.orderService
-      .deleteOrderItem(this.order!, item, totalMQ)
-      .then((result) => {
-        if (result) {
-          this.fetchOrderItems();
-        }
-      });
+    this.orderService.deleteOrderItem(item).then((result) => {
+      if (result) {
+        this.fetchOrderItems();
+        setTimeout(() => {
+          const total = this.getUpdateOrderTotals();
+          this.orderService.updateOrderTotals(
+            this.order!.id,
+            total.totalAmount,
+            total.totalAmountFinal,
+            total.totalQuantity
+          );
+        }, 250);
+      }
+    });
   }
 
   optionSelected(product: Product): void {
@@ -863,6 +863,52 @@ export class OrderDetailsComponent implements OnInit {
           });
       }
     });
+  }
+
+  isPercentageVoucher(voucher: string): boolean {
+    return voucher.includes('%');
+  }
+
+  private getUpdateOrderTotals(): {
+    totalAmount: number;
+    totalAmountFinal: number;
+    totalQuantity: number;
+  } {
+    let totalQuantity = 0;
+    let totalAmount = 0;
+
+    this.orderItems?.forEach((item) => {
+      totalAmount += item.price;
+      totalQuantity +=
+        item.product.unit_id !== Unit_id.M2 ? this.getTotalMQ(item) : 0;
+    });
+
+    let totalAmountFinal = totalAmount;
+
+    if (this.order?.voucher) {
+      totalAmountFinal = this.getVoucher(totalAmount);
+    }
+
+    return { totalAmount, totalAmountFinal, totalQuantity };
+  }
+
+  getVoucher(totalAmount: number): number {
+    let total = totalAmount;
+    if (this.order?.voucher.includes('-')) {
+      this.order.voucher = this.order?.voucher.replace('-', '');
+    }
+    if (this.order?.voucher.includes('%')) {
+      const discountPercent =
+        parseFloat(this.order.voucher.replace('%', '')) / 100;
+      total -= total * discountPercent;
+    } else {
+      const discountValue = parseFloat(this.order!.voucher);
+      if (!isNaN(discountValue)) {
+        total -= discountValue;
+      }
+    }
+
+    return total;
   }
 
   getCategoryId(name: string): number {
