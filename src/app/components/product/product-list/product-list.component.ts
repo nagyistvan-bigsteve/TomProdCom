@@ -22,6 +22,7 @@ import { _isTestEnvironment } from '@angular/cdk/platform';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FilterUtil } from '../../../services/utils/filter.util';
 
 @Component({
   selector: 'app-product-list',
@@ -61,6 +62,7 @@ export class ProductSelectComponent {
   filteredOptions: Product[] = [];
   productsByFilter: Products = [];
 
+  private filterUtil = inject(FilterUtil);
   private productService = inject(ProductsService);
   private destroyRef = inject(DestroyRef);
   private justSelected: boolean = true;
@@ -174,29 +176,10 @@ export class ProductSelectComponent {
   }
 
   filter(): void {
-    if (!this.input) return;
-
-    const rawValue = this.input.nativeElement.value.toLowerCase();
-
-    if (!rawValue) {
-      this.filteredOptions = this.productsByFilter;
-      return;
-    }
-
-    const isNumeric = /^\d+$/.test(rawValue);
-
-    this.filteredOptions = this.productsByFilter
-      .filter((o) => {
-        const name = o.name.toLowerCase();
-
-        if (isNumeric) {
-          const nameDigits = name.replace(/\D+/g, '');
-          return nameDigits.includes(rawValue);
-        } else {
-          return name.includes(rawValue);
-        }
-      })
-      .sort((a, b) => a.name.localeCompare(b.name));
+    this.filteredOptions = this.filterUtil.productFilter(
+      this.input,
+      this.productsByFilter
+    );
   }
 
   private groupProductsByUnit(

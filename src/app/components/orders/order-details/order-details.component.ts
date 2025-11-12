@@ -48,6 +48,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { FilterUtil } from '../../../services/utils/filter.util';
 
 @Component({
   selector: 'app-order-details',
@@ -144,6 +145,7 @@ export class OrderDetailsComponent implements OnInit {
   private readonly clientStore = inject(useClientStore);
   private readonly router = inject(Router);
   private readonly changeDetection = inject(ChangeDetectorRef);
+  private filterUtil = inject(FilterUtil);
   private snackBar = inject(MatSnackBar);
   private translateService = inject(TranslateService);
   private _dialog = inject(MatDialog);
@@ -709,27 +711,10 @@ export class OrderDetailsComponent implements OnInit {
   }
 
   filter(): void {
-    if (!this.input) return;
-
-    const rawValue = this.input.nativeElement.value.toLowerCase();
-
-    if (!rawValue) {
-      this.filteredOptions = this.products;
-      return;
-    }
-
-    const isNumeric = /^\d+$/.test(rawValue);
-
-    this.filteredOptions = this.products.filter((o) => {
-      const name = o.name.toLowerCase();
-
-      if (isNumeric) {
-        const nameDigits = name.replace(/\D+/g, '');
-        return nameDigits.includes(rawValue);
-      } else {
-        return name.includes(rawValue);
-      }
-    });
+    this.filteredOptions = this.filterUtil.productFilter(
+      this.input,
+      this.products
+    );
   }
 
   displayProductLabel(product: Product): string {

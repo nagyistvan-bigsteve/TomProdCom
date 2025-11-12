@@ -28,6 +28,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Category } from '../../../models/enums';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { FilterUtil } from '../../../services/utils/filter.util';
 
 @Component({
   selector: 'app-update-products',
@@ -55,6 +56,8 @@ export class UpdateProductsComponent implements OnInit {
   private readonly productService = inject(ProductsService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
+  private filterUtil = inject(FilterUtil);
+
   products: Products = [];
   filteredOptions: Products = [];
 
@@ -180,27 +183,10 @@ export class UpdateProductsComponent implements OnInit {
   }
 
   filter(): void {
-    if (!this.input) return;
-
-    const rawValue = this.input.nativeElement.value.toLowerCase();
-
-    if (!rawValue) {
-      this.filteredOptions = this.products;
-      return;
-    }
-
-    const isNumeric = /^\d+$/.test(rawValue);
-
-    this.filteredOptions = this.products.filter((o) => {
-      const name = o.name.toLowerCase();
-
-      if (isNumeric) {
-        const nameDigits = name.replace(/\D+/g, '');
-        return nameDigits.includes(rawValue);
-      } else {
-        return name.includes(rawValue);
-      }
-    });
+    this.filteredOptions = this.filterUtil.productFilter(
+      this.input,
+      this.products
+    );
   }
 
   displayProductLabel(product: Product): string {
