@@ -29,7 +29,7 @@
       {{ "NAVBAR.HISTORY_BUTTON" | translate }}
     </button>
   </div>
-  <div class="col justify-content-center">
+  <div class="col justify-content-center border-dark border-end">
     <button
       class="d-flex flex-column justify-content-center align-items-center navbar-button w-100 h-100"
       mat-icon-button
@@ -42,6 +42,21 @@
         fontIcon="local_offer"
       ></mat-icon>
       {{ "NAVBAR.OFFERS_BUTTON" | translate }}
+    </button>
+  </div>
+  <div class="col justify-content-center">
+    <button
+      class="d-flex flex-column justify-content-center align-items-center navbar-button w-100 h-100"
+      mat-icon-button
+      (click)="toClientsPage()"
+    >
+      <mat-icon
+        class="w-auto h-auto"
+        aria-hidden="false"
+        aria-label="Offer-history"
+        fontIcon="groups"
+      ></mat-icon>
+      {{ "NAVBAR.CLIENTS_BUTTON" | translate }}
     </button>
   </div>
 </div>

@@ -9,7 +9,8 @@
   "NAVBAR": {
     "OFFER_BUTTON": "Oferta nouă",
     "HISTORY_BUTTON": "Comenzi",
-    "OFFERS_BUTTON": "Oferte"
+    "OFFERS_BUTTON": "Oferte",
+    "CLIENTS_BUTTON": "Clienți"
   },
   "OFFER_PAGE": {
     "FIRST_STEP": {

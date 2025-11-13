@@ -26,4 +26,8 @@ export class BottomNavbarComponent {
   toOffersPage(): void {
     this.router.navigate(['/offers']);
   }
+
+  toClientsPage(): void {
+    this.router.navigate(['/clients']);
+  }
 }

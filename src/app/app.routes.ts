@@ -13,6 +13,7 @@ import { SettingsComponent } from './pages/settings/settings.component';
 import { OffersComponent } from './pages/offers/offers.component';
 import { ComingWaresComponent } from './pages/coming-wares/coming-wares.component';
 import { ComingWaresDetailsComponent } from './components/coming-wares/coming-wares-details/coming-wares-details.component';
+import { ClientsComponent } from './pages/clients/clients.component';
 
 export const routes: Routes = [
   {
@@ -66,6 +67,14 @@ export const routes: Routes = [
   {
     path: 'offers',
     component: OffersComponent,
+    canActivate: [authGuard],
+    data: {
+      requiresApproval: true,
+    },
+  },
+  {
+    path: 'clients',
+    component: ClientsComponent,
     canActivate: [authGuard],
     data: {
       requiresApproval: true,

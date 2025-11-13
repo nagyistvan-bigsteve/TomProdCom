@@ -1,0 +1,28 @@
+<mat-form-field class="full-width pt-2">
+  <mat-label>{{ "SELECT_CLIENT.TITLE" | translate }}</mat-label>
+  <input
+    type="text"
+    matInput
+    [formControl]="clientSearch"
+    [matAutocomplete]="auto"
+  />
+  @if (this.clientStore.client()) {
+  <button matSuffix mat-icon-button aria-label="Clear" (click)="clearClient()">
+    <mat-icon class="text-black">close</mat-icon>
+  </button>
+  }
+  <mat-autocomplete
+    #auto="matAutocomplete"
+    (optionSelected)="selectClient($event.option.value)"
+    [displayWith]="displayClientLabel"
+  >
+    <mat-option
+      *ngFor="let client of filteredClients$ | async"
+      [value]="client"
+    >
+      {{ client.name }} ({{ client.type === 1 ? "PF" : "PJ" }})
+    </mat-option>
+  </mat-autocomplete>
+</mat-form-field>
+
+<app-add-client [withoutForwardButton]="true" />

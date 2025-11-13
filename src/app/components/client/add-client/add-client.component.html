@@ -1,4 +1,9 @@
-<mat-card class="mx-3 p-3" [ngClass]="{ 'reduced-height': clientStore.client }">
+<mat-card
+  class="mx-3 p-3"
+  [ngClass]="{
+    'reduced-height': clientStore.client() && !withoutForwardButton,
+  }"
+>
   <h3 class="pb-2">
     {{
       clientStore.client()
@@ -54,7 +59,7 @@
     }}
   </button>
 </mat-card>
-@if (clientStore.client()) {
+@if (clientStore.client() && !withoutForwardButton) {
 <div @enterAnimation class="d-flex justify-content-center">
   <button class="mt-2 full-width" (click)="toOfferOverview()" mat-raised-button>
     {{ "ADD_CLIENT.FORWARD_BUTTON" | translate }}

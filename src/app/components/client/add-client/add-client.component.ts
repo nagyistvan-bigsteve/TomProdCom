@@ -1,4 +1,11 @@
-import { Component, DestroyRef, inject, OnInit, effect } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+  effect,
+  Input,
+} from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -44,6 +51,7 @@ import { cuiValidator } from '../../../guards/cuiValidator';
   animations: [ENTER_ANIMATION],
 })
 export class AddClientComponent implements OnInit {
+  @Input() withoutForwardButton: boolean = false;
   public readonly clientStore = inject(useClientStore);
 
   private translateService = inject(TranslateService);

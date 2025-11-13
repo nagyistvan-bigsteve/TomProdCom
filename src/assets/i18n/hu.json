@@ -9,7 +9,8 @@
   "NAVBAR": {
     "OFFER_BUTTON": "Új ajánlat",
     "HISTORY_BUTTON": "Rendelések",
-    "OFFERS_BUTTON": "Ajánlatok"
+    "OFFERS_BUTTON": "Ajánlatok",
+    "CLIENTS_BUTTON": "Kliensek"
   },
   "OFFER_PAGE": {
     "FIRST_STEP": {

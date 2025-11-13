@@ -39,6 +39,11 @@ tr.order-row:not(.expanded-row):active {
 .order-table {
   width: 100 !important;
 
+  th {
+    word-wrap: break-word !important;
+    text-wrap: wrap !important;
+  }
+
   tr {
     td {
       font-size: 13px !important;
