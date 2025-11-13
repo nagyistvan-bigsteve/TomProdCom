@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { map, Observable, startWith, switchMap, take } from 'rxjs';
 import { ClientsService } from '../../services/query-services/client.service';
 import { Client } from '../../models/models';
@@ -13,6 +13,8 @@ import { MatOptionModule } from '@angular/material/core';
 import { AddClientComponent } from '../../components/client/add-client/add-client.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { useClientStore } from '../../services/store/client-store';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'select-client-page',
@@ -26,6 +28,9 @@ import { useClientStore } from '../../services/store/client-store';
     MatOptionModule,
     AddClientComponent,
     TranslateModule,
+    MatIconModule,
+    FormsModule,
+    MatButtonModule,
   ],
   templateUrl: './select-client-page.component.html',
   styleUrl: './select-client-page.component.scss',
@@ -35,15 +40,28 @@ export class SelectClientPageComponent {
   readonly clientStore = inject(useClientStore);
 
   clients$: Observable<Client[]> = this.clientsService.getClients();
-  filteredClients$: Observable<Client[]>;
+  filteredClients$: Observable<Client[]> | undefined;
 
   clientSearch = new FormControl<Client>(this.clientStore.client()!);
 
-  clientTypes = Object.values(ClientType).filter(
-    (value) => typeof value === 'number'
-  );
-
   constructor() {
+    this.filterClients();
+  }
+
+  displayClientLabel(client: Client): string {
+    return client ? client.name : '';
+  }
+
+  selectClient(client: Client) {
+    this.clientStore.setClient(client);
+  }
+
+  clearClient(): void {
+    this.clientStore.deleteClient();
+    this.clientSearch.setValue(null);
+  }
+
+  private filterClients(): void {
     this.filteredClients$ = this.clientSearch.valueChanges.pipe(
       startWith(''),
       map((value) => (typeof value === 'string' ? value.toLowerCase() : '')),
@@ -62,13 +80,5 @@ export class SelectClientPageComponent {
       ),
       switchMap((obs) => obs)
     );
-  }
-
-  displayClientLabel(client: Client): string {
-    return client ? client.name : '';
-  }
-
-  selectClient(client: Client) {
-    this.clientStore.setClient(client);
   }
 }

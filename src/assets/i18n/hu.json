@@ -112,6 +112,7 @@
   },
   "ADD_CLIENT": {
     "TITLE": "Kliens hozzáadása",
+    "TITLE_UPDATE": "Kliens adatok",
     "NAME": "Név",
     "TYPE": "Típus",
     "PHONE": "Telefon",
@@ -120,6 +121,7 @@
     "ADDRESS": "Cím",
     "DELIVERY_ADDRESS": "Szállítási cím",
     "ADD_BUTTON": "Hozzáadás",
+    "UPDATE_BUTTON": "Módosítás",
     "FORWARD_BUTTON": "Tovább"
   },
   "CLIENT_DETAILS": {

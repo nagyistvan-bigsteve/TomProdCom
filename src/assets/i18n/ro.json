@@ -112,6 +112,7 @@
   },
   "ADD_CLIENT": {
     "TITLE": "Adaugare client",
+    "TITLE_UPDATE": "Date client",
     "NAME": "Nume",
     "TYPE": "Tip",
     "PHONE": "Telefon",
@@ -120,6 +121,7 @@
     "ADDRESS": "Adresa",
     "DELIVERY_ADDRESS": "Adresa de livrare",
     "ADD_BUTTON": "Adaugare",
+    "UPDATE_BUTTON": "Actualizare",
     "FORWARD_BUTTON": "Mai departe"
   },
   "CLIENT_DETAILS": {

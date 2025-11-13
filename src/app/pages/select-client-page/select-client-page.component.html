@@ -6,6 +6,11 @@
     [formControl]="clientSearch"
     [matAutocomplete]="auto"
   />
+  @if (this.clientStore.client()) {
+  <button matSuffix mat-icon-button aria-label="Clear" (click)="clearClient()">
+    <mat-icon class="text-black">close</mat-icon>
+  </button>
+  }
   <mat-autocomplete
     #auto="matAutocomplete"
     (optionSelected)="selectClient($event.option.value)"

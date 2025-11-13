@@ -109,7 +109,12 @@ export class SelectedProductComponent implements OnChanges {
       .subscribe(
         (prices) => {
           this.prices = prices;
-          this.selectedCategory = prices[0].category_id;
+
+          this.selectedCategory = prices.find(
+            (price) => price.category_id === Category.A
+          )
+            ? Category.A
+            : prices[0].category_id;
           this.selectedPrice = this.prices.find(
             (price) => price.category_id === this.selectedCategory
           );

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, effect } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -80,11 +80,36 @@ export class AddClientComponent implements OnInit {
     }),
     other_details: new FormControl<string>(''),
   });
-  clientSearch = new FormControl('');
 
   clientTypes = Object.values(ClientType).filter(
     (value) => typeof value === 'number'
   );
+
+  constructor() {
+    effect(() => {
+      if (this.clientStore.client()) {
+        const client = {
+          name: this.clientStore.client()?.name!,
+          type: this.clientStore.client()?.type!,
+          phone: this.clientStore.client()?.phone!,
+          address: this.clientStore.client()?.address!,
+          code: this.clientStore.client()?.code!,
+          other_details: this.clientStore.client()?.other_details!,
+        };
+        this.clientForm.setValue(client);
+      } else {
+        const client = {
+          name: '',
+          type: ClientType.PF,
+          phone: '',
+          address: '',
+          code: '',
+          other_details: '',
+        };
+        this.clientForm.setValue(client);
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.clientForm
@@ -108,6 +133,22 @@ export class AddClientComponent implements OnInit {
 
   toOfferOverview(): void {
     this.router.navigate(['offer/overview']);
+  }
+
+  updateClient() {
+    if (this.clientForm.valid) {
+      const updatedClient: Partial<Client> = this.clientForm.value;
+      updatedClient.id = this.clientStore.client()?.id!;
+
+      this.clientsService
+        .updateClient(updatedClient as Client)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((response) => {
+          if (response) {
+            this.clientStore.setClient(updatedClient as Client);
+          }
+        });
+    }
   }
 
   addClient() {

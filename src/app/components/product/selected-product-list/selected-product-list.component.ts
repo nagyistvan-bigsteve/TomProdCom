@@ -205,11 +205,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
   }
 
   goToClientPage(): void {
-    if (!localStorage.getItem('client_data')) {
-      this.router.navigate(['/offer/client']);
-    } else {
-      this.router.navigate(['/offer/overview']);
-    }
+    this.router.navigate(['/offer/client']);
   }
 
   goToClientPageWithB(): void {
@@ -224,11 +220,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
       }
     });
 
-    if (!localStorage.getItem('client_data')) {
-      this.router.navigate(['/offer/client']);
-    } else {
-      this.router.navigate(['/offer/overview']);
-    }
+    this.router.navigate(['/offer/client']);
   }
 
   goToClientPageWithA(): void {
@@ -243,11 +235,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
       }
     });
 
-    if (!localStorage.getItem('client_data')) {
-      this.router.navigate(['/offer/client']);
-    } else {
-      this.router.navigate(['/offer/overview']);
-    }
+    this.router.navigate(['/offer/client']);
   }
 
   confirmDelete(item: ProductItem): void {

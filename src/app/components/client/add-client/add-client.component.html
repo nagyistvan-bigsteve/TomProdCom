@@ -1,5 +1,11 @@
 <mat-card class="mx-3 p-3" [ngClass]="{ 'reduced-height': clientStore.client }">
-  <h3 class="pb-2">{{ "ADD_CLIENT.TITLE" | translate }}</h3>
+  <h3 class="pb-2">
+    {{
+      clientStore.client()
+        ? ("ADD_CLIENT.TITLE_UPDATE" | translate)
+        : ("ADD_CLIENT.TITLE" | translate)
+    }}
+  </h3>
   <mat-form-field appearance="outline" class="w-100">
     <mat-label>{{ "ADD_CLIENT.NAME" | translate }}</mat-label>
     <input matInput [formControl]="clientForm.controls['name']" />
@@ -38,10 +44,14 @@
     mat-raised-button
     color="primary"
     class="p-2 add-client-button"
-    (click)="addClient()"
+    (click)="this.clientStore.client() ? updateClient() : addClient()"
     [disabled]="clientForm.invalid"
   >
-    {{ "ADD_CLIENT.ADD_BUTTON" | translate }}
+    {{
+      clientStore.client()
+        ? ("ADD_CLIENT.UPDATE_BUTTON" | translate)
+        : ("ADD_CLIENT.ADD_BUTTON" | translate)
+    }}
   </button>
 </mat-card>
 @if (clientStore.client()) {
