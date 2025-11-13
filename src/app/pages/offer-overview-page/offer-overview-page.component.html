@@ -151,10 +151,24 @@
       </mat-form-field>
       }
     </div>
+
     <div class="text-start">
       <mat-checkbox [(ngModel)]="sameAddress">
         {{ "OVERVIEW_PAGE.POPUP.SAME_ADDRESS" | translate }}
       </mat-checkbox>
+    </div>
+
+    <div class="delivery-input-field">
+      <mat-form-field
+        @enterAndLeaveAnimation
+        class="mt-2 w-100"
+        appearance="outline"
+      >
+        <mat-label>
+          {{ "OVERVIEW_PAGE.POPUP.DELIVERY_FEE" | translate }}
+        </mat-label>
+        <input matInput [(ngModel)]="deliveryFee" type="number" />
+      </mat-form-field>
     </div>
   </mat-dialog-content>
 

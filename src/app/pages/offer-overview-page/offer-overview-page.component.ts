@@ -80,6 +80,7 @@ export class OfferOverviewPageComponent {
   sameAddress: boolean = false;
   delivery_address: string = '';
 
+  deliveryFee: number = 0;
   comment: string = '';
   voucher: string = '';
   justOffer: boolean = false;
@@ -235,6 +236,10 @@ export class OfferOverviewPageComponent {
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
+        if (this.deliveryFee) {
+          this.comment += 'Transport: ' + this.deliveryFee + 'RON';
+        }
+
         if (result === true) {
           this.expectedDeliveryDate.setHours(6);
           this.ordersService
@@ -253,13 +258,15 @@ export class OfferOverviewPageComponent {
               this.justOffer,
               this.delivery_address
                 ? this.delivery_address
-                : this.clientStore.client()!.address!
+                : this.clientStore.client()!.address!,
+              this.deliveryFee
             )
             .then(() => {
               this.productStore.deleteProductItems();
               this.clientStore.deleteClient();
               this.voucher = '';
               this.comment = '';
+              this.deliveryFee = 0;
 
               if (!this.justOffer) {
                 this.router.navigate(['/orders']);

@@ -32,7 +32,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { useProductStore } from '../../../services/store/product-store';
 import { ProductsService } from '../../../services/query-services/products.service';
-import { Category, Unit_id } from '../../../models/enums';
+import { Category, ClientType, Unit_id } from '../../../models/enums';
 import { ClientsService } from '../../../services/query-services/client.service';
 import { Router } from '@angular/router';
 import { useClientStore } from '../../../services/store/client-store';
@@ -691,6 +691,8 @@ export class OrderDetailsComponent implements OnInit {
   }
 
   findExistingCategories(): undefined | number {
+    const isClientPJ: boolean = this.order?.client.type === ClientType.PJ;
+
     if (!this.selectedProductPrice || !this.selectedProductPrice!.length) {
       return;
     }
@@ -705,9 +707,26 @@ export class OrderDetailsComponent implements OnInit {
 
     const price = this.selectedProductPrice!.find(
       (price) => price.category_id === this.selectedCategory
-    )?.price;
+    );
 
-    return price ? price : undefined;
+    if (price) {
+      if (isClientPJ) {
+        if (price.product_id) {
+          if (price.unit_id === Unit_id.BOUNDLE) {
+            return price.price - 5;
+          }
+          if (price.unit_id === Unit_id.M3) {
+            return price.price - 100;
+          }
+        } else {
+          if (price.unit_id === Unit_id.M3) {
+            return price.price - 100;
+          }
+        }
+      }
+      return price?.price ? price.price : undefined;
+    }
+    return undefined;
   }
 
   filter(): void {

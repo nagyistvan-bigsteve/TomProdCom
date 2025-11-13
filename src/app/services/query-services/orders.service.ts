@@ -31,6 +31,7 @@ export class OrdersService {
     total_amount,
     total_amount_final,
     paid_amount,
+    delivery_fee,
     comment,
     voucher,
     operator:operator_id ( id, name ),
@@ -66,6 +67,7 @@ export class OrdersService {
             totalAmountFinal: order.total_amount_final,
             totalQuantity: order.total_quantity,
             paidAmount: order.paid_amount,
+            deliveryFee: order.delivery_fee,
             comment: order.comment,
             voucher: order.voucher,
             delivery_address: order.delivery_address,
@@ -344,7 +346,8 @@ export class OrdersService {
     for_first_hour: boolean,
     total_quantity: number,
     just_offer: boolean,
-    delivery_address: string
+    delivery_address: string,
+    delivery_fee: number
   ) {
     const currentDate = new Date();
 
@@ -364,6 +367,7 @@ export class OrdersService {
         total_quantity,
         just_offer,
         delivery_address,
+        delivery_fee,
       })
       .select()
       .single();

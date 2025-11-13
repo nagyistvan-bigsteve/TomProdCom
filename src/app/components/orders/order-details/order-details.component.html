@@ -499,7 +499,8 @@
         <div>
           {{
             translate("PRINT_POPUP.PRICE_DETAILS", {
-              total_price: order?.totalAmount | number : "1.0-2",
+              total_price:
+                order!.totalAmount + order!.deliveryFee | number : "1.0-2",
               paid_amount: order?.paidAmount! | number : "1.0-2"
             })
           }}
@@ -509,7 +510,10 @@
 
         <div class="mt-1 py-1 px-2 border border-1 border-dark">
           <strong>{{ translate("PRINT_POPUP.REMAINED_PRICE") }}</strong>
-          {{ order?.totalAmountFinal! - order?.paidAmount! | number : "1.0-2" }}
+          {{
+            order?.totalAmountFinal! + order!.deliveryFee - order?.paidAmount!
+              | number : "1.0-2"
+          }}
           RON
         </div>
 

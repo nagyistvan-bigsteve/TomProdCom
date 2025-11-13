@@ -111,6 +111,7 @@ export type Order = {
   totalAmountFinal: number;
   totalQuantity: number;
   paidAmount: number;
+  deliveryFee: number;
   comment: string;
   voucher: string;
 };
@@ -127,6 +128,7 @@ export type OrderResponse = {
   totalAmountFinal: number;
   totalQuantity: number;
   paidAmount: number;
+  deliveryFee: number;
   comment: string;
   voucher: string;
   operator: { id: string; name: string };

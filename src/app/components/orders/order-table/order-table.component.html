@@ -155,15 +155,27 @@
     <td mat-cell *matCellDef="let order">
       @if(order.dateOrderDelivered || justOffers) {
       <div>
-        {{ order.totalAmountFinal - order.paidAmount | number : "1.0-1" }}
+        {{
+          order.totalAmountFinal + order.deliveryFee - order.paidAmount
+            | number : "1.0-1"
+        }}
       </div>
       } @else {
       <div
         (click)="
-          payOrder($event, order.id, order.totalAmountFinal, order.paidAmount)
+          payOrder(
+            $event,
+            order.id,
+            order.totalAmountFinal,
+            order.paidAmount,
+            order.deliveryFee
+          )
         "
       >
-        {{ order.totalAmountFinal - order.paidAmount | number : "1.0-1" }}
+        {{
+          order.totalAmountFinal + order.deliveryFee - order.paidAmount
+            | number : "1.0-1"
+        }}
       </div>
       }
     </td>

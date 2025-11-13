@@ -116,7 +116,8 @@ export class OrderTableComponent implements OnInit {
     event: any,
     orderId: number,
     totalAmount: number,
-    alreadyPaidAmount: number
+    alreadyPaidAmount: number,
+    deliveryFee: number
   ): void {
     event.stopPropagation();
 
@@ -124,7 +125,7 @@ export class OrderTableComponent implements OnInit {
 
     const dialogRef = this._dialog.open(this.paidAmountDialog, {
       width: '300px',
-      data: { maxAmount: totalAmount - alreadyPaidAmount },
+      data: { maxAmount: totalAmount + deliveryFee - alreadyPaidAmount },
     });
 
     dialogRef
@@ -230,7 +231,7 @@ export class OrderTableComponent implements OnInit {
     this.displayedOrdersStat.numberOfOrders = data.length;
     if (data.length) {
       this.displayedOrdersStat.totalPrice = data
-        .map((item) => item.totalAmountFinal)
+        .map((item) => item.totalAmountFinal + item.deliveryFee)
         .reduce((prev, next) => prev + next);
     }
   }
