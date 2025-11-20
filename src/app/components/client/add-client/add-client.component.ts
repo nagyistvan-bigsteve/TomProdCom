@@ -74,7 +74,7 @@ export class AddClientComponent implements OnInit {
       validators: [
         Validators.required,
         Validators.pattern(
-          /^(?:\+?(?:3[0-9]{1,2}|4[0-9]{1,2}|2[0-9]|1[0-9]|7[0-9])\s?|0)(?:\s?\d[\s\-()]?){6,12}\d$/
+          /^(?:\+|00)?\d{1,3}[\s\-]?\(?\d{1,4}\)?([\s\-]?\d{2,4}){2,4}$/
         ),
       ],
     }),

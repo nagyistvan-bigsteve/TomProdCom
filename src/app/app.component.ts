@@ -8,6 +8,7 @@ import { BottomNavbarComponent } from './components/app-container/bottom-navbar/
 import { createClient } from '@supabase/supabase-js';
 import { environment } from '../environments/environment';
 import { useAuthStore } from './services/store/auth-store';
+import { SwUpdate } from '@angular/service-worker';
 
 const supabase = createClient(
   environment.supabaseUrl,
@@ -29,6 +30,14 @@ const supabase = createClient(
 export class AppComponent implements OnInit {
   private translateService = inject(TranslateService);
   public readonly authStore = inject(useAuthStore);
+
+  constructor(private swUpdate: SwUpdate) {
+    // Listen for version updates
+    this.swUpdate.versionUpdates.subscribe((event) => {
+      // auto-reload when new version is ready
+      document.location.reload();
+    });
+  }
 
   ngOnInit(): void {
     const savedLang = localStorage.getItem('selectedLanguage') || Language.RO;

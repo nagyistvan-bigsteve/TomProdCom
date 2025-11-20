@@ -25,13 +25,17 @@
           "/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
       }
-    },
+    }
+  ],
+  "dataGroups": [
     {
-      "name": "i18n",
-      "installMode": "lazy",
-      "updateMode": "prefetch",
-      "resources": {
-        "files": ["/assets/i18n/*.json"]
+      "name": "i18n-fresh",
+      "urls": ["/assets/i18n/*.json"],
+      "cacheConfig": {
+        "maxSize": 0,
+        "maxAge": "0u",
+        "timeout": "0u",
+        "strategy": "freshness"
       }
     }
   ]
