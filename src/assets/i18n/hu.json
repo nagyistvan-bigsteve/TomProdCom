@@ -382,7 +382,8 @@
     "TITLE_ORDER": "Rendelés",
     "TITLE_OFFER": "Ajánlat",
     "CLIENT": "Kliens: ",
-    "ADDRESS": "Székhely: ",
+    "OFFICE": "Székhely: ",
+    "ADDRESS": "Munkapont: ",
     "DELIVERY_ADDRESS": "Szállítási cím: ",
     "DATE": "Rendelés dátuma: ",
     "TABLE": {
@@ -407,9 +408,10 @@
     "TITLE": "Szállító: ",
     "NAME": "TOM PRODCOM S.R.L",
     "CUI": "RO 40367074",
-    "ADDRESS": "Nusfalâu Str. Toldi Miklós Nr. 31/E",
+    "OFFICE": "Boghis, nr.77, SJ",
+    "ADDRESS": "Nusfalau, Str.Toldi Miklos, nr.31/E",
     "EMAIL": "tomprodcom@gmail.com",
-    "SITE": "Nimador.ro",
+    "SITE": "NIMADOR.RO",
     "PHONE1": "0725089357",
     "PHONE2": "0756028882"
   }

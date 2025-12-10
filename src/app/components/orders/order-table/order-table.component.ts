@@ -169,9 +169,9 @@ export class OrderTableComponent implements OnInit {
       end.setHours(23, 59, 59, 999);
       this.dataSource.data = data.filter((item) => {
         return (
-          Date.parse(item.dateOrderPlaced.toString()) >=
+          Date.parse(item.expectedDelivery.toString()) >=
             Date.parse(start.toString()) &&
-          Date.parse(item.dateOrderPlaced.toString()) <=
+          Date.parse(item.expectedDelivery.toString()) <=
             Date.parse(end.toString())
         );
       });

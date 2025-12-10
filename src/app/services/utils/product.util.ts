@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Product } from '../../models/models';
+import { Product, ProductItems } from '../../models/models';
 import { Unit_id } from '../../models/enums';
 
 @Injectable({
@@ -67,5 +67,22 @@ export class ProductUtil {
       extraPiecesNeeded,
       totalPiecesNeeded,
     };
+  }
+
+  calculateTotalQuantity(products: ProductItems): number {
+    let totalOrderQuantity = 0;
+
+    products.forEach((item) => {
+      const { unit_id, width, thickness, length } = item.product;
+
+      if (unit_id !== Unit_id.M2 && unit_id !== Unit_id.BUC) {
+        const volumeM3 = (width * thickness * length) / 1_000_000;
+        const multiplier = unit_id === Unit_id.BOUNDLE ? 10 : 1;
+
+        totalOrderQuantity += item.quantity * volumeM3 * multiplier;
+      }
+    });
+
+    return totalOrderQuantity;
   }
 }

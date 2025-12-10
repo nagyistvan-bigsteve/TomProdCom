@@ -52,6 +52,25 @@
   }
 }
 
+.total-quantity-card {
+  padding: 0 24px;
+  font-family: "Roboto";
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+  letter-spacing: 0.009rem;
+  color: #1a1b1f;
+  border-radius: 12px;
+  background-color: #faf9fd;
+
+  .total-quantity {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
 .voucher-input {
   width: 25vw;
 }

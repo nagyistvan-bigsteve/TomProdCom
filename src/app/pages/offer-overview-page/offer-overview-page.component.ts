@@ -33,6 +33,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { Price2 } from '../../models/models';
 import { ENTER_AND_LEAVE_ANIMATION } from '../../models/animations';
+import { ProductUtil } from '../../services/utils/product.util';
 
 @Component({
   selector: 'app-offer-overview',
@@ -69,6 +70,7 @@ export class OfferOverviewPageComponent {
   readonly productStore = inject(useProductStore);
   readonly clientStore = inject(useClientStore);
   readonly authStore = inject(useAuthStore);
+  private readonly productUtil = inject(ProductUtil);
   private router = inject(Router);
   private ordersService = inject(OrdersService);
   private _dialog = inject(MatDialog);
@@ -201,18 +203,8 @@ export class OfferOverviewPageComponent {
     const dialogRef = this._dialog.open(this.confirmOfferDialog, {
       width: '300px',
     });
-    let totalOrderQuantity = 0;
 
-    this.productStore.productItems().forEach((item) => {
-      const { unit_id, width, thickness, length } = item.product;
-
-      if (unit_id !== Unit_id.M2 && unit_id !== Unit_id.BUC) {
-        const volumeM3 = (width * thickness * length) / 1_000_000;
-        const multiplier = unit_id === Unit_id.BOUNDLE ? 10 : 1;
-
-        totalOrderQuantity += item.quantity * volumeM3 * multiplier;
-      }
-    });
+    let totalOrderQuantity = this.getTotalQuantity();
 
     if (this.clientStore.client()?.type === ClientType.PJ) {
       this.comment = 'Taxare inversa - fără TVA\n';
@@ -278,5 +270,11 @@ export class OfferOverviewPageComponent {
           this.comment = '';
         }
       });
+  }
+
+  getTotalQuantity(): number {
+    return this.productUtil.calculateTotalQuantity(
+      this.productStore.productItems()
+    );
   }
 }
