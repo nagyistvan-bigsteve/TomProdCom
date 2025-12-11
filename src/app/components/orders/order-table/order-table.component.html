@@ -1,36 +1,49 @@
 <div class="filter-section d-flex flex-column w-100">
   @if(!justOffers) {
-  <mat-chip-listbox
-    [(ngModel)]="tableFilter"
-    (ngModelChange)="filterItems(false)"
-    aria-label="Filter table"
-  >
-    <mat-chip-option
-      [disabled]="tableFilter === 'all'"
-      value="all"
-      [selected]="tableFilter === 'all'"
-      >{{ "ORDER.TABLE.FILTER.ALL" | translate }}</mat-chip-option
-    >
-    <mat-chip-option
-      [disabled]="tableFilter === 'open'"
-      value="open"
-      [selected]="tableFilter === 'open'"
-      >{{ "ORDER.TABLE.FILTER.OPEN" | translate }}</mat-chip-option
-    >
-    <mat-chip-option
-      [disabled]="tableFilter === 'closed'"
-      value="closed"
-      [selected]="tableFilter === 'closed'"
-      >{{ "ORDER.TABLE.FILTER.CLOSED" | translate }}</mat-chip-option
-    >
-    <mat-chip-option
-      [disabled]="tableFilter === 'expectedToday'"
-      value="expectedToday"
-      [selected]="tableFilter === 'expectedToday'"
-    >
-      {{ "ORDER.TABLE.FILTER.EXPECTED_TODAY" | translate }}
-    </mat-chip-option>
-  </mat-chip-listbox>
+  <div class="d-flex mb-2 gap-2">
+    <mat-form-field>
+      <mat-label class="d-flex justify-content-center align-items-center"
+        ><i class="material-icons">filter_alt</i>
+        {{ "ORDER.TABLE.FILTER.FILTER_LABEL" | translate }}</mat-label
+      >
+      <mat-select
+        [(ngModel)]="tableFilter"
+        (ngModelChange)="filterItems(false)"
+      >
+        <mat-option [disabled]="tableFilter === 'all'" value="all">{{
+          "ORDER.TABLE.FILTER.ALL" | translate
+        }}</mat-option>
+        <mat-option [disabled]="tableFilter === 'open'" value="open">{{
+          "ORDER.TABLE.FILTER.OPEN" | translate
+        }}</mat-option>
+        <mat-option [disabled]="tableFilter === 'closed'" value="closed">{{
+          "ORDER.TABLE.FILTER.CLOSED" | translate
+        }}</mat-option>
+        <mat-option
+          [disabled]="tableFilter === 'expectedToday'"
+          value="expectedToday"
+          >{{ "ORDER.TABLE.FILTER.EXPECTED_TODAY" | translate }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label class="d-flex justify-content-center align-items-center"
+        ><i class="material-icons">sort</i>
+        {{ "ORDER.TABLE.FILTER.SORT_LABEL" | translate }}</mat-label
+      >
+      <mat-select [(ngModel)]="tableSort" (ngModelChange)="sortItems()">
+        <mat-option [disabled]="tableSort === 'delivery'" value="delivery">{{
+          "ORDER.TABLE.FILTER.DELIVERY" | translate
+        }}</mat-option>
+        <mat-option [disabled]="tableSort === 'creation'" value="creation">{{
+          "ORDER.TABLE.FILTER.CREATION" | translate
+        }}</mat-option>
+        <!-- <mat-option [disabled]="tableSort === 'admin'" value="admin">{{
+          "ORDER.TABLE.FILTER.ADMIN" | translate
+        }}</mat-option> -->
+      </mat-select>
+    </mat-form-field>
+  </div>
   }
 
   <mat-form-field class="mb-1">

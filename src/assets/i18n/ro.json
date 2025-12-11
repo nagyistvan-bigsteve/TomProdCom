@@ -254,7 +254,12 @@
         "START_DATE": "început",
         "END_DATE": "sfârșit",
         "INVALID_START": "Dată de începere nevalidă",
-        "INVALID_END": "Dată de sfârșit nevalidă"
+        "INVALID_END": "Dată de sfârșit nevalidă",
+        "DELIVERY": "Livrare",
+        "CREATION": "Creare",
+        "ADMIN": "Admin",
+        "FILTER_LABEL": "Filtrare:",
+        "SORT_LABEL": "Sortare:"
       },
       "CONTENT": {
         "CLIENT": "Client",

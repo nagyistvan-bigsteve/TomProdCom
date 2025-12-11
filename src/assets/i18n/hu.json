@@ -254,7 +254,12 @@
         "START_DATE": "kezdet",
         "END_DATE": "vég",
         "INVALID_START": "Helytelen kezdeti idő",
-        "INVALID_END": "Helytelen vég idő"
+        "INVALID_END": "Helytelen vég idő",
+        "DELIVERY": "Szállítás",
+        "CREATION": "Létrehozás",
+        "ADMIN": "Admin",
+        "FILTER_LABEL": "Szűrés:",
+        "SORT_LABEL": "Rendezés:"
       },
       "CONTENT": {
         "CLIENT": "Kliens",

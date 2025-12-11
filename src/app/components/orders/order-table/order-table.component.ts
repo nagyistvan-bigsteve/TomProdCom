@@ -32,6 +32,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-order-table',
@@ -49,6 +50,7 @@ import { MatInputModule } from '@angular/material/input';
     MatDialogModule,
     MatTooltipModule,
     MatInputModule,
+    MatSelectModule,
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './order-table.component.html',
@@ -78,6 +80,7 @@ export class OrderTableComponent implements OnInit {
   columnsToDisplay: { name: string; value: string }[] = [];
   columnsToDisplayStrings: string[] = [];
   tableFilter: 'all' | 'open' | 'closed' | 'expectedToday' = 'open';
+  tableSort: 'delivery' | 'creation' | 'admin' = 'delivery';
   expandedElement: OrderResponse | null = null;
   displayedColumns: string[] = [
     'CLIENT',
@@ -107,7 +110,7 @@ export class OrderTableComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((orders) => {
         this.isLoading.emit(false);
-        this.orders = this.sortTheOrders(orders);
+        this.orders = this.sortByDelivery(orders);
         this.filterItems(false);
       });
   }
@@ -142,24 +145,6 @@ export class OrderTableComponent implements OnInit {
       });
   }
 
-  sortTheOrders(orders: OrderResponse[]): OrderResponse[] {
-    return orders.sort((a, b) => {
-      const dateA = new Date(a.expectedDelivery).getTime();
-      const dateB = new Date(b.expectedDelivery).getTime();
-
-      if (dateA !== dateB) {
-        return dateA - dateB;
-      }
-
-      const firstHourDiff = Number(b.forFirstHour) - Number(a.forFirstHour);
-      if (firstHourDiff !== 0) {
-        return firstHourDiff;
-      }
-
-      return Number(a.untilDeliveryDate) - Number(b.untilDeliveryDate);
-    });
-  }
-
   filterByDate(
     start: Date | null | undefined,
     end: Date | null | undefined,
@@ -179,6 +164,23 @@ export class OrderTableComponent implements OnInit {
     } else {
       this.dataSource.data = data;
       this.filterItems(true);
+    }
+  }
+
+  sortItems() {
+    switch (this.tableSort) {
+      case 'delivery': {
+        this.dataSource.data = this.sortByDelivery(this.dataSource.data);
+        break;
+      }
+      case 'creation': {
+        this.dataSource.data = this.sortByCreation(this.dataSource.data);
+        break;
+      }
+      case 'admin': {
+        this.dataSource.data = this.sortByDelivery(this.dataSource.data);
+        break;
+      }
     }
   }
 
@@ -280,5 +282,41 @@ export class OrderTableComponent implements OnInit {
 
   isPercentageVoucher(voucher: string): boolean {
     return voucher.includes('%');
+  }
+
+  private sortByDelivery(orders: OrderResponse[]): OrderResponse[] {
+    return orders.sort((a, b) => {
+      const dateA = new Date(a.expectedDelivery).getTime();
+      const dateB = new Date(b.expectedDelivery).getTime();
+
+      if (dateA !== dateB) {
+        return dateA - dateB;
+      }
+
+      const firstHourDiff = Number(b.forFirstHour) - Number(a.forFirstHour);
+      if (firstHourDiff !== 0) {
+        return firstHourDiff;
+      }
+
+      return Number(a.untilDeliveryDate) - Number(b.untilDeliveryDate);
+    });
+  }
+
+  private sortByCreation(orders: OrderResponse[]): OrderResponse[] {
+    return orders.sort((a, b) => {
+      const dateA = new Date(a.dateOrderPlaced).getTime();
+      const dateB = new Date(b.dateOrderPlaced).getTime();
+
+      if (dateA !== dateB) {
+        return dateA - dateB;
+      }
+
+      const firstHourDiff = Number(b.forFirstHour) - Number(a.forFirstHour);
+      if (firstHourDiff !== 0) {
+        return firstHourDiff;
+      }
+
+      return Number(a.untilDeliveryDate) - Number(b.untilDeliveryDate);
+    });
   }
 }
