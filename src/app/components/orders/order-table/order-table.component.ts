@@ -12,7 +12,11 @@ import {
 import { OrdersService } from '../../../services/query-services/orders.service';
 import { OrderResponse } from '../../../models/models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import {
+  MatTableDataSource,
+  MatTableModule,
+  MatTable,
+} from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
@@ -33,6 +37,12 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import {
+  CdkDragDrop,
+  CdkDropList,
+  CdkDrag,
+  moveItemInArray,
+} from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-order-table',
@@ -51,6 +61,8 @@ import { MatSelectModule } from '@angular/material/select';
     MatTooltipModule,
     MatInputModule,
     MatSelectModule,
+    CdkDropList,
+    CdkDrag,
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './order-table.component.html',
@@ -58,6 +70,7 @@ import { MatSelectModule } from '@angular/material/select';
   animations: [LEAVE_ANIMATION],
 })
 export class OrderTableComponent implements OnInit {
+  @ViewChild('table') table!: MatTable<OrderResponse>;
   @ViewChild('confirmDeleteDialog') confirmDeleteDialog!: TemplateRef<any>;
   @ViewChild('paidAmountDialog') paidAmountDialog!: TemplateRef<any>;
   @Output() orderOutput = new EventEmitter<OrderResponse>();
@@ -178,7 +191,7 @@ export class OrderTableComponent implements OnInit {
         break;
       }
       case 'admin': {
-        this.dataSource.data = this.sortByDelivery(this.dataSource.data);
+        this.dataSource.data = this.sortByAdmin(this.dataSource.data);
         break;
       }
     }
@@ -284,21 +297,34 @@ export class OrderTableComponent implements OnInit {
     return voucher.includes('%');
   }
 
+  // Check if drag and drop should be enabled
+  isDragDropEnabled(): boolean {
+    return this.authStore.role() === 'admin' && this.tableSort === 'admin';
+  }
+
+  // Handle drag and drop event
+  drop(event: CdkDragDrop<any>): void {
+    if (!this.isDragDropEnabled()) {
+      return;
+    }
+
+    moveItemInArray(
+      this.dataSource.data,
+      event.previousIndex,
+      event.currentIndex
+    );
+    this.table.renderRows();
+
+    // TODO: Save the new order to the backend
+    this.ordersService.saveAdminSortOrder(this.dataSource.data);
+  }
+
   private sortByDelivery(orders: OrderResponse[]): OrderResponse[] {
     return orders.sort((a, b) => {
       const dateA = new Date(a.expectedDelivery).getTime();
       const dateB = new Date(b.expectedDelivery).getTime();
 
-      if (dateA !== dateB) {
-        return dateA - dateB;
-      }
-
-      const firstHourDiff = Number(b.forFirstHour) - Number(a.forFirstHour);
-      if (firstHourDiff !== 0) {
-        return firstHourDiff;
-      }
-
-      return Number(a.untilDeliveryDate) - Number(b.untilDeliveryDate);
+      return this.sortOrder(a, b, dateA, dateB);
     });
   }
 
@@ -307,16 +333,32 @@ export class OrderTableComponent implements OnInit {
       const dateA = new Date(a.dateOrderPlaced).getTime();
       const dateB = new Date(b.dateOrderPlaced).getTime();
 
-      if (dateA !== dateB) {
-        return dateA - dateB;
-      }
-
-      const firstHourDiff = Number(b.forFirstHour) - Number(a.forFirstHour);
-      if (firstHourDiff !== 0) {
-        return firstHourDiff;
-      }
-
-      return Number(a.untilDeliveryDate) - Number(b.untilDeliveryDate);
+      return this.sortOrder(a, b, dateA, dateB);
     });
+  }
+
+  private sortByAdmin(orders: OrderResponse[]): OrderResponse[] {
+    return orders.sort((a, b) => {
+      return this.sortOrder(a, b, a.sortOrder, b.sortOrder);
+    });
+  }
+
+  private sortOrder(
+    orderA: OrderResponse,
+    orderB: OrderResponse,
+    sortA: number,
+    sortB: number
+  ) {
+    if (sortA !== sortB) {
+      return sortA - sortB;
+    }
+
+    const firstHourDiff =
+      Number(orderB.forFirstHour) - Number(orderA.forFirstHour);
+    if (firstHourDiff !== 0) {
+      return firstHourDiff;
+    }
+
+    return Number(orderA.untilDeliveryDate) - Number(orderB.untilDeliveryDate);
   }
 }

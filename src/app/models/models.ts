@@ -100,6 +100,7 @@ export type OrderItemsResponse = {
 
 export type Order = {
   id: number;
+  sortOrder: number;
   clientId: number;
   dateOrderPlaced: Date;
   expectedDelivery: Date;
@@ -118,6 +119,7 @@ export type Order = {
 
 export type OrderResponse = {
   id: number;
+  sortOrder: number;
   client: Client;
   dateOrderPlaced: Date;
   expectedDelivery: Date;

@@ -23,6 +23,7 @@ export class OrdersService {
           `id,
     client:client_id ( id, name,  type, address, code, phone, other_details ),
     date_order_placed,
+    sort_order,
     expected_delivery,
     date_order_delivered,
     until_delivery_date,
@@ -44,6 +45,7 @@ export class OrdersService {
         (data ?? []).map(
           (order): OrderResponse => ({
             id: order.id,
+            sortOrder: order.sort_order,
             client: Array.isArray(order.client)
               ? order.client[0]
               : order.client || {
@@ -79,6 +81,25 @@ export class OrdersService {
         return of([]);
       })
     );
+  }
+
+  async saveAdminSortOrder(orders: OrderResponse[]): Promise<boolean> {
+    const updates = orders.map((order, index) => ({
+      id: order.id,
+      sort_order: index,
+    }));
+
+    const { error } = await this.supabaseService.client.rpc(
+      'update_order_sort_orders',
+      { items: updates }
+    );
+
+    if (error) {
+      console.error('Failed to update the order', error);
+      return false;
+    }
+
+    return true;
   }
 
   getOrderItemsById(id: number): Observable<OrderItemsResponse[]> {

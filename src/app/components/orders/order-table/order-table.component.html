@@ -38,9 +38,9 @@
         <mat-option [disabled]="tableSort === 'creation'" value="creation">{{
           "ORDER.TABLE.FILTER.CREATION" | translate
         }}</mat-option>
-        <!-- <mat-option [disabled]="tableSort === 'admin'" value="admin">{{
+        <mat-option [disabled]="tableSort === 'admin'" value="admin">{{
           "ORDER.TABLE.FILTER.ADMIN" | translate
-        }}</mat-option> -->
+        }}</mat-option>
       </mat-select>
     </mat-form-field>
   </div>
@@ -72,9 +72,13 @@
 </div>
 
 <table
+  #table
   mat-table
   [dataSource]="dataSource"
   multiTemplateDataRows
+  cdkDropList
+  (cdkDropListDropped)="drop($event)"
+  [cdkDropListData]="dataSource"
   class="mat-elevation-z8 rounded overflow-hidden order-table"
 >
   <!-- Client Column -->
@@ -279,6 +283,9 @@
     class="element-row"
     [class.expanded-row]="isExpanded(order)"
     (click)="toggle(order)"
+    cdkDrag
+    [cdkDragDisabled]="!isDragDropEnabled()"
+    [cdkDragData]="order"
   ></tr>
   <tr
     mat-row
@@ -286,6 +293,7 @@
     class="detail-row"
   ></tr>
 </table>
+
 @if(displayedOrdersStat.numberOfOrders && !justOffers){
 <div class="d-flex align-items-center justify-content-center">
   <div class="w-100 rounded shadow bg-white text-black mt-2 p-2">
