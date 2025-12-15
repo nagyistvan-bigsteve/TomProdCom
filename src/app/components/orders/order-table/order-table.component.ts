@@ -178,6 +178,7 @@ export class OrderTableComponent implements OnInit {
       this.dataSource.data = data;
       this.filterItems(true);
     }
+    this.sortItems();
   }
 
   sortItems() {
