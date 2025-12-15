@@ -144,7 +144,6 @@
     </div>
 
     <div class="delivery-input-field">
-      @if(!sameAddress) {
       <mat-form-field
         @enterAndLeaveAnimation
         class="mt-2 w-100"
@@ -155,13 +154,6 @@
         </mat-label>
         <input matInput [(ngModel)]="delivery_address" type="text" />
       </mat-form-field>
-      }
-    </div>
-
-    <div class="text-start">
-      <mat-checkbox [(ngModel)]="sameAddress">
-        {{ "OVERVIEW_PAGE.POPUP.SAME_ADDRESS" | translate }}
-      </mat-checkbox>
     </div>
 
     <div class="delivery-input-field">

@@ -79,7 +79,6 @@ export class OfferOverviewPageComponent {
 
   isLoaded: boolean = false;
 
-  sameAddress: boolean = false;
   delivery_address: string = '';
 
   deliveryFee: number = 0;
@@ -204,6 +203,10 @@ export class OfferOverviewPageComponent {
       width: '300px',
     });
 
+    this.delivery_address = this.clientStore.client()?.address
+      ? this.clientStore.client()?.address!
+      : '';
+
     let totalOrderQuantity = this.getTotalQuantity();
 
     if (this.clientStore.client()?.type === ClientType.PJ) {
@@ -248,9 +251,7 @@ export class OfferOverviewPageComponent {
               this.forFirstHour,
               totalOrderQuantity,
               this.justOffer,
-              this.delivery_address
-                ? this.delivery_address
-                : this.clientStore.client()!.address!,
+              this.delivery_address,
               this.deliveryFee
             )
             .then(() => {
