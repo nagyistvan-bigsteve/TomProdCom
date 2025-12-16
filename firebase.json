@@ -2,14 +2,13 @@
   "hosting": {
     "public": "dist/tom-prod-com/browser",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
+    "headers": [
       {
-        "source": "**",
-        "destination": "/index.html",
+        "source": "**/*.json",
         "headers": [
           {
             "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate"
+            "value": "no-store"
           }
         ]
       }

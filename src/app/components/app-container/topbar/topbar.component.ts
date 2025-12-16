@@ -9,7 +9,7 @@ import { useAuthStore } from '../../../services/store/auth-store';
 import { Router } from '@angular/router';
 import { MatBadgeModule } from '@angular/material/badge';
 import { InstallService } from '../../../services/install.service';
-import { ReactiveStorageService } from '../../../services/utils/reavtive-storage.service';
+import { ReactiveStorageService } from '../../../services/utils/reactive-storage.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({

@@ -6,6 +6,7 @@ import { RouterModule } from '@angular/router';
 import { TopbarComponent } from './components/app-container/topbar/topbar.component';
 import { BottomNavbarComponent } from './components/app-container/bottom-navbar/bottom-navbar.component';
 import { useAuthStore } from './services/store/auth-store';
+import { AppVersionService } from './services/core/app-version.service';
 
 @Component({
   standalone: true,
@@ -22,8 +23,10 @@ import { useAuthStore } from './services/store/auth-store';
 export class AppComponent implements OnInit {
   private translateService = inject(TranslateService);
   public readonly authStore = inject(useAuthStore);
+  private appVersion = inject(AppVersionService);
 
   ngOnInit(): void {
+    this.appVersion.checkAndReloadIfNeeded();
     const savedLang = localStorage.getItem('selectedLanguage') || Language.RO;
     this.translateService.setDefaultLang(savedLang);
     this.translateService.use(savedLang);

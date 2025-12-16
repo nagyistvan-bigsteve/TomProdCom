@@ -1,10 +1,8 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { OrderTableComponent } from '../../components/orders/order-table/order-table.component';
 import { OrderResponse } from '../../models/models';
 import { OrderDetailsComponent } from '../../components/orders/order-details/order-details.component';
 import { ENTER_ANIMATION } from '../../models/animations';
-import { ReactiveStorageService } from '../../services/utils/reavtive-storage.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
 

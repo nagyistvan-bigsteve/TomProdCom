@@ -50,6 +50,6 @@ export const appConfig: ApplicationConfig = {
 };
 
 export function HttpLoaderFactory(http: HttpClient) {
-  const version = '2025.11.20';
+  const version = window.__APP_VERSION__;
   return new TranslateHttpLoader(http, 'assets/i18n/', `.json?v=${version}`);
 }
