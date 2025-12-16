@@ -79,6 +79,9 @@
   cdkDropList
   (cdkDropListDropped)="drop($event)"
   [cdkDropListData]="dataSource"
+  [cdkDropListAutoScrollDisabled]="false"
+  [cdkDropListAutoScrollStep]="5"
+  [cdkDropListDisabled]="!isDragDropEnabled()"
   class="mat-elevation-z8 rounded overflow-hidden order-table"
 >
   <!-- Client Column -->
@@ -286,6 +289,8 @@
     cdkDrag
     [cdkDragDisabled]="!isDragDropEnabled()"
     [cdkDragData]="order"
+    [cdkDragStartDelay]="200"
+    [cdkDragLockAxis]="'y'"
   ></tr>
   <tr
     mat-row
