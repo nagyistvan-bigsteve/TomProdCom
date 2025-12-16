@@ -1,4 +1,5 @@
 {
+  "TEST": "test text",
   "LANGUAGE": {
     "SWITCH_LABEL": "Schimbă limba",
     "CURRENCY": "RON"

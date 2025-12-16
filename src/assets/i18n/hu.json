@@ -1,4 +1,5 @@
 {
+  "TEST": "test text",
   "LANGUAGE": {
     "SWITCH_LABEL": "Válts nyelvet",
     "CURRENCY": "RON"
