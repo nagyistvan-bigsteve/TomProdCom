@@ -5,7 +5,7 @@
         <input
           matInput
           type="text"
-          placeholder="Search product..."
+          [placeholder]="'WORDS.SEARCH' | translate"
           (input)="searchValue.set($any($event.target).value)"
         />
       </mat-form-field>
