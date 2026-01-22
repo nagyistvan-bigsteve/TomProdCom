@@ -23,6 +23,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { PricesService } from '../../../services/query-services/prices.service';
 
 @Component({
   selector: 'app-change-prices',
@@ -70,6 +71,8 @@ export class ChangePricesComponent implements OnInit {
   isNewPrice: boolean = false;
 
   private readonly productService = inject(ProductsService);
+  private readonly pricesService = inject(PricesService);
+  private readonly priceService = inject(PricesService);
 
   ngOnInit(): void {
     this.setUpPrices();
@@ -98,14 +101,14 @@ export class ChangePricesComponent implements OnInit {
     this.searchControl.valueChanges.subscribe((value) => {
       const filterValue = (value ?? '').toLowerCase();
       this.displayedList = this.unicPriceList.filter((item) =>
-        item.product.name.toLowerCase().includes(filterValue)
+        item.product.name.toLowerCase().includes(filterValue),
       );
     });
   }
 
   onFilterChange(): void {
     if (this.selectedSize !== undefined && this.selectedCategory) {
-      this.productService
+      this.priceService
         .getPrice(Unit_id.M3, this.selectedCategory, this.selectedSize)
         .then((price) => {
           this.isNewPrice = false;
@@ -121,8 +124,8 @@ export class ChangePricesComponent implements OnInit {
                   this.productsInFilterRange = products.filter(
                     (product) =>
                       !this.unicPriceList.some(
-                        (ex) => ex.product.id === product.id
-                      )
+                        (ex) => ex.product.id === product.id,
+                      ),
                   );
                 }
               });
@@ -136,8 +139,8 @@ export class ChangePricesComponent implements OnInit {
       this.selectedPriceType === 'unic'
         ? this.selectedUnicItem.price
         : this.selectedCurrentPrice
-        ? this.selectedCurrentPrice!.id
-        : 0;
+          ? this.selectedCurrentPrice!.id
+          : 0;
     if (event !== currentPrice) {
       this.isNewPrice = true;
       this.actualPrice = event;
@@ -151,19 +154,19 @@ export class ChangePricesComponent implements OnInit {
       if (this.selectedPriceType !== 'unic' && !this.selectedCurrentPrice) {
         this.addNewPrice();
       } else {
-        this.productService
+        this.pricesService
           .changePrice(
             this.selectedPriceType === 'unic'
               ? this.selectedUnicItem.id
               : this.selectedCurrentPrice!.id,
-            this.actualPrice
+            this.actualPrice,
           )
           .then(() => {
             this.selectedCurrentPrice!.price = this.actualPrice;
             this.isNewPrice = false;
 
             if (this.selectedPriceType === 'unic') {
-              this.productService.getUnicPriceList().then((prices) => {
+              this.pricesService.getUnicPriceList().then((prices) => {
                 this.unicPriceList = prices;
                 this.selectedUnicItem = {
                   id: this.selectedUnicItem.id,
@@ -194,7 +197,7 @@ export class ChangePricesComponent implements OnInit {
           : undefined,
     };
 
-    this.productService.addPrice(price as Price2).then(() => {
+    this.pricesService.addPrice(price as Price2).then(() => {
       this.selectedPriceType === 'new'
         ? this.setUpPrices()
         : this.onFilterChange();
@@ -213,12 +216,12 @@ export class ChangePricesComponent implements OnInit {
   }
 
   private setUnicPriceList(): void {
-    this.productService.getUnicPriceList().then((prices) => {
+    this.pricesService.getUnicPriceList().then((prices) => {
       this.unicPriceList = prices;
       this.unicPriceList.sort((a, b) =>
         a.product.name.localeCompare(b.product.name, undefined, {
           sensitivity: 'base',
-        })
+        }),
       );
 
       if (this.selectedUnicItem) {
@@ -235,10 +238,10 @@ export class ChangePricesComponent implements OnInit {
   private setProductsWithoutPricesList(): void {
     this.selectedNewProduct = null;
 
-    this.productService.getProductsWithoutPrice().then((products) => {
+    this.pricesService.getProductsWithoutPrice().then((products) => {
       this.productsWithoutPrices = products;
       this.productsWithoutPrices.sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+        a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
       );
 
       if (
@@ -252,7 +255,7 @@ export class ChangePricesComponent implements OnInit {
 
   private enumToArray(
     enumObj: any,
-    excludeKeys: string[] = []
+    excludeKeys: string[] = [],
   ): { key: string; value: number }[] {
     return Object.keys(enumObj)
       .filter((key) => isNaN(Number(key)) && !excludeKeys.includes(key))

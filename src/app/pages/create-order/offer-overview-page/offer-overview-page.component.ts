@@ -13,13 +13,13 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
-import { SelectedProductListComponent } from '../../components/product/selected-product-list/selected-product-list.component';
-import { ClientDetailsComponent } from '../../components/client/client-details/client-details.component';
+import { SelectedProductListComponent } from '../../../components/product/selected-product-list/selected-product-list.component';
+import { ClientDetailsComponent } from '../../../components/client/client-details/client-details.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { useProductStore } from '../../services/store/product-store';
-import { useClientStore } from '../../services/store/client-store';
-import { useAuthStore } from '../../services/store/auth-store';
-import { OrdersService } from '../../services/query-services/orders.service';
+import { useProductStore } from '../../../services/store/product-store';
+import { useClientStore } from '../../../services/store/client-store';
+import { useAuthStore } from '../../../services/store/auth-store';
+import { OrdersService } from '../../../services/query-services/orders.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -27,13 +27,13 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Category, ClientType, Unit_id } from '../../models/enums';
+import { Category, ClientType, Unit_id } from '../../../models/enums';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Price2 } from '../../models/models';
-import { ENTER_AND_LEAVE_ANIMATION } from '../../models/animations';
-import { ProductUtil } from '../../services/utils/product.util';
+import { Price2 } from '../../../models/models';
+import { ENTER_AND_LEAVE_ANIMATION } from '../../../models/animations';
+import { ProductUtil } from '../../../services/utils/product.util';
 
 @Component({
   selector: 'app-offer-overview',
@@ -86,7 +86,7 @@ export class OfferOverviewPageComponent {
   voucher: string = '';
   justOffer: boolean = false;
   expectedDeliveryDate: Date = new Date(
-    this.currentDate.getTime() + 3 * 24 * 60 * 60 * 1000
+    this.currentDate.getTime() + 3 * 24 * 60 * 60 * 1000,
   );
   untilDeliveryDate: boolean = false;
   forFirstHour: boolean = false;
@@ -125,7 +125,7 @@ export class OfferOverviewPageComponent {
     this.usedPriceCategories = this.usedPriceCategories.map((p) =>
       p.category === category && p.unit === unit
         ? { ...p, discount: p.discount + discount }
-        : p
+        : p,
     );
   }
 
@@ -141,29 +141,29 @@ export class OfferOverviewPageComponent {
     prices.forEach((price) => {
       if (
         !this.usedPriceCategories.find(
-          (p) => p.category === price.category_id && p.unit === price.unit_id
+          (p) => p.category === price.category_id && p.unit === price.unit_id,
         )
       ) {
         let actualPrice: number[] = [];
         let exactCategory = prices.filter(
           (p) =>
-            p.category_id === price.category_id && p.unit_id === price.unit_id
+            p.category_id === price.category_id && p.unit_id === price.unit_id,
         );
 
         exactCategory = exactCategory.filter(
           (obj, index, self) =>
-            index === self.findIndex((t) => t.price === obj.price)
+            index === self.findIndex((t) => t.price === obj.price),
         );
 
         exactCategory.forEach((catPrice) => {
           if (catPrice.product_id) {
             if (catPrice.unit_id === Unit_id.BOUNDLE) {
               actualPrice.push(
-                isClientPJ ? catPrice.price - 5 : catPrice.price
+                isClientPJ ? catPrice.price - 5 : catPrice.price,
               );
             } else if (catPrice.unit_id === Unit_id.M3) {
               actualPrice.push(
-                isClientPJ ? catPrice.price - 100 : catPrice.price
+                isClientPJ ? catPrice.price - 100 : catPrice.price,
               );
             } else {
               actualPrice.push(catPrice.price);
@@ -171,7 +171,7 @@ export class OfferOverviewPageComponent {
           } else {
             if (catPrice.unit_id === Unit_id.M3) {
               actualPrice.push(
-                isClientPJ ? catPrice.price - 100 : catPrice.price
+                isClientPJ ? catPrice.price - 100 : catPrice.price,
               );
             }
           }
@@ -182,11 +182,11 @@ export class OfferOverviewPageComponent {
           unit: price.unit_id,
           price: actualPrice,
           discount: copyForDiscount.find(
-            (p) => p.category === price.category_id && p.unit === price.unit_id
+            (p) => p.category === price.category_id && p.unit === price.unit_id,
           )
             ? copyForDiscount.find(
                 (p) =>
-                  p.category === price.category_id && p.unit === price.unit_id
+                  p.category === price.category_id && p.unit === price.unit_id,
               )!.discount
             : 0,
         });
@@ -216,10 +216,10 @@ export class OfferOverviewPageComponent {
     this.usedPriceCategories.forEach((p) => {
       if (p.discount) {
         let category = this.translateService.instant(
-          'OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY.' + p.category
+          'OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY.' + p.category,
         );
         let unit = this.translateService.instant(
-          'OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.' + p.unit
+          'OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.' + p.unit,
         );
 
         this.comment +=
@@ -252,7 +252,7 @@ export class OfferOverviewPageComponent {
               totalOrderQuantity,
               this.justOffer,
               this.delivery_address,
-              this.deliveryFee
+              this.deliveryFee,
             )
             .then(() => {
               this.productStore.deleteProductItems();
@@ -275,7 +275,7 @@ export class OfferOverviewPageComponent {
 
   getTotalQuantity(): number {
     return this.productUtil.calculateTotalQuantity(
-      this.productStore.productItems()
+      this.productStore.productItems(),
     );
   }
 }

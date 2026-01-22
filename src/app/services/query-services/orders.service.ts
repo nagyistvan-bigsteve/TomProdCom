@@ -37,9 +37,9 @@ export class OrdersService {
     voucher,
     operator:operator_id ( id, name ),
     delivery_address
-    `
+    `,
         )
-        .eq('just_offer', justOffers)
+        .eq('just_offer', justOffers),
     ).pipe(
       map(({ data }) =>
         (data ?? []).map(
@@ -73,13 +73,13 @@ export class OrdersService {
             comment: order.comment,
             voucher: order.voucher,
             delivery_address: order.delivery_address,
-          })
-        )
+          }),
+        ),
       ),
       catchError((error) => {
         console.error('Error fetching orders:', error);
         return of([]);
-      })
+      }),
     );
   }
 
@@ -91,7 +91,7 @@ export class OrdersService {
 
     const { error } = await this.supabaseService.client.rpc(
       'update_order_sort_orders',
-      { items: updates }
+      { items: updates },
     );
 
     if (error) {
@@ -114,9 +114,9 @@ export class OrdersService {
           category:category_id!inner (name), 
           price, 
           item_status,
-          packs_pieces`
+          packs_pieces`,
         )
-        .eq('order_id', id)
+        .eq('order_id', id),
     ).pipe(
       map(({ data }) => {
         return (data ?? []).map(
@@ -133,20 +133,20 @@ export class OrdersService {
                   thickness: 0,
                 },
             orderId: orderItem.order_id,
-            quantity: orderItem.quantity,
+            quantity: +orderItem.quantity,
             category: Array.isArray(orderItem.category)
               ? orderItem.category[0]
               : orderItem.category || { name: '' },
             price: orderItem.price,
             itemStatus: orderItem.item_status,
             packsPieces: orderItem.packs_pieces,
-          })
+          }),
         );
       }),
       catchError((error) => {
         console.error('Error fetching order items:', error);
         return of([]);
-      })
+      }),
     );
   }
 
@@ -163,7 +163,7 @@ export class OrdersService {
       total_amount: number;
       total_amount_final: number;
       total_quantity: number;
-    }>
+    }>,
   ): Promise<boolean> {
     const { error: itemError } = await this.supabaseService.client
       .from('order_items')
@@ -190,14 +190,14 @@ export class OrdersService {
 
   async addOrderItem(
     order: OrderResponse,
-    item: Partial<OrderItemsResponse>
+    item: Partial<OrderItemsResponse>,
   ): Promise<boolean> {
     const { error: insertError } = await this.supabaseService.client
       .from('order_items')
       .insert({
         product_id: item.product?.id,
         order_id: order.id,
-        quantity: item.quantity,
+        quantity: +item.quantity!,
         category_id: item.category?.name,
         price: item.price,
         item_status: false,
@@ -230,7 +230,7 @@ export class OrdersService {
     id: number,
     totalAmount: number,
     totalFinalAmount: number,
-    totalQuantity: number
+    totalQuantity: number,
   ): Promise<boolean> {
     const { error: updateError } = await this.supabaseService.client
       .from('orders')
@@ -244,7 +244,7 @@ export class OrdersService {
     if (updateError) {
       console.error(
         'Failed to update the order after item deletion',
-        updateError
+        updateError,
       );
       return false;
     }
@@ -338,18 +338,18 @@ export class OrdersService {
             this.supabaseService.client
               .from('order_items')
               .delete()
-              .eq('order_id', id)
+              .eq('order_id', id),
           );
         }),
         switchMap(() => {
           return from(
-            this.supabaseService.client.from('orders').delete().eq('id', id)
+            this.supabaseService.client.from('orders').delete().eq('id', id),
           );
         }),
         catchError((error) => {
           console.error('Error deleting order or items:', error);
           return of(null);
-        })
+        }),
       )
       .subscribe();
   }
@@ -368,7 +368,7 @@ export class OrdersService {
     total_quantity: number,
     just_offer: boolean,
     delivery_address: string,
-    delivery_fee: number
+    delivery_fee: number,
   ) {
     const currentDate = new Date();
 
@@ -397,7 +397,7 @@ export class OrdersService {
       const exactOrderItems: ExactOrderItem[] = productItems.map((item) => ({
         product_id: item.product.id,
         order_id: data.id,
-        quantity: item.quantity,
+        quantity: +item.quantity,
         category_id: item.category,
         price: item.price,
         packs_pieces:

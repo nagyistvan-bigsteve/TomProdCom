@@ -1,19 +1,19 @@
 import { Component, DestroyRef, inject } from '@angular/core';
-import { ProductSelectComponent } from '../../components/product/product-list/product-list.component';
-import { Product, ProductItem } from '../../models/models';
+import { ProductSelectComponent } from '../../../components/product/product-list/product-list.component';
+import { Product, ProductItem } from '../../../models/models';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { SelectedProductComponent } from '../../components/product/selected-product/selected-product.component';
+import { SelectedProductComponent } from '../../../components/product/selected-product/selected-product.component';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import { ENTER_ANIMATION, LEAVE_ANIMATION } from '../../models/animations';
-import { SelectedProductListComponent } from '../../components/product/selected-product-list/selected-product-list.component';
-import { OverwriteDialogComponent } from '../../components/product/overwrite-dialog/overwrite-dialog.component';
+import { ENTER_ANIMATION, LEAVE_ANIMATION } from '../../../models/animations';
+import { SelectedProductListComponent } from '../../../components/product/selected-product-list/selected-product-list.component';
+import { OverwriteDialogComponent } from '../../../components/product/overwrite-dialog/overwrite-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { useProductStore } from '../../services/store/product-store';
+import { useProductStore } from '../../../services/store/product-store';
 import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
@@ -54,7 +54,7 @@ export class CreateOfferPageComponent {
       .find(
         (product) =>
           product.category === item.category &&
-          product.product.name === item.product.name
+          product.product.name === item.product.name,
       );
 
     if (existingProduct) {
@@ -77,8 +77,8 @@ export class CreateOfferPageComponent {
             this.productStore.setProductItems(productList);
             this.openSnackBar(
               this.translateService.instant(
-                'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.OVERWRITE'
-              ) + item.product.name
+                'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.OVERWRITE',
+              ) + item.product.name,
             );
           } else if (result === 'add') {
             existingProduct.quantity += item.quantity;
@@ -112,13 +112,13 @@ export class CreateOfferPageComponent {
             this.productStore.updateProductItem(
               existingProduct.product.id,
               existingProduct.category,
-              existingProduct
+              existingProduct,
             );
 
             this.openSnackBar(
               this.translateService.instant(
-                'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.ADD'
-              ) + item.product.name
+                'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.ADD',
+              ) + item.product.name,
             );
           }
         });
@@ -127,8 +127,8 @@ export class CreateOfferPageComponent {
 
       this.openSnackBar(
         this.translateService.instant(
-          'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.ADD'
-        ) + item.product.name
+          'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.ADD',
+        ) + item.product.name,
       );
     }
   }

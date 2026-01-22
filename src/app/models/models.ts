@@ -20,8 +20,22 @@ export type Product = {
 export type Stock = {
   id: number;
   product_id: number;
-  category_id: Category;
   stock: number;
+  booked_stock: number;
+};
+
+export type ProductWithStock = {
+  id: number;
+  name: string;
+  unit_id: Unit_id;
+  size_id: Size_id;
+  thickness: number;
+  width: number;
+  length: number;
+  m2_util: number;
+  m2_brut: number;
+  piece_per_pack: number;
+  stock: Stock;
 };
 
 export type ProductItems = ProductItem[];

@@ -15,7 +15,8 @@
   "OFFER_PAGE": {
     "FIRST_STEP": {
       "TITLE": "Hozz létre egy új rendelést!",
-      "START_BUTTON": "Kezdés!"
+      "START_BUTTON": "Kezdés!",
+      "PRODUCTS": "Készlet lista"
     },
     "CREATE_OFFER": {
       "UNIT_FILTER": {
@@ -86,7 +87,8 @@
   },
   "WORDS": {
     "TOTAL": "Totál",
-    "VOUCHER": "Voucher"
+    "VOUCHER": "Voucher",
+    "M3": "m³"
   },
   "OVERVIEW_PAGE": {
     "BUTTONS": {

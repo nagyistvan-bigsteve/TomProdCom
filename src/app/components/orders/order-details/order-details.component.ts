@@ -49,6 +49,7 @@ import html2canvas from 'html2canvas';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { FilterUtil } from '../../../services/utils/filter.util';
+import { PricesService } from '../../../services/query-services/prices.service';
 
 @Component({
   selector: 'app-order-details',
@@ -140,6 +141,7 @@ export class OrderDetailsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly orderService = inject(OrdersService);
   private readonly productService = inject(ProductsService);
+  private readonly pricesService = inject(PricesService);
   private readonly productUtil = inject(ProductUtil);
   private readonly clientService = inject(ClientsService);
   private readonly clientStore = inject(useClientStore);
@@ -207,7 +209,7 @@ export class OrderDetailsComponent implements OnInit {
         contentElement,
         footerElement,
         dataContainerElement,
-        tableElement
+        tableElement,
       );
 
       const {
@@ -226,7 +228,7 @@ export class OrderDetailsComponent implements OnInit {
         contentCanvas,
         footerCanvas,
         dataContainerCanvas,
-        tableCanvas
+        tableCanvas,
       );
 
       // Create PDF
@@ -274,7 +276,7 @@ export class OrderDetailsComponent implements OnInit {
         pageCanvas.width = contentCanvas.width;
         pageCanvas.height = Math.min(
           sourceHeight,
-          contentCanvas.height - sourceY
+          contentCanvas.height - sourceY,
         );
 
         if (ctx) {
@@ -290,7 +292,7 @@ export class OrderDetailsComponent implements OnInit {
             0,
             0,
             pageCanvas.width,
-            pageCanvas.height
+            pageCanvas.height,
           );
 
           const pageContentImg = pageCanvas.toDataURL('image/png');
@@ -304,7 +306,7 @@ export class OrderDetailsComponent implements OnInit {
             margin,
             headerHeightMM - 7.5,
             contentWidthMM,
-            pageContentHeight
+            pageContentHeight,
           );
         }
 
@@ -316,7 +318,7 @@ export class OrderDetailsComponent implements OnInit {
           margin,
           footerY,
           pdfWidth - margin * 2,
-          footerHeightMM
+          footerHeightMM,
         );
 
         // Add page number in bottom right corner
@@ -326,7 +328,7 @@ export class OrderDetailsComponent implements OnInit {
           `${pageNum}/${totalPages}`,
           pdfWidth - margin - 15,
           pdfHeight - margin - 3,
-          { align: 'right' }
+          { align: 'right' },
         );
       }
 
@@ -335,7 +337,7 @@ export class OrderDetailsComponent implements OnInit {
         /iPad|iPhone|iPod/.test(navigator.userAgent) &&
         !(window as any).MSStream;
       const isSafari = /^((?!chrome|android).)*safari/i.test(
-        navigator.userAgent
+        navigator.userAgent,
       );
 
       if (isIOS || isSafari) {
@@ -440,10 +442,10 @@ export class OrderDetailsComponent implements OnInit {
     const contentElement = document.getElementById('print-content');
     const footerElement = document.getElementById('print-footer');
     const dataContainerElement = document.querySelector(
-      '.data-container'
+      '.data-container',
     ) as HTMLElement;
     const tableElement = document.querySelector(
-      '.table-breaked'
+      '.table-breaked',
     ) as HTMLElement;
 
     if (
@@ -470,7 +472,7 @@ export class OrderDetailsComponent implements OnInit {
     contentElement: HTMLElement,
     footerElement: HTMLElement,
     dataContainerElement: HTMLElement,
-    tableElement: HTMLElement
+    tableElement: HTMLElement,
   ): Promise<{
     headerCanvas: HTMLCanvasElement;
     contentCanvas: HTMLCanvasElement;
@@ -527,7 +529,7 @@ export class OrderDetailsComponent implements OnInit {
     contentCanvas: HTMLCanvasElement,
     footerCanvas: HTMLCanvasElement,
     dataContainerCanvas: HTMLCanvasElement,
-    tableCanvas: HTMLCanvasElement
+    tableCanvas: HTMLCanvasElement,
   ): {
     pdfWidth: number;
     pdfHeight: number;
@@ -616,7 +618,7 @@ export class OrderDetailsComponent implements OnInit {
         this.selectedProduct,
         this.findExistingCategories()!,
         this.selectedProductQuantity,
-        true
+        true,
       );
 
     let packsPieces = '';
@@ -651,7 +653,7 @@ export class OrderDetailsComponent implements OnInit {
               this.order!.id,
               total.totalAmount,
               total.totalAmountFinal,
-              total.totalQuantity
+              total.totalQuantity,
             );
           }, 250);
         }
@@ -668,7 +670,7 @@ export class OrderDetailsComponent implements OnInit {
             this.order!.id,
             total.totalAmount,
             total.totalAmountFinal,
-            total.totalQuantity
+            total.totalQuantity,
           );
         }, 250);
       }
@@ -679,15 +681,12 @@ export class OrderDetailsComponent implements OnInit {
     this.isProductSelectet = true;
     this.selectedProduct = product;
 
-    this.productService
-      .getPrices(product)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((prices) => {
-        if (prices) {
-          this.selectedProductPrice = prices;
-          this.findExistingCategories();
-        }
-      });
+    this.pricesService.getPricesForProduct(product).then((prices) => {
+      if (prices) {
+        this.selectedProductPrice = prices;
+        this.findExistingCategories();
+      }
+    });
   }
 
   findExistingCategories(): undefined | number {
@@ -699,14 +698,14 @@ export class OrderDetailsComponent implements OnInit {
 
     this.enableCategory.forEach((categoryItem) => {
       categoryItem.enable = this.selectedProductPrice!.find(
-        (price) => price.category_id === categoryItem.category
+        (price) => price.category_id === categoryItem.category,
       )?.price
         ? true
         : false;
     });
 
     const price = this.selectedProductPrice!.find(
-      (price) => price.category_id === this.selectedCategory
+      (price) => price.category_id === this.selectedCategory,
     );
 
     if (price) {
@@ -732,7 +731,7 @@ export class OrderDetailsComponent implements OnInit {
   filter(): void {
     this.filteredOptions = this.filterUtil.productFilter(
       this.input,
-      this.products
+      this.products,
     );
   }
 
@@ -753,7 +752,7 @@ export class OrderDetailsComponent implements OnInit {
             this.snackBar.open(
               translations['SNACKBAR.GENERAL.UPDATE_ERROR'],
               translations['SNACKBAR.BUTTONS.CLOSE'],
-              { duration: 3000 }
+              { duration: 3000 },
             );
           });
         return;
@@ -790,7 +789,7 @@ export class OrderDetailsComponent implements OnInit {
       .subscribe((result) => {
         if (result === true) {
           const productIds: number[] = this.orderItems!.map(
-            (item) => item.product.id
+            (item) => item.product.id,
           );
           this.clientService.getClientById(order.client.id).then((client) => {
             if (!client) {
@@ -806,14 +805,14 @@ export class OrderDetailsComponent implements OnInit {
                   (item) => {
                     return {
                       product: products.find(
-                        (product) => product.id === item.product.id
+                        (product) => product.id === item.product.id,
                       )!,
                       quantity: item.quantity,
                       price: item.price,
                       category:
                         Category[item.category.name as keyof typeof Category],
                     };
-                  }
+                  },
                 );
                 this.clientStore.setClient(client);
                 this.productStore.setProductItems(productItems);
@@ -851,7 +850,7 @@ export class OrderDetailsComponent implements OnInit {
             this.snackBar.open(
               translations['SNACKBAR.ORDER.UPDATE_SUCCESS'],
               translations['SNACKBAR.BUTTONS.CLOSE'],
-              { duration: 3000 }
+              { duration: 3000 },
             );
           });
         this.closeDetails.emit();
@@ -862,7 +861,7 @@ export class OrderDetailsComponent implements OnInit {
             this.snackBar.open(
               translations['SNACKBAR.GENERAL.UPDATE_ERROR'],
               translations['SNACKBAR.BUTTONS.CLOSE'],
-              { duration: 3000 }
+              { duration: 3000 },
             );
           });
       }
@@ -932,7 +931,7 @@ export class OrderDetailsComponent implements OnInit {
       }).format(
         ((item.product.width * item.product.thickness * item.product.length) /
           1000000) *
-          item.quantity
+          item.quantity,
       );
 
       if (item.product.unit_id === Unit_id.BOUNDLE) {

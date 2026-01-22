@@ -10,7 +10,7 @@ export class ProductUtil {
     product: Product,
     price: number,
     quantity: number,
-    m2_isBrut?: boolean
+    m2_isBrut?: boolean,
   ): {
     price: number;
     packsNeeded: number;
@@ -51,7 +51,7 @@ export class ProductUtil {
       let m2_unit = m2_isBrut ? product.m2_brut : product.m2_util;
 
       totalPiecesNeeded = Math.ceil(
-        +quantity / (m2_unit / product.piece_per_pack)
+        +quantity / (m2_unit / product.piece_per_pack),
       );
 
       packsNeeded = Math.floor(totalPiecesNeeded / product.piece_per_pack);
@@ -67,6 +67,15 @@ export class ProductUtil {
       extraPiecesNeeded,
       totalPiecesNeeded,
     };
+  }
+
+  calculateM3Quantity(product: Product, buc: number): number {
+    const { unit_id, width, thickness, length } = product;
+
+    const volumeM3 = (width * thickness * length) / 1_000_000;
+    const multiplier = unit_id === Unit_id.BOUNDLE ? 10 : 1;
+
+    return buc * volumeM3 * multiplier;
   }
 
   calculateTotalQuantity(products: ProductItems): number {

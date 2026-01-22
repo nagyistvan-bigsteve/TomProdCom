@@ -21,6 +21,8 @@ import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ProductUtil } from '../../../services/utils/product.util';
+import { StocksService } from '../../../services/query-services/stocks.service';
+import { PricesService } from '../../../services/query-services/prices.service';
 
 @Component({
   selector: 'app-selected-product',
@@ -53,6 +55,8 @@ export class SelectedProductComponent implements OnChanges {
   totalPiecesNeeded: number = 0;
 
   private productService = inject(ProductsService);
+  private pricesService = inject(PricesService);
+  private stocksService = inject(StocksService);
   private destroyRef = inject(DestroyRef);
   private snackBar = inject(MatSnackBar);
   private translateService = inject(TranslateService);
@@ -103,48 +107,45 @@ export class SelectedProductComponent implements OnChanges {
   }
 
   fetchPrices(product: Product): void {
-    this.productService
-      .getPrices(product)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(
-        (prices) => {
+    this.pricesService.getPricesForProduct(product).then(
+      (prices) => {
+        if (prices) {
           this.prices = prices;
 
           this.selectedCategory = prices.find(
-            (price) => price.category_id === Category.A
+            (price) => price.category_id === Category.A,
           )
             ? Category.A
             : prices[0].category_id;
           this.selectedPrice = this.prices.find(
-            (price) => price.category_id === this.selectedCategory
+            (price) => price.category_id === this.selectedCategory,
           );
           this.calculatePrice();
           this.fetchStock(this.selectedProduct!);
-        },
-        () => {
-          this.fetchPrices(product);
         }
-      );
+      },
+      () => {
+        this.fetchPrices(product);
+      },
+    );
   }
 
   fetchStock(product: Product): void {
-    this.productService
-      .getProductStock(product.id, this.selectedCategory)
-      .then((stock) => {
-        this.currentStock = stock;
+    this.stocksService.getProductStock(product.id).then((stock) => {
+      this.currentStock = stock;
 
-        if (this.currentStock!.stock <= 0) {
-          this.translateService
-            .get(['SNACKBAR.PRODUCT.OUT_OF_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
-            .subscribe((translations) => {
-              this.snackBar.open(
-                translations['SNACKBAR.PRODUCT.OUT_OF_STOCK'],
-                translations['SNACKBAR.BUTTONS.CLOSE'],
-                { duration: 4500, panelClass: 'danger-snackbar' }
-              );
-            });
-        }
-      });
+      if (this.currentStock!.stock <= 0) {
+        this.translateService
+          .get(['SNACKBAR.PRODUCT.OUT_OF_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
+          .subscribe((translations) => {
+            this.snackBar.open(
+              translations['SNACKBAR.PRODUCT.OUT_OF_STOCK'],
+              translations['SNACKBAR.BUTTONS.CLOSE'],
+              { duration: 4500, panelClass: 'danger-snackbar' },
+            );
+          });
+      }
+    });
   }
 
   validateInput() {
@@ -177,7 +178,7 @@ export class SelectedProductComponent implements OnChanges {
 
   onCategoryChange(): void {
     this.selectedPrice = this.prices.find(
-      (price) => price.category_id === this.selectedCategory
+      (price) => price.category_id === this.selectedCategory,
     );
 
     this.fetchStock(this.selectedProduct!);
@@ -193,7 +194,7 @@ export class SelectedProductComponent implements OnChanges {
           this.snackBar.open(
             translations['SNACKBAR.PRODUCT.OUT_OF_STOCK'],
             translations['SNACKBAR.BUTTONS.CLOSE'],
-            { duration: 3000, panelClass: 'danger-snackbar' }
+            { duration: 3000, panelClass: 'danger-snackbar' },
           );
         });
     }
@@ -210,7 +211,7 @@ export class SelectedProductComponent implements OnChanges {
         this.selectedProduct!,
         this.selectedPrice?.price!,
         +this.quantity,
-        this.m2_isBrut
+        this.m2_isBrut,
       );
 
     this.calculatedPrice = price;

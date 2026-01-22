@@ -29,6 +29,7 @@ import { MatInputModule } from '@angular/material/input';
 import { ENTER_AND_LEAVE_ANIMATION } from '../../../models/animations';
 import { ProductsService } from '../../../services/query-services/products.service';
 import { Category } from '../../../models/enums';
+import { StocksService } from '../../../services/query-services/stocks.service';
 
 @Component({
   selector: 'app-coming-wares-details',
@@ -67,25 +68,25 @@ export class ComingWaresDetailsComponent {
   readonly #comingWaresService = inject(ComingWaresService);
   readonly #destroyRef = inject(DestroyRef);
   readonly #dialog = inject(MatDialog);
-  readonly #productService = inject(ProductsService);
+  readonly #stocksService = inject(StocksService);
 
   itemsForOrder = computed(() =>
     this.comingWaresItems()
       .filter((item) => item.for_order)
-      .sort((a, b) => a.id - b.id)
+      .sort((a, b) => a.id - b.id),
   );
 
   itemsForStock = computed(() =>
     this.comingWaresItems()
       .filter((item) => !item.for_order)
-      .sort((a, b) => a.id - b.id)
+      .sort((a, b) => a.id - b.id),
   );
 
   ngOnInit(): void {
     this.isLoading.set(true);
     this.id.set(+this.#route.snapshot.paramMap.get('id')!);
     this.isVerified.set(
-      this.#route.snapshot.paramMap.get('verified')! === 'true'
+      this.#route.snapshot.paramMap.get('verified')! === 'true',
     );
 
     this.#comingWaresService
@@ -110,10 +111,9 @@ export class ComingWaresDetailsComponent {
           this.#comingWaresService.verifyComingWares(this.id()).then(() => {
             this.comingWaresItems().forEach((item) => {
               if (!item.for_order && item.is_correct) {
-                this.#productService.addToProductStock(
+                this.#stocksService.addToProductStock(
                   item.product.id,
-                  Category[item.category.name as keyof typeof Category],
-                  item.quantity
+                  item.quantity,
                 );
               }
             });
@@ -165,8 +165,8 @@ export class ComingWaresDetailsComponent {
 
     this.comingWaresItems.update((currentItems) =>
       currentItems.map((item) =>
-        item.id === id ? { ...item, is_correct: isCorrect } : item
-      )
+        item.id === id ? { ...item, is_correct: isCorrect } : item,
+      ),
     );
   }
 
@@ -179,8 +179,8 @@ export class ComingWaresDetailsComponent {
             currentItems.map((item) =>
               item.id === this.selectedItemId()
                 ? { ...item, comment: this.commentText() }
-                : item
-            )
+                : item,
+            ),
           );
         }
 

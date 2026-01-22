@@ -29,6 +29,7 @@ import { ProductUtil } from '../../../services/utils/product.util';
 import { FormsModule } from '@angular/forms';
 import { useClientStore } from '../../../services/store/client-store';
 import { ENTER_ANIMATION } from '../../../models/animations';
+import { PricesService } from '../../../services/query-services/prices.service';
 
 @Component({
   selector: 'app-selected-product-list',
@@ -75,6 +76,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
   private location = inject(Location);
   private destroyRef = inject(DestroyRef);
   private productService = inject(ProductsService);
+  private pricesService = inject(PricesService);
   private productUtil = inject(ProductUtil);
   readonly productStore = inject(useProductStore);
   readonly clientStore = inject(useClientStore);
@@ -152,7 +154,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
             item.product,
             newPrice,
             this.editableQuantity!,
-            true
+            true,
           );
 
         const updates: Partial<ProductItem> = {
@@ -165,7 +167,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
         this.productStore.updateProductItem(
           item.product.id,
           item.category,
-          updates
+          updates,
         );
 
         this.editingItem = null;
@@ -183,7 +185,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
           item.product.id,
           item.category,
           item.quantity,
-          price
+          price,
         );
 
         this.editingItem = null;
@@ -263,7 +265,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
 
     this.productStore.productItems().forEach((item) => {
       const unicPrice = this.prices.find(
-        (price) => price.product_id === item.product.id
+        (price) => price.product_id === item.product.id,
       );
 
       let exactPrice = unicPrice
@@ -271,13 +273,13 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
             (price) =>
               price.category_id === item.category &&
               price.unit_id === item.product.unit_id &&
-              price.product_id === item.product.id
+              price.product_id === item.product.id,
           )
         : this.prices.find(
             (price) =>
               price.category_id === item.category &&
               price.size_id === item.product.size_id &&
-              price.unit_id === item.product.unit_id
+              price.unit_id === item.product.unit_id,
           );
 
       if (!exactPrice) {
@@ -305,7 +307,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
   }
 
   private fetchPrices(): void {
-    this.productService.getAllPrices().then((prices) => {
+    this.pricesService.getAllPrices().then((prices) => {
       if (!prices) {
         return;
       }
@@ -334,7 +336,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
       item.product,
       newPrice,
       item.quantity,
-      true
+      true,
     ).price;
 
     return calculatedNewPrice;
@@ -350,7 +352,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
         item.product,
         newPrice,
         item.quantity,
-        true
+        true,
       ).price;
 
       this.productStore.updateProductItem(item.product.id, item.category, {
@@ -368,7 +370,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
       this.clientStore.client()?.type === ClientType.PJ;
 
     const unicPrice = this.prices.find(
-      (price) => price.product_id === item.product.id
+      (price) => price.product_id === item.product.id,
     );
 
     let exactPrice = unicPrice
@@ -376,13 +378,13 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
           (price) =>
             price.category_id === newCategory &&
             price.unit_id === item.product.unit_id &&
-            price.product_id === item.product.id
+            price.product_id === item.product.id,
         )?.price
       : this.prices.find(
           (price) =>
             price.category_id === newCategory &&
             price.size_id === item.product.size_id &&
-            price.unit_id === item.product.unit_id
+            price.unit_id === item.product.unit_id,
         )?.price;
 
     if (isClientPJ && exactPrice) {
@@ -396,7 +398,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
 
     if (this.discount.length) {
       let discount = this.discount.find(
-        (d) => d.category === newCategory && d.unit === item.product.unit_id
+        (d) => d.category === newCategory && d.unit === item.product.unit_id,
       )?.discount;
       if (discount) {
         exactPrice! += discount;

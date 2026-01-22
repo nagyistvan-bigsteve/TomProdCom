@@ -25,10 +25,10 @@ import {
 import { TranslateModule } from '@ngx-translate/core';
 import { ENTER_AND_LEAVE_ANIMATION } from '../../../models/animations';
 import { MatButtonModule } from '@angular/material/button';
-import { Category } from '../../../models/enums';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FilterUtil } from '../../../services/utils/filter.util';
+import { StocksService } from '../../../services/query-services/stocks.service';
 
 @Component({
   selector: 'app-update-products',
@@ -54,6 +54,7 @@ export class UpdateProductsComponent implements OnInit {
   updateStock: boolean = false;
 
   private readonly productService = inject(ProductsService);
+  private readonly stocksService = inject(StocksService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
   private filterUtil = inject(FilterUtil);
@@ -61,8 +62,6 @@ export class UpdateProductsComponent implements OnInit {
   products: Products = [];
   filteredOptions: Products = [];
 
-  categoryEnum = Category;
-  selectedCategory: Category = Category.A;
   selectedProduct: any = {
     id: null,
     name: '',
@@ -95,14 +94,13 @@ export class UpdateProductsComponent implements OnInit {
   currentStock: Stock = {
     id: 0,
     product_id: 0,
-    category_id: Category.A,
     stock: 0,
+    booked_stock: 0,
   };
 
   stockForm = this.fb.group({
     id: [this.currentStock?.id],
     product_id: [this.currentStock?.product_id],
-    category_id: [this.currentStock?.category_id],
     stock: [this.currentStock?.stock],
   });
 
@@ -119,16 +117,16 @@ export class UpdateProductsComponent implements OnInit {
       });
   }
 
-  fetchProductStock(productId: number, category: Category): void {
-    this.productService.getProductStock(productId, category).then((stock) => {
+  fetchProductStock(productId: number): void {
+    this.stocksService.getProductStock(productId).then((stock) => {
       if (stock) {
         this.currentStock = stock;
       } else {
         this.currentStock = {
           id: 0,
           product_id: productId,
-          category_id: category,
           stock: 0,
+          booked_stock: 0,
         };
       }
     });
@@ -139,30 +137,21 @@ export class UpdateProductsComponent implements OnInit {
     this.selectedProduct = product;
 
     if (this.updateStock) {
-      this.fetchProductStock(product.id, this.selectedCategory);
+      this.fetchProductStock(product.id);
     }
-  }
-
-  onCategoryChange(): void {
-    if (!this.isProductSelectet) {
-      return;
-    }
-
-    this.fetchProductStock(this.selectedProduct.id, this.selectedCategory);
   }
 
   onStockSave() {
     if (this.currentStock.id) {
-      this.productService.updateStock(
+      this.stocksService.updateStock(
         this.currentStock.id,
-        this.currentStock.stock
+        this.currentStock.stock,
       );
     } else {
-      this.productService
+      this.stocksService
         .addStock({
           stock: this.currentStock.stock,
           product_id: this.currentStock.product_id,
-          category_id: this.currentStock.category_id,
         })
         .then((response) => {
           if (response) {
@@ -185,7 +174,7 @@ export class UpdateProductsComponent implements OnInit {
   filter(): void {
     this.filteredOptions = this.filterUtil.productFilter(
       this.input,
-      this.products
+      this.products,
     );
   }
 

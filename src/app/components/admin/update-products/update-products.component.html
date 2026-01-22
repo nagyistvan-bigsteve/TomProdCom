@@ -15,50 +15,6 @@
 
 <div class="px-3">
   <form class="w-100">
-    @if (updateStock) {
-    <mat-chip-listbox
-      class="ms-2"
-      [(ngModel)]="selectedCategory"
-      (ngModelChange)="onCategoryChange()"
-      [hideSingleSelectionIndicator]="true"
-      [ngModelOptions]="{ standalone: true }"
-    >
-      <mat-chip-option
-        [value]="categoryEnum.A"
-        [selected]="categoryEnum.A === selectedCategory"
-        [disabled]="categoryEnum.A === selectedCategory"
-        >{{
-          "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.A | translate
-        }}</mat-chip-option
-      >
-      <mat-chip-option
-        [value]="categoryEnum.AB"
-        [selected]="categoryEnum.AB === selectedCategory"
-        [disabled]="categoryEnum.AB === selectedCategory"
-        >{{
-          "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.AB
-            | translate
-        }}</mat-chip-option
-      >
-      <mat-chip-option
-        [value]="categoryEnum.B"
-        [selected]="categoryEnum.B === selectedCategory"
-        [disabled]="categoryEnum.B === selectedCategory"
-        >{{
-          "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.B | translate
-        }}</mat-chip-option
-      >
-      <mat-chip-option
-        [value]="categoryEnum.T"
-        [selected]="categoryEnum.T === selectedCategory"
-        [disabled]="categoryEnum.T === selectedCategory"
-        >{{
-          "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.T | translate
-        }}</mat-chip-option
-      >
-    </mat-chip-listbox>
-    }
-
     <mat-form-field class="w-100" appearance="fill">
       <mat-label>
         {{ "OFFER_PAGE.CREATE_OFFER.PRODUCT_SELECT.SELECT_LABEL" | translate }}
@@ -79,184 +35,194 @@
         [displayWith]="displayProductLabel"
       >
         @for (option of filteredOptions; track option) {
-        <mat-option [value]="option">{{ option.name }}</mat-option>
+          <mat-option [value]="option">{{ option.name }}</mat-option>
         }
       </mat-autocomplete>
     </mat-form-field>
   </form>
 
-  @if(isProductSelectet){ @if(!updateStock) {
-  <div
-    @enterAndLeaveAnimation
-    class="edit-product d-flex flex-column align-items-center shadow rounded text-dark bg-white py-2 px-3 mb-2"
-  >
-    <form [formGroup]="productForm">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ "SETTINGS.ADD_PRODUCT.NAME" | translate }}</mat-label>
-        <input
-          matInput
-          [(ngModel)]="selectedProduct.name"
-          formControlName="name"
-          required
-        />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{
-          "SETTINGS.ADD_PRODUCT.UNIT.TITLE" | translate
-        }}</mat-label>
-        <mat-select
-          [(ngModel)]="selectedProduct.unit_id"
-          formControlName="unit_id"
-          required
-        >
-          <mat-option [value]="1">{{
-            "SETTINGS.ADD_PRODUCT.UNIT.BUC" | translate
-          }}</mat-option>
-          <mat-option [value]="2">{{
-            "SETTINGS.ADD_PRODUCT.UNIT.M2" | translate
-          }}</mat-option>
-          <mat-option [value]="3">{{
-            "SETTINGS.ADD_PRODUCT.UNIT.M3" | translate
-          }}</mat-option>
-          <mat-option [value]="4">{{
-            "SETTINGS.ADD_PRODUCT.UNIT.BOUNDLE" | translate
-          }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{
-          "SETTINGS.ADD_PRODUCT.SIZE.TITLE" | translate
-        }}</mat-label>
-        <mat-select
-          [(ngModel)]="selectedProduct.size_id"
-          formControlName="size_id"
-          required
-        >
-          <mat-option [value]="0">{{
-            "SETTINGS.ADD_PRODUCT.SIZE.NORMAL" | translate
-          }}</mat-option>
-          <mat-option [value]="1">{{
-            "SETTINGS.ADD_PRODUCT.SIZE.EXTRA" | translate
-          }}</mat-option>
-          <mat-option [value]="2">{{
-            "SETTINGS.ADD_PRODUCT.SIZE.EXTRA2" | translate
-          }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ "SETTINGS.ADD_PRODUCT.LENGTH" | translate }}</mat-label>
-        <input
-          matInput
-          [(ngModel)]="selectedProduct.length"
-          formControlName="length"
-          type="number"
-          required
-        />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ "SETTINGS.ADD_PRODUCT.WIDTH" | translate }}</mat-label>
-        <input
-          matInput
-          [(ngModel)]="selectedProduct.width"
-          formControlName="width"
-          type="number"
-        />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{
-          "SETTINGS.ADD_PRODUCT.THICKNESS" | translate
-        }}</mat-label>
-        <input
-          matInput
-          [(ngModel)]="selectedProduct.thickness"
-          formControlName="thickness"
-          type="number"
-          required
-        />
-      </mat-form-field>
-
-      @if(selectedProduct.unit_id === 2){
-      <mat-form-field
+  @if (isProductSelectet) {
+    @if (!updateStock) {
+      <div
         @enterAndLeaveAnimation
-        appearance="outline"
-        class="full-width"
+        class="edit-product d-flex flex-column align-items-center shadow rounded text-dark bg-white py-2 px-3 mb-2"
       >
-        <mat-label>{{ "SETTINGS.ADD_PRODUCT.M2_BRUT" | translate }}</mat-label>
-        <input
-          matInput
-          [(ngModel)]="selectedProduct.m2_brut"
-          formControlName="m2_brut"
-          type="number"
-        />
-      </mat-form-field>
+        <form [formGroup]="productForm">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ "SETTINGS.ADD_PRODUCT.NAME" | translate }}</mat-label>
+            <input
+              matInput
+              [(ngModel)]="selectedProduct.name"
+              formControlName="name"
+              required
+            />
+          </mat-form-field>
 
-      <mat-form-field
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{
+              "SETTINGS.ADD_PRODUCT.UNIT.TITLE" | translate
+            }}</mat-label>
+            <mat-select
+              [(ngModel)]="selectedProduct.unit_id"
+              formControlName="unit_id"
+              required
+            >
+              <mat-option [value]="1">{{
+                "SETTINGS.ADD_PRODUCT.UNIT.BUC" | translate
+              }}</mat-option>
+              <mat-option [value]="2">{{
+                "SETTINGS.ADD_PRODUCT.UNIT.M2" | translate
+              }}</mat-option>
+              <mat-option [value]="3">{{
+                "SETTINGS.ADD_PRODUCT.UNIT.M3" | translate
+              }}</mat-option>
+              <mat-option [value]="4">{{
+                "SETTINGS.ADD_PRODUCT.UNIT.BOUNDLE" | translate
+              }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{
+              "SETTINGS.ADD_PRODUCT.SIZE.TITLE" | translate
+            }}</mat-label>
+            <mat-select
+              [(ngModel)]="selectedProduct.size_id"
+              formControlName="size_id"
+              required
+            >
+              <mat-option [value]="0">{{
+                "SETTINGS.ADD_PRODUCT.SIZE.NORMAL" | translate
+              }}</mat-option>
+              <mat-option [value]="1">{{
+                "SETTINGS.ADD_PRODUCT.SIZE.EXTRA" | translate
+              }}</mat-option>
+              <mat-option [value]="2">{{
+                "SETTINGS.ADD_PRODUCT.SIZE.EXTRA2" | translate
+              }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{
+              "SETTINGS.ADD_PRODUCT.LENGTH" | translate
+            }}</mat-label>
+            <input
+              matInput
+              [(ngModel)]="selectedProduct.length"
+              formControlName="length"
+              type="number"
+              required
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{
+              "SETTINGS.ADD_PRODUCT.WIDTH" | translate
+            }}</mat-label>
+            <input
+              matInput
+              [(ngModel)]="selectedProduct.width"
+              formControlName="width"
+              type="number"
+            />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{
+              "SETTINGS.ADD_PRODUCT.THICKNESS" | translate
+            }}</mat-label>
+            <input
+              matInput
+              [(ngModel)]="selectedProduct.thickness"
+              formControlName="thickness"
+              type="number"
+              required
+            />
+          </mat-form-field>
+
+          @if (selectedProduct.unit_id === 2) {
+            <mat-form-field
+              @enterAndLeaveAnimation
+              appearance="outline"
+              class="full-width"
+            >
+              <mat-label>{{
+                "SETTINGS.ADD_PRODUCT.M2_BRUT" | translate
+              }}</mat-label>
+              <input
+                matInput
+                [(ngModel)]="selectedProduct.m2_brut"
+                formControlName="m2_brut"
+                type="number"
+              />
+            </mat-form-field>
+
+            <mat-form-field
+              @enterAndLeaveAnimation
+              appearance="outline"
+              class="full-width"
+            >
+              <mat-label>{{
+                "SETTINGS.ADD_PRODUCT.M2_UTIL" | translate
+              }}</mat-label>
+              <input
+                matInput
+                [(ngModel)]="selectedProduct.m2_util"
+                formControlName="m2_util"
+                type="number"
+              />
+            </mat-form-field>
+
+            <mat-form-field
+              @enterAndLeaveAnimation
+              appearance="outline"
+              class="full-width"
+            >
+              <mat-label>{{
+                "SETTINGS.ADD_PRODUCT.PIECE_PER_PACK" | translate
+              }}</mat-label>
+              <input
+                matInput
+                [(ngModel)]="selectedProduct.piece_per_pack"
+                formControlName="piece_per_pack"
+                type="number"
+              />
+            </mat-form-field>
+          }
+        </form>
+      </div>
+
+      <button
+        class="w-100"
+        mat-flat-button
+        (click)="onSave()"
+        [disabled]="productForm.invalid"
+      >
+        {{ "SETTINGS.ADD_PRODUCT.SAVE" | translate }}
+      </button>
+    } @else {
+      <div
         @enterAndLeaveAnimation
-        appearance="outline"
-        class="full-width"
+        class="d-flex flex-column align-items-center shadow rounded text-dark bg-white pt-3 px-3 mb-2"
       >
-        <mat-label>{{ "SETTINGS.ADD_PRODUCT.M2_UTIL" | translate }}</mat-label>
-        <input
-          matInput
-          [(ngModel)]="selectedProduct.m2_util"
-          formControlName="m2_util"
-          type="number"
-        />
-      </mat-form-field>
+        <form [formGroup]="stockForm">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>{{ "SETTINGS.STOCK" | translate }}</mat-label>
+            <input
+              matInput
+              [(ngModel)]="currentStock.stock"
+              formControlName="stock"
+              type="number"
+              required
+            />
+          </mat-form-field>
+        </form>
 
-      <mat-form-field
-        @enterAndLeaveAnimation
-        appearance="outline"
-        class="full-width"
-      >
-        <mat-label>{{
-          "SETTINGS.ADD_PRODUCT.PIECE_PER_PACK" | translate
-        }}</mat-label>
-        <input
-          matInput
-          [(ngModel)]="selectedProduct.piece_per_pack"
-          formControlName="piece_per_pack"
-          type="number"
-        />
-      </mat-form-field>
-      }
-    </form>
-  </div>
-
-  <button
-    class="w-100"
-    mat-flat-button
-    (click)="onSave()"
-    [disabled]="productForm.invalid"
-  >
-    {{ "SETTINGS.ADD_PRODUCT.SAVE" | translate }}
-  </button>
-  } @else{
-  <div
-    @enterAndLeaveAnimation
-    class="d-flex flex-column align-items-center shadow rounded text-dark bg-white pt-3 px-3 mb-2"
-  >
-    <form [formGroup]="stockForm">
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ "SETTINGS.STOCK" | translate }}</mat-label>
-        <input
-          matInput
-          [(ngModel)]="currentStock.stock"
-          formControlName="stock"
-          type="number"
-          required
-        />
-      </mat-form-field>
-    </form>
-
-    <button class="w-100 mb-2" mat-flat-button (click)="onStockSave()">
-      {{ "SETTINGS.ADD_PRODUCT.SAVE" | translate }}
-    </button>
-  </div>
-  } }
+        <button class="w-100 mb-2" mat-flat-button (click)="onStockSave()">
+          {{ "SETTINGS.ADD_PRODUCT.SAVE" | translate }}
+        </button>
+      </div>
+    }
+  }
 </div>

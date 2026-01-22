@@ -1,17 +1,20 @@
 import { ElementRef, Injectable } from '@angular/core';
-import { Products } from '../../models/models';
+import { Products, ProductWithStock } from '../../models/models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FilterUtil {
   productFilter(
-    input: ElementRef<HTMLInputElement> | null,
-    products: Products
-  ): Products {
+    input: ElementRef<HTMLInputElement> | string | null,
+    products: Products | ProductWithStock[],
+  ): Products | ProductWithStock[] {
     if (!input) return products;
 
-    let rawValue = input.nativeElement.value.toLowerCase();
+    let rawValue =
+      input instanceof ElementRef
+        ? input.nativeElement.value.toLowerCase()
+        : input.toLowerCase();
 
     if (!rawValue) {
       return products;

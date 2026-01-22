@@ -10,7 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
-import { SupabaseService } from '../../services/supabase.service';
+import { SupabaseService } from '../../../services/supabase.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
@@ -54,7 +54,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
         if (event === 'PASSWORD_RECOVERY' && session) {
           this.showForm = true;
         }
-      }
+      },
     );
 
     this.supabaseService.auth.getSession().then(({ data: { session } }) => {
@@ -86,20 +86,20 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
         this.showAlert(
           this.translateService.instant('RESET_PASSWORD.RESET_ERROR') +
             ': ' +
-            error.message
+            error.message,
         );
         return;
       }
 
       this.showAlert(
-        this.translateService.instant('RESET_PASSWORD.RESET_SUCCESS')
+        this.translateService.instant('RESET_PASSWORD.RESET_SUCCESS'),
       );
       this.goToAuthPage();
     } catch (err: any) {
       this.showAlert(
         this.translateService.instant('RESET_PASSWORD.RESET_ERROR') +
           ': ' +
-          +err.message
+          +err.message,
       );
     }
   }
@@ -113,7 +113,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
 
     if (this.resetPasswordForm.invalid) {
       this.showAlert(
-        this.translateService.instant('RESET_PASSWORD.INVALID_FORM')
+        this.translateService.instant('RESET_PASSWORD.INVALID_FORM'),
       );
       return false;
     }

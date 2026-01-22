@@ -1,24 +1,25 @@
 import { Routes } from '@angular/router';
-import { OfferPageComponent } from './pages/offer-page/offer-page.component';
-import { CreateOfferPageComponent } from './pages/create-offer-page/create-offer-page.component';
+import { StartPageComponent } from './pages/start-page/start-page.component';
+import { CreateOfferPageComponent } from './pages/create-order/create-offer-page/create-offer-page.component';
 import { SelectClientPageComponent } from './pages/select-client-page/select-client-page.component';
-import { OfferOverviewPageComponent } from './pages/offer-overview-page/offer-overview-page.component';
-import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
+import { OfferOverviewPageComponent } from './pages/create-order/offer-overview-page/offer-overview-page.component';
+import { ResetPasswordComponent } from './pages/accounts/reset-password/reset-password.component';
 import { authGuard } from './guards/auth-guard.service';
-import { AuthPageComponent } from './pages/auth/auth-page.component';
-import { WaitToApproveComponent } from './pages/wait-to-approve/wait-to-approve.component';
-import { UserComponent } from './pages/user/user.component';
+import { AuthPageComponent } from './pages/accounts/auth/auth-page.component';
+import { WaitToApproveComponent } from './pages/accounts/wait-to-approve/wait-to-approve.component';
+import { UserComponent } from './pages/accounts/user/user.component';
 import { OrdersComponent } from './pages/orders/orders.component';
 import { SettingsComponent } from './pages/settings/settings.component';
 import { OffersComponent } from './pages/offers/offers.component';
 import { ComingWaresComponent } from './pages/coming-wares/coming-wares.component';
 import { ComingWaresDetailsComponent } from './components/coming-wares/coming-wares-details/coming-wares-details.component';
 import { ClientsComponent } from './pages/clients/clients.component';
+import { ProductsComponent } from './pages/products/products.component';
 
 export const routes: Routes = [
   {
     path: 'offer',
-    component: OfferPageComponent,
+    component: StartPageComponent,
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
@@ -75,6 +76,14 @@ export const routes: Routes = [
   {
     path: 'clients',
     component: ClientsComponent,
+    canActivate: [authGuard],
+    data: {
+      requiresApproval: true,
+    },
+  },
+  {
+    path: 'products',
+    component: ProductsComponent,
     canActivate: [authGuard],
     data: {
       requiresApproval: true,

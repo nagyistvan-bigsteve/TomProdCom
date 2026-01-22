@@ -4,8 +4,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
-import { LoginComponent } from '../../components/auth/login/login.component';
-import { SignupComponent } from '../../components/auth/signup/signup.component';
+import { LoginComponent } from '../../../components/auth/login/login.component';
+import { SignupComponent } from '../../../components/auth/signup/signup.component';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({

@@ -1,0 +1,37 @@
+:host {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: rgb(57, 72, 60);
+  color: white;
+}
+
+.product-list-container {
+  height: 73vh;
+  overflow: auto;
+  width: 90vw;
+}
+
+.product-list-item:hover {
+  background-color: rgb(78, 97, 82);
+}
+
+.stock-warning {
+  color: rgb(251, 255, 17);
+}
+
+.stock-good {
+  color: rgb(141, 216, 27);
+}
+
+.icon-button {
+  background-color: rgb(78, 97, 82);
+}
+
+::ng-deep {
+  .products-name-input .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+}

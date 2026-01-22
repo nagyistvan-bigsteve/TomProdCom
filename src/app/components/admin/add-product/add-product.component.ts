@@ -29,6 +29,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Category } from '../../../models/enums';
 import { Product } from '../../../models/models';
+import { PricesService } from '../../../services/query-services/prices.service';
 
 @Component({
   selector: 'app-add-product',
@@ -52,6 +53,7 @@ export class AddProductComponent {
   @ViewChild('addPriceDialog') addPriceDialogTemplate!: TemplateRef<any>;
 
   private readonly productService = inject(ProductsService);
+  private readonly pricesService = inject(PricesService);
   private readonly fb = inject(FormBuilder);
   readonly #dialog = inject(MatDialog);
   readonly #destroyRef = inject(DestroyRef);
@@ -103,7 +105,7 @@ export class AddProductComponent {
 
   addPrice(dialogRef: MatDialogRef<any>): void {
     if (this.newPriceA()) {
-      this.productService.addPrice({
+      this.pricesService.addPrice({
         unit_id: this.selectedProduct.unit_id,
         category_id: Category.A,
         size_id: this.selectedProduct.size_id,
@@ -113,7 +115,7 @@ export class AddProductComponent {
     }
 
     if (this.newPriceAB()) {
-      this.productService.addPrice({
+      this.pricesService.addPrice({
         unit_id: this.selectedProduct.unit_id,
         category_id: Category.AB,
         size_id: this.selectedProduct.size_id,
@@ -123,7 +125,7 @@ export class AddProductComponent {
     }
 
     if (this.newPriceB()) {
-      this.productService.addPrice({
+      this.pricesService.addPrice({
         unit_id: this.selectedProduct.unit_id,
         category_id: Category.B,
         size_id: this.selectedProduct.size_id,
@@ -133,7 +135,7 @@ export class AddProductComponent {
     }
 
     if (this.newPriceT()) {
-      this.productService.addPrice({
+      this.pricesService.addPrice({
         unit_id: this.selectedProduct.unit_id,
         category_id: Category.T,
         size_id: this.selectedProduct.size_id,

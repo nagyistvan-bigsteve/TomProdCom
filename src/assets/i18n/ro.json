@@ -15,7 +15,8 @@
   "OFFER_PAGE": {
     "FIRST_STEP": {
       "TITLE": "Crează o nouă comanda!",
-      "START_BUTTON": "Start!"
+      "START_BUTTON": "Start!",
+      "PRODUCTS": "Lista de stoc"
     },
     "CREATE_OFFER": {
       "UNIT_FILTER": {
@@ -86,7 +87,8 @@
   },
   "WORDS": {
     "TOTAL": "Total",
-    "VOUCHER": "Voucher"
+    "VOUCHER": "Voucher",
+    "M3": "m³"
   },
   "OVERVIEW_PAGE": {
     "BUTTONS": {
