@@ -7,9 +7,14 @@
     [matAutocomplete]="auto"
   />
   @if (this.clientStore.client()) {
-  <button matSuffix mat-icon-button aria-label="Clear" (click)="clearClient()">
-    <mat-icon class="text-black">close</mat-icon>
-  </button>
+    <button
+      matSuffix
+      mat-icon-button
+      aria-label="Clear"
+      (click)="clearClient()"
+    >
+      <mat-icon class="text-black">close</mat-icon>
+    </button>
   }
   <mat-autocomplete
     #auto="matAutocomplete"
@@ -24,4 +29,5 @@
     </mat-option>
   </mat-autocomplete>
 </mat-form-field>
+
 <app-add-client />
