@@ -35,27 +35,23 @@
   position: relative;
   color: rgb(57, 72, 60);
 
-  .short-list {
-    width: 75%;
-    max-height: 55%;
-    overflow: auto;
-  }
-
   .icon-color {
-    color: rgb(57, 72, 60);
+    color: white;
   }
 
-  .products-expand-icon-position {
-    position: absolute;
-    bottom: 0.4rem;
-    right: 0.5rem;
+  .button-background {
+    background-color: rgb(134, 2, 2);
   }
 
-  .list-expand-icon-position {
-    position: absolute;
-    top: 0.4rem;
-    right: 0.5rem;
+  .max-height {
+    max-height: 70%;
   }
+}
+
+.short-list {
+  width: 75%;
+  max-height: 70%;
+  overflow: auto;
 }
 
 .expanded-product-list {

@@ -391,7 +391,8 @@
     "TITLE_OFFER": "Ajánlat",
     "CLIENT": "Kliens: ",
     "OFFICE": "Székhely: ",
-    "ADDRESS": "Munkapont: ",
+    "ADDRESS_PJ": "Munkapont: ",
+    "ADDRESS_PF": "Cím: ",
     "DELIVERY_ADDRESS": "Szállítási cím: ",
     "DATE": "Rendelés dátuma: ",
     "TABLE": {

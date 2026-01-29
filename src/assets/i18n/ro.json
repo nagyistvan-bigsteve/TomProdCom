@@ -391,7 +391,8 @@
     "TITLE_OFFER": "Oferta",
     "CLIENT": "Client: ",
     "OFFICE": "Sediu: ",
-    "ADDRESS": "Punct de lucru: ",
+    "ADDRESS_PJ": "Punct de lucru: ",
+    "ADDRESS_PF": "Adresa: ",
     "DELIVERY_ADDRESS": "Adresa de descărcare:",
     "DATE": "Data comenzi: ",
     "TABLE": {

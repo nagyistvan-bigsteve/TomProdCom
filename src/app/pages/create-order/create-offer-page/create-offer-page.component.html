@@ -4,71 +4,88 @@
     [class]="{ 'select-product-off': !selectProductOn }"
   >
     @if (selectProductOn) {
-    <div @enterAnimation>
-      <app-product-list
-        (selectedProduct)="getSelectedProduct($event)"
-      ></app-product-list>
+      <div @enterAnimation>
+        <app-product-list
+          (selectedProduct)="getSelectedProduct($event)"
+        ></app-product-list>
 
-      @if (selectedProduct) {
-      <app-selected-product
-        (addProduct)="addProductToList($event)"
-        [selectedProduct]="selectedProduct"
-      ></app-selected-product>
-      }
-    </div>
-    }@else {
-    <div
-      class="d-flex flex-column justify-content-center align-items-center h-100 w-100 px-2 mb-2 rounded shadow select-product-tile"
-      (click)="selectProductOn = !selectProductOn"
-    >
-      <div class="fs-2">
-        {{ "OFFER_PAGE.CREATE_OFFER.TILE_BUTTONS.ADD_PRODUCT" | translate }}
+        @if (selectedProduct) {
+          <app-selected-product
+            (addProduct)="addProductToList($event)"
+            [selectedProduct]="selectedProduct"
+          ></app-selected-product>
+        }
       </div>
-      <div class="products-expand-icon-position">
-        <mat-icon class="fs-1 icon-color">keyboard_arrow_down</mat-icon>
+    } @else {
+      <div
+        class="d-flex justify-content-evenly align-items-center h-100 w-100 px-2 mb-2 rounded shadow select-product-tile"
+      >
+        <button
+          class="button-background"
+          mat-fab
+          (click)="selectProductOn = !selectProductOn"
+        >
+          <mat-icon class="fs-1 icon-color">keyboard_arrow_left</mat-icon>
+        </button>
+        <div class="fs-2">
+          {{ "OFFER_PAGE.CREATE_OFFER.TILE_BUTTONS.ADD_PRODUCT" | translate }}
+        </div>
       </div>
-    </div>
     }
   </div>
   <div
     class="product-list px-2"
     [class]="{
-      'expanded-product-list': !selectProductOn
+      'expanded-product-list': !selectProductOn,
     }"
   >
-    @if(!selectProductOn) {
-    <app-selected-product-list @enterAnimation></app-selected-product-list>
+    @if (!selectProductOn) {
+      <app-selected-product-list @enterAnimation></app-selected-product-list>
     } @else {
-    <div
-      class="d-flex flex-column justify-content-center align-items-center h-100 w-100 px-2 mb-3 rounded shadow select-product-tile"
-      (click)="selectProductOn = !selectProductOn"
-    >
-      <div class="list-expand-icon-position">
-        <mat-icon class="fs-1 icon-color">keyboard_arrow_up</mat-icon>
-      </div>
-      <div class="fs-2">
-        {{
-          "OFFER_PAGE.CREATE_OFFER.TILE_BUTTONS.SHOW_PRODUCT_LIST" | translate
-        }}
-      </div>
-      <div class="short-list">
-        @for (item of productStore.productItems(); track $index; let last =
-        $last) {
-        <div class="d-flex justify-content-center p-1">
-          {{ item.product.name }} -
+      <div
+        class="d-flex flex-column align-items-center w-100 h-100 select-product-tile rounded shadow"
+      >
+        <div class="fs-2 pt-2">
           {{
-            "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category
+            "OFFER_PAGE.CREATE_OFFER.TILE_BUTTONS.SHOW_PRODUCT_LIST"
               | translate
-          }}
-          {{ item.quantity | number : "1.0-2" }}x
+          }}:
         </div>
-        @if (!last) {
-        <div class="d-flex justify-content-center">
-          <mat-divider class="w-50"></mat-divider>
+        <div class="d-flex justify-content-evenly w-100">
+          <div class="short-list">
+            @for (
+              item of productStore.productItems();
+              track $index;
+              let last = $last
+            ) {
+              <div class="d-flex justify-content-center p-1">
+                {{ item.product.name }} -
+                {{
+                  "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category
+                    | translate
+                }}
+                {{ item.quantity | number: "1.0-2" }}x
+              </div>
+              @if (!last) {
+                <div class="d-flex justify-content-center">
+                  <mat-divider class="w-50"></mat-divider>
+                </div>
+              }
+            }
+          </div>
+          <div
+            class="d-flex justify-content-center align-items-center max-height"
+          >
+            <button
+              class="button-background"
+              mat-fab
+              (click)="selectProductOn = !selectProductOn"
+            >
+              <mat-icon class="fs-1 icon-color">keyboard_arrow_right</mat-icon>
+            </button>
+          </div>
         </div>
-        }}
       </div>
-    </div>
     }
   </div>
 </div>
