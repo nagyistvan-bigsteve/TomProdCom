@@ -26,6 +26,10 @@ export class OrdersComponent implements OnInit {
     if (localStorage.getItem('on-order-details-page')) {
       this.order = JSON.parse(localStorage.getItem('on-order-details-page')!);
     }
+
+    if (!this.order?.clientId) {
+      this.deselectOrder();
+    }
     this.isLoading.set(false);
   }
 

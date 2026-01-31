@@ -25,6 +25,10 @@ export class OffersComponent {
   ngOnInit(): void {
     if (localStorage.getItem('on-offer-details-page')) {
       this.order = JSON.parse(localStorage.getItem('on-offer-details-page')!);
+
+      if (!this.order?.clientId) {
+        this.deselectOrder();
+      }
     }
     this.isLoading.set(false);
   }
