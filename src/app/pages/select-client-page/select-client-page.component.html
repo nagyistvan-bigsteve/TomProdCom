@@ -6,7 +6,7 @@
     [formControl]="clientSearch"
     [matAutocomplete]="auto"
   />
-  @if (this.clientStore.client()) {
+  @if (clientStore.client()) {
     <button
       matSuffix
       mat-icon-button
@@ -21,12 +21,11 @@
     (optionSelected)="selectClient($event.option.value)"
     [displayWith]="displayClientLabel"
   >
-    <mat-option
-      *ngFor="let client of filteredClients$ | async"
-      [value]="client"
-    >
-      {{ client.name }} ({{ client.type === 1 ? "PF" : "PJ" }})
-    </mat-option>
+    @for (client of filteredClients(); track client.id) {
+      <mat-option [value]="client">
+        {{ client.name }} ({{ client.type === 1 ? "PF" : "PJ" }})
+      </mat-option>
+    }
   </mat-autocomplete>
 </mat-form-field>
 

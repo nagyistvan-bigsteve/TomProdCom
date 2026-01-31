@@ -1,54 +1,71 @@
 <div class="offer-page-container">
-  <div class="mb-3" [ngClass]="{ 'd-none': !isLoaded }">
+  <div
+    class="mb-3"
+    [ngClass]="{ 'd-none': !isLoaded && !clientStore.isBusy() }"
+  >
     <div class="full-width mb-3">
       <mat-accordion class="w-100" multi>
         <mat-expansion-panel [expanded]="false">
           <mat-expansion-panel-header class="px-3">
             <div class="d-flex justify-content-center align-items-center">
               {{ "OVERVIEW_PAGE.PRICES.TITLE" | translate }} -
-              {{ clientStore.client()?.type === 1 ? "PF" : "PJ" }}
+              {{ clientStore.client().type === 1 ? "PF" : "PJ" }}
             </div>
           </mat-expansion-panel-header>
           <div class="w-100">
             <div class="d-flex flex-column">
-              @for (price of usedPriceCategories; let last = $last; track
-              $index) {
-              <div
-                class="d-flex justify-content-between align-items-center py-1"
-              >
-                <div class="w-100 text-center overflow-auto">
-                  {{
-                    "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                      price.unit | translate
-                  }}
-                  -
-                  {{
-                    "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + price.category
-                      | translate
-                  }}
-                  @if(price.price.length){ @if(price.price.length > 2) {
-                  <br />
-                  } @for(pr of price.price; let last= $last; track $index) {
-                  @if(!last){
-                  {{ pr + price.discount }},} @else { {{ pr + price.discount }}}
-                  } RON } @if(price.discount){({{ price.discount }})}
+              @for (
+                price of usedPriceCategories;
+                let last = $last;
+                track $index
+              ) {
+                <div
+                  class="d-flex justify-content-between align-items-center py-1"
+                >
+                  <div class="w-100 text-center overflow-auto">
+                    {{
+                      "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                        price.unit | translate
+                    }}
+                    -
+                    {{
+                      "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + price.category
+                        | translate
+                    }}
+                    @if (price.price.length) {
+                      @if (price.price.length > 2) {
+                        <br />
+                      }
+                      @for (pr of price.price; let last = $last; track $index) {
+                        @if (!last) {
+                          {{ pr + price.discount }},
+                        } @else {
+                          {{ pr + price.discount }}
+                        }
+                      }
+                      RON
+                    }
+                    @if (price.discount) {
+                      ({{ price.discount }})
+                    }
+                  </div>
+                  <div class="d-flex text-center">
+                    <mat-icon
+                      class="border border-1 shadow text-black rounded d-flex justify-content-center align-items-center me-3 p-3 discount-button"
+                      (click)="updateDiscount(price.category, price.unit, 5)"
+                      >add</mat-icon
+                    >
+                    <mat-icon
+                      class="border border-1 shadow text-black rounded d-flex justify-content-center align-items-center p-3 discount-button"
+                      (click)="updateDiscount(price.category, price.unit, -5)"
+                      >horizontal_rule</mat-icon
+                    >
+                  </div>
                 </div>
-                <div class="d-flex text-center">
-                  <mat-icon
-                    class="border border-1 shadow text-black rounded d-flex justify-content-center align-items-center me-3 p-3 discount-button"
-                    (click)="updateDiscount(price.category, price.unit, 5)"
-                    >add</mat-icon
-                  >
-                  <mat-icon
-                    class="border border-1 shadow text-black rounded d-flex justify-content-center align-items-center p-3 discount-button"
-                    (click)="updateDiscount(price.category, price.unit, -5)"
-                    >horizontal_rule</mat-icon
-                  >
-                </div>
-              </div>
-              @if(!last){
-              <mat-divider />
-              } }
+                @if (!last) {
+                  <mat-divider />
+                }
+              }
             </div>
           </div>
         </mat-expansion-panel>
@@ -83,7 +100,7 @@
       </mat-form-field>
 
       <div class="fs-5">
-        {{ "WORDS.TOTAL" | translate }}: {{ totalPrice | currency : "RON" }}
+        {{ "WORDS.TOTAL" | translate }}: {{ totalPrice | currency: "RON" }}
       </div>
     </div>
 
@@ -91,8 +108,8 @@
       {{ "OVERVIEW_PAGE.BUTTONS.CONFIRM" | translate }}
     </button>
   </div>
-  @if(!isLoaded) {
-  <mat-spinner />
+  @if (!isLoaded) {
+    <mat-spinner />
   }
 </div>
 
@@ -102,7 +119,7 @@
     <mat-form-field class="w-100" appearance="outline">
       <mat-label>{{ "OVERVIEW_PAGE.POPUP.COMMENT" | translate }}</mat-label>
       <textarea
-        [rows]="clientStore.client()?.type === 2 ? 4 : 3"
+        [rows]="clientStore.client().type === 2 ? 4 : 3"
         matInput
         [(ngModel)]="comment"
       ></textarea>

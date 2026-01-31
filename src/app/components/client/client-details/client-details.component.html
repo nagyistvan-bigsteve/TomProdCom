@@ -1,55 +1,56 @@
-<div class="d-flex align-items-center w-100 overflow-auto">
-  @if (clientStore.client()) {
+@let client = clientStore.client();
 
-  <mat-accordion class="w-100" multi>
-    <mat-expansion-panel [expanded]="false">
-      <mat-expansion-panel-header class="px-3">
-        <div class="d-flex justify-content-center align-items-center">
-          {{ "CLIENT_DETAILS.TITLE" | translate }}
-        </div>
-      </mat-expansion-panel-header>
-      <div class="w-100 client-data">
-        <mat-list class="m-0 p-0">
-          <mat-list-item>
-            {{ clientStore.client()?.name }}({{
-              clientStore.client()?.type === 1 ? "PF" : "PJ"
-            }})
-          </mat-list-item>
-          <mat-list-item>
-            {{ "ADD_CLIENT.PHONE" | translate }}:
-            {{ clientStore.client()?.phone }}
-          </mat-list-item>
-          @if (clientStore.client()?.code) {
-          <mat-list-item>
-            {{ "ADD_CLIENT.CODE" | translate }}:
-            {{ clientStore.client()?.code }}
-          </mat-list-item>
-          } @if (clientStore.client()?.address) {
-          <mat-list-item>
-            {{ "ADD_CLIENT.ADDRESS" | translate }}:
-            {{ clientStore.client()?.address }}
-          </mat-list-item>
-          } @if (clientStore.client()?.other_details) {
-          <mat-list-item>
-            {{ "ADD_CLIENT.DETAILS" | translate }}:
-            {{ clientStore.client()?.other_details }}
-          </mat-list-item>
-          }
-        </mat-list>
-        <div class="d-flex align-items-center justify-content-evenly">
-          <div class="d-flex align-items-center">
-            <button
-              class="edit-button-background ms-1"
-              mat-button
-              (click)="openEditDialog(clientStore.client())"
-            >
-              <mat-icon>edit</mat-icon>
-              {{ "CLIENT_DETAILS.EDIT_BUTTON" | translate }}
-            </button>
+<div class="d-flex align-items-center w-100 overflow-auto">
+  @if (client && !clientStore.isBusy()) {
+    <mat-accordion class="w-100" multi>
+      <mat-expansion-panel [expanded]="false">
+        <mat-expansion-panel-header class="px-3">
+          <div class="d-flex justify-content-center align-items-center">
+            {{ "CLIENT_DETAILS.TITLE" | translate }}
           </div>
+        </mat-expansion-panel-header>
+        <div class="w-100 client-data">
+          <div class="d-flex flex-column">
+            <div class="my-1">
+              {{ client.name }}({{ client.type === 1 ? "PF" : "PJ" }})
+            </div>
+            <mat-divider />
+            <div class="my-1">
+              {{
+                client.type === 1
+                  ? ("ADD_CLIENT.CODE_PF" | translate)
+                  : ("ADD_CLIENT.CODE_PJ" | translate)
+              }}:
+              {{ client.code }}
+            </div>
+            <mat-divider />
+            <div class="d-flex flex-column my-1">
+              {{ "ADD_CLIENT.PHONE" | translate }}:
+              @for (phone of client.client_phones; track $index) {
+                <div class="ms-3">
+                  {{ phone.label ? phone.label : "tel" }} - {{ phone.phone }}
+                </div>
+              }
+            </div>
+            <mat-divider />
+
+            <div class="my-1">
+              {{ "ADD_CLIENT.ADDRESS" | translate }}:
+              {{ client.address }}
+            </div>
+            @if (client.other_details) {
+              <mat-divider />
+              <div class="my-1">
+                {{ "ADD_CLIENT.DETAILS" | translate }}:
+                {{ client.other_details }}
+              </div>
+            }
+          </div>
+        </div>
+        <div class="d-flex align-items-center justify-content-end">
           <div class="d-flex align-items-center">
             <button
-              class="edit-button-background ms-1"
+              class="edit-button-background"
               mat-button
               (click)="goToClientPage()"
             >
@@ -58,32 +59,31 @@
             </button>
           </div>
         </div>
-      </div>
-    </mat-expansion-panel>
-  </mat-accordion>
+      </mat-expansion-panel>
+    </mat-accordion>
   } @else {
-  <mat-accordion class="w-100" multi>
-    <mat-expansion-panel disabled="true">
-      <mat-expansion-panel-header class="px-3">
-        <div class="d-flex justify-content-center align-items-center">
-          {{ "CLIENT_DETAILS.TITLE" | translate }}
-        </div>
-      </mat-expansion-panel-header>
-    </mat-expansion-panel>
-    <mat-expansion-panel disabled="true">
-      <mat-expansion-panel-header>
-        <div class="d-flex w-100 align-items-center justify-content-center">
-          <button
-            class="edit-button-background ms-1"
-            mat-button
-            (click)="goToClientPage()"
-          >
-            <mat-icon>add</mat-icon>
-            {{ "CLIENT_DETAILS.ADD_BUTTON" | translate }}
-          </button>
-        </div>
-      </mat-expansion-panel-header>
-    </mat-expansion-panel>
-  </mat-accordion>
+    <mat-accordion class="w-100" multi>
+      <mat-expansion-panel disabled="true">
+        <mat-expansion-panel-header class="px-3">
+          <div class="d-flex justify-content-center align-items-center">
+            {{ "CLIENT_DETAILS.TITLE" | translate }}
+          </div>
+        </mat-expansion-panel-header>
+      </mat-expansion-panel>
+      <mat-expansion-panel disabled="true">
+        <mat-expansion-panel-header>
+          <div class="d-flex w-100 align-items-center justify-content-center">
+            <button
+              class="edit-button-background ms-1"
+              mat-button
+              (click)="goToClientPage()"
+            >
+              <mat-icon>add</mat-icon>
+              {{ "CLIENT_DETAILS.ADD_BUTTON" | translate }}
+            </button>
+          </div>
+        </mat-expansion-panel-header>
+      </mat-expansion-panel>
+    </mat-accordion>
   }
 </div>

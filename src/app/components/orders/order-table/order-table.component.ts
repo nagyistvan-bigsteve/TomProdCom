@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   DestroyRef,
   EventEmitter,
   inject,
@@ -43,6 +44,7 @@ import {
   CdkDrag,
   moveItemInArray,
 } from '@angular/cdk/drag-drop';
+import { ClientStore } from '../../../services/store/client/client.store';
 
 @Component({
   selector: 'app-order-table',
@@ -85,6 +87,7 @@ export class OrderTableComponent implements OnInit {
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
   });
+  readonly clientStore = inject(ClientStore);
 
   orders: OrderResponse[] = [];
   dataSource = new MatTableDataSource<OrderResponse>([]);
@@ -133,7 +136,7 @@ export class OrderTableComponent implements OnInit {
     orderId: number,
     totalAmount: number,
     alreadyPaidAmount: number,
-    deliveryFee: number
+    deliveryFee: number,
   ): void {
     event.stopPropagation();
 
@@ -161,7 +164,7 @@ export class OrderTableComponent implements OnInit {
   filterByDate(
     start: Date | null | undefined,
     end: Date | null | undefined,
-    data: OrderResponse[]
+    data: OrderResponse[],
   ) {
     if (start && end) {
       end.setHours(23, 59, 59, 999);
@@ -207,14 +210,14 @@ export class OrderTableComponent implements OnInit {
       }
       case 'open': {
         this.dataSource.data = this.orders.filter(
-          (item) => item.dateOrderDelivered == null
+          (item) => item.dateOrderDelivered == null,
         );
         this.setDisplayedOrdersStats(this.dataSource.data);
         break;
       }
       case 'closed': {
         this.dataSource.data = this.orders.filter(
-          (item) => item.dateOrderDelivered != null
+          (item) => item.dateOrderDelivered != null,
         );
         this.setDisplayedOrdersStats(this.dataSource.data);
         break;
@@ -228,7 +231,7 @@ export class OrderTableComponent implements OnInit {
               currentDate.getMonth() &&
             new Date(item.expectedDelivery).getFullYear() ===
               currentDate.getFullYear() &&
-            !item.dateOrderDelivered
+            !item.dateOrderDelivered,
         );
         this.setDisplayedOrdersStats(this.dataSource.data);
         break;
@@ -238,7 +241,7 @@ export class OrderTableComponent implements OnInit {
       this.filterByDate(
         this.dateRange.value.start,
         this.dateRange.value.end,
-        this.dataSource.data
+        this.dataSource.data,
       );
     }
   }
@@ -285,7 +288,7 @@ export class OrderTableComponent implements OnInit {
 
   isExpectedDeliveryInFuture(
     expectedDelivery: Date,
-    dateOrderDelivered: Date
+    dateOrderDelivered: Date,
   ): boolean {
     if (dateOrderDelivered) {
       return true;
@@ -312,7 +315,7 @@ export class OrderTableComponent implements OnInit {
     moveItemInArray(
       this.dataSource.data,
       event.previousIndex,
-      event.currentIndex
+      event.currentIndex,
     );
     this.table.renderRows();
 
@@ -348,7 +351,7 @@ export class OrderTableComponent implements OnInit {
     orderA: OrderResponse,
     orderB: OrderResponse,
     sortA: number,
-    sortB: number
+    sortB: number,
   ) {
     if (sortA !== sortB) {
       return sortA - sortB;

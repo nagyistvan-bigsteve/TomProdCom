@@ -15,6 +15,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
+import { ClientStore } from './services/store/client/client.store';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -29,7 +30,7 @@ export const appConfig: ApplicationConfig = {
       FormsModule,
       ReactiveFormsModule,
       ModalModule.forRoot(),
-      TooltipModule.forRoot()
+      TooltipModule.forRoot(),
     ),
     provideHttpClient(),
     provideTranslateService(),
@@ -46,6 +47,7 @@ export const appConfig: ApplicationConfig = {
         verticalPosition: 'bottom',
       },
     },
+    ClientStore,
   ],
 };
 

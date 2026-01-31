@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { PDFFooterComponent } from '../pdf-footer/pdf-footer.component';
 import { PDFHeaderComponent } from '../pdf-header/pdf-header.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -6,6 +6,7 @@ import { OrderItemsResponse, OrderResponse } from '../../../models/models';
 import { CommonModule } from '@angular/common';
 import { MatDivider } from '@angular/material/divider';
 import { Unit_id } from '../../../models/enums';
+import { ClientStore } from '../../../services/store/client/client.store';
 
 @Component({
   selector: 'app-order-pdf',
@@ -26,6 +27,11 @@ export class OrderPdfComponent {
   justOffer = input.required<boolean>();
 
   private readonly translateService = inject(TranslateService);
+  readonly clientStore = inject(ClientStore);
+
+  client = computed(
+    () => this.clientStore.clientsEntityMap()[this.order().clientId],
+  );
 
   translate(key: string, params?: any): string {
     return this.translateService.instant(key, params);

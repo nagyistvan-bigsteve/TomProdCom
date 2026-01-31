@@ -21,7 +21,7 @@ export class OrdersService {
         .from('orders')
         .select(
           `id,
-    client:client_id ( id, name,  type, address, code, phone, other_details ),
+    client_id,
     date_order_placed,
     sort_order,
     expected_delivery,
@@ -46,17 +46,7 @@ export class OrdersService {
           (order): OrderResponse => ({
             id: order.id,
             sortOrder: order.sort_order,
-            client: Array.isArray(order.client)
-              ? order.client[0]
-              : order.client || {
-                  id: 0,
-                  name: '',
-                  type: 1,
-                  address: '',
-                  code: '',
-                  phone: '',
-                  other_details: '',
-                },
+            clientId: order.client_id,
             operator: Array.isArray(order.operator)
               ? order.operator[0]
               : order.operator || { id: 0, name: '' },

@@ -1,7 +1,5 @@
-import { Component, inject, ViewChild } from '@angular/core';
+import { Component, computed, effect, inject, ViewChild } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { map, Observable, startWith, switchMap } from 'rxjs';
-import { ClientsService } from '../../services/query-services/client.service';
 import { Client } from '../../models/models';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,9 +12,10 @@ import {
 import { MatOptionModule } from '@angular/material/core';
 import { AddClientComponent } from '../../components/client/add-client/add-client.component';
 import { TranslateModule } from '@ngx-translate/core';
-import { useClientStore } from '../../services/store/client-store';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { ClientStore } from '../../services/store/client/client.store';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'select-client-page',
@@ -40,52 +39,57 @@ import { MatButtonModule } from '@angular/material/button';
 export class SelectClientPageComponent {
   @ViewChild(MatAutocompleteTrigger) autocomplete!: MatAutocompleteTrigger;
 
-  private clientsService = inject(ClientsService);
-  readonly clientStore = inject(useClientStore);
+  readonly clientStore = inject(ClientStore);
 
-  clients$: Observable<Client[]> = this.clientsService.getClients();
-  filteredClients$: Observable<Client[]> | undefined;
+  clientSearch = new FormControl<string | Client>('');
 
-  clientSearch = new FormControl<Client>(this.clientStore.client()!);
+  readonly searchValue = toSignal(this.clientSearch.valueChanges, {
+    initialValue: '',
+  });
+
+  filteredClients = computed(() => {
+    const searchValue = this.searchValue();
+    const allClients = this.clientStore.clientsEntities();
+
+    if (!searchValue || typeof searchValue !== 'string') {
+      return allClients;
+    }
+
+    const search = searchValue.toLowerCase().trim();
+
+    if (!search) {
+      return allClients;
+    }
+
+    return allClients.filter((client) =>
+      client.name.toLowerCase().includes(search),
+    );
+  });
 
   constructor() {
-    this.filterClients();
-  }
-
-  displayClientLabel(client: Client): string {
-    return client ? client.name : '';
-  }
-
-  selectClient(client: Client) {
-    this.clientStore.setClient(client);
-  }
-
-  clearClient(): void {
-    this.clientStore.deleteClient();
-    this.clientSearch.setValue(null);
-    setTimeout(() => {
-      this.autocomplete.closePanel();
+    effect(() => {
+      const currentClient = this.clientStore.client();
+      if (currentClient && this.clientSearch.value !== currentClient) {
+        this.clientSearch.setValue(currentClient, { emitEvent: false });
+      }
     });
   }
 
-  private filterClients(): void {
-    this.filteredClients$ = this.clientSearch.valueChanges.pipe(
-      startWith(''),
-      map((value) => (typeof value === 'string' ? value.toLowerCase() : '')),
-      map((search) =>
-        search
-          ? this.clientsService
-              .getClients()
-              .pipe(
-                map((clients) =>
-                  clients.filter((client) =>
-                    client.name.toLowerCase().includes(search)
-                  )
-                )
-              )
-          : this.clientsService.getClients()
-      ),
-      switchMap((obs) => obs)
-    );
+  displayClientLabel(client: Client | string | null): string {
+    if (!client) return '';
+    return typeof client === 'string' ? client : client.name;
+  }
+
+  selectClient(client: Client): void {
+    this.clientStore.setClientId(client.id);
+    this.clientSearch.setValue(client, { emitEvent: false });
+  }
+
+  clearClient(): void {
+    this.clientStore.setClientId(-1);
+    this.clientSearch.setValue('');
+    setTimeout(() => {
+      this.autocomplete?.closePanel();
+    });
   }
 }

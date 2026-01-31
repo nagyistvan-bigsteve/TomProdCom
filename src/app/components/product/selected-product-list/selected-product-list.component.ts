@@ -24,12 +24,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { useProductStore } from '../../../services/store/product-store';
 import { Price2, ProductItem } from '../../../models/models';
 import { Category, ClientType, Unit_id } from '../../../models/enums';
-import { ProductsService } from '../../../services/query-services/products.service';
 import { ProductUtil } from '../../../services/utils/product.util';
 import { FormsModule } from '@angular/forms';
-import { useClientStore } from '../../../services/store/client-store';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { PricesService } from '../../../services/query-services/prices.service';
+import { ClientStore } from '../../../services/store/client/client.store';
 
 @Component({
   selector: 'app-selected-product-list',
@@ -75,11 +74,10 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
   private _dialog = inject(MatDialog);
   private location = inject(Location);
   private destroyRef = inject(DestroyRef);
-  private productService = inject(ProductsService);
   private pricesService = inject(PricesService);
   private productUtil = inject(ProductUtil);
   readonly productStore = inject(useProductStore);
-  readonly clientStore = inject(useClientStore);
+  readonly clientStore = inject(ClientStore);
 
   ngOnInit(): void {
     this.fetchPrices();
@@ -367,7 +365,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
 
   private getExactPrice(newCategory: Category, item: ProductItem): number {
     const isClientPJ: boolean =
-      this.clientStore.client()?.type === ClientType.PJ;
+      this.clientStore.client().type === ClientType.PJ;
 
     const unicPrice = this.prices.find(
       (price) => price.product_id === item.product.id,

@@ -17,7 +17,6 @@ import { SelectedProductListComponent } from '../../../components/product/select
 import { ClientDetailsComponent } from '../../../components/client/client-details/client-details.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { useProductStore } from '../../../services/store/product-store';
-import { useClientStore } from '../../../services/store/client-store';
 import { useAuthStore } from '../../../services/store/auth-store';
 import { OrdersService } from '../../../services/query-services/orders.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -34,6 +33,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { Price2 } from '../../../models/models';
 import { ENTER_AND_LEAVE_ANIMATION } from '../../../models/animations';
 import { ProductUtil } from '../../../services/utils/product.util';
+import { ClientStore } from '../../../services/store/client/client.store';
 
 @Component({
   selector: 'app-offer-overview',
@@ -68,7 +68,7 @@ export class OfferOverviewPageComponent {
 
   readonly currentDate = new Date();
   readonly productStore = inject(useProductStore);
-  readonly clientStore = inject(useClientStore);
+  readonly clientStore = inject(ClientStore);
   readonly authStore = inject(useAuthStore);
   private readonly productUtil = inject(ProductUtil);
   private router = inject(Router);
@@ -131,7 +131,7 @@ export class OfferOverviewPageComponent {
 
   getPriceList(prices: Price2[]): void {
     const isClientPJ: boolean =
-      this.clientStore.client()?.type === ClientType.PJ;
+      this.clientStore.client().type === ClientType.PJ;
 
     let copyForDiscount = this.usedPriceCategories;
     this.usedPriceCategories = [];
@@ -203,13 +203,13 @@ export class OfferOverviewPageComponent {
       width: '300px',
     });
 
-    this.delivery_address = this.clientStore.client()?.address
-      ? this.clientStore.client()?.address!
+    this.delivery_address = this.clientStore.client().address
+      ? this.clientStore.client().address!
       : '';
 
     let totalOrderQuantity = this.getTotalQuantity();
 
-    if (this.clientStore.client()?.type === ClientType.PJ) {
+    if (this.clientStore.client().type === ClientType.PJ) {
       this.comment = 'Taxare inversa - fără TVA\n';
     }
 
@@ -256,7 +256,7 @@ export class OfferOverviewPageComponent {
             )
             .then(() => {
               this.productStore.deleteProductItems();
-              this.clientStore.deleteClient();
+              this.clientStore.setClientId(-1);
               this.voucher = '';
               this.comment = '';
               this.deliveryFee = 0;

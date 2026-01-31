@@ -1,8 +1,8 @@
-@if (order) {
+@if (order && !clientStore.isBusy()) {
   <div id="content" class="d-flex flex-column w-100 pb-3">
     @if (!isLoading()) {
       <div class="d-flex align-items-center justify-content-between w-100 px-1">
-        {{ order.client.name }} -
+        {{ client().name }} -
         {{ order.dateOrderPlaced | date: "yyyy.MM.dd" }}
         <div class="d-flex">
           <button
@@ -88,17 +88,30 @@
         class="d-flex flex-column bg-white text-dark rounded shadow p-3 mt-3"
       >
         <div class="client-detail-item">
-          <b class="pe-1"> {{ order.client.type === 1 ? "CNP " : "CUI " }} </b>
+          <b class="pe-1"> {{ client().type === 1 ? "CNP " : "CUI " }} </b>
           :
-          {{ order.client.code }}
+          {{ client().code }}
         </div>
-        <div
-          (click)="callNumber(order.client.phone)"
-          class="client-detail-item pt-1"
-        >
-          <i class="material-icons">phone_iphone</i>:
-          {{ order.client.phone }}
-        </div>
+        @for (
+          phone of client().client_phones;
+          track $index;
+          let first = $first
+        ) {
+          <div
+            (click)="callNumber(phone.phone)"
+            class="client-detail-item pt-1"
+          >
+            @if (first) {
+              <i class="material-icons">phone_iphone</i>:
+            }
+            <div [ngClass]="{ 'ms-4': !first }">
+              {{ phone.phone }}
+              @if (phone.label) {
+                - ({{ phone.label }})
+              }
+            </div>
+          </div>
+        }
         <div
           (click)="openInMapsApp(order.delivery_address!)"
           class="client-detail-item pt-1"
@@ -109,15 +122,15 @@
         <mat-divider class="mb-1" />
         <div class="client-detail-item">
           {{
-            order.client.type === 1
+            client().type === 1
               ? ("PRINT_POPUP.ADDRESS_PF" | translate)
               : ("PRINT_POPUP.ADDRESS_PJ" | translate)
           }}
-          {{ order.client.address }}
+          {{ client().address }}
         </div>
         <mat-divider class="mb-1" />
-        @if (order.client.other_details) {
-          <div class="client-detail-item">{{ order.client.other_details }}</div>
+        @if (client().other_details) {
+          <div class="client-detail-item">{{ client().other_details }}</div>
           <mat-divider class="mb-2 mt-1" />
         }
         @if (order.comment) {

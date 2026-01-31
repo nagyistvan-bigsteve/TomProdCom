@@ -1,17 +1,8 @@
-import {
-  Component,
-  DestroyRef,
-  inject,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { Component, computed, effect, inject, ViewChild } from '@angular/core';
 import { AddClientComponent } from '../../components/client/add-client/add-client.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { ClientsService } from '../../services/query-services/client.service';
 import { Client } from '../../models/models';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,8 +15,8 @@ import {
 import { MatOptionModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { map, Observable, startWith, switchMap } from 'rxjs';
-import { useClientStore } from '../../services/store/client-store';
+import { ClientStore } from '../../services/store/client/client.store';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-clients',
@@ -49,71 +40,60 @@ import { useClientStore } from '../../services/store/client-store';
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss',
 })
-export class ClientsComponent implements OnInit, OnDestroy {
+export class ClientsComponent {
   @ViewChild(MatAutocompleteTrigger) autocomplete!: MatAutocompleteTrigger;
 
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly clientsService = inject(ClientsService);
-  readonly clientStore = inject(useClientStore);
+  readonly clientStore = inject(ClientStore);
 
-  clients: Client[] = [];
+  clientSearch = new FormControl<string | Client>('');
 
-  clients$: Observable<Client[]> = this.clientsService.getClients();
-  filteredClients$: Observable<Client[]> | undefined;
+  readonly searchValue = toSignal(this.clientSearch.valueChanges, {
+    initialValue: '',
+  });
 
-  clientSearch = new FormControl<Client>(this.clientStore.client()!);
+  filteredClients = computed(() => {
+    const searchValue = this.searchValue();
+    const allClients = this.clientStore.clientsEntities();
 
-  ngOnInit(): void {
-    this.filterClients();
+    if (!searchValue || typeof searchValue !== 'string') {
+      return allClients;
+    }
 
-    this.clientsService
-      .getClients()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((clients) => {
-        if (clients) {
-          this.clients = clients;
-        }
-      });
-  }
+    const search = searchValue.toLowerCase().trim();
 
-  ngOnDestroy(): void {
-    this.clientStore.deleteClient();
-  }
+    if (!search) {
+      return allClients;
+    }
 
-  displayClientLabel(client: Client): string {
-    return client ? client.name : '';
-  }
+    return allClients.filter((client) =>
+      client.name.toLowerCase().includes(search),
+    );
+  });
 
-  selectClient(client: Client) {
-    this.clientStore.setClient(client);
-  }
-
-  clearClient(): void {
-    this.clientStore.deleteClient();
-    this.clientSearch.setValue(null);
-    setTimeout(() => {
-      this.autocomplete.closePanel();
+  constructor() {
+    effect(() => {
+      const currentClient = this.clientStore.client();
+      if (currentClient && this.clientSearch.value !== currentClient) {
+        this.clientSearch.setValue(currentClient, { emitEvent: false });
+      }
     });
   }
 
-  private filterClients(): void {
-    this.filteredClients$ = this.clientSearch.valueChanges.pipe(
-      startWith(''),
-      map((value) => (typeof value === 'string' ? value.toLowerCase() : '')),
-      map((search) =>
-        search
-          ? this.clientsService
-              .getClients()
-              .pipe(
-                map((clients) =>
-                  clients.filter((client) =>
-                    client.name.toLowerCase().includes(search)
-                  )
-                )
-              )
-          : this.clientsService.getClients()
-      ),
-      switchMap((obs) => obs)
-    );
+  displayClientLabel(client: Client | string | null): string {
+    if (!client) return '';
+    return typeof client === 'string' ? client : client.name;
+  }
+
+  selectClient(client: Client): void {
+    this.clientStore.setClientId(client.id);
+    this.clientSearch.setValue(client, { emitEvent: false });
+  }
+
+  clearClient(): void {
+    this.clientStore.setClientId(-1);
+    this.clientSearch.setValue('');
+    setTimeout(() => {
+      this.autocomplete?.closePanel();
+    });
   }
 }

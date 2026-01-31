@@ -1,6 +1,7 @@
 import {
   ChangeDetectorRef,
   Component,
+  computed,
   DestroyRef,
   ElementRef,
   EventEmitter,
@@ -35,21 +36,19 @@ import { ProductsService } from '../../../services/query-services/products.servi
 import { Category, ClientType, Unit_id } from '../../../models/enums';
 import { ClientsService } from '../../../services/query-services/client.service';
 import { Router } from '@angular/router';
-import { useClientStore } from '../../../services/store/client-store';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ProductUtil } from '../../../services/utils/product.util';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { FilterUtil } from '../../../services/utils/filter.util';
 import { PricesService } from '../../../services/query-services/prices.service';
 import { OrderPdfComponent } from '../../pdf/order-pdf/order-pdf.component';
 import { OrderPdfGeneratorUtil } from '../../../services/utils/order-pdf-generator.util';
+import { ClientStore } from '../../../services/store/client/client.store';
 
 @Component({
   selector: 'app-order-details',
@@ -142,15 +141,18 @@ export class OrderDetailsComponent implements OnInit {
   private readonly productService = inject(ProductsService);
   private readonly pricesService = inject(PricesService);
   private readonly productUtil = inject(ProductUtil);
-  private readonly clientService = inject(ClientsService);
-  private readonly clientStore = inject(useClientStore);
   private readonly router = inject(Router);
   private readonly changeDetection = inject(ChangeDetectorRef);
   private readonly orderPdfGenerator = inject(OrderPdfGeneratorUtil);
+  readonly clientStore = inject(ClientStore);
   private filterUtil = inject(FilterUtil);
   private snackBar = inject(MatSnackBar);
   private translateService = inject(TranslateService);
   private _dialog = inject(MatDialog);
+
+  client = computed(
+    () => this.clientStore.clientsEntityMap()[this.order?.clientId!],
+  );
 
   ngOnInit(): void {
     this.fetchOrderItems();
@@ -295,7 +297,7 @@ export class OrderDetailsComponent implements OnInit {
   }
 
   findExistingCategories(): undefined | number {
-    const isClientPJ: boolean = this.order?.client.type === ClientType.PJ;
+    const isClientPJ: boolean = this.client().type === ClientType.PJ;
 
     if (!this.selectedProductPrice || !this.selectedProductPrice!.length) {
       return;
@@ -396,36 +398,28 @@ export class OrderDetailsComponent implements OnInit {
           const productIds: number[] = this.orderItems!.map(
             (item) => item.product.id,
           );
-          this.clientService.getClientById(order.client.id).then((client) => {
-            if (!client) {
+          this.productService.getProductsByIds(productIds).then((products) => {
+            if (!products) {
               return;
             }
-            this.productService
-              .getProductsByIds(productIds)
-              .then((products) => {
-                if (!products) {
-                  return;
-                }
-                const productItems: ProductItems = this.orderItems!.map(
-                  (item) => {
-                    return {
-                      product: products.find(
-                        (product) => product.id === item.product.id,
-                      )!,
-                      quantity: item.quantity,
-                      price: item.price,
-                      category:
-                        Category[item.category.name as keyof typeof Category],
-                    };
-                  },
-                );
-                this.clientStore.setClient(client);
-                this.productStore.setProductItems(productItems);
-                if (this.deleteOffer) {
-                  this.orderService.deleteOrder(order.id);
-                }
-                this.router.navigate(['offer/overview']);
-              });
+            const productItems: ProductItems = this.orderItems!.map((item) => {
+              return {
+                product: products.find(
+                  (product) => product.id === item.product.id,
+                )!,
+                quantity: item.quantity,
+                price: item.price,
+                category: Category[item.category.name as keyof typeof Category],
+              };
+            });
+            this.clientStore.setClientId(
+              this.clientStore.clientsEntityMap()[order.clientId].id,
+            );
+            this.productStore.setProductItems(productItems);
+            if (this.deleteOffer) {
+              this.orderService.deleteOrder(order.id);
+            }
+            this.router.navigate(['offer/overview']);
           });
         }
       });

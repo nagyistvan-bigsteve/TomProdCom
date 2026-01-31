@@ -45,21 +45,31 @@
           <div class="title mb-2 text-uppercase">
             <strong>{{ "PRINT_POPUP.CLIENT" | translate }}</strong>
           </div>
-          <div class="text-wrap">{{ order().client.name }}</div>
+          <div class="text-wrap">{{ client().name }}</div>
           <div>
-            <strong>{{ order().client.type === 1 ? "CNP " : "CUI " }}</strong>
-            : {{ order().client.code }}
+            <strong>{{ client().type === 1 ? "CNP " : "CUI " }}</strong>
+            : {{ client().code }}
           </div>
-          <div class="mt-1">
-            <strong>Tel:</strong> {{ order().client.phone }}
+          <div class="mt-1 d-flex">
+            <strong>Tel:</strong>
+            <div>
+              @for (phone of client().client_phones; track $index) {
+                <div class="ms-1">
+                  {{ phone.phone }}
+                  @if (phone.label) {
+                    - ({{ phone.label }})
+                  }
+                </div>
+              }
+            </div>
           </div>
           <div class="text-wrap">
             <strong>{{
-              order().client.type === 1
+              client().type === 1
                 ? ("PRINT_POPUP.ADDRESS_PF" | translate)
                 : ("PRINT_POPUP.ADDRESS_PJ" | translate)
             }}</strong>
-            {{ order().client.address }}
+            {{ client().address }}
           </div>
           <div class="text-wrap">
             <strong>{{ "PRINT_POPUP.DELIVERY_ADDRESS" | translate }}</strong>
@@ -177,9 +187,9 @@
           </strong>
         </div>
 
-        @if (order().client.other_details) {
+        @if (client().other_details) {
           <div class="pt-2">
-            {{ order().client.other_details }}
+            {{ client().other_details }}
           </div>
           <mat-divider class="w-25 my-1" />
         }

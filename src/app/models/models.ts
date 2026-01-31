@@ -1,4 +1,3 @@
-import { NumberValueAccessor } from '@angular/forms';
 import { UserRole } from '../services/store/auth-store';
 import { Category, ClientType, Size_id, Unit_id } from './enums';
 
@@ -74,9 +73,16 @@ export type Client = {
   name: string;
   address: string | null;
   code: string | null;
-  phone: string;
   other_details: string | null;
+  client_phones?: ClientPhones;
 };
+
+export type ClientPhones = {
+  id: number;
+  client_id: number;
+  phone: string;
+  label: string;
+}[];
 
 export type Operators = {
   id: string;
@@ -134,7 +140,7 @@ export type Order = {
 export type OrderResponse = {
   id: number;
   sortOrder: number;
-  client: Client;
+  clientId: number;
   dateOrderPlaced: Date;
   expectedDelivery: Date;
   dateOrderDelivered: Date;

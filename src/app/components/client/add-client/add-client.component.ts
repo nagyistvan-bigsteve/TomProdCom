@@ -1,20 +1,13 @@
+import { Component, effect, inject, Input, signal } from '@angular/core';
 import {
-  Component,
-  DestroyRef,
-  inject,
-  OnInit,
-  effect,
-  Input,
-} from '@angular/core';
-import {
+  FormArray,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { ClientsService } from '../../../services/query-services/client.service';
 import { Client } from '../../../models/models';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,12 +17,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { Router } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { useClientStore } from '../../../services/store/client-store';
+import { TranslateModule } from '@ngx-translate/core';
 import { cuiValidator } from '../../../guards/cuiValidator';
+import { ClientStore } from '../../../services/store/client/client.store';
+
+interface PhoneFormGroup extends FormGroup<{
+  phone: FormControl<string>;
+  label: FormControl<string>;
+}> {
+  _uniqueId?: number;
+}
 
 @Component({
   selector: 'app-add-client',
@@ -50,15 +49,13 @@ import { cuiValidator } from '../../../guards/cuiValidator';
   styleUrl: './add-client.component.scss',
   animations: [ENTER_ANIMATION],
 })
-export class AddClientComponent implements OnInit {
+export class AddClientComponent {
   @Input() withoutForwardButton: boolean = false;
-  public readonly clientStore = inject(useClientStore);
 
-  private translateService = inject(TranslateService);
-  private clientsService = inject(ClientsService);
-  private snackBar = inject(MatSnackBar);
-  private destroyRef = inject(DestroyRef);
-  private router = inject(Router);
+  readonly clientStore = inject(ClientStore);
+  private readonly router = inject(Router);
+
+  private phoneIdCounter = 0;
 
   clientForm = new FormGroup({
     name: new FormControl<string>('', {
@@ -69,15 +66,7 @@ export class AddClientComponent implements OnInit {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    phone: new FormControl<string>('', {
-      nonNullable: true,
-      validators: [
-        Validators.required,
-        Validators.pattern(
-          /^(?:\+|00)?\d{1,3}[\s\-]?\(?\d{1,4}\)?([\s\-]?\d{2,4}){2,4}$/
-        ),
-      ],
-    }),
+    phones: new FormArray<PhoneFormGroup>([]),
     address: new FormControl<string>('', {
       nonNullable: true,
       validators: [Validators.required],
@@ -90,96 +79,195 @@ export class AddClientComponent implements OnInit {
   });
 
   clientTypes = Object.values(ClientType).filter(
-    (value) => typeof value === 'number'
+    (value) => typeof value === 'number',
   );
 
+  get phones(): FormArray<PhoneFormGroup> {
+    return this.clientForm.get('phones') as FormArray<PhoneFormGroup>;
+  }
+
   constructor() {
+    // Setup type change validation
+    this.setupTypeValidation();
+
+    // Sync form with selected client from store
     effect(() => {
-      if (this.clientStore.client()) {
-        const client = {
-          name: this.clientStore.client()?.name!,
-          type: this.clientStore.client()?.type!,
-          phone: this.clientStore.client()?.phone!,
-          address: this.clientStore.client()?.address!,
-          code: this.clientStore.client()?.code!,
-          other_details: this.clientStore.client()?.other_details!,
-        };
-        this.clientForm.setValue(client);
+      const client = this.clientStore.client();
+
+      if (client) {
+        this.loadClientData(client);
       } else {
-        const client = {
-          name: '',
-          type: ClientType.PF,
-          phone: '',
-          address: '',
-          code: '',
-          other_details: '',
-        };
-        this.clientForm.setValue(client);
+        this.resetForm();
       }
     });
   }
 
-  ngOnInit(): void {
-    this.clientForm
-      .get('type')
-      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((typeValue) => {
-        const codeControl = this.clientForm.get('code');
+  private loadClientData(client: Client): void {
+    // Clear existing phone fields
+    while (this.phones.length > 0) {
+      this.phones.removeAt(0);
+    }
 
-        if (typeValue === 1) {
-          codeControl?.setValidators([
-            Validators.required,
-            Validators.pattern(/^\d{13}$/),
-          ]);
-        } else {
-          codeControl?.setValidators([Validators.required, cuiValidator()]);
-        }
+    // Populate form with client data
+    this.clientForm.patchValue(
+      {
+        name: client.name,
+        type: client.type,
+        address: client.address ?? '',
+        code: client.code ?? '',
+        other_details: client.other_details ?? '',
+      },
+      { emitEvent: false },
+    );
 
-        codeControl?.updateValueAndValidity();
+    // Add phone fields from client
+    if (client.client_phones && client.client_phones.length > 0) {
+      client.client_phones.forEach((phone) => {
+        this.addPhoneField(phone.phone, phone.label);
       });
+    } else {
+      // If no phones, add one empty field
+      this.addPhoneField();
+    }
+  }
+
+  private setupTypeValidation(): void {
+    this.clientForm.get('type')?.valueChanges.subscribe((typeValue) => {
+      const codeControl = this.clientForm.get('code');
+
+      if (typeValue === ClientType.PF) {
+        codeControl?.setValidators([
+          Validators.required,
+          Validators.pattern(/^\d{13}$/),
+        ]);
+      } else {
+        codeControl?.setValidators([Validators.required, cuiValidator()]);
+      }
+
+      codeControl?.updateValueAndValidity();
+    });
+  }
+
+  addPhoneField(phone: string = '', label: string = ''): void {
+    const phoneGroup = new FormGroup({
+      label: new FormControl<string>(label, {
+        nonNullable: true,
+        validators: [],
+      }),
+      phone: new FormControl<string>(phone, {
+        nonNullable: true,
+        validators: [
+          Validators.required,
+          Validators.pattern(
+            /^(?:\+|00)?\d{1,3}[\s\-]?\(?\d{1,4}\)?([\s\-]?\d{2,4}){2,4}$/,
+          ),
+        ],
+      }),
+    }) as PhoneFormGroup;
+
+    // Add unique ID for tracking
+    phoneGroup._uniqueId = this.phoneIdCounter++;
+
+    this.phones.push(phoneGroup);
+    this.clientForm.markAsDirty();
+  }
+
+  removePhoneField(index: number): void {
+    if (this.phones.length > 1) {
+      this.phones.removeAt(index);
+    } else {
+      // If it's the last one, just reset it instead of removing
+      this.phones.at(0).reset({ label: '', phone: '' });
+    }
+
+    this.clientForm.markAsDirty();
+  }
+
+  // Track by function for @for loop
+  trackByPhoneId(index: number, item: PhoneFormGroup): number {
+    return item._uniqueId ?? index;
+  }
+
+  resetForm(): void {
+    // Clear all phone fields
+    while (this.phones.length > 0) {
+      this.phones.removeAt(0);
+    }
+
+    // Reset the form
+    this.clientForm.reset(
+      {
+        name: '',
+        type: ClientType.PF,
+        address: '',
+        code: '',
+        other_details: '',
+      },
+      { emitEvent: false },
+    );
+
+    // Add one empty phone field
+    this.addPhoneField();
   }
 
   toOfferOverview(): void {
     this.router.navigate(['offer/overview']);
   }
 
-  updateClient() {
+  updateClient(): void {
     if (this.clientForm.valid) {
-      const updatedClient: Partial<Client> = this.clientForm.value;
-      updatedClient.id = this.clientStore.client()?.id!;
+      const formValue = this.clientForm.getRawValue();
+      const currentClient = this.clientStore.client();
 
-      this.clientsService
-        .updateClient(updatedClient as Client)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((response) => {
-          if (response) {
-            this.clientStore.setClient(updatedClient as Client);
-          }
-        });
+      if (!currentClient) {
+        return;
+      }
+
+      const updatedClient: Client = {
+        id: currentClient.id,
+        name: formValue.name,
+        type: formValue.type,
+        address: formValue.address || null,
+        code: formValue.code || null,
+        other_details: formValue.other_details || null,
+        client_phones: formValue.phones
+          .filter((p) => p.phone)
+          .map((p, index) => ({
+            id: currentClient.client_phones?.[index]?.id ?? 0,
+            client_id: currentClient.id,
+            phone: p.phone,
+            label: p.label,
+          })),
+      };
+
+      this.clientForm.markAsPristine();
+      this.clientStore.updateClient(updatedClient);
     }
   }
 
-  addClient() {
+  addClient(): void {
     if (this.clientForm.valid) {
-      const newClient: Partial<Client> = this.clientForm.value;
-      this.clientsService
-        .addClient(newClient as Client)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe((response) => {
-          if (response) {
-            newClient.id = (response as Client).id;
-            this.clientStore.setClient(newClient as Client);
-            this.translateService
-              .get(['SNACKBAR.CLIENT.ADD_SUCCESS', 'SNACKBAR.BUTTONS.CLOSE'])
-              .subscribe((translations) => {
-                this.snackBar.open(
-                  translations['SNACKBAR.CLIENT.ADD_SUCCESS'],
-                  translations['SNACKBAR.BUTTONS.CLOSE'],
-                  { duration: 3000 }
-                );
-              });
-          }
-        });
+      const formValue = this.clientForm.getRawValue();
+
+      const newClient: Client = {
+        id: 0, // Will be set by the backend
+        name: formValue.name,
+        type: formValue.type,
+        address: formValue.address || null,
+        code: formValue.code || null,
+        other_details: formValue.other_details || null,
+        client_phones: formValue.phones
+          .filter((p) => p.phone)
+          .map((p) => ({
+            id: 0,
+            client_id: 0,
+            phone: p.phone,
+            label: p.label,
+          })),
+      };
+
+      this.clientForm.markAsPristine();
+      this.clientStore.addClient(newClient);
     }
   }
 }
