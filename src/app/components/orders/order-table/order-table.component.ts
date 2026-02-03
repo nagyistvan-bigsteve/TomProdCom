@@ -126,7 +126,8 @@ export class OrderTableComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((orders) => {
         this.isLoading.emit(false);
-        this.orders = this.sortByDelivery(orders);
+        this.orders = orders;
+        this.sortItems();
         this.filterItems(false);
       });
   }
@@ -320,7 +321,13 @@ export class OrderTableComponent implements OnInit {
     this.table.renderRows();
 
     // TODO: Save the new order to the backend
-    this.ordersService.saveAdminSortOrder(this.dataSource.data);
+    this.ordersService
+      .saveAdminSortOrder(this.dataSource.data)
+      .then((response) => {
+        if (response) {
+          this.fetchOrders();
+        }
+      });
   }
 
   private sortByDelivery(orders: OrderResponse[]): OrderResponse[] {

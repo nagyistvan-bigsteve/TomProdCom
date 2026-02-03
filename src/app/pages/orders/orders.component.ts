@@ -1,10 +1,11 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { OrderTableComponent } from '../../components/orders/order-table/order-table.component';
 import { OrderResponse } from '../../models/models';
 import { OrderDetailsComponent } from '../../components/orders/order-details/order-details.component';
 import { ENTER_ANIMATION } from '../../models/animations';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
+import { ClientStore } from '../../services/store/client/client.store';
 
 @Component({
   selector: 'app-orders',
@@ -21,6 +22,7 @@ import { CommonModule } from '@angular/common';
 export class OrdersComponent implements OnInit {
   order: OrderResponse | null = null;
   isLoading = signal(true);
+  readonly clientStore = inject(ClientStore);
 
   ngOnInit(): void {
     if (localStorage.getItem('on-order-details-page')) {
