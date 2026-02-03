@@ -23,7 +23,7 @@ import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { useProductStore } from '../../../services/store/product-store';
 import { Price2, ProductItem } from '../../../models/models';
-import { Category, ClientType, Unit_id } from '../../../models/enums';
+import { Category, Unit_id } from '../../../models/enums';
 import { ProductUtil } from '../../../services/utils/product.util';
 import { FormsModule } from '@angular/forms';
 import { ENTER_ANIMATION } from '../../../models/animations';
@@ -89,7 +89,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
 
   constructor() {
     effect(() => {
-      if (this.clientStore.client() && this.prices.length) {
+      if (this.clientStore.isClientSelected() && this.prices.length) {
         untracked(() => {
           this.compareSavedPrice();
           this.getUsedPrices();
@@ -364,9 +364,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
   }
 
   private getExactPrice(newCategory: Category, item: ProductItem): number {
-    const isClientPJ: boolean = this.clientStore.client()
-      ? this.clientStore.client().type === ClientType.PJ
-      : false;
+    const isClientPJ: boolean = this.clientStore.isClientPJ();
 
     const unicPrice = this.prices.find(
       (price) => price.product_id === item.product.id,

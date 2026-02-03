@@ -9,7 +9,7 @@
           <mat-expansion-panel-header class="px-3">
             <div class="d-flex justify-content-center align-items-center">
               {{ "OVERVIEW_PAGE.PRICES.TITLE" | translate }} -
-              {{ clientStore.client().type === 1 ? "PF" : "PJ" }}
+              {{ clientStore.isClientPJ() ? "PJ" : "PF" }}
             </div>
           </mat-expansion-panel-header>
           <div class="w-100">
@@ -119,7 +119,7 @@
     <mat-form-field class="w-100" appearance="outline">
       <mat-label>{{ "OVERVIEW_PAGE.POPUP.COMMENT" | translate }}</mat-label>
       <textarea
-        [rows]="clientStore.client().type === 2 ? 4 : 3"
+        [rows]="clientStore.isClientPJ() ? 4 : 3"
         matInput
         [(ngModel)]="comment"
       ></textarea>

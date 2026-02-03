@@ -3,12 +3,12 @@
 <mat-card
   class="mx-3 p-3"
   [ngClass]="{
-    'reduced-height': clientStore.client() && !withoutForwardButton,
+    'reduced-height': clientStore.isClientSelected() && !withoutForwardButton,
   }"
 >
   <h3 class="pb-2">
     {{
-      clientStore.client()
+      clientStore.isClientSelected()
         ? ("ADD_CLIENT.TITLE_UPDATE" | translate)
         : ("ADD_CLIENT.TITLE" | translate)
     }}
@@ -89,13 +89,7 @@
 
     <mat-form-field appearance="outline" class="w-100">
       <mat-label>
-        {{
-          clientStore.client()
-            ? clientStore.client().type === 1
-              ? ("ADD_CLIENT.CODE_PF" | translate)
-              : ("ADD_CLIENT.CODE_PJ" | translate)
-            : ("ADD_CLIENT.CODE" | translate)
-        }}
+        {{ "ADD_CLIENT.CODE" | translate }}
       </mat-label>
       <input matInput formControlName="code" />
     </mat-form-field>
@@ -110,7 +104,7 @@
       color="primary"
       type="button"
       class="p-2 add-client-button w-100"
-      (click)="clientStore.client() ? updateClient() : addClient()"
+      (click)="clientStore.isClientSelected() ? updateClient() : addClient()"
       [disabled]="clientForm.invalid || isBusy || !clientForm.dirty"
     >
       @if (isBusy) {
@@ -122,7 +116,7 @@
         </div>
       }
       {{
-        clientStore.client()
+        clientStore.isClientSelected()
           ? ("ADD_CLIENT.UPDATE_BUTTON" | translate)
           : ("ADD_CLIENT.ADD_BUTTON" | translate)
       }}
@@ -130,7 +124,7 @@
   </form>
 </mat-card>
 
-@if (clientStore.client() && !withoutForwardButton) {
+@if (clientStore.isClientSelected() && !withoutForwardButton) {
   <div @enterAnimation class="d-flex justify-content-center">
     <button
       class="mt-2 full-width"

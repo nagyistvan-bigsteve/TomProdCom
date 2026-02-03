@@ -12,14 +12,14 @@
         <div class="w-100 client-data">
           <div class="d-flex flex-column">
             <div class="my-1">
-              {{ client.name }}({{ client.type === 1 ? "PF" : "PJ" }})
+              {{ client.name }}({{ clientStore.isClientPJ() ? "PJ" : "PF" }})
             </div>
             <mat-divider />
             <div class="my-1">
               {{
-                client.type === 1
-                  ? ("ADD_CLIENT.CODE_PF" | translate)
-                  : ("ADD_CLIENT.CODE_PJ" | translate)
+                clientStore.isClientPJ()
+                  ? ("ADD_CLIENT.CODE_PJ" | translate)
+                  : ("ADD_CLIENT.CODE_PF" | translate)
               }}:
               {{ client.code }}
             </div>

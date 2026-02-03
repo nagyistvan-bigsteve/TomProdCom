@@ -26,7 +26,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Category, ClientType, Unit_id } from '../../../models/enums';
+import { Category, Unit_id } from '../../../models/enums';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -130,8 +130,7 @@ export class OfferOverviewPageComponent {
   }
 
   getPriceList(prices: Price2[]): void {
-    const isClientPJ: boolean =
-      this.clientStore.client().type === ClientType.PJ;
+    const isClientPJ: boolean = this.clientStore.isClientPJ();
 
     let copyForDiscount = this.usedPriceCategories;
     this.usedPriceCategories = [];
@@ -209,7 +208,7 @@ export class OfferOverviewPageComponent {
 
     let totalOrderQuantity = this.getTotalQuantity();
 
-    if (this.clientStore.client().type === ClientType.PJ) {
+    if (this.clientStore.isClientPJ()) {
       this.comment = 'Taxare inversa - fără TVA\n';
     }
 

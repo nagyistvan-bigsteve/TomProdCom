@@ -28,6 +28,7 @@ import {
   addEntity,
 } from '@ngrx/signals/entities';
 import { updateCurrentClientId } from './client.updaters';
+import { ClientType } from '../../../models/enums';
 
 const clientConfig = entityConfig({
   entity: type<Client>(),
@@ -45,6 +46,12 @@ export const ClientStore = signalStore(
   withEntities(clientConfig),
   withComputed((store) => ({
     client: computed(() => store.clientsEntityMap()[store.currentClientId()]),
+    isClientSelected: computed(() => store.currentClientId() !== -1),
+    isClientPJ: computed(
+      () =>
+        store.clientsEntityMap()[store.currentClientId()].type ===
+        ClientType.PJ,
+    ),
   })),
   withMethods((store) => {
     return {
