@@ -2,14 +2,14 @@
   height: 100%;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: end;
 
   background-color: rgb(57, 72, 60);
   color: white;
 }
 
 .product-list-container {
-  height: 73vh;
+  height: 82vh;
   overflow: auto;
   width: 90vw;
 }

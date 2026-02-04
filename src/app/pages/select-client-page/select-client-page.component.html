@@ -1,32 +1,34 @@
-<mat-form-field class="full-width pt-2">
-  <mat-label>{{ "SELECT_CLIENT.TITLE" | translate }}</mat-label>
-  <input
-    type="text"
-    matInput
-    [formControl]="clientSearch"
-    [matAutocomplete]="auto"
-  />
-  @if (clientStore.isClientSelected()) {
-    <button
-      matSuffix
-      mat-icon-button
-      aria-label="Clear"
-      (click)="clearClient()"
-    >
-      <mat-icon class="text-black">close</mat-icon>
-    </button>
-  }
-  <mat-autocomplete
-    #auto="matAutocomplete"
-    (optionSelected)="selectClient($event.option.value)"
-    [displayWith]="displayClientLabel"
-  >
-    @for (client of filteredClients(); track client.id) {
-      <mat-option [value]="client">
-        {{ client.name }} ({{ client.type === 1 ? "PF" : "PJ" }})
-      </mat-option>
+<div class="pb-2 text-center">
+  <mat-form-field class="full-width pt-2">
+    <mat-label>{{ "SELECT_CLIENT.TITLE" | translate }}</mat-label>
+    <input
+      type="text"
+      matInput
+      [formControl]="clientSearch"
+      [matAutocomplete]="auto"
+    />
+    @if (clientStore.isClientSelected()) {
+      <button
+        matSuffix
+        mat-icon-button
+        aria-label="Clear"
+        (click)="clearClient()"
+      >
+        <mat-icon class="text-black">close</mat-icon>
+      </button>
     }
-  </mat-autocomplete>
-</mat-form-field>
+    <mat-autocomplete
+      #auto="matAutocomplete"
+      (optionSelected)="selectClient($event.option.value)"
+      [displayWith]="displayClientLabel"
+    >
+      @for (client of filteredClients(); track client.id) {
+        <mat-option [value]="client">
+          {{ client.name }} ({{ client.type === 1 ? "PF" : "PJ" }})
+        </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
 
-<app-add-client />
+  <app-add-client />
+</div>

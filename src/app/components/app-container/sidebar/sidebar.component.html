@@ -1,0 +1,75 @@
+<div class="sidebar" [class.sidebar-open]="isOpen">
+  <div class="sidebar-header">
+    <h3 class="mb-0">{{ authStore.name() }}</h3>
+    <button mat-icon-button (click)="closeSidebar()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <nav class="sidebar-nav">
+    <button class="sidebar-nav-item" mat-button (click)="navigateTo('/offer')">
+      <mat-icon>post_add</mat-icon>
+      <span>{{ "NAVBAR.OFFER_BUTTON" | translate }}</span>
+    </button>
+
+    <button class="sidebar-nav-item" mat-button (click)="navigateTo('/orders')">
+      <mat-icon>receipt_long</mat-icon>
+      <span>{{ "NAVBAR.HISTORY_BUTTON" | translate }}</span>
+    </button>
+
+    <button class="sidebar-nav-item" mat-button (click)="navigateTo('/offers')">
+      <mat-icon>local_offer</mat-icon>
+      <span>{{ "NAVBAR.OFFERS_BUTTON" | translate }}</span>
+    </button>
+
+    <button
+      class="sidebar-nav-item"
+      mat-button
+      (click)="navigateTo('/clients')"
+    >
+      <mat-icon>groups</mat-icon>
+      <span>{{ "NAVBAR.CLIENTS_BUTTON" | translate }}</span>
+    </button>
+
+    <mat-divider class="my-2 border-white" />
+
+    <!-- <button
+      class="sidebar-nav-item"
+      mat-button
+      (click)="navigateTo('/coming-wares')"
+    >
+      <mat-icon>local_shipping</mat-icon>
+      <span>{{ "NAVBAR.OFFER_BUTTON" | translate }}</span>
+    </button> -->
+
+    @if (authStore.role() === "admin") {
+      <button
+        class="sidebar-nav-item"
+        mat-button
+        (click)="navigateTo('/settings')"
+      >
+        <mat-icon>settings</mat-icon>
+        <span>{{ "NAVBAR.SETTINGS" | translate }}</span>
+      </button>
+    }
+
+    <button
+      class="sidebar-nav-item"
+      mat-button
+      (click)="navigateTo('/products')"
+    >
+      <mat-icon>auto_stories</mat-icon>
+      <span>{{ "NAVBAR.PRODUCTS" | translate }}</span>
+    </button>
+
+    <button class="sidebar-nav-item" mat-button (click)="navigateTo('/user')">
+      <mat-icon>account_circle</mat-icon>
+      <span>{{ "NAVBAR.ACCOUNT" | translate }}</span>
+    </button>
+  </nav>
+</div>
+
+<!-- Backdrop/Overlay -->
+@if (isOpen) {
+  <div class="sidebar-backdrop" (click)="closeSidebar()"></div>
+}

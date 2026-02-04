@@ -1,7 +1,9 @@
 :host {
   max-width: 96vw;
-  max-height: 80vh !important;
+  max-height: 91vh !important;
   overflow: scroll;
+  margin-bottom: 8px;
+  height: 100%;
 }
 
 tr.detail-row {
@@ -125,8 +127,10 @@ tr.order-row:not(.expanded-row):active {
 .cdk-drag-preview {
   box-sizing: border-box;
   border-radius: 4px;
-  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
-    0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 5px 5px -3px rgba(0, 0, 0, 0.2),
+    0 8px 10px 1px rgba(0, 0, 0, 0.14),
+    0 3px 14px 2px rgba(0, 0, 0, 0.12);
   background-color: white;
   opacity: 0.9;
 }

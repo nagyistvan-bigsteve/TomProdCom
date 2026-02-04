@@ -10,7 +10,10 @@
     "OFFER_BUTTON": "Új ajánlat",
     "HISTORY_BUTTON": "Rendelések",
     "OFFERS_BUTTON": "Ajánlatok",
-    "CLIENTS_BUTTON": "Kliensek"
+    "CLIENTS_BUTTON": "Kliensek",
+    "SETTINGS": "Szerkesztések",
+    "ACCOUNT": "Felhasználó",
+    "PRODUCTS": "Készlet lista"
   },
   "OFFER_PAGE": {
     "FIRST_STEP": {
