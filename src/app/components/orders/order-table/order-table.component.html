@@ -93,8 +93,12 @@
       {{ "ORDER.TABLE.CONTENT.CLIENT" | translate }}
     </th>
     <td mat-cell *matCellDef="let order" class="client-name">
-      @if (clientStore.clientsEntityMap() && order.clientId) {
-        {{ clientStore.clientsEntityMap()[order.clientId]?.name }}
+      @if (
+        clientStore.clientsEntityMap() &&
+        order.clientId &&
+        clientStore.clientsEntityMap()[order.clientId].name
+      ) {
+        {{ clientStore.clientsEntityMap()[order.clientId].name }}
       }
     </td>
   </ng-container>

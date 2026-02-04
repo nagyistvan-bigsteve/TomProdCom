@@ -44,15 +44,22 @@ export const ClientStore = signalStore(
     return { _clientService };
   }),
   withEntities(clientConfig),
-  withComputed((store) => ({
-    client: computed(() => store.clientsEntityMap()[store.currentClientId()]),
-    isClientSelected: computed(() => store.currentClientId() !== -1),
-    isClientPJ: computed(
-      () =>
-        store.clientsEntityMap()[store.currentClientId()].type ===
-        ClientType.PJ,
-    ),
-  })),
+  withComputed((store) => {
+    let isClientPj = computed(() => {
+      if (store.currentClientId() !== -1) {
+        return (
+          store.clientsEntityMap()[store.currentClientId()].type ===
+          ClientType.PJ
+        );
+      } else return false;
+    });
+
+    return {
+      client: computed(() => store.clientsEntityMap()[store.currentClientId()]),
+      isClientSelected: computed(() => store.currentClientId() !== -1),
+      isClientPJ: isClientPj,
+    };
+  }),
   withMethods((store) => {
     return {
       setClientId: (newId: number) =>
