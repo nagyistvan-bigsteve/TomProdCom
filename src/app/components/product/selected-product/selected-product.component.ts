@@ -18,7 +18,6 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ProductsService } from '../../../services/query-services/products.service';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { CommonModule } from '@angular/common';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ProductUtil } from '../../../services/utils/product.util';
 import { StocksService } from '../../../services/query-services/stocks.service';

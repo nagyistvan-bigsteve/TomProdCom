@@ -92,7 +92,7 @@
     </div>
     <mat-divider class="m-2"></mat-divider>
     <div class="ms-4">
-      @if (currentStock) {
+      @if (currentStock && selectedProduct.unit_id !== 2) {
         {{ "SNACKBAR.PRODUCT.STOCK" | translate }}
         {{ currentStock.stock }}/{{
           currentStock.stock - currentStock.booked_stock
