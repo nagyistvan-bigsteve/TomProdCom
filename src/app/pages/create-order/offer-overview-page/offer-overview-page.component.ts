@@ -261,8 +261,10 @@ export class OfferOverviewPageComponent {
               this.deliveryFee = 0;
 
               if (!this.justOffer) {
+                localStorage.removeItem('on-order-details-page');
                 this.router.navigate(['/orders']);
               } else {
+                localStorage.removeItem('on-offer-details-page');
                 this.router.navigate(['offers']);
               }
             });
