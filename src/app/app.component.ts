@@ -4,26 +4,31 @@ import { MatButtonModule } from '@angular/material/button';
 import { Language } from './models/enums';
 import { RouterModule } from '@angular/router';
 import { TopbarComponent } from './components/app-container/topbar/topbar.component';
-import { BottomNavbarComponent } from './components/app-container/bottom-navbar/bottom-navbar.component';
 import { useAuthStore } from './services/store/auth-store';
 import { AppVersionService } from './services/core/app-version.service';
+import { SidebarComponent } from './components/app-container/sidebar/sidebar.component';
 
 @Component({
   standalone: true,
   selector: 'app-root',
-  imports: [
-    MatButtonModule,
-    RouterModule,
-    TopbarComponent,
-    BottomNavbarComponent,
-  ],
+  imports: [MatButtonModule, RouterModule, TopbarComponent, SidebarComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit {
   private translateService = inject(TranslateService);
-  public readonly authStore = inject(useAuthStore);
+  readonly authStore = inject(useAuthStore);
   private appVersion = inject(AppVersionService);
+
+  isSidebarOpen = false;
+
+  toggleSidebar(): void {
+    this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  closeSidebar(): void {
+    this.isSidebarOpen = false;
+  }
 
   ngOnInit(): void {
     this.appVersion.checkAndReloadIfNeeded();

@@ -10,7 +10,10 @@
     "OFFER_BUTTON": "Oferta nouă",
     "HISTORY_BUTTON": "Comenzi",
     "OFFERS_BUTTON": "Oferte",
-    "CLIENTS_BUTTON": "Clienți"
+    "CLIENTS_BUTTON": "Clienți",
+    "SETTINGS": "Editare",
+    "ACCOUNT": "User",
+    "PRODUCTS": "Lista de stoc"
   },
   "OFFER_PAGE": {
     "FIRST_STEP": {

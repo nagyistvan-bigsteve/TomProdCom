@@ -1,24 +1,24 @@
-<div class="page-container w-100">
+<div class="page-container justify-content-between w-100">
   <div
-    class="d-flex flex-column px-2 add-product"
+    class="d-flex flex-column px-2 w-100"
     [class]="{ 'select-product-off': !selectProductOn }"
   >
     @if (selectProductOn) {
-      <div @enterAnimation>
-        <app-product-list
-          (selectedProduct)="getSelectedProduct($event)"
-        ></app-product-list>
+      <app-product-list
+        @enterAnimation
+        (selectedProduct)="getSelectedProduct($event)"
+      ></app-product-list>
 
-        @if (selectedProduct) {
-          <app-selected-product
-            (addProduct)="addProductToList($event)"
-            [selectedProduct]="selectedProduct"
-          ></app-selected-product>
-        }
-      </div>
+      @if (selectedProduct) {
+        <app-selected-product
+          @enterAnimation
+          (addProduct)="addProductToList($event)"
+          [selectedProduct]="selectedProduct"
+        ></app-selected-product>
+      }
     } @else {
       <div
-        class="d-flex justify-content-evenly align-items-center h-100 w-100 px-2 mb-2 rounded shadow select-product-tile"
+        class="d-flex justify-content-evenly align-items-center px-2 mb-2 rounded shadow select-product-tile py-4"
       >
         <button
           class="button-background"
@@ -33,17 +33,12 @@
       </div>
     }
   </div>
-  <div
-    class="product-list px-2"
-    [class]="{
-      'expanded-product-list': !selectProductOn,
-    }"
-  >
+  <div class="product-list px-2">
     @if (!selectProductOn) {
       <app-selected-product-list @enterAnimation></app-selected-product-list>
     } @else {
       <div
-        class="d-flex flex-column align-items-center w-100 h-100 select-product-tile rounded shadow"
+        class="d-flex flex-column align-items-center select-product-tile rounded shadow"
       >
         <div class="fs-2 pt-2">
           {{
@@ -51,8 +46,10 @@
               | translate
           }}:
         </div>
-        <div class="d-flex justify-content-evenly w-100">
-          <div class="short-list">
+        <div
+          class="d-flex justify-content-evenly align-items-center h-100 w-100"
+        >
+          <div class="short-product-list">
             @for (
               item of productStore.productItems();
               track $index;
@@ -73,15 +70,13 @@
               }
             }
           </div>
-          <div
-            class="d-flex justify-content-center align-items-center max-height"
-          >
+          <div class="d-flex justify-content-center align-items-center">
             <button
               class="button-background"
               mat-fab
               (click)="selectProductOn = !selectProductOn"
             >
-              <mat-icon class="fs-1 icon-color">keyboard_arrow_right</mat-icon>
+              <mat-icon class="fs-1 color-white">keyboard_arrow_right</mat-icon>
             </button>
           </div>
         </div>

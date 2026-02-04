@@ -1,8 +1,11 @@
-@if(authStore.isAuthenticated()){
-<app-topbar class="fixed-top"></app-topbar>
-<router-outlet></router-outlet>
-<app-bottom-navbar class="fixed-bottom"></app-bottom-navbar>
+@if (authStore.isAuthenticated()) {
+  <app-topbar class="fixed-top" (sidebarToggle)="toggleSidebar()"></app-topbar>
+  <app-sidebar
+    [isOpen]="isSidebarOpen"
+    (closeEvent)="closeSidebar()"
+  ></app-sidebar>
+  <router-outlet></router-outlet>
 } @else {
-<app-topbar [isAuthenticated]="false" class="fixed-top"></app-topbar>
-<router-outlet></router-outlet>
+  <app-topbar class="fixed-top"></app-topbar>
+  <router-outlet></router-outlet>
 }

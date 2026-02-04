@@ -1,5 +1,5 @@
 @if (products().length) {
-  <div class="d-flex flex-column">
+  <div class="page-container d-flex flex-column">
     <div class="d-flex gap-3 mb-3 align-items-center">
       <mat-form-field class="products-name-input w-100">
         <input
@@ -93,7 +93,7 @@
     </div>
   </div>
 } @else {
-  <div class="d-flex justify-content-center p-5">
+  <div class="d-flex h-100 justify-content-center align-items-center p-5">
     <mat-spinner />
   </div>
 }

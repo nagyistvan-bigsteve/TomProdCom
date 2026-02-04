@@ -84,7 +84,7 @@
     <div class="mt-2 total-quantity-card">
       <div class="total-quantity">
         <div>{{ "COMING_WARES.TOTAL_QUANTITY" | translate }}:</div>
-        <div>{{ getTotalQuantity() }} m³</div>
+        <div>{{ getTotalQuantity() | number: "1.0-2" }} m³</div>
       </div>
     </div>
   </div>
