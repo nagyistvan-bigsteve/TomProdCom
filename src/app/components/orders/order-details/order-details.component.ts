@@ -379,6 +379,7 @@ export class OrderDetailsComponent implements OnInit {
       .subscribe((result) => {
         if (result === true) {
           this.orderService.transformOfferToOrder(order.id).then(() => {
+            localStorage.removeItem('on-order-details-page');
             this.router.navigate(['orders']);
           });
         }
@@ -419,6 +420,8 @@ export class OrderDetailsComponent implements OnInit {
             if (this.deleteOffer) {
               this.orderService.deleteOrder(order.id);
             }
+            localStorage.removeItem('on-order-details-page');
+
             this.router.navigate(['offer/overview']);
           });
         }
