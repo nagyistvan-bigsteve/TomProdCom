@@ -79,7 +79,7 @@ export class OrderTableComponent implements OnInit {
   @Output() isLoading = new EventEmitter<boolean>();
   @Input() justOffers: boolean = false;
 
-  public readonly authStore = inject(useAuthStore);
+  readonly authStore = inject(useAuthStore);
   private readonly destroyRef = inject(DestroyRef);
   private _dialog = inject(MatDialog);
   private ordersService = inject(OrdersService);
@@ -278,7 +278,7 @@ export class OrderTableComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          this.ordersService.deleteOrder(order.id).then(() => {
+          this.ordersService.setDeletionForOrder(order.id).then(() => {
             setTimeout(() => {
               this.fetchOrders();
             }, 500);

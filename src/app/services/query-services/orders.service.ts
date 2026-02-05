@@ -39,7 +39,8 @@ export class OrdersService {
     delivery_address
     `,
         )
-        .eq('just_offer', justOffers),
+        .eq('just_offer', justOffers)
+        .is('deleted_at', null),
     ).pipe(
       map(({ data }) =>
         (data ?? []).map(
@@ -313,6 +314,20 @@ export class OrdersService {
 
     if (error) {
       console.error('Failed update item status, ', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  async setDeletionForOrder(id: number): Promise<boolean> {
+    const { error } = await this.supabaseService.client
+      .from('orders')
+      .update({ deleted_at: new Date() })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to set deletion date for order, ', error);
       return false;
     }
 

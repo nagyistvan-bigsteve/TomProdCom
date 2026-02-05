@@ -1,14 +1,14 @@
 @if (!order) {
   <app-order-table
     @enterAnimation
-    [ngClass]="{ 'd-none': isLoading() && !clientStore.isBusy() }"
+    [ngClass]="{ 'd-none': isLoading() }"
     (orderOutput)="selectedOrder($event)"
     (isLoading)="isLoading.set($event)"
   ></app-order-table>
 } @else {
   <app-order-details
     @enterAnimation
-    [ngClass]="{ 'd-none': isLoading() && !clientStore.isBusy() }"
+    [ngClass]="{ 'd-none': isLoading() }"
     (closeDetails)="deselectOrder()"
     [order]="order"
   ></app-order-details>
