@@ -1,6 +1,5 @@
 import {
   Component,
-  DestroyRef,
   EventEmitter,
   inject,
   Input,
@@ -15,7 +14,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormsModule } from '@angular/forms';
 import { Category, Unit_id } from '../../../models/enums';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { ProductsService } from '../../../services/query-services/products.service';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -53,10 +51,8 @@ export class SelectedProductComponent implements OnChanges {
   extraPiecesNeeded: number = 0;
   totalPiecesNeeded: number = 0;
 
-  private productService = inject(ProductsService);
   private pricesService = inject(PricesService);
   private stocksService = inject(StocksService);
-  private destroyRef = inject(DestroyRef);
   private snackBar = inject(MatSnackBar);
   private translateService = inject(TranslateService);
   private productUtil = inject(ProductUtil);
