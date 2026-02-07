@@ -3,6 +3,7 @@ import {
   FormArray,
   FormControl,
   FormGroup,
+  FormsModule,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
@@ -25,6 +26,7 @@ import {
   uniqueClientCodeValidator,
 } from '../../../guards/cuiValidator';
 import { ClientStore } from '../../../services/store/client/client.store';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 interface PhoneFormGroup extends FormGroup<{
   phone: FormControl<string>;
@@ -47,6 +49,8 @@ interface PhoneFormGroup extends FormGroup<{
     MatOptionModule,
     MatSelectModule,
     TranslateModule,
+    MatCheckboxModule,
+    FormsModule,
   ],
   templateUrl: './add-client.component.html',
   styleUrl: './add-client.component.scss',
@@ -84,6 +88,8 @@ export class AddClientComponent {
     }),
     other_details: new FormControl<string>(''),
   });
+
+  isForeignClient = signal(false);
 
   clientTypes = Object.values(ClientType).filter(
     (value) => typeof value === 'number',
@@ -138,11 +144,28 @@ export class AddClientComponent {
     }
   }
 
+  isForeignClientChange(): void {
+    this.isForeignClient.set(!this.isForeignClient());
+
+    this.setTypeValidation(this.clientForm.get('type')?.value!);
+  }
+
   private setupTypeValidation(): void {
     this.clientForm.get('type')?.valueChanges.subscribe((typeValue) => {
-      const codeControl = this.clientForm.get('code');
+      this.setTypeValidation(typeValue);
+    });
+  }
 
-      if (typeValue === ClientType.PF) {
+  private setTypeValidation(clientType: ClientType): void {
+    const codeControl = this.clientForm.get('code');
+
+    if (this.isForeignClient()) {
+      codeControl?.setValidators([
+        Validators.required,
+        uniqueClientCodeValidator(this.clientStore),
+      ]);
+    } else {
+      if (clientType === ClientType.PF) {
         codeControl?.setValidators([
           Validators.required,
           Validators.pattern(/^\d{13}$/),
@@ -155,9 +178,8 @@ export class AddClientComponent {
           uniqueClientCodeValidator(this.clientStore),
         ]);
       }
-
-      codeControl?.updateValueAndValidity();
-    });
+    }
+    codeControl?.updateValueAndValidity();
   }
 
   addPhoneField(phone: string = '', label: string = ''): void {

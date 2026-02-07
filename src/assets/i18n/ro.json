@@ -135,7 +135,8 @@
     "ADD_BUTTON": "Adaugare",
     "UPDATE_BUTTON": "Actualizare",
     "FORWARD_BUTTON": "Mai departe",
-    "ALREADY_EXISTING": "Clientul deja e adaugat"
+    "ALREADY_EXISTING": "Clientul deja e adaugat",
+    "FOTRIGN_CLIENT": "Client străin"
   },
   "CLIENT_DETAILS": {
     "TITLE": "Informații client",

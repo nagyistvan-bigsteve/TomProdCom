@@ -32,7 +32,7 @@
     </mat-form-field>
 
     <!-- Phone Numbers Section -->
-    <div formArrayName="phones" class="mb-3">
+    <div formArrayName="phones">
       <div class="d-flex align-items-center justify-content-between mb-2">
         <h4 class="mb-0">{{ "ADD_CLIENT.PHONES" | translate }}</h4>
         <button
@@ -50,7 +50,7 @@
         phoneControl of phones.controls;
         track trackByPhoneId($index, phoneControl)
       ) {
-        <div [formGroupName]="$index" class="mb-2">
+        <div [formGroupName]="$index">
           <div class="d-flex gap-2 align-items-center">
             <mat-form-field appearance="outline" style="flex: 3">
               <mat-label>{{ "ADD_CLIENT.PHONE_LABEL" | translate }}</mat-label>
@@ -87,11 +87,17 @@
       <input matInput formControlName="address" />
     </mat-form-field>
 
+    <mat-checkbox
+      [checked]="isForeignClient()"
+      (change)="isForeignClientChange()"
+      >{{ "ADD_CLIENT.FOTRIGN_CLIENT" | translate }}</mat-checkbox
+    >
+
     <mat-form-field appearance="outline" class="w-100">
       <mat-label>
         {{ "ADD_CLIENT.CODE" | translate }}
       </mat-label>
-      <input matInput formControlName="code" />
+      <input matInput type="tel" formControlName="code" />
 
       @if (clientForm.get("code")?.hasError("duplicateCode")) {
         <mat-error>
@@ -101,21 +107,23 @@
     </mat-form-field>
 
     @if (clientForm.get("code")?.hasError("duplicateCode")) {
-      <button
-        @enterAnimation
-        mat-flat-button
-        class="mt-1 mb-3"
-        (click)="
-          clientStore.setClientId(
-            clientForm.get('code')?.getError('duplicateCode')?.clientId
-          );
-          this.clientForm.get('code')?.updateValueAndValidity()
-        "
-      >
-        <i>{{
-          clientForm.get("code")?.getError("duplicateCode")?.clientName
-        }}</i>
-      </button>
+      <div class="w-100 text-center">
+        <button
+          @enterAnimation
+          mat-flat-button
+          class="mb-3"
+          (click)="
+            clientStore.setClientId(
+              clientForm.get('code')?.getError('duplicateCode')?.clientId
+            );
+            this.clientForm.get('code')?.updateValueAndValidity()
+          "
+        >
+          <i>{{
+            clientForm.get("code")?.getError("duplicateCode")?.clientName
+          }}</i>
+        </button>
+      </div>
     }
 
     <mat-form-field appearance="outline" class="w-100">

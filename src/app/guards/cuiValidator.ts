@@ -25,7 +25,7 @@ export function uniqueClientCodeValidator(
   clientStore: ClientStoreType,
 ): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
-    const value = control.value?.trim();
+    const value = control.value?.toString().trim();
     if (!value) return null;
 
     const clients = Object.values(clientStore.clientsEntityMap());
