@@ -92,7 +92,31 @@
         {{ "ADD_CLIENT.CODE" | translate }}
       </mat-label>
       <input matInput formControlName="code" />
+
+      @if (clientForm.get("code")?.hasError("duplicateCode")) {
+        <mat-error>
+          {{ "ADD_CLIENT.ALREADY_EXISTING" | translate }}
+        </mat-error>
+      }
     </mat-form-field>
+
+    @if (clientForm.get("code")?.hasError("duplicateCode")) {
+      <button
+        @enterAnimation
+        mat-flat-button
+        class="mt-1 mb-3"
+        (click)="
+          clientStore.setClientId(
+            clientForm.get('code')?.getError('duplicateCode')?.clientId
+          );
+          this.clientForm.get('code')?.updateValueAndValidity()
+        "
+      >
+        <i>{{
+          clientForm.get("code")?.getError("duplicateCode")?.clientName
+        }}</i>
+      </button>
+    }
 
     <mat-form-field appearance="outline" class="w-100">
       <mat-label>{{ "ADD_CLIENT.DETAILS" | translate }}</mat-label>

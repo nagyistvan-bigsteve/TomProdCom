@@ -20,7 +20,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { cuiValidator } from '../../../guards/cuiValidator';
+import {
+  cuiValidator,
+  uniqueClientCodeValidator,
+} from '../../../guards/cuiValidator';
 import { ClientStore } from '../../../services/store/client/client.store';
 
 interface PhoneFormGroup extends FormGroup<{
@@ -73,7 +76,11 @@ export class AddClientComponent {
     }),
     code: new FormControl<string>('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.pattern(/^\d{13}$/)],
+      validators: [
+        Validators.required,
+        Validators.pattern(/^\d{13}$/),
+        uniqueClientCodeValidator(this.clientStore),
+      ],
     }),
     other_details: new FormControl<string>(''),
   });
@@ -139,9 +146,14 @@ export class AddClientComponent {
         codeControl?.setValidators([
           Validators.required,
           Validators.pattern(/^\d{13}$/),
+          uniqueClientCodeValidator(this.clientStore),
         ]);
       } else {
-        codeControl?.setValidators([Validators.required, cuiValidator()]);
+        codeControl?.setValidators([
+          Validators.required,
+          cuiValidator(),
+          uniqueClientCodeValidator(this.clientStore),
+        ]);
       }
 
       codeControl?.updateValueAndValidity();

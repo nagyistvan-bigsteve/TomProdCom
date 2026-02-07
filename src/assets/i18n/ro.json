@@ -134,7 +134,8 @@
     "DELIVERY_ADDRESS": "Adresa de livrare",
     "ADD_BUTTON": "Adaugare",
     "UPDATE_BUTTON": "Actualizare",
-    "FORWARD_BUTTON": "Mai departe"
+    "FORWARD_BUTTON": "Mai departe",
+    "ALREADY_EXISTING": "Clientul deja e adaugat"
   },
   "CLIENT_DETAILS": {
     "TITLE": "Informații client",

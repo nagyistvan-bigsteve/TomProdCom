@@ -134,7 +134,8 @@
     "DELIVERY_ADDRESS": "Szállítási cím",
     "ADD_BUTTON": "Hozzáadás",
     "UPDATE_BUTTON": "Módosítás",
-    "FORWARD_BUTTON": "Tovább"
+    "FORWARD_BUTTON": "Tovább",
+    "ALREADY_EXISTING": "Ez a kliens már létezik"
   },
   "CLIENT_DETAILS": {
     "TITLE": "Kliens információk",
