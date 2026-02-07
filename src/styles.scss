@@ -111,6 +111,27 @@ body {
       filled-container-color: white,
     )
   );
+
+  .snackbar-success {
+    --mdc-snackbar-container-color: #216e25 !important;
+    --mdc-snackbar-supporting-text-color: white !important;
+    --mdc-snackbar-supporting-text-weight: 500;
+    --mdc-snackbar-button-color: white;
+  }
+
+  .snackbar-error {
+    --mdc-snackbar-container-color: #b11111 !important;
+    --mdc-snackbar-supporting-text-color: white !important;
+    --mdc-snackbar-supporting-text-weight: 500;
+    --mdc-snackbar-button-color: white;
+  }
+
+  .snackbar-info {
+    --mdc-snackbar-container-color: #0c56ac !important;
+    --mdc-snackbar-supporting-text-color: white !important;
+    --mdc-snackbar-supporting-text-weight: 500;
+    --mdc-snackbar-button-color: white;
+  }
 }
 
 .page-container {

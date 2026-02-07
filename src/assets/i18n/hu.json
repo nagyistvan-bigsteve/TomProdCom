@@ -305,10 +305,19 @@
   },
   "SNACKBAR": {
     "CLIENT": {
-      "ADD_SUCCESS": "Kliens sikeresen hozzáadva!"
+      "SUCCESS": {
+        "ADD": "Kliens sikeresen hozzáadva!",
+        "UPDATE": "Kliens sikeresen frissítve!"
+      },
+      "ERROR": {
+        "DUPLICATE": "Ez a CNP/CUI már létezik!",
+        "ADD": "NEM sikerült hozzáadni a klienst!",
+        "UPDATE": "NEM sikerült frissíteni a klienst!"
+      }
     },
     "BUTTONS": {
-      "CLOSE": "Bezárás"
+      "CLOSE": "Bezárás",
+      "OK": "OK"
     },
     "ORDER": {
       "UPDATE_SUCCESS": "Sikeresen frissítve!"

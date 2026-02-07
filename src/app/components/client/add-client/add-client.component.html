@@ -87,15 +87,21 @@
       <input matInput formControlName="address" />
     </mat-form-field>
 
-    <mat-checkbox
-      [checked]="isForeignClient()"
-      (change)="isForeignClientChange()"
-      >{{ "ADD_CLIENT.FOTRIGN_CLIENT" | translate }}</mat-checkbox
-    >
+    <div class="w-100 text-start">
+      <mat-checkbox
+        [checked]="isForeignClient()"
+        (change)="isForeignClientChange()"
+        >{{ "ADD_CLIENT.FOTRIGN_CLIENT" | translate }}</mat-checkbox
+      >
+    </div>
 
     <mat-form-field appearance="outline" class="w-100">
       <mat-label>
-        {{ "ADD_CLIENT.CODE" | translate }}
+        {{
+          clientForm.get("type")?.value === 1
+            ? ("ADD_CLIENT.CODE_PF" | translate)
+            : ("ADD_CLIENT.CODE_PJ" | translate)
+        }}
       </mat-label>
       <input
         matInput
@@ -144,7 +150,7 @@
       color="primary"
       type="button"
       class="p-2 add-client-button w-100"
-      (click)="clientStore.isClientSelected() ? updateClient() : addClient()"
+      (click)="addOrUpdateClient()"
       [disabled]="clientForm.invalid || isBusy || !clientForm.dirty"
     >
       @if (isBusy) {

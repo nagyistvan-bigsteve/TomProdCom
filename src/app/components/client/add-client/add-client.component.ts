@@ -112,6 +112,8 @@ export class AddClientComponent {
       } else {
         this.resetForm();
       }
+
+      this.setTypeValidation(this.clientForm.get('type')?.value!);
     });
   }
 
@@ -178,6 +180,10 @@ export class AddClientComponent {
           uniqueClientCodeValidator(this.clientStore),
         ]);
       }
+    }
+
+    if (this.clientStore.client()) {
+      this.clientForm.markAllAsTouched();
     }
     codeControl?.updateValueAndValidity();
   }
@@ -248,17 +254,13 @@ export class AddClientComponent {
     this.router.navigate(['offer/overview']);
   }
 
-  updateClient(): void {
+  addOrUpdateClient(): void {
     if (this.clientForm.valid) {
       const formValue = this.clientForm.getRawValue();
       const currentClient = this.clientStore.client();
 
-      if (!currentClient) {
-        return;
-      }
-
-      const updatedClient: Client = {
-        id: currentClient.id,
+      const client: Client = {
+        id: currentClient?.id || 0,
         name: formValue.name,
         type: formValue.type,
         address: formValue.address || null,
@@ -267,41 +269,19 @@ export class AddClientComponent {
         client_phones: formValue.phones
           .filter((p) => p.phone)
           .map((p, index) => ({
-            id: currentClient.client_phones?.[index]?.id ?? 0,
-            client_id: currentClient.id,
+            id: currentClient?.client_phones?.[index]?.id ?? 0,
+            client_id: currentClient?.id || 0,
             phone: p.phone,
             label: p.label,
           })),
       };
 
       this.clientForm.markAsPristine();
-      this.clientStore.updateClient(updatedClient);
-    }
-  }
-
-  addClient(): void {
-    if (this.clientForm.valid) {
-      const formValue = this.clientForm.getRawValue();
-
-      const newClient: Client = {
-        id: 0, // Will be set by the backend
-        name: formValue.name,
-        type: formValue.type,
-        address: formValue.address || null,
-        code: formValue.code || null,
-        other_details: formValue.other_details || null,
-        client_phones: formValue.phones
-          .filter((p) => p.phone)
-          .map((p) => ({
-            id: 0,
-            client_id: 0,
-            phone: p.phone,
-            label: p.label,
-          })),
-      };
-
-      this.clientForm.markAsPristine();
-      this.clientStore.addClient(newClient);
+      if (currentClient) {
+        this.clientStore.updateClient(client);
+      } else {
+        this.clientStore.addClient(client);
+      }
     }
   }
 }

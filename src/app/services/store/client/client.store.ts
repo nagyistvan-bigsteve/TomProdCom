@@ -29,6 +29,7 @@ import {
 } from '@ngrx/signals/entities';
 import { updateCurrentClientId } from './client.updaters';
 import { ClientType } from '../../../models/enums';
+import { NotificationService } from '../../utils/notification.service';
 
 const clientConfig = entityConfig({
   entity: type<Client>(),
@@ -41,7 +42,8 @@ export const ClientStore = signalStore(
   withBusy(),
   withProps((_) => {
     const _clientService = inject(ClientsService);
-    return { _clientService };
+    const _notify = inject(NotificationService);
+    return { _clientService, _notify };
   }),
   withEntities(clientConfig),
   withComputed((store) => {
@@ -87,15 +89,20 @@ export const ClientStore = signalStore(
           switchMap((client) =>
             store._clientService.updateClient(client).pipe(
               tapResponse({
-                next: (updatedClient) =>
+                next: (updatedClient) => {
                   patchState(
                     store,
                     updateEntity(
                       { id: updatedClient.id, changes: updatedClient },
                       clientConfig,
                     ),
-                  ),
-                error: (error) => console.error(error),
+                  );
+                  store._notify.success('SNACKBAR.CLIENT.SUCCESS.UPDATE');
+                },
+                error: (error) => {
+                  console.error(error);
+                  store._notify.error('SNACKBAR.CLIENT.ERROR.UPDATE');
+                },
                 finalize: () => patchState(store, setIdle()),
               }),
             ),
@@ -109,9 +116,19 @@ export const ClientStore = signalStore(
           switchMap((client) =>
             store._clientService.addClient(client).pipe(
               tapResponse({
-                next: (newClient: Client) =>
-                  patchState(store, addEntity(newClient, clientConfig)),
-                error: (error) => console.error(error),
+                next: (newClient: Client) => {
+                  patchState(store, addEntity(newClient, clientConfig));
+                  store._notify.success('SNACKBAR.CLIENT.SUCCESS.ADD');
+                },
+
+                error: (error: any) => {
+                  console.error(error);
+                  if (error?.code === '23505') {
+                    store._notify.error('SNACKBAR.CLIENT.ERROR.DUPLICATE');
+                  } else {
+                    store._notify.error('SNACKBAR.CLIENT.ERROR.ADD');
+                  }
+                },
                 finalize: () => patchState(store, setIdle()),
               }),
             ),

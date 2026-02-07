@@ -305,10 +305,19 @@
   },
   "SNACKBAR": {
     "CLIENT": {
-      "ADD_SUCCESS": "Client adăugat cu succes!"
+      "SUCCESS": {
+        "ADD": "Client adaugat cu succes!",
+        "UPDATE": "Client editat cu success!"
+      },
+      "ERROR": {
+        "DUPLICATE": "CNP/CUI deja existent!",
+        "ADD": "PROBLEMĂ la adaugare client!",
+        "UPDATE": "PROBLEMĂ la editare client!"
+      }
     },
     "BUTTONS": {
-      "CLOSE": "Închide"
+      "CLOSE": "Închide",
+      "OK": "OK"
     },
     "ORDER": {
       "UPDATE_SUCCESS": "Update cu succes!"
