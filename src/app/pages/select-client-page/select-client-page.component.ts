@@ -55,14 +55,14 @@ export class SelectClientPageComponent {
       return allClients;
     }
 
-    const search = searchValue.toLowerCase().trim();
+    const search = this.normalize(searchValue);
 
     if (!search) {
       return allClients;
     }
 
     return allClients.filter((client) =>
-      client.name.toLowerCase().includes(search),
+      this.normalize(client.name).includes(search),
     );
   });
 
@@ -91,5 +91,13 @@ export class SelectClientPageComponent {
     setTimeout(() => {
       this.autocomplete?.closePanel();
     });
+  }
+
+  private normalize(text: string): string {
+    return text
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
   }
 }
