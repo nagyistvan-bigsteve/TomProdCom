@@ -118,6 +118,7 @@ export const ClientStore = signalStore(
               tapResponse({
                 next: (newClient: Client) => {
                   patchState(store, addEntity(newClient, clientConfig));
+                  patchState(store, updateCurrentClientId(newClient.id));
                   store._notify.success('SNACKBAR.CLIENT.SUCCESS.ADD');
                 },
 
