@@ -90,7 +90,7 @@
   },
   "WORDS": {
     "TOTAL": "Total",
-    "VOUCHER": "Voucher",
+    "VOUCHER": "Discount",
     "M3": "m³",
     "SEARCH": "Cautare..."
   },
@@ -281,7 +281,7 @@
         "TOTAL_AMOUND_FINAL": "Preț final",
         "OPERATOR": "Operator: ",
         "DELIVERY_PLACE": "Adresa",
-        "VOUCHER": "Voucher: ",
+        "VOUCHER": "Discount: ",
         "QUANTITY": "Cantitate",
         "EXPECTED_DELIVERY": "Livrare așteptată",
         "OFFER_EXPECTED_DELIVERY": "Livrare așteptată: ",

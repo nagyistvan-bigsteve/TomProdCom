@@ -167,7 +167,7 @@
             })
           }}
           @if (order().voucher) {
-            (Voucher: {{ order().voucher }}
+            (Discount: {{ order().voucher }}
             @if (!isPercentageVoucher(order().voucher!)) {
               RON
             }

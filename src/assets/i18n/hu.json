@@ -90,7 +90,7 @@
   },
   "WORDS": {
     "TOTAL": "Totál",
-    "VOUCHER": "Voucher",
+    "VOUCHER": "Discount",
     "M3": "m³",
     "SEARCH": "Keresés..."
   },
@@ -282,7 +282,7 @@
         "DELIVERY_PLACE": "Cím",
         "OPERATOR": "Operátor: ",
         "QUANTITY": "Mennyiség",
-        "VOUCHER": "Voucher: ",
+        "VOUCHER": "Discount: ",
         "EXPECTED_DELIVERY": "Várt szállítás",
         "OFFER_EXPECTED_DELIVERY": "Várt szállítás: ",
         "EXPECTED_DELIVERY_TOOLTIP": "{{date}}-ig ki kell szállítani.",
