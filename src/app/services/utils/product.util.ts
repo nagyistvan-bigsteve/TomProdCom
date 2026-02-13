@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Product, ProductItems } from '../../models/models';
+import { M2Quantities, Product, ProductItems } from '../../models/models';
 import { Unit_id } from '../../models/enums';
 
 @Injectable({
@@ -10,7 +10,7 @@ export class ProductUtil {
     product: Product,
     price: number,
     quantity: number,
-    m2_isBrut?: boolean,
+    m2_quantity?: M2Quantities,
   ): {
     price: number;
     packsNeeded: number;
@@ -29,6 +29,7 @@ export class ProductUtil {
         extraPiecesNeeded: 0,
         totalPiecesNeeded: 0,
       };
+
     if (
       product.unit_id === Unit_id.BUC ||
       product.unit_id === Unit_id.BOUNDLE
@@ -48,17 +49,17 @@ export class ProductUtil {
     }
 
     if (product.unit_id === Unit_id.M2) {
-      let m2_unit = m2_isBrut ? product.m2_brut : product.m2_util;
-
-      totalPiecesNeeded = Math.ceil(
-        +quantity / (m2_unit / product.piece_per_pack),
+      const result = this.calculateM2Price(
+        product,
+        quantity,
+        m2_quantity!,
+        price,
       );
 
-      packsNeeded = Math.floor(totalPiecesNeeded / product.piece_per_pack);
-
-      extraPiecesNeeded = totalPiecesNeeded % product.piece_per_pack;
-
-      calculatedPrice = totalPiecesNeeded * (product.m2_brut / 10) * price;
+      calculatedPrice = result.calculatedPrice;
+      packsNeeded = result.packsNeeded;
+      extraPiecesNeeded = result.extraPiecesNeeded;
+      totalPiecesNeeded = result.totalPiecesNeeded;
     }
 
     return {
@@ -66,6 +67,52 @@ export class ProductUtil {
       packsNeeded,
       extraPiecesNeeded,
       totalPiecesNeeded,
+    };
+  }
+
+  calculateM2Price(
+    product: Product,
+    quantity: number,
+    mode: M2Quantities,
+    price: number,
+  ) {
+    const piecesPerPack = product.piece_per_pack;
+    const m2BrutPerPiece = product.m2_brut / piecesPerPack;
+
+    let totalPiecesNeeded = 0;
+    let packsNeeded = 0;
+
+    switch (mode) {
+      case 'BRUT':
+        totalPiecesNeeded = Math.ceil(quantity / m2BrutPerPiece);
+        break;
+
+      case 'NET':
+        totalPiecesNeeded = Math.ceil(
+          quantity / (product.m2_util / piecesPerPack),
+        );
+        break;
+
+      case 'BUC':
+        totalPiecesNeeded = Math.ceil(quantity);
+        break;
+
+      case 'PAC':
+        packsNeeded = Math.ceil(quantity);
+        totalPiecesNeeded = packsNeeded * piecesPerPack;
+        break;
+    }
+
+    packsNeeded ||= Math.floor(totalPiecesNeeded / piecesPerPack);
+    const extraPiecesNeeded = totalPiecesNeeded % piecesPerPack;
+
+    const calculatedPrice = totalPiecesNeeded * m2BrutPerPiece * price;
+
+    return {
+      totalPiecesNeeded,
+      packsNeeded,
+      extraPiecesNeeded,
+      calculatedPrice,
     };
   }
 
@@ -93,5 +140,11 @@ export class ProductUtil {
     });
 
     return totalOrderQuantity;
+  }
+
+  normalizeNumberInputDecimal(value: string | number): number {
+    if (typeof value === 'number') return value;
+
+    return Number(value.replace(',', '.'));
   }
 }

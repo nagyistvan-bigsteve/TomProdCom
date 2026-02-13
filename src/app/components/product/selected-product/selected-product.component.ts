@@ -5,8 +5,16 @@ import {
   Input,
   OnChanges,
   Output,
+  signal,
 } from '@angular/core';
-import { Price2, Product, ProductItem, Stock } from '../../../models/models';
+import {
+  M2_QUANTITIES,
+  M2Quantities,
+  Price2,
+  Product,
+  ProductItem,
+  Stock,
+} from '../../../models/models';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
@@ -46,7 +54,7 @@ export class SelectedProductComponent implements OnChanges {
   selectedPrice: Price2 | undefined;
   calculatedPrice: number = 0;
   quantity: string = '1';
-  m2_isBrut: boolean = true;
+  m2_quantity = signal<M2Quantities>('BRUT');
   packsNeeded: number = 0;
   extraPiecesNeeded: number = 0;
   totalPiecesNeeded: number = 0;
@@ -66,11 +74,7 @@ export class SelectedProductComponent implements OnChanges {
     this.hasFocused = false;
     if (this.selectedProduct) {
       this.fetchPrices(this.selectedProduct);
-      if (this.selectedProduct.unit_id === Unit_id.M2) {
-        this.quantity = '0.5';
-      } else {
-        this.quantity = '1';
-      }
+      this.quantity = '1';
     }
   }
 
@@ -144,18 +148,12 @@ export class SelectedProductComponent implements OnChanges {
   }
 
   validateInput() {
-    if (
-      this.selectedProduct &&
-      (this.selectedProduct.unit_id === Unit_id.M2 ||
-        !this.selectedProduct?.width)
-    ) {
-      if (+this.quantity < 0 || isNaN(+this.quantity)) {
-        setTimeout(() => (this.quantity = '0.5'), 500);
-      }
-    } else {
-      if (+this.quantity < 1 || isNaN(+this.quantity)) {
-        setTimeout(() => (this.quantity = '1'), 500);
-      }
+    const quantity = this.productUtil.normalizeNumberInputDecimal(
+      this.quantity,
+    );
+
+    if (isNaN(quantity) || quantity < 0) {
+      setTimeout(() => (this.quantity = String(0)), 0);
     }
 
     setTimeout(() => {
@@ -196,7 +194,10 @@ export class SelectedProductComponent implements OnChanges {
   }
 
   m2_setUnit() {
-    this.m2_isBrut = !this.m2_isBrut;
+    this.m2_quantity.update((current) => {
+      const index = M2_QUANTITIES.indexOf(current);
+      return M2_QUANTITIES[(index + 1) % M2_QUANTITIES.length];
+    });
     this.calculatePrice();
   }
 
@@ -206,7 +207,7 @@ export class SelectedProductComponent implements OnChanges {
         this.selectedProduct!,
         this.selectedPrice?.price!,
         +this.quantity,
-        this.m2_isBrut,
+        this.m2_quantity(),
       );
 
     this.calculatedPrice = price;

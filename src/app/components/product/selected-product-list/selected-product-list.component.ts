@@ -152,7 +152,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
             item.product,
             newPrice,
             this.editableQuantity!,
-            true,
+            'BRUT',
           );
 
         const updates: Partial<ProductItem> = {
@@ -334,7 +334,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
       item.product,
       newPrice,
       item.quantity,
-      true,
+      'BRUT',
     ).price;
 
     return calculatedNewPrice;
@@ -350,7 +350,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
         item.product,
         newPrice,
         item.quantity,
-        true,
+        'BRUT',
       ).price;
 
       this.productStore.updateProductItem(item.product.id, item.category, {

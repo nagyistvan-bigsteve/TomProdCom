@@ -208,3 +208,6 @@ export type ComingWaresItemResponse = {
   is_correct?: boolean | null;
   comment: string;
 };
+
+export const M2_QUANTITIES = ['BRUT', 'NET', 'BUC', 'PAC'] as const;
+export type M2Quantities = (typeof M2_QUANTITIES)[number];
