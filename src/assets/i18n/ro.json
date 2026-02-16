@@ -136,7 +136,8 @@
     "UPDATE_BUTTON": "Actualizare",
     "FORWARD_BUTTON": "Mai departe",
     "ALREADY_EXISTING": "Clientul deja e adaugat",
-    "FOTRIGN_CLIENT": "Client străin"
+    "FOREIGN_CLIENT": "Client străin",
+    "TVA": "Plătitor TVA"
   },
   "CLIENT_DETAILS": {
     "TITLE": "Informații client",

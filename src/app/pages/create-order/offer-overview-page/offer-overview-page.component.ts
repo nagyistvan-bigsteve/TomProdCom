@@ -131,7 +131,7 @@ export class OfferOverviewPageComponent {
   }
 
   getPriceList(prices: Price2[]): void {
-    const isClientPJ: boolean = this.clientStore.isClientPJ();
+    const isTva: boolean = this.clientStore.client().tva;
 
     let copyForDiscount = this.usedPriceCategories;
     this.usedPriceCategories = [];
@@ -158,21 +158,15 @@ export class OfferOverviewPageComponent {
         exactCategory.forEach((catPrice) => {
           if (catPrice.product_id) {
             if (catPrice.unit_id === Unit_id.BOUNDLE) {
-              actualPrice.push(
-                isClientPJ ? catPrice.price - 5 : catPrice.price,
-              );
+              actualPrice.push(isTva ? catPrice.price - 5 : catPrice.price);
             } else if (catPrice.unit_id === Unit_id.M3) {
-              actualPrice.push(
-                isClientPJ ? catPrice.price - 100 : catPrice.price,
-              );
+              actualPrice.push(isTva ? catPrice.price - 100 : catPrice.price);
             } else {
               actualPrice.push(catPrice.price);
             }
           } else {
             if (catPrice.unit_id === Unit_id.M3) {
-              actualPrice.push(
-                isClientPJ ? catPrice.price - 100 : catPrice.price,
-              );
+              actualPrice.push(isTva ? catPrice.price - 100 : catPrice.price);
             }
           }
         });
@@ -205,7 +199,7 @@ export class OfferOverviewPageComponent {
 
     let totalOrderQuantity = this.getTotalQuantity();
 
-    if (this.clientStore.isClientPJ()) {
+    if (this.clientStore.client().tva) {
       this.comment = 'Taxare inversa - fără TVA\n';
     }
 

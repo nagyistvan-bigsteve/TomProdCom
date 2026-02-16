@@ -70,6 +70,7 @@ export type User = {
 export type Client = {
   id: number;
   type: ClientType;
+  tva: boolean;
   name: string;
   address: string | null;
   code: string | null;

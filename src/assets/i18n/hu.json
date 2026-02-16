@@ -136,7 +136,8 @@
     "UPDATE_BUTTON": "Módosítás",
     "FORWARD_BUTTON": "Tovább",
     "ALREADY_EXISTING": "Ez a kliens már létezik",
-    "FOTRIGN_CLIENT": "Külföldi kliens"
+    "FOREIGN_CLIENT": "Külföldi kliens",
+    "TVA": "TVA Fizető"
   },
   "CLIENT_DETAILS": {
     "TITLE": "Kliens információk",

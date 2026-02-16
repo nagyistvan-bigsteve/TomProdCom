@@ -20,6 +20,13 @@
       <input matInput formControlName="name" />
     </mat-form-field>
 
+    @if (clientForm.get("type")?.value === 2) {
+      <div @enterAnimation class="w-100 text-start">
+        <mat-checkbox [checked]="tva()" (change)="tva.set(!tva())">{{
+          "ADD_CLIENT.TVA" | translate
+        }}</mat-checkbox>
+      </div>
+    }
     <mat-form-field appearance="outline" class="w-100">
       <mat-label>{{ "ADD_CLIENT.TYPE" | translate }}</mat-label>
       <mat-select formControlName="type">
@@ -91,7 +98,7 @@
       <mat-checkbox
         [checked]="isForeignClient()"
         (change)="isForeignClientChange()"
-        >{{ "ADD_CLIENT.FOTRIGN_CLIENT" | translate }}</mat-checkbox
+        >{{ "ADD_CLIENT.FOREIGN_CLIENT" | translate }}</mat-checkbox
       >
     </div>
 

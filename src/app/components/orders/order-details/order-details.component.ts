@@ -297,7 +297,7 @@ export class OrderDetailsComponent implements OnInit {
   }
 
   findExistingCategories(): undefined | number {
-    const isClientPJ: boolean = this.client().type === ClientType.PJ;
+    const isTva: boolean = this.client().tva;
 
     if (!this.selectedProductPrice || !this.selectedProductPrice!.length) {
       return;
@@ -316,7 +316,7 @@ export class OrderDetailsComponent implements OnInit {
     );
 
     if (price) {
-      if (isClientPJ) {
+      if (isTva) {
         if (price.product_id) {
           if (price.unit_id === Unit_id.BOUNDLE) {
             return price.price - 5;

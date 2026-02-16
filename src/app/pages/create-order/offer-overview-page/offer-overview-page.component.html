@@ -119,7 +119,7 @@
     <mat-form-field class="w-100" appearance="outline">
       <mat-label>{{ "OVERVIEW_PAGE.POPUP.COMMENT" | translate }}</mat-label>
       <textarea
-        [rows]="clientStore.isClientPJ() ? 4 : 3"
+        [rows]="clientStore.client().tva ? 4 : 3"
         matInput
         [(ngModel)]="comment"
       ></textarea>

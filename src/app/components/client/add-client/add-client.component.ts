@@ -90,6 +90,7 @@ export class AddClientComponent {
   });
 
   isForeignClient = signal(false);
+  tva = signal(false);
 
   clientTypes = Object.values(ClientType).filter(
     (value) => typeof value === 'number',
@@ -121,6 +122,8 @@ export class AddClientComponent {
     while (this.phones.length > 0) {
       this.phones.removeAt(0);
     }
+
+    this.tva.set(client.tva);
 
     // Populate form with client data
     this.clientForm.patchValue(
@@ -262,6 +265,7 @@ export class AddClientComponent {
         id: currentClient?.id || 0,
         name: formValue.name,
         type: formValue.type,
+        tva: formValue.type === 2 ? this.tva() : false,
         address: formValue.address || null,
         code: formValue.code || null,
         other_details: formValue.other_details || null,

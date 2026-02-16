@@ -364,7 +364,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
   }
 
   private getExactPrice(newCategory: Category, item: ProductItem): number {
-    const isClientPJ: boolean = this.clientStore.isClientPJ();
+    const isTva: boolean = this.clientStore.client().tva;
 
     const unicPrice = this.prices.find(
       (price) => price.product_id === item.product.id,
@@ -384,7 +384,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
             price.unit_id === item.product.unit_id,
         )?.price;
 
-    if (isClientPJ && exactPrice) {
+    if (isTva && exactPrice) {
       if (item.product.unit_id === Unit_id.M3) {
         exactPrice = exactPrice - 100;
       }
