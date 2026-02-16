@@ -364,7 +364,9 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
   }
 
   private getExactPrice(newCategory: Category, item: ProductItem): number {
-    const isTva: boolean = this.clientStore.client().tva;
+    const isTva: boolean = this.clientStore.client()
+      ? this.clientStore.client().tva
+      : false;
 
     const unicPrice = this.prices.find(
       (price) => price.product_id === item.product.id,

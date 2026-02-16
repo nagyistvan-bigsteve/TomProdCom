@@ -297,7 +297,7 @@ export class OrderDetailsComponent implements OnInit {
   }
 
   findExistingCategories(): undefined | number {
-    const isTva: boolean = this.client().tva;
+    const isTva: boolean = this.client() ? this.client().tva : false;
 
     if (!this.selectedProductPrice || !this.selectedProductPrice!.length) {
       return;

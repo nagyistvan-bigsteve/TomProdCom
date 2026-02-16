@@ -131,7 +131,9 @@ export class OfferOverviewPageComponent {
   }
 
   getPriceList(prices: Price2[]): void {
-    const isTva: boolean = this.clientStore.client().tva;
+    const isTva: boolean = this.clientStore.client()
+      ? this.clientStore.client().tva
+      : false;
 
     let copyForDiscount = this.usedPriceCategories;
     this.usedPriceCategories = [];
