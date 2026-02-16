@@ -165,11 +165,21 @@
         @enterAndLeaveAnimation
         class="mt-2 w-100"
         appearance="outline"
+        [floatLabel]="'always'"
       >
         <mat-label>
           {{ "OVERVIEW_PAGE.POPUP.DELIVERY_ADDRESS" | translate }}
         </mat-label>
-        <input matInput [(ngModel)]="delivery_address" type="text" />
+        <input
+          matInput
+          [(ngModel)]="delivery_address"
+          [placeholder]="
+            this.clientStore.client().address
+              ? this.clientStore.client().address!
+              : ''
+          "
+          type="text"
+        />
       </mat-form-field>
     </div>
 

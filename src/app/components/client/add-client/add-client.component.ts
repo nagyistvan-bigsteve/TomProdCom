@@ -86,7 +86,7 @@ export class AddClientComponent {
         uniqueClientCodeValidator(this.clientStore),
       ],
     }),
-    other_details: new FormControl<string>(''),
+    other_details: new FormControl<string>('', { nonNullable: false }),
   });
 
   isForeignClient = signal(false);
@@ -109,11 +109,10 @@ export class AddClientComponent {
 
       if (client) {
         this.loadClientData(client);
+        this.setTypeValidation(this.clientForm.get('type')?.value!);
       } else {
         this.resetForm();
       }
-
-      this.setTypeValidation(this.clientForm.get('type')?.value!);
     });
   }
 

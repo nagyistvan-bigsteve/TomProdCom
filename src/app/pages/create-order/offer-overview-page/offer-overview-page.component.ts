@@ -2,6 +2,7 @@ import {
   Component,
   DestroyRef,
   inject,
+  signal,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
@@ -79,7 +80,7 @@ export class OfferOverviewPageComponent {
 
   isLoaded: boolean = false;
 
-  delivery_address: string = '';
+  delivery_address = signal('');
 
   deliveryFee: number = 0;
   comment: string = '';
@@ -202,29 +203,25 @@ export class OfferOverviewPageComponent {
       width: '300px',
     });
 
-    this.delivery_address = this.clientStore.client().address
-      ? this.clientStore.client().address!
-      : '';
-
     let totalOrderQuantity = this.getTotalQuantity();
 
     if (this.clientStore.isClientPJ()) {
       this.comment = 'Taxare inversa - fără TVA\n';
     }
 
-    this.usedPriceCategories.forEach((p) => {
-      if (p.discount) {
-        let category = this.translateService.instant(
-          'OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY.' + p.category,
-        );
-        let unit = this.translateService.instant(
-          'OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.' + p.unit,
-        );
+    // this.usedPriceCategories.forEach((p) => {
+    //   if (p.discount) {
+    //     let category = this.translateService.instant(
+    //       'OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY.' + p.category,
+    //     );
+    //     let unit = this.translateService.instant(
+    //       'OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.' + p.unit,
+    //     );
 
-        this.comment +=
-          category + ' - ' + unit + ' (' + p.discount + ' RON/' + unit + ')\n';
-      }
-    });
+    //     this.comment +=
+    //       category + ' - ' + unit + ' (' + p.discount + ' RON/' + unit + ')\n';
+    //   }
+    // });
 
     dialogRef
       .afterClosed()
@@ -250,7 +247,11 @@ export class OfferOverviewPageComponent {
               this.forFirstHour,
               totalOrderQuantity,
               this.justOffer,
-              this.delivery_address,
+              this.delivery_address()
+                ? this.delivery_address()
+                : this.clientStore.client().address
+                  ? this.clientStore.client().address!
+                  : '',
               this.deliveryFee,
             )
             .then(() => {
