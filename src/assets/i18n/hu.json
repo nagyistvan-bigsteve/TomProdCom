@@ -84,7 +84,8 @@
         "TITLE": "Törlés megerősítése",
         "DESCRIPTION": "Biztos, hogy törölni szeretnéd?",
         "CANCEL_BUTTON": "Mégse",
-        "DELETE_BUTTON": "Törlés"
+        "DELETE_BUTTON": "Törlés",
+        "DELETE_ALL": "Minden törlése"
       }
     }
   },
@@ -442,5 +443,12 @@
     "SITE": "NIMADOR.RO",
     "PHONE2": "0725089357",
     "PHONE1": "0756028882"
+  },
+  "RESTORE_DIALOG": {
+    "TITLE": "Visszaállítod az előző munkamenetet?",
+    "MESSAGE": "Az előző munkamenetből származó mentetlen ajánlat adatok több mint 10 percesek.",
+    "LAST_UPDATED": "Utoljára frissítve",
+    "DISCARD": "Elvetés",
+    "KEEP": "Adatok megtartása"
   }
 }

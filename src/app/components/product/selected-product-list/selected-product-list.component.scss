@@ -18,6 +18,15 @@
   }
 }
 
+.delete-all-button {
+  mat-icon {
+    color: rgba(95, 1, 1, 1) !important;
+  }
+  color: rgba(79, 0, 0) !important;
+  height: 75% !important;
+  background-color: transparent !important;
+}
+
 .forward-button {
   mat-icon {
     color: black !important;

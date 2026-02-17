@@ -7,6 +7,9 @@ import {
 } from '@ngrx/signals';
 import { ProductItems, ProductItem } from '../../models/models';
 import { Category } from '../../models/enums';
+import { MatDialog } from '@angular/material/dialog';
+import { inject } from '@angular/core';
+import { ConfirmRestoreDialogComponent } from '../../components/dialog/confirm-restore-dialog.component';
 
 interface ProductDataState {
   productItems: ProductItems;
@@ -14,6 +17,7 @@ interface ProductDataState {
 }
 
 const STORAGE_KEY = 'product_items_data';
+const STALE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 
 export const useProductStore = signalStore(
   { providedIn: 'root' },
@@ -36,7 +40,7 @@ export const useProductStore = signalStore(
       setProductItems(productItems: ProductItems) {
         patchState(store, {
           productItems,
-          lastUpdated: new Date().toISOString(),
+          lastUpdated: new Date().toLocaleString('sv-SE'),
         });
 
         persistState();
@@ -50,7 +54,7 @@ export const useProductStore = signalStore(
 
         patchState(store, {
           productItems: updatedItems,
-          lastUpdated: new Date().toISOString(),
+          lastUpdated: new Date().toLocaleString('sv-SE'),
         });
 
         persistState();
@@ -59,7 +63,7 @@ export const useProductStore = signalStore(
       updateProductItem(
         productId: string | number,
         category: Category,
-        updates: Partial<ProductItem>
+        updates: Partial<ProductItem>,
       ) {
         const currentItems = store.productItems();
         if (!currentItems) {
@@ -69,12 +73,12 @@ export const useProductStore = signalStore(
         const updatedItems = currentItems.map((item) =>
           item.category === category && item.product.id === productId
             ? { ...item, ...updates }
-            : item
+            : item,
         );
 
         patchState(store, {
           productItems: updatedItems,
-          lastUpdated: new Date().toISOString(),
+          lastUpdated: new Date().toLocaleString('sv-SE'),
         });
 
         persistState();
@@ -84,7 +88,7 @@ export const useProductStore = signalStore(
 
       checkForDuplicatedItems(
         productId: string | number,
-        category: Category | undefined
+        category: Category | undefined,
       ) {
         if (!category) {
           return;
@@ -95,7 +99,7 @@ export const useProductStore = signalStore(
         }
 
         const matchingItems = currentItems.filter(
-          (item) => item.category === category && item.product.id === productId
+          (item) => item.category === category && item.product.id === productId,
         );
 
         let mergedItem: ProductItem | null = null;
@@ -115,14 +119,14 @@ export const useProductStore = signalStore(
           const updatedItems = [
             ...currentItems.filter(
               (item) =>
-                !(item.category === category && item.product.id === productId)
+                !(item.category === category && item.product.id === productId),
             ),
             mergedItem,
           ];
 
           patchState(store, {
             productItems: updatedItems,
-            lastUpdated: new Date().toISOString(),
+            lastUpdated: new Date().toLocaleString('sv-SE'),
           });
 
           persistState();
@@ -132,7 +136,7 @@ export const useProductStore = signalStore(
       deleteProductItems() {
         patchState(store, {
           productItems: [],
-          lastUpdated: new Date().toISOString(),
+          lastUpdated: new Date().toLocaleString('sv-SE'),
         });
 
         persistState();
@@ -144,12 +148,12 @@ export const useProductStore = signalStore(
         if (!currentItems) return;
 
         const updatedItems = currentItems.filter(
-          (item) => item.product.id !== productId || item.category !== category
+          (item) => item.product.id !== productId || item.category !== category,
         );
 
         patchState(store, {
           productItems: updatedItems,
-          lastUpdated: new Date().toISOString(),
+          lastUpdated: new Date().toLocaleString('sv-SE'),
         });
 
         persistState();
@@ -159,7 +163,7 @@ export const useProductStore = signalStore(
         productId: string | number,
         category: Category,
         quantity: number,
-        price: number
+        price: number,
       ) {
         const currentItems = store.productItems();
 
@@ -172,12 +176,12 @@ export const useProductStore = signalStore(
                 quantity,
                 price,
               }
-            : item
+            : item,
         );
 
         patchState(store, {
           productItems: updatedItems,
-          lastUpdated: new Date().toISOString(),
+          lastUpdated: new Date().toLocaleString('sv-SE'),
         });
 
         persistState();
@@ -188,19 +192,46 @@ export const useProductStore = signalStore(
   withHooks((store) => {
     return {
       onInit() {
+        const dialog = inject(MatDialog);
         const storedData = localStorage.getItem(STORAGE_KEY);
 
-        if (storedData) {
-          try {
-            const parsedData = JSON.parse(storedData);
+        if (!storedData) return;
+
+        try {
+          const parsedData = JSON.parse(storedData);
+          const lastUpdated = parsedData.lastUpdated
+            ? new Date(parsedData.lastUpdated)
+            : null;
+          const now = new Date();
+          const ageMs = lastUpdated
+            ? now.getTime() - lastUpdated.getTime()
+            : Infinity;
+
+          if (ageMs > STALE_THRESHOLD_MS) {
+            // Data is older than 10 minutes — ask the user
+            dialog
+              .open(ConfirmRestoreDialogComponent, {
+                data: { lastUpdated },
+                disableClose: true,
+              })
+              .afterClosed()
+              .subscribe((keepData: boolean) => {
+                if (keepData) {
+                  patchState(store, parsedData);
+                } else {
+                  localStorage.removeItem(STORAGE_KEY);
+                }
+              });
+          } else {
+            // Data is fresh, restore silently
             patchState(store, parsedData);
-          } catch (e) {
-            console.error('Failed to parse stored product data', e);
-            localStorage.removeItem(STORAGE_KEY);
           }
+        } catch (e) {
+          console.error('Failed to parse stored product data', e);
+          localStorage.removeItem(STORAGE_KEY);
         }
       },
       onDestroy() {},
     };
-  })
+  }),
 );

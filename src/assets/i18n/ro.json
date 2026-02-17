@@ -84,7 +84,8 @@
         "TITLE": "Confirmare ștergere",
         "DESCRIPTION": "Ești sigur, că vrei să ștergi?",
         "CANCEL_BUTTON": "Înapoi",
-        "DELETE_BUTTON": "Ștergere"
+        "DELETE_BUTTON": "Ștergere",
+        "DELETE_ALL": "Sterge tot"
       }
     }
   },
@@ -442,5 +443,12 @@
     "SITE": "NIMADOR.RO",
     "PHONE2": "0725089357",
     "PHONE1": "0756028882"
+  },
+  "RESTORE_DIALOG": {
+    "TITLE": "Restaurezi sesiunea anterioară?",
+    "MESSAGE": "Aveți date nesalvate dintr-o sesiune anterioară care sunt mai vechi de 10 minute.",
+    "LAST_UPDATED": "Ultima actualizare",
+    "DISCARD": "Renunță",
+    "KEEP": "Păstrează datele"
   }
 }

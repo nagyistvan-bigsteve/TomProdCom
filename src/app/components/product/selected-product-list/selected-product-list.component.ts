@@ -238,7 +238,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
     this.router.navigate(['/offer/client']);
   }
 
-  confirmDelete(item: ProductItem): void {
+  confirmDelete(item: ProductItem | 'all'): void {
     const dialogRef = this._dialog.open(this.confirmDeleteDialog, {
       width: '300px',
     });
@@ -248,7 +248,11 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          this.productStore.deleteProductById(item.product.id, item.category);
+          if (item !== 'all') {
+            this.productStore.deleteProductById(item.product.id, item.category);
+          } else {
+            this.productStore.deleteProductItems();
+          }
           this.compareSavedPrice();
           this.getUsedPrices();
           this.getTotalPrice();
