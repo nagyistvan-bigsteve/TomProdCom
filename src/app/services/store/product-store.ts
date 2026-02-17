@@ -10,6 +10,7 @@ import { Category } from '../../models/enums';
 import { MatDialog } from '@angular/material/dialog';
 import { inject } from '@angular/core';
 import { ConfirmRestoreDialogComponent } from '../../components/dialog/confirm-restore-dialog.component';
+import { Location } from '@angular/common';
 
 interface ProductDataState {
   productItems: ProductItems;
@@ -193,6 +194,7 @@ export const useProductStore = signalStore(
     return {
       onInit() {
         const dialog = inject(MatDialog);
+        const location = inject(Location);
         const storedData = localStorage.getItem(STORAGE_KEY);
 
         if (!storedData) return;
@@ -208,6 +210,14 @@ export const useProductStore = signalStore(
             : Infinity;
 
           if (ageMs > STALE_THRESHOLD_MS) {
+            if (
+              !location.path().includes('offer') ||
+              location.path() === 'offers'
+            ) {
+              localStorage.removeItem(STORAGE_KEY);
+              return;
+            }
+
             // Data is older than 10 minutes — ask the user
             dialog
               .open(ConfirmRestoreDialogComponent, {
