@@ -1,5 +1,5 @@
 @if (order && !clientStore.isBusy()) {
-  <div id="content" class="d-flex flex-column w-100 pb-3">
+  <div id="content" class="d-flex flex-column w-100 h-100 pb-3">
     @if (!isLoading()) {
       <div class="d-flex align-items-center justify-content-between w-100 px-1">
         {{ client().name }} -
@@ -166,7 +166,7 @@
         </button>
       }
     } @else {
-      <div class="d-flex justify-content-center w-100">
+      <div class="d-flex justify-content-center align-items-center w-100 h-100">
         <mat-spinner></mat-spinner>
       </div>
     }

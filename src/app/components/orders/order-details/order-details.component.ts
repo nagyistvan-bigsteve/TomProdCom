@@ -256,12 +256,16 @@ export class OrderDetailsComponent implements OnInit {
           this.fetchOrderItems();
           setTimeout(() => {
             const total = this.getUpdateOrderTotals();
+            console.log(total);
             this.orderService.updateOrderTotals(
               this.order!.id,
               total.totalAmount,
               total.totalAmountFinal,
               total.totalQuantity,
             );
+            this.order!.totalAmount = total.totalAmount;
+            this.order!.totalAmountFinal = total.totalAmountFinal;
+            this.order!.totalQuantity = total.totalQuantity;
           }, 250);
         }
       });
@@ -279,6 +283,9 @@ export class OrderDetailsComponent implements OnInit {
             total.totalAmountFinal,
             total.totalQuantity,
           );
+          this.order!.totalAmount = total.totalAmount;
+          this.order!.totalAmountFinal = total.totalAmountFinal;
+          this.order!.totalQuantity = total.totalQuantity;
         }, 250);
       }
     });
