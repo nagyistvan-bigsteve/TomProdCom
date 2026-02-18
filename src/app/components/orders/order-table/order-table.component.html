@@ -276,7 +276,10 @@
             >
               {{ "ORDER.TABLE.CONTENT.DETAILS_BUTTON" | translate }}
             </button>
-            @if (authStore.role() === "admin") {
+            @if (
+              authStore.role() === "admin" ||
+              (authStore.id() === order.operator.id && justOffers)
+            ) {
               <button
                 (click)="deleteOrder(order)"
                 mat-raised-button
