@@ -144,7 +144,8 @@
     "TITLE": "Kliens információk",
     "EDIT_BUTTON": "Szerkesztés",
     "CHANGE_BUTTON": "Cserélés",
-    "ADD_BUTTON": "Hozzáadás"
+    "ADD_BUTTON": "Hozzáadás",
+    "ORDERS": "Kliens rendelések"
   },
   "EDIT_CLIENT": {
     "TITLE": "Kliens szerkesztése",

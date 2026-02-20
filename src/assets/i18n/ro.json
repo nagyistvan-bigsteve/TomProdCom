@@ -144,7 +144,8 @@
     "TITLE": "Informații client",
     "EDIT_BUTTON": "Editare",
     "CHANGE_BUTTON": "Schimbare",
-    "ADD_BUTTON": "Adaugare"
+    "ADD_BUTTON": "Adaugare",
+    "ORDERS": "Comenzi client"
   },
   "EDIT_CLIENT": {
     "TITLE": "Editare client",

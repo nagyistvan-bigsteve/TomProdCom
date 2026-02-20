@@ -4,8 +4,9 @@ import { OrderResponse } from '../../models/models';
 import { OrderDetailsComponent } from '../../components/orders/order-details/order-details.component';
 import { ENTER_ANIMATION } from '../../models/animations';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ClientStore } from '../../services/store/client/client.store';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-orders',
@@ -22,9 +23,16 @@ import { ClientStore } from '../../services/store/client/client.store';
 export class OrdersComponent implements OnInit {
   order: OrderResponse | null = null;
   isLoading = signal(true);
+  fromHistory = signal(false);
   readonly clientStore = inject(ClientStore);
+  private readonly route = inject(ActivatedRoute);
+  private readonly location = inject(Location);
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe((params) => {
+      this.fromHistory.set(params['fromHistory']);
+    });
+
     if (localStorage.getItem('on-order-details-page')) {
       this.order = JSON.parse(localStorage.getItem('on-order-details-page')!);
     }
@@ -43,5 +51,8 @@ export class OrdersComponent implements OnInit {
   deselectOrder(): void {
     this.order = null;
     localStorage.removeItem('on-order-details-page');
+    if (this.fromHistory()) {
+      this.location.back();
+    }
   }
 }

@@ -74,6 +74,66 @@ export class OrdersService {
     );
   }
 
+  getClientOrders(clientId: number): Observable<OrderResponse[]> {
+    return from(
+      this.supabaseService.client
+        .from('orders')
+        .select(
+          `id,
+    client_id,
+    date_order_placed,
+    sort_order,
+    expected_delivery,
+    date_order_delivered,
+    until_delivery_date,
+    total_quantity,
+    for_first_hour,
+    total_amount,
+    total_amount_final,
+    paid_amount,
+    delivery_fee,
+    comment,
+    voucher,
+    operator:operator_id ( id, name ),
+    delivery_address
+    `,
+        )
+        .eq('just_offer', false)
+        .eq('client_id', clientId)
+        .is('deleted_at', null),
+    ).pipe(
+      map(({ data }) =>
+        (data ?? []).map(
+          (order): OrderResponse => ({
+            id: order.id,
+            sortOrder: order.sort_order,
+            clientId: order.client_id,
+            operator: Array.isArray(order.operator)
+              ? order.operator[0]
+              : order.operator || { id: 0, name: '' },
+            dateOrderPlaced: order.date_order_placed,
+            untilDeliveryDate: order.until_delivery_date,
+            forFirstHour: order.for_first_hour,
+            expectedDelivery: order.expected_delivery,
+            dateOrderDelivered: order.date_order_delivered,
+            totalAmount: order.total_amount,
+            totalAmountFinal: order.total_amount_final,
+            totalQuantity: order.total_quantity,
+            paidAmount: order.paid_amount,
+            deliveryFee: order.delivery_fee,
+            comment: order.comment,
+            voucher: order.voucher,
+            delivery_address: order.delivery_address,
+          }),
+        ),
+      ),
+      catchError((error) => {
+        console.error('Error fetching orders:', error);
+        return of([]);
+      }),
+    );
+  }
+
   async saveAdminSortOrder(orders: OrderResponse[]): Promise<boolean> {
     const updates = orders.map((order, index) => ({
       id: order.id,

@@ -1,4 +1,4 @@
-<mat-form-field class="full-width pt-2">
+<mat-form-field class="full-width client-search-input pt-2 mb-2">
   <mat-label>{{ "SELECT_CLIENT.TITLE" | translate }}</mat-label>
   <input
     type="text"
@@ -29,4 +29,30 @@
   </mat-autocomplete>
 </mat-form-field>
 
-<app-add-client [withoutForwardButton]="true" />
+@if (!clientStore.isClientSelected()) {
+  <app-add-client @enterAnimation [withoutForwardButton]="true" />
+} @else {
+  <div class="d-flex gap-2 mb-2" @enterAnimation>
+    <div
+      class="card-button rounded shadow border border-white py-2 px-4"
+      [ngClass]="{ 'card-button-selected': showClientHistory() }"
+      (click)="showClientHistory.set(true); showClientDetails.set(false)"
+    >
+      {{ "CLIENT_DETAILS.ORDERS" | translate }}
+    </div>
+    <div
+      class="card-button rounded shadow border border-white py-2 px-4"
+      [ngClass]="{ 'card-button-selected': showClientDetails() }"
+      (click)="showClientHistory.set(false); showClientDetails.set(true)"
+    >
+      {{ "CLIENT_DETAILS.TITLE" | translate }}
+    </div>
+  </div>
+
+  @if (showClientDetails()) {
+    <app-add-client @enterAnimation [withoutForwardButton]="true" />
+  }
+  @if (showClientHistory()) {
+    <app-client-history class="full-width" />
+  }
+}

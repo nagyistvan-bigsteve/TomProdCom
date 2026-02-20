@@ -1,0 +1,24 @@
+<div
+  class="w-100 history-container rounded sharow bg-white text-dark p-2 d-flex flex-column gap-1"
+>
+  @for (order of orders(); track $index) {
+    <div class="border border-1 rounded p-1 d-flex flex-column gap-1">
+      <div class="d-flex justify-content-center">
+        {{ order.dateOrderPlaced | date }} &nbsp;-&nbsp;
+        {{ order.totalAmount }}RON
+      </div>
+      @if (order.dateOrderDelivered) {
+        <div
+          [ngClass]="{ 'text-success': order.dateOrderDelivered }"
+          class="d-flex justify-content-end align-items-center me-2"
+        >
+          {{ order.dateOrderDelivered | date }}
+          <i class="material-icons">check</i>
+        </div>
+      }
+      <button mat-flat-button (click)="goToDetailsPage(order)">
+        {{ "ADD_CLIENT.DETAILS" | translate }}
+      </button>
+    </div>
+  }
+</div>

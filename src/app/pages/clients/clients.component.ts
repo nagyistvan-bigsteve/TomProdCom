@@ -1,4 +1,11 @@
-import { Component, computed, effect, inject, ViewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { AddClientComponent } from '../../components/client/add-client/add-client.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -17,11 +24,17 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { ClientStore } from '../../services/store/client/client.store';
 import { toSignal } from '@angular/core/rxjs-interop';
+import {
+  ENTER_AND_LEAVE_ANIMATION,
+  ENTER_ANIMATION,
+} from '../../models/animations';
+import { ClientHistoryComponent } from '../../components/client/client-history/client-history.component';
 
 @Component({
   selector: 'app-clients',
   imports: [
     AddClientComponent,
+    ClientHistoryComponent,
     TranslateModule,
     MatExpansionModule,
     CommonModule,
@@ -39,6 +52,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
   ],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss',
+  animations: ENTER_ANIMATION,
 })
 export class ClientsComponent {
   @ViewChild(MatAutocompleteTrigger) autocomplete!: MatAutocompleteTrigger;
@@ -69,6 +83,9 @@ export class ClientsComponent {
       this.normalize(client.name).includes(search),
     );
   });
+
+  showClientHistory = signal(false);
+  showClientDetails = signal(false);
 
   constructor() {
     effect(() => {
