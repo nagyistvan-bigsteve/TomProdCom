@@ -123,12 +123,35 @@ export class OfferOverviewPageComponent {
       .reduce((sum, product) => sum + product.price, 0);
   }
 
-  updateDiscount(category: Category, unit: Unit_id, discount: number) {
-    this.usedPriceCategories = this.usedPriceCategories.map((p) =>
-      p.category === category && p.unit === unit
-        ? { ...p, discount: p.discount + discount }
-        : p,
-    );
+  // Get the base price (average of all prices in the category)
+  getBasePrice(priceCategory: (typeof this.usedPriceCategories)[0]): number {
+    if (priceCategory.price.length === 0) return 0;
+    const sum = priceCategory.price.reduce((acc, p) => acc + p, 0);
+    return sum / priceCategory.price.length;
+  }
+
+  // Get the final price (base price + discount)
+  getFinalPrice(priceCategory: (typeof this.usedPriceCategories)[0]): number {
+    return this.getBasePrice(priceCategory) + priceCategory.discount;
+  }
+
+  // Set the final price and calculate the discount
+  setFinalPrice(category: Category, unit: Unit_id, finalPrice: number): void {
+    this.usedPriceCategories = this.usedPriceCategories.map((p) => {
+      if (p.category === category && p.unit === unit) {
+        const basePrice = this.getBasePrice(p);
+        const newDiscount = finalPrice - basePrice;
+        return { ...p, discount: newDiscount };
+      }
+      return p;
+    });
+  }
+
+  // Get display prices with discount applied
+  getPricesWithDiscount(
+    priceCategory: (typeof this.usedPriceCategories)[0],
+  ): number[] {
+    return priceCategory.price.map((p) => p + priceCategory.discount);
   }
 
   getPriceList(prices: Price2[]): void {

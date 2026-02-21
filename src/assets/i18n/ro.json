@@ -115,7 +115,11 @@
       "TRANSFER_PAYMENT": "Plata prin transfer bancar"
     },
     "PRICES": {
-      "TITLE": "Prețuri folosite"
+      "TITLE": "Prețuri",
+      "BASE": "Bază",
+      "ADJUSTMENT": "Ajustare",
+      "FINAL": "Final",
+      "SET_PRICE": "Setează Prețul"
     }
   },
   "SELECT_CLIENT": {

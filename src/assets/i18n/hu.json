@@ -115,7 +115,11 @@
       "TRANSFER_PAYMENT": "Banki utalással fizet"
     },
     "PRICES": {
-      "TITLE": "Használt árak"
+      "TITLE": "Árak",
+      "BASE": "Alap",
+      "ADJUSTMENT": "Módosítás",
+      "FINAL": "Végső",
+      "SET_PRICE": "Ár Beállítása"
     }
   },
   "SELECT_CLIENT": {

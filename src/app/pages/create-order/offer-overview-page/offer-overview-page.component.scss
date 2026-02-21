@@ -100,3 +100,110 @@
     }
   }
 }
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+
+  .price-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    .price-label {
+      font-weight: 600;
+      font-size: 1rem;
+      color: rgba(0, 0, 0, 0.87);
+    }
+
+    .price-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.9rem;
+
+      .base-prices,
+      .final-prices,
+      .discount-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+
+        .label {
+          font-weight: 500;
+          color: rgba(0, 0, 0, 0.6);
+          min-width: 60px;
+        }
+
+        .price-value {
+          color: rgba(0, 0, 0, 0.7);
+
+          &.final {
+            font-weight: 600;
+            color: #1976d2;
+            font-size: 0.95rem;
+          }
+        }
+
+        .currency {
+          color: rgba(0, 0, 0, 0.5);
+          font-size: 0.85rem;
+        }
+      }
+
+      .discount-info {
+        .discount-value {
+          font-weight: 500;
+        }
+
+        &.positive .discount-value {
+          color: #388e3c;
+        }
+
+        &.negative .discount-value {
+          color: #d32f2f;
+        }
+      }
+    }
+  }
+
+  .price-input-wrapper {
+    flex-shrink: 0;
+    width: 160px;
+
+    .price-field {
+      width: 100%;
+
+      ::ng-deep {
+        .mat-mdc-form-field-infix {
+          padding-top: 8px;
+          padding-bottom: 8px;
+        }
+
+        .mat-mdc-text-field-wrapper {
+          padding-bottom: 0;
+        }
+
+        input {
+          text-align: right;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .price-row {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .price-input-wrapper {
+      width: 100%;
+    }
+  }
+}

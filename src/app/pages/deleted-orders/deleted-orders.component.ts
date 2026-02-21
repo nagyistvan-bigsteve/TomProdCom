@@ -145,12 +145,6 @@ export class DeletedOrdersComponent {
     });
   }
 
-  getDaysChipColor(daysLeft: number): string {
-    if (daysLeft <= 2) return 'warn';
-    if (daysLeft <= 5) return 'accent';
-    return 'primary';
-  }
-
   trackByOrderId(index: number, order: DeletedOrderWithDays): number {
     return order.id;
   }

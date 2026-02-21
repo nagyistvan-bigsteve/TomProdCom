@@ -30,10 +30,7 @@
                   }}</span
                 >
                 <mat-chip-set>
-                  <mat-chip
-                    [color]="getDaysChipColor(order.daysUntilDelete)"
-                    highlighted
-                  >
+                  <mat-chip highlighted>
                     {{ order.daysUntilDelete }}
                     {{ "DELETED_ORDERS.DAYS_LEFT" | translate }}
                   </mat-chip>
