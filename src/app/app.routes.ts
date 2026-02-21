@@ -15,6 +15,7 @@ import { ComingWaresComponent } from './pages/coming-wares/coming-wares.componen
 import { ComingWaresDetailsComponent } from './components/coming-wares/coming-wares-details/coming-wares-details.component';
 import { ClientsComponent } from './pages/clients/clients.component';
 import { ProductsComponent } from './pages/products/products.component';
+import { DeletedOrdersComponent } from './pages/deleted-orders/deleted-orders.component';
 
 export const routes: Routes = [
   {
@@ -92,6 +93,15 @@ export const routes: Routes = [
   {
     path: 'settings',
     component: SettingsComponent,
+    canActivate: [authGuard],
+    data: {
+      requiresApproval: true,
+      requiredRole: 'admin',
+    },
+  },
+  {
+    path: 'deleted',
+    component: DeletedOrdersComponent,
     canActivate: [authGuard],
     data: {
       requiresApproval: true,

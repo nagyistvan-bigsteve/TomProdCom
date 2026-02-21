@@ -1,0 +1,120 @@
+<div class="deleted-orders-container">
+  <div class="header">
+    <h3>{{ "DELETED_ORDERS.TITLE" | translate }}</h3>
+    <p class="subtitle">
+      {{ "DELETED_ORDERS.SUBTITLE" | translate }}
+    </p>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="50"></mat-spinner>
+      <p>{{ "DELETED_ORDERS.LOADING" | translate }}</p>
+    </div>
+  } @else if (!hasOrders()) {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">delete_sweep</mat-icon>
+      <h3>{{ "DELETED_ORDERS.NO_ORDERS" | translate }}</h3>
+      <p>{{ "DELETED_ORDERS.NO_ORDERS_MESSAGE" | translate }}</p>
+    </div>
+  } @else {
+    <div class="orders-list">
+      @for (order of deletedOrders(); track trackByOrderId($index, order)) {
+        <mat-card @enterAnimation class="order-card">
+          <mat-card-header>
+            <mat-card-title>
+              <div class="order-title">
+                <span
+                  >{{ "DELETED_ORDERS.ORDER_ID" | translate }}: #{{
+                    order.id
+                  }}</span
+                >
+                <mat-chip-set>
+                  <mat-chip
+                    [color]="getDaysChipColor(order.daysUntilDelete)"
+                    highlighted
+                  >
+                    {{ order.daysUntilDelete }}
+                    {{ "DELETED_ORDERS.DAYS_LEFT" | translate }}
+                  </mat-chip>
+                </mat-chip-set>
+              </div>
+            </mat-card-title>
+            <mat-card-subtitle>
+              {{ "DELETED_ORDERS.DELETED" | translate }}:
+              {{ order.daysAgo }}
+              {{ "DELETED_ORDERS.DAYS_AGO" | translate }}
+            </mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="order-details">
+              <div class="detail-row">
+                <mat-icon>calendar_today</mat-icon>
+                <span class="detail-label"
+                  >{{ "DELETED_ORDERS.CREATED" | translate }}:</span
+                >
+                <span class="detail-value">{{
+                  order.dateOrderPlaced | date: "dd/MM/yyyy"
+                }}</span>
+              </div>
+
+              @if (order.dateOrderDelivered) {
+                <div class="detail-row">
+                  <mat-icon>local_shipping</mat-icon>
+                  <span class="detail-label"
+                    >{{ "DELETED_ORDERS.DELIVERED" | translate }}:</span
+                  >
+                  <span class="detail-value">{{
+                    order.dateOrderDelivered | date: "dd/MM/yyyy"
+                  }}</span>
+                </div>
+              }
+
+              <div class="detail-row price-row">
+                <mat-icon>attach_money</mat-icon>
+                <span class="detail-label"
+                  >{{ "DELETED_ORDERS.TOTAL" | translate }}:</span
+                >
+                <span class="detail-value price"
+                  >{{ order.totalAmountFinal | number: "1.2-2" }} RON</span
+                >
+              </div>
+
+              @if (order.operator) {
+                <div class="detail-row">
+                  <mat-icon>person</mat-icon>
+                  <span class="detail-label"
+                    >{{ "DELETED_ORDERS.OPERATOR" | translate }}:</span
+                  >
+                  <span class="detail-value">{{ order.operator.name }}</span>
+                </div>
+              }
+            </div>
+          </mat-card-content>
+
+          <mat-card-actions>
+            <button
+              mat-raised-button
+              color="primary py-1"
+              (click)="restoreOrder(order)"
+              [disabled]="isProcessing()"
+            >
+              <mat-icon>restore</mat-icon>
+              {{ "DELETED_ORDERS.RESTORE_BUTTON" | translate }}
+            </button>
+            <button
+              mat-raised-button
+              color="warn py-1"
+              (click)="permanentlyDelete(order)"
+              [disabled]="isProcessing()"
+            >
+              <mat-icon>delete_forever</mat-icon>
+              {{ "DELETED_ORDERS.DELETE_BUTTON" | translate }}
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

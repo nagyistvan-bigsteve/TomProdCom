@@ -13,7 +13,8 @@
     "CLIENTS_BUTTON": "Kliensek",
     "SETTINGS": "Szerkesztések",
     "ACCOUNT": "Felhasználó",
-    "PRODUCTS": "Készlet lista"
+    "PRODUCTS": "Készlet lista",
+    "DELETED": "Töröltek"
   },
   "OFFER_PAGE": {
     "FIRST_STEP": {
@@ -110,7 +111,8 @@
       "DELIVERY_ADDRESS": "Szállítási cím",
       "DELIVERY_FEE": "Szállítás ára",
       "BACK_BUTTON": "Vissza",
-      "SAVE_BUTTON": "Mentés"
+      "SAVE_BUTTON": "Mentés",
+      "TRANSFER_PAYMENT": "Banki utalással fizet"
     },
     "PRICES": {
       "TITLE": "Használt árak"
@@ -451,5 +453,29 @@
     "LAST_UPDATED": "Utoljára frissítve",
     "DISCARD": "Elvetés",
     "KEEP": "Adatok megtartása"
+  },
+  "DELETED_ORDERS": {
+    "TITLE": "Törölt Rendelések",
+    "SUBTITLE": "A rendelések 10 nap után véglegesen törlődnek",
+    "LOADING": "Törölt rendelések betöltése...",
+    "NO_ORDERS": "Nincsenek Törölt Rendelések",
+    "NO_ORDERS_MESSAGE": "Jelenleg nincsenek törölt rendelések",
+    "ORDER_ID": "Rendelés",
+    "DAYS_LEFT": "nap van hátra",
+    "DAYS_AGO": "napja",
+    "DELETED": "Törölve",
+    "CREATED": "Létrehozva",
+    "DELIVERED": "Kézbesítve",
+    "TOTAL": "Összesen",
+    "OPERATOR": "Kezelő",
+    "RESTORE_BUTTON": "Visszaállítás",
+    "DELETE_BUTTON": "Végleges Törlés",
+    "RESTORE_TITLE": "Rendelés Visszaállítása?",
+    "RESTORE_MESSAGE": "Biztosan vissza szeretné állítani a #{{orderId}} rendelést?",
+    "PERMANENT_DELETE_TITLE": "Rendelés Végleges Törlése?",
+    "PERMANENT_DELETE_MESSAGE": "Biztosan véglegesen törölni szeretné a #{{orderId}} rendelést?",
+    "WARNING_PERMANENT": "Ez a művelet nem vonható vissza!",
+    "CANCEL": "Mégse",
+    "CONFIRM": "Megerősítés"
   }
 }

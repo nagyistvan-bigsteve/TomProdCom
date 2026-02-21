@@ -62,6 +62,17 @@
       <span>{{ "NAVBAR.PRODUCTS" | translate }}</span>
     </button>
 
+    @if (authStore.role() === "admin") {
+      <button
+        class="sidebar-nav-item"
+        mat-button
+        (click)="navigateTo('/deleted')"
+      >
+        <mat-icon>delete_sweep</mat-icon>
+        <span>{{ "NAVBAR.DELETED" | translate }}</span>
+      </button>
+    }
+
     <button class="sidebar-nav-item" mat-button (click)="navigateTo('/user')">
       <mat-icon>account_circle</mat-icon>
       <span>{{ "NAVBAR.ACCOUNT" | translate }}</span>

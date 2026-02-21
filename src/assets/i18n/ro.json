@@ -13,7 +13,8 @@
     "CLIENTS_BUTTON": "Clienți",
     "SETTINGS": "Editare",
     "ACCOUNT": "User",
-    "PRODUCTS": "Lista de stoc"
+    "PRODUCTS": "Lista de stoc",
+    "DELETED": "Șterse"
   },
   "OFFER_PAGE": {
     "FIRST_STEP": {
@@ -110,7 +111,8 @@
       "DELIVERY_ADDRESS": "Adresa de descărcare",
       "DELIVERY_FEE": "Preț de transport",
       "BACK_BUTTON": "Înapoi",
-      "SAVE_BUTTON": "Salvare"
+      "SAVE_BUTTON": "Salvare",
+      "TRANSFER_PAYMENT": "Plata prin transfer bancar"
     },
     "PRICES": {
       "TITLE": "Prețuri folosite"
@@ -451,5 +453,29 @@
     "LAST_UPDATED": "Ultima actualizare",
     "DISCARD": "Renunță",
     "KEEP": "Păstrează datele"
+  },
+  "DELETED_ORDERS": {
+    "TITLE": "Comenzi Șterse",
+    "SUBTITLE": "Comenzile vor fi șterse permanent după 10 zile",
+    "LOADING": "Se încarcă comenzile șterse...",
+    "NO_ORDERS": "Nu Există Comenzi Șterse",
+    "NO_ORDERS_MESSAGE": "În prezent nu există comenzi șterse",
+    "ORDER_ID": "Comanda",
+    "DAYS_LEFT": "zile rămase",
+    "DAYS_AGO": "zile în urmă",
+    "DELETED": "Șters",
+    "CREATED": "Creat",
+    "DELIVERED": "Livrat",
+    "TOTAL": "Total",
+    "OPERATOR": "Operator",
+    "RESTORE_BUTTON": "Restaurează",
+    "DELETE_BUTTON": "Șterge Permanent",
+    "RESTORE_TITLE": "Restaurați Comanda?",
+    "RESTORE_MESSAGE": "Sigur doriți să restaurați comanda #{{orderId}}?",
+    "PERMANENT_DELETE_TITLE": "Ștergeți Permanent Comanda?",
+    "PERMANENT_DELETE_MESSAGE": "Sigur doriți să ștergeți permanent comanda #{{orderId}}?",
+    "WARNING_PERMANENT": "Această acțiune nu poate fi anulată!",
+    "CANCEL": "Anulează",
+    "CONFIRM": "Confirmă"
   }
 }

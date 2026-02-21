@@ -76,7 +76,7 @@ export class OfferOverviewPageComponent {
   private ordersService = inject(OrdersService);
   private _dialog = inject(MatDialog);
   private destroyRef = inject(DestroyRef);
-  private translateService = inject(TranslateService);
+  private readonly translate = inject(TranslateService);
 
   isLoaded: boolean = false;
 
@@ -91,6 +91,7 @@ export class OfferOverviewPageComponent {
   );
   untilDeliveryDate: boolean = false;
   forFirstHour: boolean = false;
+  transferPayment: boolean = false;
 
   usedPriceCategories: {
     unit: Unit_id;
@@ -224,7 +225,13 @@ export class OfferOverviewPageComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (this.deliveryFee) {
-          this.comment += 'Transport: ' + this.deliveryFee + 'RON';
+          this.comment += 'Transport: ' + this.deliveryFee + 'RON' + '\n';
+        }
+
+        if (this.transferPayment) {
+          this.comment +=
+            this.translate.instant('OVERVIEW_PAGE.POPUP.TRANSFER_PAYMENT') +
+            '\n';
         }
 
         if (result === true) {

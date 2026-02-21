@@ -278,11 +278,19 @@ export class OrderTableComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          this.ordersService.setDeletionForOrder(order.id).then(() => {
-            setTimeout(() => {
-              this.fetchOrders();
-            }, 500);
-          });
+          if (this.justOffers) {
+            this.ordersService.permanentlyDeleteOrder(order.id).then(() => {
+              setTimeout(() => {
+                this.fetchOrders();
+              }, 500);
+            });
+          } else {
+            this.ordersService.setDeletionForOrder(order.id).then(() => {
+              setTimeout(() => {
+                this.fetchOrders();
+              }, 500);
+            });
+          }
         }
       });
   }

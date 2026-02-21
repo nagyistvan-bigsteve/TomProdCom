@@ -424,7 +424,7 @@ export class OrderDetailsComponent implements OnInit {
             );
             this.productStore.setProductItems(productItems);
             if (this.deleteOffer) {
-              this.orderService.deleteOrder(order.id);
+              this.orderService.permanentlyDeleteOrder(order.id);
             }
             localStorage.removeItem('on-order-details-page');
 

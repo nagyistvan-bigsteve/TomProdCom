@@ -156,6 +156,7 @@ export type OrderResponse = {
   voucher: string;
   operator: { id: string; name: string };
   delivery_address: string;
+  deletedAt?: Date;
 };
 
 export type Price2 = {

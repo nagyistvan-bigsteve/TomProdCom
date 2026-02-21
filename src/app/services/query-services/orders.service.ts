@@ -74,6 +74,66 @@ export class OrdersService {
     );
   }
 
+  getDeletedOrders(): Observable<OrderResponse[]> {
+    return from(
+      this.supabaseService.client
+        .from('orders')
+        .select(
+          `id,
+    client_id,
+    date_order_placed,
+    sort_order,
+    expected_delivery,
+    date_order_delivered,
+    until_delivery_date,
+    total_quantity,
+    for_first_hour,
+    total_amount,
+    total_amount_final,
+    paid_amount,
+    delivery_fee,
+    comment,
+    voucher,
+    operator:operator_id ( id, name ),
+    delivery_address,
+    deleted_at
+    `,
+        )
+        .not('deleted_at', 'is', null),
+    ).pipe(
+      map(({ data }) =>
+        (data ?? []).map(
+          (order): OrderResponse => ({
+            id: order.id,
+            sortOrder: order.sort_order,
+            clientId: order.client_id,
+            operator: Array.isArray(order.operator)
+              ? order.operator[0]
+              : order.operator || { id: 0, name: '' },
+            dateOrderPlaced: order.date_order_placed,
+            untilDeliveryDate: order.until_delivery_date,
+            forFirstHour: order.for_first_hour,
+            expectedDelivery: order.expected_delivery,
+            dateOrderDelivered: order.date_order_delivered,
+            totalAmount: order.total_amount,
+            totalAmountFinal: order.total_amount_final,
+            totalQuantity: order.total_quantity,
+            paidAmount: order.paid_amount,
+            deliveryFee: order.delivery_fee,
+            comment: order.comment,
+            voucher: order.voucher,
+            delivery_address: order.delivery_address,
+            deletedAt: order.deleted_at,
+          }),
+        ),
+      ),
+      catchError((error) => {
+        console.error('Error fetching deleted orders:', error);
+        return of([]);
+      }),
+    );
+  }
+
   getClientOrders(clientId: number): Observable<OrderResponse[]> {
     return from(
       this.supabaseService.client
@@ -394,29 +454,42 @@ export class OrdersService {
     return true;
   }
 
-  async deleteOrder(id: number) {
-    this.getOrderItemsById(id)
-      .pipe(
-        take(1),
-        switchMap(() => {
-          return from(
-            this.supabaseService.client
-              .from('order_items')
-              .delete()
-              .eq('order_id', id),
-          );
-        }),
-        switchMap(() => {
-          return from(
-            this.supabaseService.client.from('orders').delete().eq('id', id),
-          );
-        }),
-        catchError((error) => {
-          console.error('Error deleting order or items:', error);
-          return of(null);
-        }),
-      )
-      .subscribe();
+  async restoreDeletedOrder(id: number): Promise<boolean> {
+    const { error } = await this.supabaseService.client
+      .from('orders')
+      .update({ deleted_at: null })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to restore order, ', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  async permanentlyDeleteOrder(id: number): Promise<boolean> {
+    const { error: itemsError } = await this.supabaseService.client
+      .from('order_items')
+      .delete()
+      .eq('order_id', id);
+
+    if (itemsError) {
+      console.error('Failed to delete order items:', itemsError);
+      return false;
+    }
+
+    const { error: orderError } = await this.supabaseService.client
+      .from('orders')
+      .delete()
+      .eq('id', id);
+
+    if (orderError) {
+      console.error('Failed to permanently delete order:', orderError);
+      return false;
+    }
+
+    return true;
   }
 
   async placeOrder(
