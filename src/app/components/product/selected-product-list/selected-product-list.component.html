@@ -246,7 +246,8 @@
             }
           </div>
         </mat-expansion-panel>
-
+      }
+      @if (productStore.productItems().length) {
         <mat-expansion-panel disabled="true">
           <mat-expansion-panel-header class="emty-panel">
             <div class="d-flex justify-content-center align-items-center">
@@ -266,6 +267,7 @@
           </mat-expansion-panel-header>
         </mat-expansion-panel>
       }
+
       @if (!productStore.productItems().length && isInOverview) {
         <mat-expansion-panel disabled="true">
           <mat-expansion-panel-header class="emty-panel pt-1">
