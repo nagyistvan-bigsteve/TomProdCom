@@ -147,21 +147,53 @@ export class SelectedProductComponent implements OnChanges {
     });
   }
 
-  validateInput() {
-    const quantity = this.productUtil.normalizeNumberInputDecimal(
-      this.quantity.toString(),
-    );
+  handleQuantityInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const cursorPos = input.selectionStart || 0;
+    let value = input.value;
 
-    if (isNaN(quantity) || quantity < 0) {
-      setTimeout(() => (this.quantity = String(0)), 0);
-    } else {
-      this.quantity = quantity.toString();
+    // Replace comma with dot
+    value = value.replace(/,/g, '.');
+
+    // Remove everything except digits and dots
+    value = value.replace(/[^\d.]/g, '');
+
+    // Ensure only one decimal point
+    const parts = value.split('.');
+    if (parts.length > 2) {
+      // Keep first part and first decimal part only
+      value = parts[0] + '.' + parts.slice(1).join('');
     }
 
-    setTimeout(() => {
-      this.verifyStock();
-      this.calculatePrice();
+    // Limit to 2 decimal places (optional)
+    if (parts.length === 2 && parts[1].length > 2) {
+      value = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+
+    // Update the value
+    this.quantity = value;
+    input.value = value;
+
+    // Restore cursor position
+    requestAnimationFrame(() => {
+      const newCursorPos = Math.min(cursorPos, value.length);
+      input.setSelectionRange(newCursorPos, newCursorPos);
     });
+  }
+
+  validateInput(): void {
+    const numValue = parseFloat(this.quantity);
+
+    if (isNaN(numValue) || numValue < 0) {
+      this.quantity = '0';
+    } else {
+      // Keep the string value to allow typing decimals like "2."
+      // Only clean it up on blur
+      this.quantity = String(numValue);
+    }
+
+    this.verifyStock();
+    this.calculatePrice();
   }
 
   clearOnFirstFocus(event: FocusEvent): void {

@@ -63,11 +63,10 @@
           </div>
           <div class="d-flex w-100">
             <input
-              type="number"
+              type="text"
               inputmode="decimal"
-              step="0.01"
               [(ngModel)]="quantity"
-              (change)="validateInput()"
+              (input)="handleQuantityInput($event)"
               (blur)="validateInput()"
               [value]="quantity"
               (focus)="clearOnFirstFocus($event)"

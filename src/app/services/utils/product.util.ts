@@ -141,12 +141,4 @@ export class ProductUtil {
 
     return totalOrderQuantity;
   }
-
-  normalizeNumberInputDecimal(value: string | number): number {
-    if (typeof value === 'number') {
-      return value;
-    }
-
-    return Number(value.replace(',', '.'));
-  }
 }
