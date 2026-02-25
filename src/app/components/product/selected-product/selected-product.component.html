@@ -64,6 +64,7 @@
           <div class="d-flex w-100">
             <input
               type="tel"
+              pattern="\d+(\.\d*)?"
               [(ngModel)]="quantity"
               (change)="validateInput()"
               [value]="quantity"
