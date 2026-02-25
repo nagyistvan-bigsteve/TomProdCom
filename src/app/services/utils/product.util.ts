@@ -132,7 +132,7 @@ export class ProductUtil {
       const { unit_id, width, thickness, length } = item.product;
 
       if (unit_id !== Unit_id.M2 && unit_id !== Unit_id.BUC) {
-        const volumeM3 = (width * thickness * length) / 1_000_000;
+        const volumeM3 = width ? (width * thickness * length) / 1_000_000 : 1;
         const multiplier = unit_id === Unit_id.BOUNDLE ? 10 : 1;
 
         totalOrderQuantity += item.quantity * volumeM3 * multiplier;

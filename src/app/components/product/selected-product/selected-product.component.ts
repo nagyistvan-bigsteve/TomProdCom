@@ -149,7 +149,7 @@ export class SelectedProductComponent implements OnChanges {
 
   validateInput() {
     const quantity = this.productUtil.normalizeNumberInputDecimal(
-      this.quantity,
+      this.quantity.toString(),
     );
 
     if (isNaN(quantity) || quantity < 0) {
