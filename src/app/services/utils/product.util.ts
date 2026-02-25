@@ -143,7 +143,9 @@ export class ProductUtil {
   }
 
   normalizeNumberInputDecimal(value: string | number): number {
-    if (typeof value === 'number') return value;
+    if (typeof value === 'number') {
+      return value;
+    }
 
     return Number(value.replace(',', '.'));
   }

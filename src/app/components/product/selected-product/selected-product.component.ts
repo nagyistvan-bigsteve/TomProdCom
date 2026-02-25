@@ -154,6 +154,8 @@ export class SelectedProductComponent implements OnChanges {
 
     if (isNaN(quantity) || quantity < 0) {
       setTimeout(() => (this.quantity = String(0)), 0);
+    } else {
+      this.quantity = quantity.toString();
     }
 
     setTimeout(() => {
