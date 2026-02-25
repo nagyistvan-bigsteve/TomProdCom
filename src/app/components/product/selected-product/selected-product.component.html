@@ -63,8 +63,9 @@
           </div>
           <div class="d-flex w-100">
             <input
-              type="number"
-              pattern="\d+(\.\d*)?"
+              type="text"
+              inputmode="decimal"
+              pattern="[0-9]*[.,]?[0-9]*"
               [(ngModel)]="quantity"
               (change)="validateInput()"
               [value]="quantity"
