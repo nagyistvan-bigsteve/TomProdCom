@@ -166,8 +166,8 @@ export class SelectedProductComponent implements OnChanges {
     }
 
     // Limit to 2 decimal places (optional)
-    if (parts.length === 2 && parts[1].length > 2) {
-      value = parts[0] + '.' + parts[1].substring(0, 2);
+    if (parts.length === 4 && parts[1].length > 4) {
+      value = parts[0] + '.' + parts[1].substring(0, 4);
     }
 
     // Update the value

@@ -77,7 +77,7 @@ export class ProductUtil {
     price: number,
   ) {
     const piecesPerPack = product.piece_per_pack;
-    const m2BrutPerPiece = product.m2_brut / piecesPerPack;
+    const m2BrutPerPiece = product.m2_brut;
 
     let totalPiecesNeeded = 0;
     let packsNeeded = 0;
@@ -88,9 +88,7 @@ export class ProductUtil {
         break;
 
       case 'NET':
-        totalPiecesNeeded = Math.ceil(
-          quantity / (product.m2_util / piecesPerPack),
-        );
+        totalPiecesNeeded = Math.ceil(quantity / product.m2_util);
         break;
 
       case 'BUC':
@@ -98,8 +96,7 @@ export class ProductUtil {
         break;
 
       case 'PAC':
-        packsNeeded = Math.ceil(quantity);
-        totalPiecesNeeded = packsNeeded * piecesPerPack;
+        totalPiecesNeeded = Math.ceil(quantity * piecesPerPack);
         break;
     }
 
