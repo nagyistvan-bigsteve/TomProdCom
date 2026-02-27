@@ -35,5 +35,8 @@ export class AppComponent implements OnInit {
     const savedLang = localStorage.getItem('selectedLanguage') || Language.RO;
     this.translateService.setDefaultLang(savedLang);
     this.translateService.use(savedLang);
+
+    localStorage.removeItem('on-offer-details-page');
+    localStorage.removeItem('on-order-details-page');
   }
 }

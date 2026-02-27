@@ -19,17 +19,26 @@
                 let last = $last;
                 track $index
               ) {
-                <div class="price-row py-2 px-3">
+                <div class="price-row py-1 px-3">
                   <div class="price-info">
                     <div class="price-label">
-                      {{
-                        "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                          price.unit | translate
-                      }}
+                      @if (price.unit === 2 || price.productId) {
+                        {{ getProductName(price.productId!) }}
+                      } @else {
+                        {{
+                          "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                            price.unit | translate
+                        }}
+                      }
                       -
                       {{
                         "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." +
                           price.category | translate
+                      }}
+                      -
+                      {{
+                        "OFFER_PAGE.CREATE_OFFER.SIZE_FILTER.FILTER_OPTIONS." +
+                          price.size | translate
                       }}
                     </div>
                     <div class="price-details">
@@ -101,7 +110,12 @@
                         type="number"
                         [ngModel]="getFinalPrice(price)"
                         (ngModelChange)="
-                          setFinalPrice(price.category, price.unit, $event)
+                          setFinalPrice(
+                            price.category,
+                            price.size,
+                            price.unit,
+                            $event
+                          )
                         "
                         [step]="10"
                         placeholder="{{
@@ -126,7 +140,7 @@
 
     <app-selected-product-list
       [isInOverview]="true"
-      [discount]="usedPriceCategories"
+      [discounts]="usedPriceCategories"
       (isLoaded)="loaded()"
       (pricesOutput)="getPriceList($event)"
       class="full-width"

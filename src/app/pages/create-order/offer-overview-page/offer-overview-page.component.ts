@@ -27,11 +27,11 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Category, Unit_id } from '../../../models/enums';
+import { Category, Size_id, Unit_id } from '../../../models/enums';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Price2 } from '../../../models/models';
+import { Price2, UsedPricesInOrder } from '../../../models/models';
 import { ENTER_AND_LEAVE_ANIMATION } from '../../../models/animations';
 import { ProductUtil } from '../../../services/utils/product.util';
 import { ClientStore } from '../../../services/store/client/client.store';
@@ -93,12 +93,7 @@ export class OfferOverviewPageComponent {
   forFirstHour: boolean = false;
   transferPayment: boolean = false;
 
-  usedPriceCategories: {
-    unit: Unit_id;
-    category: Category;
-    price: number[];
-    discount: number;
-  }[] = [];
+  usedPriceCategories: UsedPricesInOrder = [];
 
   get totalPrice(): number {
     let total = this.price;
@@ -136,9 +131,14 @@ export class OfferOverviewPageComponent {
   }
 
   // Set the final price and calculate the discount
-  setFinalPrice(category: Category, unit: Unit_id, finalPrice: number): void {
+  setFinalPrice(
+    category: Category,
+    size: Size_id,
+    unit: Unit_id,
+    finalPrice: number,
+  ): void {
     this.usedPriceCategories = this.usedPriceCategories.map((p) => {
-      if (p.category === category && p.unit === unit) {
+      if (p.category === category && p.unit === unit && p.size === size) {
         const basePrice = this.getBasePrice(p);
         const newDiscount = finalPrice - basePrice;
         return { ...p, discount: newDiscount };
@@ -154,6 +154,12 @@ export class OfferOverviewPageComponent {
     return priceCategory.price.map((p) => p + priceCategory.discount);
   }
 
+  getProductName(productId: number): string | undefined {
+    return this.productStore
+      .productItems()
+      .find((p) => p.product.id === productId)?.product.name;
+  }
+
   getPriceList(prices: Price2[]): void {
     const isTva: boolean = this.clientStore.client()
       ? this.clientStore.client().tva
@@ -167,13 +173,19 @@ export class OfferOverviewPageComponent {
     prices.forEach((price) => {
       if (
         !this.usedPriceCategories.find(
-          (p) => p.category === price.category_id && p.unit === price.unit_id,
+          (p) =>
+            p.category === price.category_id &&
+            p.unit === price.unit_id &&
+            p.size === price.size_id,
         )
       ) {
         let actualPrice: number[] = [];
+
         let exactCategory = prices.filter(
           (p) =>
-            p.category_id === price.category_id && p.unit_id === price.unit_id,
+            p.category_id === price.category_id &&
+            p.unit_id === price.unit_id &&
+            p.size_id === price.size_id,
         );
 
         exactCategory = exactCategory.filter(
@@ -201,6 +213,8 @@ export class OfferOverviewPageComponent {
           category: price.category_id,
           unit: price.unit_id,
           price: actualPrice,
+          size: price.size_id,
+          productId: price.product_id ? price.product_id : undefined,
           discount: copyForDiscount.find(
             (p) => p.category === price.category_id && p.unit === price.unit_id,
           )

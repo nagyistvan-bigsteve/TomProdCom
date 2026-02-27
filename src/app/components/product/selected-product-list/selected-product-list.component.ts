@@ -22,7 +22,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { useProductStore } from '../../../services/store/product-store';
-import { Price2, ProductItem } from '../../../models/models';
+import { Price2, ProductItem, UsedPricesInOrder } from '../../../models/models';
 import { Category, Unit_id } from '../../../models/enums';
 import { ProductUtil } from '../../../services/utils/product.util';
 import { FormsModule } from '@angular/forms';
@@ -52,12 +52,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
   @Output() isLoaded = new EventEmitter<void>();
   @Output() pricesOutput = new EventEmitter<Price2[]>();
   @Input() isInOverview: boolean = false;
-  @Input() discount: {
-    unit: Unit_id;
-    category: Category;
-    price: number[];
-    discount: number;
-  }[] = [];
+  @Input() discounts: UsedPricesInOrder = [];
 
   totalPrice: number = 0;
 
@@ -399,9 +394,17 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
       }
     }
 
-    if (this.discount.length) {
-      let discount = this.discount.find(
-        (d) => d.category === newCategory && d.unit === item.product.unit_id,
+    if (this.discounts.length) {
+      let discount = this.discounts.find(
+        (d) =>
+          (d.category === newCategory &&
+            d.unit === item.product.unit_id &&
+            d.size === item.product.size_id &&
+            !d.productId) ||
+          (d.category === newCategory &&
+            d.unit === item.product.unit_id &&
+            d.size === item.product.size_id &&
+            d.productId === item.product.id),
       )?.discount;
       if (discount) {
         exactPrice! += discount;

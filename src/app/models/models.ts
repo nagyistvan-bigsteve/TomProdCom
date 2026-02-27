@@ -211,5 +211,14 @@ export type ComingWaresItemResponse = {
   comment: string;
 };
 
+export type UsedPricesInOrder = {
+  unit: Unit_id;
+  category: Category;
+  price: number[];
+  discount: number;
+  size: Size_id;
+  productId?: number;
+}[];
+
 export const M2_QUANTITIES = ['BRUT', 'NET', 'BUC', 'PAC'] as const;
 export type M2Quantities = (typeof M2_QUANTITIES)[number];

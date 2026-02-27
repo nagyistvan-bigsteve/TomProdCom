@@ -255,7 +255,6 @@ export class OrderDetailsComponent implements OnInit {
           this.fetchOrderItems();
           setTimeout(() => {
             const total = this.getUpdateOrderTotals();
-            console.log(total);
             this.orderService.updateOrderTotals(
               this.order!.id,
               total.totalAmount,
