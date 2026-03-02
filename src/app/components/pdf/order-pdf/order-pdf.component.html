@@ -45,7 +45,7 @@
           <div class="title mb-2 text-uppercase">
             <strong>{{ "PRINT_POPUP.CLIENT" | translate }}</strong>
           </div>
-          <div class="text-wrap">{{ client().name }}</div>
+          <div class="text-wrap me-5">{{ client().name }}</div>
           <div>
             <strong>{{ client().type === 1 ? "CNP " : "CUI " }}</strong>
             : {{ client().code }}
@@ -63,7 +63,7 @@
               }
             </div>
           </div>
-          <div class="text-wrap">
+          <div class="text-wrap me-5">
             <strong>{{
               client().type === 1
                 ? ("PRINT_POPUP.ADDRESS_PF" | translate)
@@ -71,7 +71,7 @@
             }}</strong>
             {{ client().address }}
           </div>
-          <div class="text-wrap">
+          <div class="text-wrap me-5">
             <strong>{{ "PRINT_POPUP.DELIVERY_ADDRESS" | translate }}</strong>
             {{ order().delivery_address }}
           </div>
