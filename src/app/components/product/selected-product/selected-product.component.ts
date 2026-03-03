@@ -192,8 +192,8 @@ export class SelectedProductComponent implements OnChanges {
       this.quantity = String(numValue);
     }
 
-    this.verifyStock();
     this.calculatePrice();
+    this.verifyStock();
   }
 
   clearOnFirstFocus(event: FocusEvent): void {
@@ -207,8 +207,6 @@ export class SelectedProductComponent implements OnChanges {
     this.selectedPrice = this.prices.find(
       (price) => price.category_id === this.selectedCategory,
     );
-
-    this.fetchStock(this.selectedProduct!);
 
     this.calculatePrice();
   }
