@@ -91,10 +91,7 @@ export class SelectedProductComponent implements OnChanges {
         } else {
           this.addProduct.emit({
             product: this.selectedProduct,
-            quantity:
-              this.totalPiecesNeeded *
-              (this.selectedProduct.m2_brut /
-                this.selectedProduct.piece_per_pack),
+            quantity: this.totalPiecesNeeded * this.selectedProduct.m2_brut,
             price: this.calculatedPrice,
             packsNeeded: this.packsNeeded,
             extraPiecesNeeded: this.extraPiecesNeeded,
