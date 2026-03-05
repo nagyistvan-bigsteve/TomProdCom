@@ -214,7 +214,7 @@ export type ComingWaresItemResponse = {
 export type UsedPricesInOrder = {
   unit: Unit_id;
   category: Category;
-  price: number[];
+  price: number;
   discount: number;
   size: Size_id;
   productId?: number;

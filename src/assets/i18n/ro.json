@@ -119,7 +119,8 @@
       "BASE": "Bază",
       "ADJUSTMENT": "Ajustare",
       "FINAL": "Final",
-      "SET_PRICE": "Setează Prețul"
+      "SET_PRICE": "Setează Prețul",
+      "DIFFERENT_PRICE": "Preț diferit la tot"
     }
   },
   "SELECT_CLIENT": {

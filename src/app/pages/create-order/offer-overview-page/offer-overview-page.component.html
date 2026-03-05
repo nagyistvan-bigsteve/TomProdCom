@@ -12,6 +12,13 @@
               {{ clientStore.isClientPJ() ? "PJ" : "PF" }}
             </div>
           </mat-expansion-panel-header>
+          <mat-checkbox
+            [checked]="isAllPriceDifferent()"
+            (change)="toggleDifferentPrices()"
+          >
+            {{ "OVERVIEW_PAGE.PRICES.DIFFERENT_PRICE" | translate }}
+          </mat-checkbox>
+
           <div class="w-100">
             <div class="d-flex flex-column">
               @for (
@@ -19,115 +26,100 @@
                 let last = $last;
                 track $index
               ) {
-                <div class="price-row py-1 px-3">
-                  <div class="price-info">
-                    <div class="price-label">
-                      @if (price.unit === 2 || price.productId) {
-                        {{ getProductName(price.productId!) }}
-                      } @else {
-                        {{
-                          "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                            price.unit | translate
-                        }}
-                      }
-                      -
-                      {{
-                        "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." +
-                          price.category | translate
-                      }}
-                      -
-                      {{
-                        "OFFER_PAGE.CREATE_OFFER.SIZE_FILTER.FILTER_OPTIONS." +
-                          price.size | translate
-                      }}
-                    </div>
-                    <div class="price-details">
-                      <div class="base-prices">
-                        <span class="label"
-                          >{{ "OVERVIEW_PAGE.PRICES.BASE" | translate }}:</span
-                        >
-                        @if (price.price.length) {
-                          @for (
-                            pr of price.price;
-                            let last = $last;
-                            track $index
-                          ) {
-                            <span class="price-value">
-                              {{ pr | number: "1.2-2" }}
-                              @if (!last) {
-                                ,
-                              }
-                            </span>
-                          }
-                          <span class="currency">RON</span>
+                @if (
+                  (isAllPriceDifferent() && price.productId) ||
+                  !isAllPriceDifferent()
+                ) {
+                  <div class="price-row py-1 px-3">
+                    <div class="price-info">
+                      <div class="price-label">
+                        @if (price.unit === 2 || price.productId) {
+                          {{ getProductName(price.productId!) }}
+                        } @else {
+                          {{
+                            "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                              price.unit | translate
+                          }}
                         }
+                        -
+                        {{
+                          "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." +
+                            price.category | translate
+                        }}
+                        -
+                        {{
+                          "OFFER_PAGE.CREATE_OFFER.SIZE_FILTER.FILTER_OPTIONS." +
+                            price.size | translate
+                        }}
                       </div>
-                      @if (price.discount !== 0) {
-                        <div
-                          class="discount-info"
-                          [class.negative]="price.discount < 0"
-                          [class.positive]="price.discount > 0"
-                        >
+                      <div class="price-details">
+                        <div class="base-prices">
                           <span class="label"
                             >{{
-                              "OVERVIEW_PAGE.PRICES.ADJUSTMENT" | translate
+                              "OVERVIEW_PAGE.PRICES.BASE" | translate
                             }}:</span
                           >
-                          <span class="discount-value">
-                            {{ price.discount > 0 ? "+" : ""
-                            }}{{ price.discount | number: "1.2-2" }} RON
+
+                          <span class="price-value">
+                            {{ price.price | number: "1.2-2" }}
                           </span>
+
+                          <span class="currency">RON</span>
                         </div>
-                      }
-                      <div class="final-prices">
-                        <span class="label"
-                          >{{ "OVERVIEW_PAGE.PRICES.FINAL" | translate }}:</span
-                        >
-                        @for (
-                          finalPrice of getPricesWithDiscount(price);
-                          let last = $last;
-                          track $index
-                        ) {
-                          <span class="price-value final">
-                            {{ finalPrice | number: "1.2-2" }}
-                            @if (!last) {
-                              ,
-                            }
-                          </span>
+                        @if (price.discount !== 0) {
+                          <div
+                            class="discount-info"
+                            [class.negative]="price.discount < 0"
+                            [class.positive]="price.discount > 0"
+                          >
+                            <span class="label"
+                              >{{
+                                "OVERVIEW_PAGE.PRICES.ADJUSTMENT" | translate
+                              }}:</span
+                            >
+                            <span class="discount-value">
+                              {{ price.discount > 0 ? "+" : ""
+                              }}{{ price.discount | number: "1.2-2" }} RON
+                            </span>
+                          </div>
                         }
-                        <span class="currency">RON</span>
+                        <div class="final-prices">
+                          <span class="label"
+                            >{{
+                              "OVERVIEW_PAGE.PRICES.FINAL" | translate
+                            }}:</span
+                          >
+
+                          <span class="price-value final">
+                            {{ price.price + price.discount | number: "1.2-2" }}
+                          </span>
+
+                          <span class="currency">RON</span>
+                        </div>
                       </div>
+                    </div>
+
+                    <div class="price-input-wrapper">
+                      <mat-form-field appearance="outline" class="price-field">
+                        <mat-label>{{
+                          "OVERVIEW_PAGE.PRICES.SET_PRICE" | translate
+                        }}</mat-label>
+                        <input
+                          matInput
+                          type="number"
+                          [ngModel]="price.price + price.discount"
+                          (ngModelChange)="setFinalPrice($index, $event)"
+                          [step]="10"
+                          placeholder="{{ price.price | number: '1.2-2' }}"
+                        />
+                        <span matTextSuffix>RON</span>
+                      </mat-form-field>
                     </div>
                   </div>
 
-                  <div class="price-input-wrapper">
-                    <mat-form-field appearance="outline" class="price-field">
-                      <mat-label>{{
-                        "OVERVIEW_PAGE.PRICES.SET_PRICE" | translate
-                      }}</mat-label>
-                      <input
-                        matInput
-                        type="number"
-                        [ngModel]="getFinalPrice(price)"
-                        (ngModelChange)="
-                          setFinalPrice(
-                            price.category,
-                            price.size,
-                            price.unit,
-                            $event
-                          )
-                        "
-                        [step]="10"
-                        placeholder="{{
-                          getBasePrice(price) | number: '1.2-2'
-                        }}"
-                      />
-                      <span matTextSuffix>RON</span>
-                    </mat-form-field>
-                  </div>
-                </div>
-                @if (!last) {
-                  <mat-divider />
+                  @if (!last) {
+                    <mat-divider />
+                  }
                 }
               }
             </div>

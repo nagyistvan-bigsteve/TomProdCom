@@ -27,7 +27,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Category, Size_id, Unit_id } from '../../../models/enums';
+import { Unit_id } from '../../../models/enums';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -81,6 +81,7 @@ export class OfferOverviewPageComponent {
   isLoaded: boolean = false;
 
   delivery_address = signal('');
+  isAllPriceDifferent = signal(false);
 
   deliveryFee: number = 0;
   comment: string = '';
@@ -94,6 +95,7 @@ export class OfferOverviewPageComponent {
   transferPayment: boolean = false;
 
   usedPriceCategories: UsedPricesInOrder = [];
+  private pricesCache: Price2[] = [];
 
   get totalPrice(): number {
     let total = this.price;
@@ -118,40 +120,25 @@ export class OfferOverviewPageComponent {
       .reduce((sum, product) => sum + product.price, 0);
   }
 
-  // Get the base price (average of all prices in the category)
-  getBasePrice(priceCategory: (typeof this.usedPriceCategories)[0]): number {
-    if (priceCategory.price.length === 0) return 0;
-    const sum = priceCategory.price.reduce((acc, p) => acc + p, 0);
-    return sum / priceCategory.price.length;
-  }
+  toggleDifferentPrices(): void {
+    this.isAllPriceDifferent.update((v) => !v);
 
-  // Get the final price (base price + discount)
-  getFinalPrice(priceCategory: (typeof this.usedPriceCategories)[0]): number {
-    return this.getBasePrice(priceCategory) + priceCategory.discount;
+    if (this.pricesCache.length) {
+      this.getPriceList([...this.pricesCache]);
+    }
   }
 
   // Set the final price and calculate the discount
-  setFinalPrice(
-    category: Category,
-    size: Size_id,
-    unit: Unit_id,
-    finalPrice: number,
-  ): void {
-    this.usedPriceCategories = this.usedPriceCategories.map((p) => {
-      if (p.category === category && p.unit === unit && p.size === size) {
-        const basePrice = this.getBasePrice(p);
-        const newDiscount = finalPrice - basePrice;
-        return { ...p, discount: newDiscount };
-      }
-      return p;
-    });
-  }
+  setFinalPrice(index: number, finalPrice: number): void {
+    const updated = {
+      ...this.usedPriceCategories[index],
+      discount: finalPrice - this.usedPriceCategories[index].price,
+    };
 
-  // Get display prices with discount applied
-  getPricesWithDiscount(
-    priceCategory: (typeof this.usedPriceCategories)[0],
-  ): number[] {
-    return priceCategory.price.map((p) => p + priceCategory.discount);
+    const newArray = [...this.usedPriceCategories];
+    newArray[index] = updated;
+
+    this.usedPriceCategories = newArray;
   }
 
   getProductName(productId: number): string | undefined {
@@ -161,71 +148,35 @@ export class OfferOverviewPageComponent {
   }
 
   getPriceList(prices: Price2[]): void {
-    const isTva: boolean = this.clientStore.client()
-      ? this.clientStore.client().tva
-      : false;
+    this.pricesCache = prices;
 
-    let copyForDiscount = this.usedPriceCategories;
-    this.usedPriceCategories = [];
+    const isTva = this.clientStore.client()?.tva ?? false;
 
-    prices.sort((a, b) => a.unit_id - b.unit_id);
+    const previousDiscounts = [...this.usedPriceCategories];
+    const expandedPrices = this.expandPrices(prices);
 
-    prices.forEach((price) => {
-      if (
-        !this.usedPriceCategories.find(
-          (p) =>
-            p.category === price.category_id &&
-            p.unit === price.unit_id &&
-            p.size === price.size_id,
-        )
-      ) {
-        let actualPrice: number[] = [];
+    const usedPrices: UsedPricesInOrder = expandedPrices.map((price) => {
+      const actualPrice = this.calculateActualPrice(price, isTva);
 
-        let exactCategory = prices.filter(
-          (p) =>
-            p.category_id === price.category_id &&
-            p.unit_id === price.unit_id &&
-            p.size_id === price.size_id,
-        );
+      const previous = previousDiscounts.find(
+        (p) =>
+          p.category === price.category_id &&
+          p.unit === price.unit_id &&
+          p.size === price.size_id &&
+          p.productId === price.product_id,
+      );
 
-        exactCategory = exactCategory.filter(
-          (obj, index, self) =>
-            index === self.findIndex((t) => t.price === obj.price),
-        );
-
-        exactCategory.forEach((catPrice) => {
-          if (catPrice.product_id) {
-            if (catPrice.unit_id === Unit_id.BOUNDLE) {
-              actualPrice.push(isTva ? catPrice.price - 5 : catPrice.price);
-            } else if (catPrice.unit_id === Unit_id.M3) {
-              actualPrice.push(isTva ? catPrice.price - 100 : catPrice.price);
-            } else {
-              actualPrice.push(catPrice.price);
-            }
-          } else {
-            if (catPrice.unit_id === Unit_id.M3) {
-              actualPrice.push(isTva ? catPrice.price - 100 : catPrice.price);
-            }
-          }
-        });
-
-        this.usedPriceCategories.push({
-          category: price.category_id,
-          unit: price.unit_id,
-          price: actualPrice,
-          size: price.size_id,
-          productId: price.product_id ? price.product_id : undefined,
-          discount: copyForDiscount.find(
-            (p) => p.category === price.category_id && p.unit === price.unit_id,
-          )
-            ? copyForDiscount.find(
-                (p) =>
-                  p.category === price.category_id && p.unit === price.unit_id,
-              )!.discount
-            : 0,
-        });
-      }
+      return {
+        category: price.category_id,
+        unit: price.unit_id,
+        size: price.size_id,
+        price: actualPrice,
+        productId: price.product_id ?? undefined,
+        discount: previous?.discount ?? 0,
+      };
     });
+
+    this.usedPriceCategories = usedPrices.sort((a, b) => a.unit - b.unit);
   }
 
   loaded(): void {
@@ -242,20 +193,6 @@ export class OfferOverviewPageComponent {
     if (this.clientStore.client().tva) {
       this.comment = 'Taxare inversa - fără TVA\n';
     }
-
-    // this.usedPriceCategories.forEach((p) => {
-    //   if (p.discount) {
-    //     let category = this.translateService.instant(
-    //       'OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY.' + p.category,
-    //     );
-    //     let unit = this.translateService.instant(
-    //       'OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.' + p.unit,
-    //     );
-
-    //     this.comment +=
-    //       category + ' - ' + unit + ' (' + p.discount + ' RON/' + unit + ')\n';
-    //   }
-    // });
 
     dialogRef
       .afterClosed()
@@ -319,5 +256,51 @@ export class OfferOverviewPageComponent {
     return this.productUtil.calculateTotalQuantity(
       this.productStore.productItems(),
     );
+  }
+
+  private calculateActualPrice(price: Price2, isTva: boolean): number {
+    if (!isTva) return price.price;
+
+    if (price.unit_id === Unit_id.BOUNDLE) {
+      return price.price - 5;
+    }
+
+    if (price.unit_id === Unit_id.M3) {
+      return price.price - 100;
+    }
+
+    return price.price;
+  }
+
+  private expandPrices(prices: Price2[]): Price2[] {
+    if (!this.isAllPriceDifferent()) return [...prices];
+
+    const expanded: Price2[] = [];
+
+    prices.forEach((price) => {
+      const filteredProducts = this.productStore
+        .productItems()
+        .filter(
+          (product) =>
+            product.category === price.category_id &&
+            product.product.unit_id === price.unit_id &&
+            product.product.size_id === price.size_id &&
+            price.product_id === null,
+        );
+
+      if (!filteredProducts.length) {
+        expanded.push(price);
+        return;
+      }
+
+      filteredProducts.forEach((product) => {
+        expanded.push({
+          ...price,
+          product_id: product.product.id,
+        });
+      });
+    });
+
+    return expanded;
   }
 }

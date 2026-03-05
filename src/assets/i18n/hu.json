@@ -119,7 +119,8 @@
       "BASE": "Alap",
       "ADJUSTMENT": "Módosítás",
       "FINAL": "Végső",
-      "SET_PRICE": "Ár Beállítása"
+      "SET_PRICE": "Ár Beállítása",
+      "DIFFERENT_PRICE": "Mindennek külön ár"
     }
   },
   "SELECT_CLIENT": {
