@@ -237,8 +237,7 @@ export class OrderDetailsComponent implements OnInit {
           : '';
 
       this.selectedProductQuantity =
-        totalPiecesNeeded *
-        (this.selectedProduct.m2_brut / this.selectedProduct.piece_per_pack);
+        totalPiecesNeeded * this.selectedProduct.m2_brut;
     }
 
     this.orderService

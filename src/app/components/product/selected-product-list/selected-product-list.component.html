@@ -136,8 +136,7 @@
                       {{
                         (item.product.piece_per_pack * item.packsNeeded +
                           item.extraPiecesNeeded) *
-                          (item.product.m2_util / item.product.piece_per_pack)
-                          | number: "1.0-2"
+                          item.product.m2_util | number: "1.0-2"
                       }}
                     </div>
                   } @else if (item.packsNeeded || item.extraPiecesNeeded) {
