@@ -237,6 +237,7 @@ export class SelectedProductComponent implements OnChanges {
         this.selectedPrice?.price!,
         +this.quantity,
         this.m2_quantity(),
+        this.selectedCategory,
       );
 
     this.calculatedPrice = price;

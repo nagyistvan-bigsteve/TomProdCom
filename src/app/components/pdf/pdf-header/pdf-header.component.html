@@ -7,19 +7,27 @@
       <div class="text-uppercase">
         <strong>
           {{
-            (justOffer ? "PRINT_POPUP.TITLE_OFFER" : "PRINT_POPUP.TITLE_ORDER")
-              | translate
-          }}: #{{ id }}
+            (justOffer()
+              ? "PRINT_POPUP.TITLE_OFFER"
+              : "PRINT_POPUP.TITLE_ORDER"
+            ) | translate
+          }}: #{{ id() }}
         </strong>
       </div>
       <div>
         <strong> {{ "PDF.HEADER.CREATE_DATE" | translate }}</strong>
-        {{ orderDate | date : "yyyy-MM-dd" }}
+        {{ orderDate() | date: "yyyy-MM-dd" }}
       </div>
       <div>
         <strong> {{ "PDF.HEADER.EXPECTED_DELIVERY" | translate }}</strong>
-        {{ deliveryDate | date : "yyyy-MM-dd" }}
+        {{ deliveryDate() | date: "yyyy-MM-dd" }}
       </div>
+      @if (firstHour()) {
+        <div class="fw-bold">
+          {{ "OVERVIEW_PAGE.POPUP.FIRST_HOUR_CHECKBOX" | translate }}
+          <span class="text-danger fw-bolder">*</span>
+        </div>
+      }
     </div>
   </div>
   <img

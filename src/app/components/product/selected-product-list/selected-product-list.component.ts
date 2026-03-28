@@ -334,6 +334,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
       newPrice,
       item.quantity,
       'BRUT',
+      category,
     ).price;
 
     return calculatedNewPrice;
@@ -350,6 +351,7 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
         newPrice,
         item.quantity,
         'BRUT',
+        newCategory,
       ).price;
 
       this.productStore.updateProductItem(item.product.id, item.category, {

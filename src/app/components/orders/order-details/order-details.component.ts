@@ -225,6 +225,7 @@ export class OrderDetailsComponent implements OnInit {
         this.findExistingCategories()!,
         this.selectedProductQuantity,
         'BRUT',
+        this.selectedCategory,
       );
 
     let packsPieces = '';

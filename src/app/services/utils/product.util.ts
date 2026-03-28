@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { M2Quantities, Product, ProductItems } from '../../models/models';
-import { Unit_id } from '../../models/enums';
+import { Category, Unit_id } from '../../models/enums';
 
 @Injectable({
   providedIn: 'root',
@@ -11,6 +11,7 @@ export class ProductUtil {
     price: number,
     quantity: number,
     m2_quantity?: M2Quantities,
+    category?: Category,
   ): {
     price: number;
     packsNeeded: number;
@@ -42,6 +43,14 @@ export class ProductUtil {
         ((product.width * product.length * product.thickness) / 1000000) *
         price *
         +quantity;
+
+      if (product.thickness === 2.5 && category === Category.B) {
+        //In case of B board the price is 50 ron lower
+        calculatedPrice =
+          ((product.width * product.length * product.thickness) / 1000000) *
+          (price - 50) *
+          +quantity;
+      }
 
       if (!product.width) {
         calculatedPrice = price * +quantity;

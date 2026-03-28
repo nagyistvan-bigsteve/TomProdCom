@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, input, Input } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
@@ -9,8 +9,9 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrl: './pdf-header.component.scss',
 })
 export class PDFHeaderComponent {
-  @Input({ required: true }) justOffer: boolean = false;
-  @Input({ required: true }) id: number | null = null;
-  @Input({ required: true }) deliveryDate: Date | null = null;
-  @Input({ required: true }) orderDate: Date | null = null;
+  justOffer = input.required<boolean>();
+  id = input.required<number>();
+  deliveryDate = input.required<Date | null>();
+  orderDate = input.required<Date>();
+  firstHour = input<boolean>(false);
 }
