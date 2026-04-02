@@ -23,9 +23,12 @@
         {{ deliveryDate() | date: "yyyy-MM-dd" }}
       </div>
       @if (firstHour()) {
-        <div class="fw-bold">
-          {{ "OVERVIEW_PAGE.POPUP.FIRST_HOUR_CHECKBOX" | translate }}
-          <span class="text-danger fw-bolder">*</span>
+        <div class="fw-bold d-flex align-items-center">
+          <span class="text-danger me-1 fs-5">!</span>
+          <span class="first-hour-text">
+            {{ "OVERVIEW_PAGE.POPUP.FIRST_HOUR_CHECKBOX" | translate }}</span
+          >
+          <span class="text-danger ms-1 fs-5">!</span>
         </div>
       }
     </div>
