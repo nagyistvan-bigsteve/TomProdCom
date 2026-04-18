@@ -29,8 +29,14 @@ export class FilterUtil {
         const name = o.name.toLowerCase().replace(/,/g, '.');
 
         if (isNumeric) {
-          const nameDigits = name.replace(/\D+/g, '');
-          return nameDigits.includes(rawValue);
+          const segments = name.split('x').map((seg) => seg.replace(/\D+/g, ''));
+          let combined = '';
+          const boundaries: number[] = [];
+          for (const seg of segments) {
+            boundaries.push(combined.length);
+            combined += seg;
+          }
+          return boundaries.some((pos) => combined.startsWith(rawValue, pos));
         } else {
           return name.includes(rawValue);
         }

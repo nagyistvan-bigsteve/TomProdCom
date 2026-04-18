@@ -249,7 +249,16 @@
       @if (productStore.productItems().length) {
         <mat-expansion-panel disabled="true">
           <mat-expansion-panel-header class="emty-panel">
-            <div class="d-flex justify-content-center align-items-center">
+            <div class="d-flex justify-content-evenly align-items-center w-100">
+              <div class="text-black">
+                {{ "WORDS.TOTAL" | translate }}:
+                {{
+                  productUtil.calculateTotalQuantity(
+                    productStore.productItems()
+                  ) | number: "0.0-2"
+                }}
+                m<sup>3</sup>
+              </div>
               <button
                 class="delete-all-button d-flex align-items-center"
                 (click)="confirmDelete('all')"
@@ -287,13 +296,14 @@
       }
     </mat-accordion>
   </div>
-  @if (totalPrice && !isInOverview) {
+  @if (productStore.cartTotal() && !isInOverview) {
     <div
       @enterAnimation
       (click)="goToClientPage()"
       class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 px-3 py-2 mt-2 bg-white text-black fw-normal"
     >
-      {{ "WORDS.TOTAL" | translate }}: {{ totalPrice | number: "1.0-2" }}
+      {{ "WORDS.TOTAL" | translate }}:
+      {{ productStore.cartTotal() | number: "1.0-2" }}
       {{ "LANGUAGE.CURRENCY" | translate }}
       <div class="d-flex justify-content-end">
         <button
