@@ -338,7 +338,33 @@
     "PRODUCT": {
       "STOCK": "Készlet: ",
       "OUT_OF_STOCK": "A termék már nincs készleten!",
-      "LIMITED_STOCK": "Limitált készlet \n Megmaradt készlet: "
+      "LIMITED_STOCK": "Limitált készlet \n Megmaradt készlet: ",
+      "SUCCESS": {
+        "ADD": "Termék sikeresen hozzáadva!",
+        "UPDATE": "Termék sikeresen frissítve!"
+      },
+      "ERROR": {
+        "ADD": "NEM sikerült hozzáadni a terméket!",
+        "UPDATE": "NEM sikerült frissíteni a terméket!"
+      }
+    },
+    "PRICE": {
+      "SUCCESS": {
+        "ADD": "Ár sikeresen hozzáadva!",
+        "UPDATE": "Ár sikeresen frissítve!"
+      },
+      "ERROR": {
+        "ADD": "NEM sikerült hozzáadni az árat!",
+        "UPDATE": "NEM sikerült frissíteni az árat!"
+      }
+    },
+    "STOCK": {
+      "SUCCESS": {
+        "UPDATE": "Készlet sikeresen frissítve!"
+      },
+      "ERROR": {
+        "UPDATE": "NEM sikerült frissíteni a készletet!"
+      }
     }
   },
   "ALERT": {

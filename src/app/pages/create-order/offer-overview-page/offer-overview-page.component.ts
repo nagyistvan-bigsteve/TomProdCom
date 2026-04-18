@@ -17,7 +17,7 @@ import { FormsModule } from '@angular/forms';
 import { SelectedProductListComponent } from '../../../components/product/selected-product-list/selected-product-list.component';
 import { ClientDetailsComponent } from '../../../components/client/client-details/client-details.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { useProductStore } from '../../../services/store/product-store';
+import { CartStore } from '../../../services/store/cart/cart.store';
 import { useAuthStore } from '../../../services/store/auth-store';
 import { OrdersService } from '../../../services/query-services/orders.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -68,7 +68,7 @@ export class OfferOverviewPageComponent {
   @ViewChild('confirmOfferDialog') confirmOfferDialog!: TemplateRef<any>;
 
   readonly currentDate = new Date();
-  readonly productStore = inject(useProductStore);
+  readonly productStore = inject(CartStore);
   readonly clientStore = inject(ClientStore);
   readonly authStore = inject(useAuthStore);
   private readonly productUtil = inject(ProductUtil);
@@ -115,9 +115,7 @@ export class OfferOverviewPageComponent {
   }
 
   get price(): number {
-    return this.productStore
-      .productItems()
-      .reduce((sum, product) => sum + product.price, 0);
+    return this.productStore.cartTotal();
   }
 
   toggleDifferentPrices(): void {

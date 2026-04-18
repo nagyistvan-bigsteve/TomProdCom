@@ -2,7 +2,6 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { ENTER_ANIMATION } from '../../models/animations';
-import { StocksService } from '../../services/query-services/stocks.service';
 
 @Component({
   selector: 'app-offer-page',

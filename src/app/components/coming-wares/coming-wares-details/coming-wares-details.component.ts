@@ -29,7 +29,7 @@ import { MatInputModule } from '@angular/material/input';
 import { ENTER_AND_LEAVE_ANIMATION } from '../../../models/animations';
 import { ProductsService } from '../../../services/query-services/products.service';
 import { Category } from '../../../models/enums';
-import { StocksService } from '../../../services/query-services/stocks.service';
+import { ProductStore } from '../../../services/store/product/product.store';
 
 @Component({
   selector: 'app-coming-wares-details',
@@ -68,7 +68,7 @@ export class ComingWaresDetailsComponent {
   readonly #comingWaresService = inject(ComingWaresService);
   readonly #destroyRef = inject(DestroyRef);
   readonly #dialog = inject(MatDialog);
-  readonly #stocksService = inject(StocksService);
+  readonly #productStore = inject(ProductStore);
 
   itemsForOrder = computed(() =>
     this.comingWaresItems()
@@ -111,7 +111,7 @@ export class ComingWaresDetailsComponent {
           this.#comingWaresService.verifyComingWares(this.id()).then(() => {
             this.comingWaresItems().forEach((item) => {
               if (!item.for_order && item.is_correct) {
-                this.#stocksService.addToProductStock(
+                this.#productStore.addToProductStock(
                   item.product.id,
                   item.quantity,
                 );

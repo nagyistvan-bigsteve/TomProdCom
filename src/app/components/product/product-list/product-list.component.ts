@@ -1,6 +1,6 @@
 import {
   Component,
-  DestroyRef,
+  effect,
   ElementRef,
   EventEmitter,
   inject,
@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
-import { ProductsService } from '../../../services/query-services/products.service';
 import { Product, Products } from '../../../models/models';
 import { Size_id, Unit_id } from '../../../models/enums';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -18,11 +17,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
-import { _isTestEnvironment } from '@angular/cdk/platform';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FilterUtil } from '../../../services/utils/filter.util';
+import { ProductStore } from '../../../services/store/product/product.store';
 
 @Component({
   selector: 'app-product-list',
@@ -63,26 +61,21 @@ export class ProductSelectComponent {
   productsByFilter: Products = [];
 
   private filterUtil = inject(FilterUtil);
-  private productService = inject(ProductsService);
-  private destroyRef = inject(DestroyRef);
+  readonly productStore = inject(ProductStore);
   private justSelected: boolean = true;
   private firstFocus: boolean = true;
 
   constructor() {
-    this.fetchProducts();
-  }
-
-  fetchProducts() {
-    this.productService
-      .getProducts()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((products) => {
-        this.products = products;
+    effect(() => {
+      const products = this.productStore.productsEntities();
+      if (products.length) {
         this.fetchProductGroups(products);
-      });
+      }
+    });
   }
 
   fetchProductGroups(products: Products) {
+    this.products = products;
     this.productsByUnits = this.groupProductsByUnit(products);
     this.productsByUnits.unshift({
       unit: Unit_id.UNDEFINED,

@@ -6,7 +6,6 @@ import {
   inject,
   Input,
   OnChanges,
-  OnInit,
   Output,
   TemplateRef,
   untracked,
@@ -21,14 +20,14 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { useProductStore } from '../../../services/store/product-store';
+import { CartStore } from '../../../services/store/cart/cart.store';
 import { Price2, ProductItem, UsedPricesInOrder } from '../../../models/models';
 import { Category, Unit_id } from '../../../models/enums';
 import { ProductUtil } from '../../../services/utils/product.util';
 import { FormsModule } from '@angular/forms';
 import { ENTER_ANIMATION } from '../../../models/animations';
-import { PricesService } from '../../../services/query-services/prices.service';
 import { ClientStore } from '../../../services/store/client/client.store';
+import { ProductStore } from '../../../services/store/product/product.store';
 
 @Component({
   selector: 'app-selected-product-list',
@@ -47,59 +46,53 @@ import { ClientStore } from '../../../services/store/client/client.store';
   styleUrl: './selected-product-list.component.scss',
   animations: [ENTER_ANIMATION],
 })
-export class SelectedProductListComponent implements OnInit, OnChanges {
+export class SelectedProductListComponent implements OnChanges {
   @ViewChild('confirmDeleteDialog') confirmDeleteDialog!: TemplateRef<any>;
   @Output() isLoaded = new EventEmitter<void>();
   @Output() pricesOutput = new EventEmitter<Price2[]>();
   @Input() isInOverview: boolean = false;
   @Input() discounts: UsedPricesInOrder = [];
 
-  totalPrice: number = 0;
-
   totalPriceInA: number = 0;
   totalPriceInB: number = 0;
 
   editingItem: ProductItem | null = null;
   editableQuantity: number | null = null;
-
-  prices: Price2[] = [];
   usedPrices: Price2[] = [];
 
   private router = inject(Router);
   private _dialog = inject(MatDialog);
   private location = inject(Location);
   private destroyRef = inject(DestroyRef);
-  private pricesService = inject(PricesService);
-  private productUtil = inject(ProductUtil);
-  readonly productStore = inject(useProductStore);
+  readonly productUtil = inject(ProductUtil);
+  readonly productStore = inject(CartStore);
   readonly clientStore = inject(ClientStore);
+  readonly catalogStore = inject(ProductStore);
 
-  ngOnInit(): void {
-    this.fetchPrices();
+  private initialized = false;
+
+  constructor() {
+    effect(() => {
+      const prices = this.catalogStore.pricesEntities();
+      this.clientStore.isClientSelected(); // track for reactivity on client change
+
+      if (!prices.length) return;
+
+      untracked(() => {
+        this.compareSavedPrice();
+        this.getUsedPrices();
+        this.getTotalPriceInB();
+        this.getTotalPriceInA();
+        if (!this.initialized) {
+          this.initialized = true;
+          this.isLoaded.emit();
+        }
+      });
+    });
   }
 
   ngOnChanges(): void {
     this.compareSavedPrice();
-  }
-
-  constructor() {
-    effect(() => {
-      if (this.clientStore.isClientSelected() && this.prices.length) {
-        untracked(() => {
-          this.compareSavedPrice();
-          this.getUsedPrices();
-        });
-      }
-    });
-  }
-
-  getTotalPrice(): void {
-    if (this.productStore.productItems()) {
-      this.totalPrice = 0;
-      this.productStore.productItems()?.forEach((item) => {
-        this.totalPrice = this.totalPrice + item.price;
-      });
-    }
   }
 
   getTotalPriceInB(): void {
@@ -166,7 +159,6 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
         this.editingItem = null;
         this.editableQuantity = null;
 
-        this.getTotalPrice();
         this.getTotalPriceInB();
         this.getTotalPriceInA();
       } else {
@@ -184,7 +176,6 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
         this.editingItem = null;
         this.editableQuantity = null;
 
-        this.getTotalPrice();
         this.getTotalPriceInB();
         this.getTotalPriceInA();
       }
@@ -250,7 +241,6 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
           }
           this.compareSavedPrice();
           this.getUsedPrices();
-          this.getTotalPrice();
           this.getTotalPriceInB();
           this.getTotalPriceInA();
         }
@@ -258,21 +248,22 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
   }
 
   private getUsedPrices(): void {
+    const prices = this.catalogStore.pricesEntities();
     this.usedPrices = [];
 
     this.productStore.productItems().forEach((item) => {
-      const unicPrice = this.prices.find(
+      const unicPrice = prices.find(
         (price) => price.product_id === item.product.id,
       );
 
       let exactPrice = unicPrice
-        ? this.prices.find(
+        ? prices.find(
             (price) =>
               price.category_id === item.category &&
               price.unit_id === item.product.unit_id &&
               price.product_id === item.product.id,
           )
-        : this.prices.find(
+        : prices.find(
             (price) =>
               price.category_id === item.category &&
               price.size_id === item.product.size_id &&
@@ -300,25 +291,6 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
           price: calculatedPrice,
         });
       }
-    });
-  }
-
-  private fetchPrices(): void {
-    this.pricesService.getAllPrices().then((prices) => {
-      if (!prices) {
-        return;
-      }
-
-      this.prices = prices;
-
-      this.compareSavedPrice();
-      this.getUsedPrices();
-
-      this.getTotalPrice();
-      this.getTotalPriceInB();
-      this.getTotalPriceInA();
-
-      this.isLoaded.emit();
     });
   }
 
@@ -359,28 +331,28 @@ export class SelectedProductListComponent implements OnInit, OnChanges {
         price: actualNewPrice,
       });
 
-      this.getTotalPrice();
       this.getUsedPrices();
     }
   }
 
   private getExactPrice(newCategory: Category, item: ProductItem): number {
+    const prices = this.catalogStore.pricesEntities();
     const isTva: boolean = this.clientStore.client()
       ? this.clientStore.client().tva
       : false;
 
-    const unicPrice = this.prices.find(
+    const unicPrice = prices.find(
       (price) => price.product_id === item.product.id,
     );
 
     let exactPrice = unicPrice
-      ? this.prices.find(
+      ? prices.find(
           (price) =>
             price.category_id === newCategory &&
             price.unit_id === item.product.unit_id &&
             price.product_id === item.product.id,
         )?.price
-      : this.prices.find(
+      : prices.find(
           (price) =>
             price.category_id === newCategory &&
             price.size_id === item.product.size_id &&

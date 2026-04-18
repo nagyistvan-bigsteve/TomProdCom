@@ -1,5 +1,4 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { StocksService } from '../../services/query-services/stocks.service';
 import { Product, ProductWithStock } from '../../models/models';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDivider } from '@angular/material/divider';
@@ -13,6 +12,8 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ENTER_AND_LEAVE_ANIMATION } from '../../models/animations';
 import { ProductUtil } from '../../services/utils/product.util';
+import { ProductStore } from '../../services/store/product/product.store';
+import { Unit_id } from '../../models/enums';
 
 @Component({
   selector: 'app-products',
@@ -32,17 +33,23 @@ import { ProductUtil } from '../../services/utils/product.util';
   animations: ENTER_AND_LEAVE_ANIMATION,
 })
 export class ProductsComponent {
-  private stocksService = inject(StocksService);
+  private readonly productStore = inject(ProductStore);
   private filterUtil = inject(FilterUtil);
   private productUtil = inject(ProductUtil);
-
-  products = signal<ProductWithStock[]>([]);
 
   editOnIndex = signal<number | undefined>(undefined);
   searchValue = signal('');
   sortDirection = signal<'asc' | 'desc'>('asc');
 
-  visibleProducts = signal<ProductWithStock[]>([]);
+  products = computed<ProductWithStock[]>(() => {
+    const stockMap = this.productStore.stocksEntityMap();
+    return this.productStore
+      .productsEntities()
+      .filter((p) => p.unit_id !== Unit_id.M2)
+      .map((p) => ({ ...p, stock: stockMap[p.id] }))
+      .filter((p): p is ProductWithStock => p.stock != null);
+  });
+
   filteredProducts = computed(() => {
     return this.filterUtil.productFilter(
       this.searchValue(),
@@ -50,9 +57,9 @@ export class ProductsComponent {
     ) as ProductWithStock[];
   });
 
-  constructor() {
-    this.fetchStocks();
+  visibleProducts = signal<ProductWithStock[]>([]);
 
+  constructor() {
     effect(() => {
       this.visibleProducts.set(this.filteredProducts());
     });
@@ -71,21 +78,19 @@ export class ProductsComponent {
   setStock(product: ProductWithStock, newStock: number): void {
     if (newStock < 0) return;
 
-    this.stocksService.updateStock(product.stock.id, newStock).then((ok) => {
-      if (ok) {
-        this.fetchStocks();
-        this.editOnIndex.set(undefined);
-      }
+    this.productStore.updateStock({
+      id: product.stock.id,
+      stock: newStock,
+      product_id: product.id,
     });
+    this.editOnIndex.set(undefined);
   }
 
   showEditStock(index: number): void {
     if (index === this.editOnIndex()) {
       this.editOnIndex.set(undefined);
-
       return;
     }
-
     this.editOnIndex.set(index);
   }
 
@@ -94,13 +99,5 @@ export class ProductsComponent {
       product as Product,
       product.stock.stock,
     );
-  }
-
-  private fetchStocks(): void {
-    this.stocksService.getStocksWithProductNames().then((response) => {
-      if (response) {
-        this.products.set(response);
-      }
-    });
   }
 }

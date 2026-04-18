@@ -19,7 +19,6 @@ import {
   Price2,
   Product,
   ProductItems,
-  Products,
 } from '../../../models/models';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,8 +30,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { useProductStore } from '../../../services/store/product-store';
-import { ProductsService } from '../../../services/query-services/products.service';
+import { CartStore } from '../../../services/store/cart/cart.store';
 import { Category, Unit_id } from '../../../models/enums';
 import { Router } from '@angular/router';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -44,10 +42,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { FilterUtil } from '../../../services/utils/filter.util';
-import { PricesService } from '../../../services/query-services/prices.service';
 import { OrderPdfComponent } from '../../pdf/order-pdf/order-pdf.component';
 import { OrderPdfGeneratorUtil } from '../../../services/utils/order-pdf-generator.util';
 import { ClientStore } from '../../../services/store/client/client.store';
+import { ProductStore } from '../../../services/store/product/product.store';
 
 @Component({
   selector: 'app-order-details',
@@ -110,35 +108,24 @@ export class OrderDetailsComponent implements OnInit {
     piece_per_pack: null,
   };
   isProductSelectet: boolean = false;
-  products: Products = [];
-  filteredOptions: Products = [];
+  filteredOptions: Product[] = [];
   selectedProductQuantity: number = 1;
   selectedProductPrice: Price2[] | undefined;
   enableCategory: { enable: boolean; category: Category }[] = [
     { enable: false, category: Category.A },
-    {
-      enable: false,
-      category: Category.AB,
-    },
-    {
-      enable: false,
-      category: Category.B,
-    },
-    {
-      enable: false,
-      category: Category.T,
-    },
+    { enable: false, category: Category.AB },
+    { enable: false, category: Category.B },
+    { enable: false, category: Category.T },
   ];
   isPrinting = signal(false);
   isLoading = signal(false);
 
   orderComment: string = '';
 
-  private readonly productStore = inject(useProductStore);
+  private readonly productStore = inject(CartStore);
+  readonly catalogStore = inject(ProductStore);
   private readonly destroyRef = inject(DestroyRef);
   private readonly orderService = inject(OrdersService);
-  private readonly productService = inject(ProductsService);
-  private readonly pricesService = inject(PricesService);
   private readonly productUtil = inject(ProductUtil);
   private readonly router = inject(Router);
   private readonly changeDetection = inject(ChangeDetectorRef);
@@ -155,17 +142,7 @@ export class OrderDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.fetchOrderItems();
-    this.fetchProducts();
     this.orderComment = this.order!.comment;
-  }
-
-  fetchProducts(): void {
-    this.productService
-      .getProducts()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((products) => {
-        this.products = products;
-      });
   }
 
   fetchOrderItems(): void {
@@ -292,13 +269,9 @@ export class OrderDetailsComponent implements OnInit {
   optionSelected(product: Product): void {
     this.isProductSelectet = true;
     this.selectedProduct = product;
-
-    this.pricesService.getPricesForProduct(product).then((prices) => {
-      if (prices) {
-        this.selectedProductPrice = prices;
-        this.findExistingCategories();
-      }
-    });
+    this.catalogStore.setSelectedProduct(product.id);
+    this.selectedProductPrice = this.catalogStore.pricesForSelectedProduct();
+    this.findExistingCategories();
   }
 
   findExistingCategories(): undefined | number {
@@ -343,7 +316,7 @@ export class OrderDetailsComponent implements OnInit {
   filter(): void {
     this.filteredOptions = this.filterUtil.productFilter(
       this.input,
-      this.products,
+      this.catalogStore.productsEntities(),
     );
   }
 
@@ -401,34 +374,22 @@ export class OrderDetailsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          const productIds: number[] = this.orderItems!.map(
-            (item) => item.product.id,
+          const entityMap = this.catalogStore.productsEntityMap();
+          const productItems: ProductItems = this.orderItems!.map((item) => ({
+            product: entityMap[item.product.id]!,
+            quantity: item.quantity,
+            price: item.price,
+            category: Category[item.category.name as keyof typeof Category],
+          }));
+          this.clientStore.setClientId(
+            this.clientStore.clientsEntityMap()[order.clientId].id,
           );
-          this.productService.getProductsByIds(productIds).then((products) => {
-            if (!products) {
-              return;
-            }
-            const productItems: ProductItems = this.orderItems!.map((item) => {
-              return {
-                product: products.find(
-                  (product) => product.id === item.product.id,
-                )!,
-                quantity: item.quantity,
-                price: item.price,
-                category: Category[item.category.name as keyof typeof Category],
-              };
-            });
-            this.clientStore.setClientId(
-              this.clientStore.clientsEntityMap()[order.clientId].id,
-            );
-            this.productStore.setProductItems(productItems);
-            if (this.deleteOffer) {
-              this.orderService.permanentlyDeleteOrder(order.id);
-            }
-            localStorage.removeItem('on-order-details-page');
-
-            this.router.navigate(['offer/overview']);
-          });
+          this.productStore.setProductItems(productItems);
+          if (this.deleteOffer) {
+            this.orderService.permanentlyDeleteOrder(order.id);
+          }
+          localStorage.removeItem('on-order-details-page');
+          this.router.navigate(['offer/overview']);
         }
       });
   }

@@ -14,7 +14,7 @@
             aria-label="Select product category"
             [hideSingleSelectionIndicator]="true"
           >
-            @for (price of prices; track $index) {
+            @for (price of productStore.pricesForSelectedProduct(); track $index) {
               <mat-chip-option
                 [value]="price.category_id"
                 [selected]="price.category_id === selectedCategory"

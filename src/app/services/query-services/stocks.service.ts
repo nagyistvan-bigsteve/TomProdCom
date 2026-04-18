@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../supabase.service';
 import { ProductWithStock, Stock } from '../../models/models';
+import { catchError, from, map, Observable, of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -204,6 +205,46 @@ export class StocksService {
       console.error('Fail to update booked stock', error);
       return false;
     }
+  }
+
+  getAllStocksObs(): Observable<Stock[]> {
+    return from(
+      this.supabaseService.client.from('stocks').select('*'),
+    ).pipe(
+      map(({ data }) => data ?? []),
+      catchError((error) => {
+        console.error('Error fetching stocks', error);
+        return of([]);
+      }),
+    );
+  }
+
+  updateStockObs(id: number, stock: number): Observable<void> {
+    return from(
+      this.supabaseService.client
+        .from('stocks')
+        .update({ stock })
+        .eq('id', id),
+    ).pipe(
+      map(({ error }) => {
+        if (error) throw error;
+      }),
+    );
+  }
+
+  addStockObs(stock: Partial<Stock>): Observable<Stock> {
+    return from(
+      this.supabaseService.client
+        .from('stocks')
+        .insert(stock)
+        .select()
+        .single(),
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return data as Stock;
+      }),
+    );
   }
 
   async bookedStockSold(

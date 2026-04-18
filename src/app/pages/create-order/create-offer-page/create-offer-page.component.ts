@@ -13,7 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { useProductStore } from '../../../services/store/product-store';
+import { CartStore } from '../../../services/store/cart/cart.store';
 import { MatDividerModule } from '@angular/material/divider';
 
 @Component({
@@ -42,7 +42,7 @@ export class CreateOfferPageComponent {
   private destroyRef = inject(DestroyRef);
   private _snackBar = inject(MatSnackBar);
   private _dialog = inject(MatDialog);
-  readonly productStore = inject(useProductStore);
+  readonly productStore = inject(CartStore);
 
   getSelectedProduct(product: Product): void {
     this.selectedProduct = product;

@@ -1,11 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, effect, inject, OnInit, untracked } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatOptionModule } from '@angular/material/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { Category, Size_id, Unit_id } from '../../../models/enums';
 import { MatDividerModule } from '@angular/material/divider';
-import { ProductsService } from '../../../services/query-services/products.service';
 import {
   Price2,
   PriceResponse2,
@@ -23,7 +22,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { CommonModule } from '@angular/common';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { PricesService } from '../../../services/query-services/prices.service';
+import { ProductStore } from '../../../services/store/product/product.store';
 
 @Component({
   selector: 'app-change-prices',
@@ -70,21 +69,30 @@ export class ChangePricesComponent implements OnInit {
 
   isNewPrice: boolean = false;
 
-  private readonly productService = inject(ProductsService);
-  private readonly pricesService = inject(PricesService);
-  private readonly priceService = inject(PricesService);
+  readonly productStore = inject(ProductStore);
 
-  ngOnInit(): void {
-    this.setUpPrices();
+  constructor() {
+    effect(() => {
+      const prices = this.productStore.pricesEntities();
+      const products = this.productStore.productsEntities();
+      if (!prices.length || !products.length) return;
 
-    this.onFilterChange();
+      untracked(() => {
+        this.refreshUnicPriceList();
+        this.refreshProductsWithoutPrices();
+      });
+    });
   }
 
-  setUpPrices(): void {
-    this.actualPrice = 0;
+  ngOnInit(): void {
+    this.onFilterChange();
 
-    this.setUnicPriceList();
-    this.setProductsWithoutPricesList();
+    this.searchControl.valueChanges.subscribe((value) => {
+      const filterValue = (value ?? '').toLowerCase();
+      this.displayedList = this.unicPriceList.filter((item) =>
+        item.product.name.toLowerCase().includes(filterValue),
+      );
+    });
   }
 
   priceTypeChange(priceType: 'unic' | 'm3' | 'new'): void {
@@ -95,42 +103,35 @@ export class ChangePricesComponent implements OnInit {
     }
   }
 
-  setUnicPriceFilter(): void {
-    this.displayedList = [...this.unicPriceList];
-
-    this.searchControl.valueChanges.subscribe((value) => {
-      const filterValue = (value ?? '').toLowerCase();
-      this.displayedList = this.unicPriceList.filter((item) =>
-        item.product.name.toLowerCase().includes(filterValue),
-      );
-    });
-  }
-
   onFilterChange(): void {
     if (this.selectedSize !== undefined && this.selectedCategory) {
-      this.priceService
-        .getPrice(Unit_id.M3, this.selectedCategory, this.selectedSize)
-        .then((price) => {
-          this.isNewPrice = false;
-          this.selectedCurrentPrice = price;
+      const prices = this.productStore.pricesEntities();
+      const products = this.productStore.productsEntities();
 
-          this.actualPrice = price ? this.selectedCurrentPrice?.price! : 0;
+      const price =
+        prices.find(
+          (p) =>
+            p.unit_id === Unit_id.M3 &&
+            p.category_id === this.selectedCategory &&
+            p.size_id === this.selectedSize &&
+            p.product_id == null,
+        ) ?? null;
 
-          if (price) {
-            this.productService
-              .getProductsByFilter(Unit_id.M3, this.selectedSize)
-              .then((products) => {
-                if (products) {
-                  this.productsInFilterRange = products.filter(
-                    (product) =>
-                      !this.unicPriceList.some(
-                        (ex) => ex.product.id === product.id,
-                      ),
-                  );
-                }
-              });
-          }
-        });
+      this.isNewPrice = false;
+      this.selectedCurrentPrice = price;
+      this.actualPrice = price ? price.price : 0;
+
+      if (price) {
+        const unicProductIds = new Set(
+          this.unicPriceList.map((u) => u.product.id),
+        );
+        this.productsInFilterRange = products.filter(
+          (p) =>
+            p.unit_id === Unit_id.M3 &&
+            p.size_id === this.selectedSize &&
+            !unicProductIds.has(p.id),
+        );
+      }
     }
   }
 
@@ -154,27 +155,24 @@ export class ChangePricesComponent implements OnInit {
       if (this.selectedPriceType !== 'unic' && !this.selectedCurrentPrice) {
         this.addNewPrice();
       } else {
-        this.pricesService
-          .changePrice(
-            this.selectedPriceType === 'unic'
-              ? this.selectedUnicItem.id
-              : this.selectedCurrentPrice!.id,
-            this.actualPrice,
-          )
-          .then(() => {
-            this.selectedCurrentPrice!.price = this.actualPrice;
-            this.isNewPrice = false;
+        const id =
+          this.selectedPriceType === 'unic'
+            ? this.selectedUnicItem.id
+            : this.selectedCurrentPrice!.id;
 
-            if (this.selectedPriceType === 'unic') {
-              this.pricesService.getUnicPriceList().then((prices) => {
-                this.unicPriceList = prices;
-                this.selectedUnicItem = {
-                  id: this.selectedUnicItem.id,
-                  price: this.actualPrice,
-                };
-              });
-            }
-          });
+        this.productStore.changePrice({ id, new_price: this.actualPrice });
+
+        if (this.selectedCurrentPrice) {
+          this.selectedCurrentPrice.price = this.actualPrice;
+        }
+        this.isNewPrice = false;
+
+        if (this.selectedPriceType === 'unic') {
+          this.selectedUnicItem = {
+            id: this.selectedUnicItem.id,
+            price: this.actualPrice,
+          };
+        }
       }
     }
   }
@@ -197,11 +195,11 @@ export class ChangePricesComponent implements OnInit {
           : undefined,
     };
 
-    this.pricesService.addPrice(price as Price2).then(() => {
-      this.selectedPriceType === 'new'
-        ? this.setUpPrices()
-        : this.onFilterChange();
-    });
+    this.productStore.addPrice(price);
+
+    if (this.selectedPriceType !== 'new') {
+      this.onFilterChange();
+    }
   }
 
   selectItemFromUnicPrice(price: number, id: number): void {
@@ -215,42 +213,61 @@ export class ChangePricesComponent implements OnInit {
     this.selectedNewProduct = product;
   }
 
-  private setUnicPriceList(): void {
-    this.pricesService.getUnicPriceList().then((prices) => {
-      this.unicPriceList = prices;
-      this.unicPriceList.sort((a, b) =>
+  private refreshUnicPriceList(): void {
+    const prices = this.productStore.pricesEntities();
+    const productsMap = this.productStore.productsEntityMap();
+
+    this.unicPriceList = prices
+      .filter((p) => p.product_id != null)
+      .map((p) => ({
+        id: p.id,
+        unit_id: p.unit_id,
+        category_id: p.category_id,
+        size_id: p.size_id,
+        price: p.price,
+        product: productsMap[p.product_id!] ?? { id: 0, name: '' },
+      }))
+      .sort((a, b) =>
         a.product.name.localeCompare(b.product.name, undefined, {
           sensitivity: 'base',
         }),
       );
 
-      if (this.selectedUnicItem) {
-        this.selectedUnicItem = {
-          id: this.selectedUnicItem.id,
-          price: this.actualPrice,
-        };
-      }
+    const filterValue = (this.searchControl.value ?? '').toLowerCase();
+    this.displayedList = filterValue
+      ? this.unicPriceList.filter((item) =>
+          item.product.name.toLowerCase().includes(filterValue),
+        )
+      : [...this.unicPriceList];
 
-      this.setUnicPriceFilter();
-    });
+    if (this.selectedUnicItem.id) {
+      this.selectedUnicItem = {
+        id: this.selectedUnicItem.id,
+        price: this.selectedUnicItem.price,
+      };
+    }
   }
 
-  private setProductsWithoutPricesList(): void {
-    this.selectedNewProduct = null;
+  private refreshProductsWithoutPrices(): void {
+    const prices = this.productStore.pricesEntities();
+    const products = this.productStore.productsEntities();
 
-    this.pricesService.getProductsWithoutPrice().then((products) => {
-      this.productsWithoutPrices = products;
-      this.productsWithoutPrices.sort((a, b) =>
+    const unicProductIds = new Set(
+      prices.filter((p) => p.product_id != null).map((p) => p.product_id!),
+    );
+
+    this.productsWithoutPrices = products
+      .filter((p) => !unicProductIds.has(p.id))
+      .sort((a, b) =>
         a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
       );
 
-      if (
-        !this.productsWithoutPrices.length &&
-        this.selectedPriceType === 'new'
-      ) {
-        this.priceTypeChange('m3');
-      }
-    });
+    if (
+      !this.productsWithoutPrices.length &&
+      this.selectedPriceType === 'new'
+    ) {
+      this.priceTypeChange('m3');
+    }
   }
 
   private enumToArray(

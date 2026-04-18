@@ -13,7 +13,6 @@ import {
   Validators,
 } from '@angular/forms';
 import { ENTER_AND_LEAVE_ANIMATION } from '../../../models/animations';
-import { ProductsService } from '../../../services/query-services/products.service';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -28,8 +27,7 @@ import {
 } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Category } from '../../../models/enums';
-import { Product } from '../../../models/models';
-import { PricesService } from '../../../services/query-services/prices.service';
+import { ProductStore } from '../../../services/store/product/product.store';
 
 @Component({
   selector: 'app-add-product',
@@ -52,8 +50,7 @@ import { PricesService } from '../../../services/query-services/prices.service';
 export class AddProductComponent {
   @ViewChild('addPriceDialog') addPriceDialogTemplate!: TemplateRef<any>;
 
-  private readonly productService = inject(ProductsService);
-  private readonly pricesService = inject(PricesService);
+  private readonly productStore = inject(ProductStore);
   private readonly fb = inject(FormBuilder);
   readonly #dialog = inject(MatDialog);
   readonly #destroyRef = inject(DestroyRef);
@@ -92,20 +89,19 @@ export class AddProductComponent {
 
   onSave() {
     if (this.productForm.valid) {
-      this.productService
-        .addProduct(this.selectedProduct)
-        .then((response: Product | null) => {
-          if (response) {
-            this.newProductId.set(response.id);
-            this.openAddPriceDialog();
-          }
+      this.productStore
+        .addProductAndReturn(this.selectedProduct)
+        .pipe(takeUntilDestroyed(this.#destroyRef))
+        .subscribe((newProduct) => {
+          this.newProductId.set(newProduct.id);
+          this.openAddPriceDialog();
         });
     }
   }
 
   addPrice(dialogRef: MatDialogRef<any>): void {
     if (this.newPriceA()) {
-      this.pricesService.addPrice({
+      this.productStore.addPrice({
         unit_id: this.selectedProduct.unit_id,
         category_id: Category.A,
         size_id: this.selectedProduct.size_id,
@@ -115,7 +111,7 @@ export class AddProductComponent {
     }
 
     if (this.newPriceAB()) {
-      this.pricesService.addPrice({
+      this.productStore.addPrice({
         unit_id: this.selectedProduct.unit_id,
         category_id: Category.AB,
         size_id: this.selectedProduct.size_id,
@@ -125,7 +121,7 @@ export class AddProductComponent {
     }
 
     if (this.newPriceB()) {
-      this.pricesService.addPrice({
+      this.productStore.addPrice({
         unit_id: this.selectedProduct.unit_id,
         category_id: Category.B,
         size_id: this.selectedProduct.size_id,
@@ -135,7 +131,7 @@ export class AddProductComponent {
     }
 
     if (this.newPriceT()) {
-      this.pricesService.addPrice({
+      this.productStore.addPrice({
         unit_id: this.selectedProduct.unit_id,
         category_id: Category.T,
         size_id: this.selectedProduct.size_id,

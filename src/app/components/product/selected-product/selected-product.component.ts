@@ -26,8 +26,7 @@ import { ENTER_ANIMATION } from '../../../models/animations';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ProductUtil } from '../../../services/utils/product.util';
-import { StocksService } from '../../../services/query-services/stocks.service';
-import { PricesService } from '../../../services/query-services/prices.service';
+import { ProductStore } from '../../../services/store/product/product.store';
 
 @Component({
   selector: 'app-selected-product',
@@ -49,7 +48,6 @@ export class SelectedProductComponent implements OnChanges {
   @Input({ required: true }) selectedProduct: Product | undefined;
   @Output() addProduct = new EventEmitter<ProductItem>();
 
-  prices: Price2[] = [];
   selectedCategory: Category = Category.A;
   selectedPrice: Price2 | undefined;
   calculatedPrice: number = 0;
@@ -59,8 +57,7 @@ export class SelectedProductComponent implements OnChanges {
   extraPiecesNeeded: number = 0;
   totalPiecesNeeded: number = 0;
 
-  private pricesService = inject(PricesService);
-  private stocksService = inject(StocksService);
+  readonly productStore = inject(ProductStore);
   private snackBar = inject(MatSnackBar);
   private translateService = inject(TranslateService);
   private productUtil = inject(ProductUtil);
@@ -73,8 +70,21 @@ export class SelectedProductComponent implements OnChanges {
     this.quantity = '';
     this.hasFocused = false;
     if (this.selectedProduct) {
-      this.fetchPrices(this.selectedProduct);
+      this.productStore.setSelectedProduct(this.selectedProduct.id);
       this.quantity = '1';
+      const prices = this.productStore.pricesForSelectedProduct();
+      if (prices.length) {
+        this.selectedCategory = prices.find(
+          (p) => p.category_id === Category.A,
+        )
+          ? Category.A
+          : prices[0].category_id;
+        this.selectedPrice = prices.find(
+          (p) => p.category_id === this.selectedCategory,
+        );
+        this.calculatePrice();
+      }
+      this.checkStock(this.selectedProduct);
     }
   }
 
@@ -102,46 +112,20 @@ export class SelectedProductComponent implements OnChanges {
     });
   }
 
-  fetchPrices(product: Product): void {
-    this.pricesService.getPricesForProduct(product).then(
-      (prices) => {
-        if (prices) {
-          this.prices = prices;
+  private checkStock(product: Product): void {
+    this.currentStock = this.productStore.stocksEntityMap()[product.id] ?? null;
 
-          this.selectedCategory = prices.find(
-            (price) => price.category_id === Category.A,
-          )
-            ? Category.A
-            : prices[0].category_id;
-          this.selectedPrice = this.prices.find(
-            (price) => price.category_id === this.selectedCategory,
+    if (this.currentStock && this.currentStock.stock <= 0) {
+      this.translateService
+        .get(['SNACKBAR.PRODUCT.OUT_OF_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
+        .subscribe((translations) => {
+          this.snackBar.open(
+            translations['SNACKBAR.PRODUCT.OUT_OF_STOCK'],
+            translations['SNACKBAR.BUTTONS.CLOSE'],
+            { duration: 4500, panelClass: 'danger-snackbar' },
           );
-          this.calculatePrice();
-          this.fetchStock(this.selectedProduct!);
-        }
-      },
-      () => {
-        this.fetchPrices(product);
-      },
-    );
-  }
-
-  fetchStock(product: Product): void {
-    this.stocksService.getProductStock(product.id).then((stock) => {
-      this.currentStock = stock;
-
-      if (this.currentStock!.stock <= 0) {
-        this.translateService
-          .get(['SNACKBAR.PRODUCT.OUT_OF_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
-          .subscribe((translations) => {
-            this.snackBar.open(
-              translations['SNACKBAR.PRODUCT.OUT_OF_STOCK'],
-              translations['SNACKBAR.BUTTONS.CLOSE'],
-              { duration: 4500, panelClass: 'danger-snackbar' },
-            );
-          });
-      }
-    });
+        });
+    }
   }
 
   handleQuantityInput(event: Event): void {
@@ -201,7 +185,7 @@ export class SelectedProductComponent implements OnChanges {
   }
 
   onCategoryChange(): void {
-    this.selectedPrice = this.prices.find(
+    this.selectedPrice = this.productStore.pricesForSelectedProduct().find(
       (price) => price.category_id === this.selectedCategory,
     );
 

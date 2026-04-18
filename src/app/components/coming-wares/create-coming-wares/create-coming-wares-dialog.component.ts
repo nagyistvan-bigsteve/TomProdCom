@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormArray,
@@ -27,8 +27,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { Category } from '../../../models/enums';
 import { Product, Products } from '../../../models/models';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { ProductsService } from '../../../services/query-services/products.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ProductStore } from '../../../services/store/product/product.store';
 
 @Component({
   selector: 'app-create-coming-wares-dialog',
@@ -56,11 +55,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class CreateComingWaresDialogComponent implements OnInit {
   fb = inject(FormBuilder);
   dialogRef = inject(MatDialogRef<CreateComingWaresDialogComponent>);
-  private readonly productService = inject(ProductsService);
-  private readonly destroyRef = inject(DestroyRef);
+  readonly productStore = inject(ProductStore);
 
   comingWaresForm!: FormGroup;
-  products: Products = [];
   filteredOptions: Products[] = [];
 
   categoryOptions = [
@@ -71,7 +68,7 @@ export class CreateComingWaresDialogComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.fetchProducts();
+    this.filteredOptions[0] = this.productStore.productsEntities();
 
     this.comingWaresForm = this.fb.group({
       expected_delivery: [null, Validators.required],
@@ -83,16 +80,6 @@ export class CreateComingWaresDialogComponent implements OnInit {
     });
 
     this.items.valueChanges.subscribe(() => this.maybeAddNewItem());
-  }
-
-  fetchProducts(): void {
-    this.productService
-      .getProducts()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((products) => {
-        this.products = products;
-        this.filteredOptions[0] = products;
-      });
   }
 
   get items(): FormArray {
@@ -112,7 +99,7 @@ export class CreateComingWaresDialogComponent implements OnInit {
     const lastItem = this.items.at(this.items.length - 1);
     if (lastItem && lastItem.valid && !this.hasEmptyItem()) {
       this.items.push(this.createItemFormGroup());
-      this.filteredOptions[this.items.length - 1] = this.products;
+      this.filteredOptions[this.items.length - 1] = this.productStore.productsEntities();
     }
   }
 
@@ -164,19 +151,17 @@ export class CreateComingWaresDialogComponent implements OnInit {
 
   filter(index: number, event: Event): void {
     const input = (event.target as HTMLInputElement).value;
+    const products = this.productStore.productsEntities();
 
-    if (!input) return;
-
-    const rawValue = input.toLowerCase();
-
-    if (!rawValue) {
-      this.filteredOptions[index] = this.products;
+    if (!input) {
+      this.filteredOptions[index] = products;
       return;
     }
 
+    const rawValue = input.toLowerCase();
     const isNumeric = /^\d+$/.test(rawValue);
 
-    this.filteredOptions[index] = this.products.filter((o) => {
+    this.filteredOptions[index] = products.filter((o) => {
       const name = o.name.toLowerCase();
 
       if (isNumeric) {

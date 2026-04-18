@@ -1,32 +1,30 @@
 import {
-  signalStore,
-  withHooks,
-  withState,
-  withMethods,
   patchState,
+  signalStore,
+  withComputed,
+  withHooks,
+  withMethods,
+  withState,
 } from '@ngrx/signals';
-import { ProductItems, ProductItem } from '../../models/models';
-import { Category } from '../../models/enums';
+import { ProductItem, ProductItems } from '../../../models/models';
+import { Category } from '../../../models/enums';
 import { MatDialog } from '@angular/material/dialog';
-import { inject } from '@angular/core';
-import { ConfirmRestoreDialogComponent } from '../../components/dialog/confirm-restore-dialog.component';
+import { computed, inject } from '@angular/core';
+import { ConfirmRestoreDialogComponent } from '../../../components/dialog/confirm-restore-dialog.component';
 import { Location } from '@angular/common';
-
-interface ProductDataState {
-  productItems: ProductItems;
-  lastUpdated: string | null;
-}
+import { CartSlice, initialCartSlice } from './cart.slice';
 
 const STORAGE_KEY = 'product_items_data';
 const STALE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 
-export const useProductStore = signalStore(
+export const CartStore = signalStore(
   { providedIn: 'root' },
-  withState<ProductDataState>({
-    productItems: [],
-    lastUpdated: null,
-  }),
-
+  withState<CartSlice>(initialCartSlice),
+  withComputed((store) => ({
+    cartTotal: computed(() =>
+      store.productItems().reduce((sum, item) => sum + item.price, 0),
+    ),
+  })),
   withMethods((store) => {
     const persistState = () => {
       const state = {
@@ -218,7 +216,6 @@ export const useProductStore = signalStore(
               return;
             }
 
-            // Data is older than 10 minutes — ask the user
             dialog
               .open(ConfirmRestoreDialogComponent, {
                 data: { lastUpdated },
@@ -233,7 +230,6 @@ export const useProductStore = signalStore(
                 }
               });
           } else {
-            // Data is fresh, restore silently
             patchState(store, parsedData);
           }
         } catch (e) {

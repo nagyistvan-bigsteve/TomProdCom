@@ -338,7 +338,33 @@
     "PRODUCT": {
       "STOCK": "Stoc: ",
       "OUT_OF_STOCK": "Produsul nu mai e pe stoc!",
-      "LIMITED_STOCK": "Stock limitat \n Stock rămas: "
+      "LIMITED_STOCK": "Stock limitat \n Stock rămas: ",
+      "SUCCESS": {
+        "ADD": "Produs adăugat cu succes!",
+        "UPDATE": "Produs editat cu succes!"
+      },
+      "ERROR": {
+        "ADD": "PROBLEMĂ la adăugare produs!",
+        "UPDATE": "PROBLEMĂ la editare produs!"
+      }
+    },
+    "PRICE": {
+      "SUCCESS": {
+        "ADD": "Preț adăugat cu succes!",
+        "UPDATE": "Preț editat cu succes!"
+      },
+      "ERROR": {
+        "ADD": "PROBLEMĂ la adăugare preț!",
+        "UPDATE": "PROBLEMĂ la editare preț!"
+      }
+    },
+    "STOCK": {
+      "SUCCESS": {
+        "UPDATE": "Stoc actualizat cu succes!"
+      },
+      "ERROR": {
+        "UPDATE": "PROBLEMĂ la actualizare stoc!"
+      }
     }
   },
   "ALERT": {

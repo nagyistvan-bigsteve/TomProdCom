@@ -1,15 +1,11 @@
 import {
   Component,
-  DestroyRef,
   ElementRef,
   inject,
-  Input,
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { ProductsService } from '../../../services/query-services/products.service';
 import { Product, Products, Stock } from '../../../models/models';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -28,7 +24,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FilterUtil } from '../../../services/utils/filter.util';
-import { StocksService } from '../../../services/query-services/stocks.service';
+import { ProductStore } from '../../../services/store/product/product.store';
 
 @Component({
   selector: 'app-update-products',
@@ -53,13 +49,10 @@ export class UpdateProductsComponent implements OnInit {
   @ViewChild('input') input: ElementRef<HTMLInputElement> | null = null;
   updateStock: boolean = false;
 
-  private readonly productService = inject(ProductsService);
-  private readonly stocksService = inject(StocksService);
-  private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
   private filterUtil = inject(FilterUtil);
+  readonly productStore = inject(ProductStore);
 
-  products: Products = [];
   filteredOptions: Products = [];
 
   selectedProduct: any = {
@@ -104,32 +97,16 @@ export class UpdateProductsComponent implements OnInit {
     stock: [this.currentStock?.stock],
   });
 
-  ngOnInit(): void {
-    this.fetchProducts();
-  }
-
-  fetchProducts(): void {
-    this.productService
-      .getProducts()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((products) => {
-        this.products = products;
-      });
-  }
+  ngOnInit(): void {}
 
   fetchProductStock(productId: number): void {
-    this.stocksService.getProductStock(productId).then((stock) => {
-      if (stock) {
-        this.currentStock = stock;
-      } else {
-        this.currentStock = {
-          id: 0,
-          product_id: productId,
-          stock: 0,
-          booked_stock: 0,
-        };
-      }
-    });
+    this.currentStock =
+      this.productStore.stocksEntityMap()[productId] ?? {
+        id: 0,
+        product_id: productId,
+        stock: 0,
+        booked_stock: 0,
+      };
   }
 
   optionSelected(product: Product): void {
@@ -143,38 +120,35 @@ export class UpdateProductsComponent implements OnInit {
 
   onStockSave() {
     if (this.currentStock.id) {
-      this.stocksService.updateStock(
-        this.currentStock.id,
-        this.currentStock.stock,
-      );
+      this.productStore.updateStock({
+        id: this.currentStock.id,
+        stock: this.currentStock.stock,
+        product_id: this.currentStock.product_id,
+      });
     } else {
-      this.stocksService
-        .addStock({
+      this.productStore
+        .addStockAndReturn({
           stock: this.currentStock.stock,
           product_id: this.currentStock.product_id,
         })
-        .then((response) => {
-          if (response) {
-            this.currentStock = response;
-          }
+        .subscribe((newStock) => {
+          this.currentStock = newStock;
         });
     }
   }
 
   onSave() {
     if (this.productForm.valid) {
-      this.productService.updateProduct(this.selectedProduct).then(() => {
-        this.isProductSelectet = false;
-        this.selectedProduct.name = '';
-        this.fetchProducts();
-      });
+      this.productStore.updateProduct(this.selectedProduct);
+      this.isProductSelectet = false;
+      this.selectedProduct.name = '';
     }
   }
 
   filter(): void {
     this.filteredOptions = this.filterUtil.productFilter(
       this.input,
-      this.products,
+      this.productStore.productsEntities(),
     );
   }
 
