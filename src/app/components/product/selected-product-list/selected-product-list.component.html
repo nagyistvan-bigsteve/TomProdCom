@@ -30,7 +30,7 @@
           </div>
         </mat-expansion-panel-header>
       </mat-expansion-panel>
-      @for (item of productStore.productItems(); track $index) {
+      @for (item of cartStore.productItems(); track $index) {
         <mat-expansion-panel>
           <mat-expansion-panel-header class="px-3">
             <div class="row w-100">
@@ -246,16 +246,15 @@
           </div>
         </mat-expansion-panel>
       }
-      @if (productStore.productItems().length) {
+      @if (cartStore.productItems().length) {
         <mat-expansion-panel disabled="true">
           <mat-expansion-panel-header class="emty-panel">
             <div class="d-flex justify-content-evenly align-items-center w-100">
               <div class="text-black">
                 {{ "WORDS.TOTAL" | translate }}:
                 {{
-                  productUtil.calculateTotalQuantity(
-                    productStore.productItems()
-                  ) | number: "0.0-2"
+                  productUtil.calculateTotalQuantity(cartStore.productItems())
+                    | number: "0.0-2"
                 }}
                 m<sup>3</sup>
               </div>
@@ -276,7 +275,7 @@
         </mat-expansion-panel>
       }
 
-      @if (!productStore.productItems().length && isInOverview) {
+      @if (!cartStore.productItems().length && isInOverview) {
         <mat-expansion-panel disabled="true">
           <mat-expansion-panel-header class="emty-panel pt-1">
             <div class="d-flex justify-content-center">
@@ -296,14 +295,14 @@
       }
     </mat-accordion>
   </div>
-  @if (productStore.cartTotal() && !isInOverview) {
+  @if (cartStore.cartTotal() && !isInOverview) {
     <div
       @enterAnimation
       (click)="goToClientPage()"
       class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 px-3 py-2 mt-2 bg-white text-black fw-normal"
     >
       {{ "WORDS.TOTAL" | translate }}:
-      {{ productStore.cartTotal() | number: "1.0-2" }}
+      {{ cartStore.cartTotal() | number: "1.0-2" }}
       {{ "LANGUAGE.CURRENCY" | translate }}
       <div class="d-flex justify-content-end">
         <button

@@ -3,7 +3,12 @@ import {
   provideZoneChangeDetection,
   isDevMode,
   importProvidersFrom,
+  LOCALE_ID,
 } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeRo from '@angular/common/locales/ro';
+
+registerLocaleData(localeRo);
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { TooltipModule } from 'ngx-bootstrap/tooltip';
@@ -48,6 +53,7 @@ export const appConfig: ApplicationConfig = {
       },
     },
     ClientStore,
+    { provide: LOCALE_ID, useValue: 'ro' },
   ],
 };
 

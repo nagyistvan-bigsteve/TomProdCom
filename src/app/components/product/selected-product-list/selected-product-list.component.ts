@@ -65,15 +65,15 @@ export class SelectedProductListComponent implements OnChanges {
   private location = inject(Location);
   private destroyRef = inject(DestroyRef);
   readonly productUtil = inject(ProductUtil);
-  readonly productStore = inject(CartStore);
+  readonly cartStore = inject(CartStore);
   readonly clientStore = inject(ClientStore);
-  readonly catalogStore = inject(ProductStore);
+  readonly productStore = inject(ProductStore);
 
   private initialized = false;
 
   constructor() {
     effect(() => {
-      const prices = this.catalogStore.pricesEntities();
+      const prices = this.productStore.pricesEntities();
       this.clientStore.isClientSelected(); // track for reactivity on client change
 
       if (!prices.length) return;
@@ -96,9 +96,9 @@ export class SelectedProductListComponent implements OnChanges {
   }
 
   getTotalPriceInB(): void {
-    if (this.productStore.productItems()) {
+    if (this.cartStore.productItems()) {
       this.totalPriceInB = 0;
-      this.productStore.productItems()?.forEach((item) => {
+      this.cartStore.productItems()?.forEach((item) => {
         let priceInB = this.getCalculatedPrice(Category.B, item);
         this.totalPriceInB =
           this.totalPriceInB + (priceInB ? priceInB : item.price);
@@ -107,9 +107,9 @@ export class SelectedProductListComponent implements OnChanges {
   }
 
   getTotalPriceInA(): void {
-    if (this.productStore.productItems()) {
+    if (this.cartStore.productItems()) {
       this.totalPriceInA = 0;
-      this.productStore.productItems()?.forEach((item) => {
+      this.cartStore.productItems()?.forEach((item) => {
         let priceInA = this.getCalculatedPrice(Category.A, item);
         this.totalPriceInA =
           this.totalPriceInA + (priceInA ? priceInA : item.price);
@@ -150,7 +150,7 @@ export class SelectedProductListComponent implements OnChanges {
           quantity: totalPiecesNeeded * (item.product.m2_brut / 10),
         };
 
-        this.productStore.updateProductItem(
+        this.cartStore.updateProductItem(
           item.product.id,
           item.category,
           updates,
@@ -166,7 +166,7 @@ export class SelectedProductListComponent implements OnChanges {
 
         item.quantity = this.editableQuantity;
 
-        this.productStore.updateQuantity(
+        this.cartStore.updateQuantity(
           item.product.id,
           item.category,
           item.quantity,
@@ -195,11 +195,11 @@ export class SelectedProductListComponent implements OnChanges {
   }
 
   goToClientPageWithB(): void {
-    this.productStore.productItems().forEach((item) => {
+    this.cartStore.productItems().forEach((item) => {
       let priceInB = this.getCalculatedPrice(Category.B, item);
 
       if (priceInB) {
-        this.productStore.updateProductItem(item.product.id, item.category, {
+        this.cartStore.updateProductItem(item.product.id, item.category, {
           category: Category.B,
           price: this.getCalculatedPrice(Category.B, item),
         });
@@ -210,11 +210,11 @@ export class SelectedProductListComponent implements OnChanges {
   }
 
   goToClientPageWithA(): void {
-    this.productStore.productItems().forEach((item) => {
+    this.cartStore.productItems().forEach((item) => {
       let priceInA = this.getCalculatedPrice(Category.A, item);
 
       if (priceInA) {
-        this.productStore.updateProductItem(item.product.id, item.category, {
+        this.cartStore.updateProductItem(item.product.id, item.category, {
           category: Category.A,
           price: this.getCalculatedPrice(Category.A, item),
         });
@@ -235,9 +235,9 @@ export class SelectedProductListComponent implements OnChanges {
       .subscribe((result) => {
         if (result === true) {
           if (item !== 'all') {
-            this.productStore.deleteProductById(item.product.id, item.category);
+            this.cartStore.deleteProductById(item.product.id, item.category);
           } else {
-            this.productStore.deleteProductItems();
+            this.cartStore.deleteProductItems();
           }
           this.compareSavedPrice();
           this.getUsedPrices();
@@ -248,10 +248,10 @@ export class SelectedProductListComponent implements OnChanges {
   }
 
   private getUsedPrices(): void {
-    const prices = this.catalogStore.pricesEntities();
+    const prices = this.productStore.pricesEntities();
     this.usedPrices = [];
 
-    this.productStore.productItems().forEach((item) => {
+    this.cartStore.productItems().forEach((item) => {
       const unicPrice = prices.find(
         (price) => price.product_id === item.product.id,
       );
@@ -283,11 +283,11 @@ export class SelectedProductListComponent implements OnChanges {
   }
 
   private compareSavedPrice(): void {
-    this.productStore.productItems().forEach((item) => {
+    this.cartStore.productItems().forEach((item) => {
       let calculatedPrice = this.getCalculatedPrice(item.category, item);
 
       if (calculatedPrice != item.price) {
-        this.productStore.updateProductItem(item.product.id, item.category, {
+        this.cartStore.updateProductItem(item.product.id, item.category, {
           price: calculatedPrice,
         });
       }
@@ -326,7 +326,7 @@ export class SelectedProductListComponent implements OnChanges {
         newCategory,
       ).price;
 
-      this.productStore.updateProductItem(item.product.id, item.category, {
+      this.cartStore.updateProductItem(item.product.id, item.category, {
         category: newCategory,
         price: actualNewPrice,
       });
@@ -336,7 +336,7 @@ export class SelectedProductListComponent implements OnChanges {
   }
 
   private getExactPrice(newCategory: Category, item: ProductItem): number {
-    const prices = this.catalogStore.pricesEntities();
+    const prices = this.productStore.pricesEntities();
     const isTva: boolean = this.clientStore.client()
       ? this.clientStore.client().tva
       : false;
