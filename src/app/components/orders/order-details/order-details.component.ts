@@ -46,10 +46,12 @@ import { OrderPdfComponent } from '../../pdf/order-pdf/order-pdf.component';
 import { OrderPdfGeneratorUtil } from '../../../services/utils/order-pdf-generator.util';
 import { ClientStore } from '../../../services/store/client/client.store';
 import { ProductStore } from '../../../services/store/product/product.store';
+import { DecimalInputDirective } from '../../../shared/directives/decimal-input.directive';
 
 @Component({
   selector: 'app-order-details',
   imports: [
+    DecimalInputDirective,
     MatIconModule,
     MatButtonModule,
     CommonModule,

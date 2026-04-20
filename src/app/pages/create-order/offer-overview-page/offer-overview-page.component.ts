@@ -35,12 +35,14 @@ import { Price2, UsedPricesInOrder } from '../../../models/models';
 import { ENTER_AND_LEAVE_ANIMATION } from '../../../models/animations';
 import { ProductUtil } from '../../../services/utils/product.util';
 import { ClientStore } from '../../../services/store/client/client.store';
+import { DecimalInputDirective } from '../../../shared/directives/decimal-input.directive';
 
 @Component({
   selector: 'app-offer-overview',
   standalone: true,
   providers: [provideNativeDateAdapter()],
   imports: [
+    DecimalInputDirective,
     CommonModule,
     MatCardModule,
     MatListModule,

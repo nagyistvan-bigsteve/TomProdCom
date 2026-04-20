@@ -28,11 +28,13 @@ import { Category } from '../../../models/enums';
 import { Product, Products } from '../../../models/models';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ProductStore } from '../../../services/store/product/product.store';
+import { DecimalInputDirective } from '../../../shared/directives/decimal-input.directive';
 
 @Component({
   selector: 'app-create-coming-wares-dialog',
   standalone: true,
   imports: [
+    DecimalInputDirective,
     CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,

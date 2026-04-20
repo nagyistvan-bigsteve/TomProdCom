@@ -25,10 +25,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FilterUtil } from '../../../services/utils/filter.util';
 import { ProductStore } from '../../../services/store/product/product.store';
+import { DecimalInputDirective } from '../../../shared/directives/decimal-input.directive';
 
 @Component({
   selector: 'app-update-products',
   imports: [
+    DecimalInputDirective,
     CommonModule,
     MatFormFieldModule,
     MatSelectModule,

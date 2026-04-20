@@ -28,10 +28,12 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Category } from '../../../models/enums';
 import { ProductStore } from '../../../services/store/product/product.store';
+import { DecimalInputDirective } from '../../../shared/directives/decimal-input.directive';
 
 @Component({
   selector: 'app-add-product',
   imports: [
+    DecimalInputDirective,
     CommonModule,
     MatFormFieldModule,
     MatSelectModule,

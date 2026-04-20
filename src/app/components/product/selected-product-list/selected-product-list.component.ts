@@ -28,10 +28,12 @@ import { FormsModule } from '@angular/forms';
 import { ENTER_ANIMATION } from '../../../models/animations';
 import { ClientStore } from '../../../services/store/client/client.store';
 import { ProductStore } from '../../../services/store/product/product.store';
+import { DecimalInputDirective } from '../../../shared/directives/decimal-input.directive';
 
 @Component({
   selector: 'app-selected-product-list',
   imports: [
+    DecimalInputDirective,
     CommonModule,
     TranslateModule,
     MatDividerModule,
@@ -147,7 +149,7 @@ export class SelectedProductListComponent implements OnChanges {
           price,
           packsNeeded,
           extraPiecesNeeded,
-          quantity: totalPiecesNeeded * (item.product.m2_brut / 10),
+          quantity: totalPiecesNeeded * item.product.m2_brut,
         };
 
         this.cartStore.updateProductItem(

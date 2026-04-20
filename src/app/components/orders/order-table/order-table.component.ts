@@ -45,10 +45,12 @@ import {
   moveItemInArray,
 } from '@angular/cdk/drag-drop';
 import { ClientStore } from '../../../services/store/client/client.store';
+import { DecimalInputDirective } from '../../../shared/directives/decimal-input.directive';
 
 @Component({
   selector: 'app-order-table',
   imports: [
+    DecimalInputDirective,
     MatTableModule,
     MatButtonModule,
     MatIconModule,

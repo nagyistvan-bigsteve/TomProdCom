@@ -14,10 +14,12 @@ import { ENTER_AND_LEAVE_ANIMATION } from '../../models/animations';
 import { ProductUtil } from '../../services/utils/product.util';
 import { ProductStore } from '../../services/store/product/product.store';
 import { Unit_id } from '../../models/enums';
+import { DecimalInputDirective } from '../../shared/directives/decimal-input.directive';
 
 @Component({
   selector: 'app-products',
   imports: [
+    DecimalInputDirective,
     MatProgressSpinnerModule,
     MatDivider,
     TranslateModule,
