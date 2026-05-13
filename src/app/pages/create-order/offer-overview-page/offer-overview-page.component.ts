@@ -27,7 +27,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Unit_id } from '../../../models/enums';
+import { Category, Unit_id } from '../../../models/enums';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -259,17 +259,27 @@ export class OfferOverviewPageComponent {
   }
 
   private calculateActualPrice(price: Price2, isTva: boolean): number {
-    if (!isTva) return price.price;
+    let basePrice = price.price;
 
-    if (price.unit_id === Unit_id.BOUNDLE) {
-      return price.price - 5;
+    if (
+      price.unit_id === Unit_id.M3 &&
+      price.category_id === Category.B &&
+      this.productStore.productItems().some(
+        (item) =>
+          item.category === Category.B &&
+          item.product.unit_id === Unit_id.M3 &&
+          item.product.thickness === 2.5 &&
+          (price.product_id === null || price.product_id === item.product.id),
+      )
+    ) {
+      basePrice -= 50;
     }
 
-    if (price.unit_id === Unit_id.M3) {
-      return price.price - 100;
-    }
+    if (!isTva) return basePrice;
+    if (price.unit_id === Unit_id.BOUNDLE) return basePrice - 5;
+    if (price.unit_id === Unit_id.M3) return basePrice - 100;
 
-    return price.price;
+    return basePrice;
   }
 
   private expandPrices(prices: Price2[]): Price2[] {
