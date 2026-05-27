@@ -46,6 +46,29 @@
     </div>
   }
 
+  <div class="d-flex gap-2 mb-2">
+    <mat-form-field class="flex-grow-1">
+      <mat-label>{{ "ORDER.TABLE.FILTER.NAME_FILTER" | translate }}</mat-label>
+      <input matInput [formControl]="nameFilter" />
+      @if (nameFilter.value) {
+        <button matSuffix mat-icon-button (click)="nameFilter.setValue('')">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+    <mat-form-field class="flex-grow-1">
+      <mat-label>{{
+        "ORDER.TABLE.FILTER.ADDRESS_FILTER" | translate
+      }}</mat-label>
+      <input matInput [formControl]="addressFilter" />
+      @if (addressFilter.value) {
+        <button matSuffix mat-icon-button (click)="addressFilter.setValue('')">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+  </div>
+
   <mat-form-field class="mb-1">
     <mat-label>{{ "ORDER.TABLE.FILTER.DATE_RANGE" | translate }}</mat-label>
     <mat-date-range-input [formGroup]="dateRange" [rangePicker]="picker">

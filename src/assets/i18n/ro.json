@@ -281,7 +281,9 @@
         "CREATION": "Creare",
         "ADMIN": "Admin",
         "FILTER_LABEL": "Filtrare:",
-        "SORT_LABEL": "Sortare:"
+        "SORT_LABEL": "Sortare:",
+        "NAME_FILTER": "Caută după nume",
+        "ADDRESS_FILTER": "Caută după adresă"
       },
       "CONTENT": {
         "CLIENT": "Client",

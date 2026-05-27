@@ -281,7 +281,9 @@
         "CREATION": "Létrehozás",
         "ADMIN": "Admin",
         "FILTER_LABEL": "Szűrés:",
-        "SORT_LABEL": "Rendezés:"
+        "SORT_LABEL": "Rendezés:",
+        "NAME_FILTER": "Keresés név szerint",
+        "ADDRESS_FILTER": "Keresés cím szerint"
       },
       "CONTENT": {
         "CLIENT": "Kliens",

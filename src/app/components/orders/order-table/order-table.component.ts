@@ -99,6 +99,8 @@ export class OrderTableComponent implements OnInit {
   columnsToDisplayStrings: string[] = [];
   tableFilter: 'all' | 'open' | 'closed' | 'expectedToday' = 'open';
   tableSort: 'delivery' | 'creation' | 'admin' = 'delivery';
+  nameFilter = new FormControl<string>('');
+  addressFilter = new FormControl<string>('');
   expandedElement: OrderResponse | null = null;
   displayedColumns: string[] = [
     'CLIENT',
@@ -120,6 +122,13 @@ export class OrderTableComponent implements OnInit {
     this.dateRange.valueChanges.subscribe((range) => {
       this.filterByDate(range.start, range.end, this.orders);
     });
+
+    this.nameFilter.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.filterItems(false));
+    this.addressFilter.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.filterItems(false));
   }
 
   fetchOrders(): void {
@@ -171,14 +180,16 @@ export class OrderTableComponent implements OnInit {
   ) {
     if (start && end) {
       end.setHours(23, 59, 59, 999);
-      this.dataSource.data = data.filter((item) => {
-        return (
-          Date.parse(item.expectedDelivery.toString()) >=
-            Date.parse(start.toString()) &&
-          Date.parse(item.expectedDelivery.toString()) <=
-            Date.parse(end.toString())
-        );
-      });
+      this.dataSource.data = this.applyTextFilters(
+        data.filter((item) => {
+          return (
+            Date.parse(item.expectedDelivery.toString()) >=
+              Date.parse(start.toString()) &&
+            Date.parse(item.expectedDelivery.toString()) <=
+              Date.parse(end.toString())
+          );
+        }),
+      );
       this.setDisplayedOrdersStats(this.dataSource.data);
     } else {
       this.dataSource.data = data;
@@ -207,34 +218,37 @@ export class OrderTableComponent implements OnInit {
   filterItems(restore: boolean) {
     switch (this.tableFilter) {
       case 'all': {
-        this.dataSource.data = this.orders;
+        this.dataSource.data = this.applyTextFilters(this.orders);
         this.setDisplayedOrdersStats(this.dataSource.data);
         break;
       }
       case 'open': {
-        this.dataSource.data = this.orders.filter(
-          (item) => item.dateOrderDelivered == null,
+        this.dataSource.data = this.applyTextFilters(
+          this.orders.filter((item) => item.dateOrderDelivered == null),
         );
         this.setDisplayedOrdersStats(this.dataSource.data);
         break;
       }
       case 'closed': {
-        this.dataSource.data = this.orders.filter(
-          (item) => item.dateOrderDelivered != null,
+        this.dataSource.data = this.applyTextFilters(
+          this.orders.filter((item) => item.dateOrderDelivered != null),
         );
         this.setDisplayedOrdersStats(this.dataSource.data);
         break;
       }
       case 'expectedToday': {
         const currentDate = new Date();
-        this.dataSource.data = this.orders.filter(
-          (item) =>
-            new Date(item.expectedDelivery).getDay() === currentDate.getDay() &&
-            new Date(item.expectedDelivery).getMonth() ===
-              currentDate.getMonth() &&
-            new Date(item.expectedDelivery).getFullYear() ===
-              currentDate.getFullYear() &&
-            !item.dateOrderDelivered,
+        this.dataSource.data = this.applyTextFilters(
+          this.orders.filter(
+            (item) =>
+              new Date(item.expectedDelivery).getDay() ===
+                currentDate.getDay() &&
+              new Date(item.expectedDelivery).getMonth() ===
+                currentDate.getMonth() &&
+              new Date(item.expectedDelivery).getFullYear() ===
+                currentDate.getFullYear() &&
+              !item.dateOrderDelivered,
+          ),
         );
         this.setDisplayedOrdersStats(this.dataSource.data);
         break;
@@ -338,6 +352,18 @@ export class OrderTableComponent implements OnInit {
           this.fetchOrders();
         }
       });
+  }
+
+  private applyTextFilters(orders: OrderResponse[]): OrderResponse[] {
+    const name = this.nameFilter.value?.toLowerCase().trim() ?? '';
+    const address = this.addressFilter.value?.toLowerCase().trim() ?? '';
+    if (!name && !address) return orders;
+    return orders.filter((order) => {
+      const clientName =
+        this.clientStore.clientsEntityMap()[order.clientId]?.name?.toLowerCase() ?? '';
+      const deliveryAddress = order.delivery_address?.toLowerCase() ?? '';
+      return clientName.includes(name) && deliveryAddress.includes(address);
+    });
   }
 
   private sortByDelivery(orders: OrderResponse[]): OrderResponse[] {
