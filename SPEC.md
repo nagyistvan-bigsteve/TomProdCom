@@ -34,7 +34,7 @@ Start / Offer
         ↓
 Select products
         ↓
-Set quantity + quality
+Set quantity + category (quality grade)
         ↓
 Select / create customer
         ↓
@@ -283,6 +283,56 @@ The frontend must never be considered the final authorization layer.
 
 The exact database schema is defined by the Supabase project. The conceptual domain is described below.
 
+---
+
+## 6.0 Core Enumerations
+
+These enum values are used throughout the application. The TypeScript source of truth is `src/app/core/models/enums.ts`.
+
+### Unit types (`Unit_id`)
+
+| Value    | ID  | Meaning                                                                                                                          |
+| -------- | --- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `BUC`    | 1   | Individual pieces (linear/count unit)                                                                                            |
+| `M2`     | 2   | Square metres                                                                                                                    |
+| `M3`     | 3   | Cubic metres (volume)                                                                                                            |
+| `BUNDLE` | 4   | Bundle of pieces (typically 10 pieces); spelled `BOUNDLE` in the TypeScript enum — do not rename without a coordinated migration |
+
+`UNDEFINED = 0` exists as a TypeScript guard/default value only. No real product uses it.
+
+### Category / quality grade (`Category`)
+
+Category represents the **quality grade** of a product (or of a specific line item within an order).
+
+| Value | ID  | Meaning                 |
+| ----- | --- | ----------------------- |
+| `A`   | 1   | Premium grade           |
+| `AB`  | 2   | Standard grade          |
+| `B`   | 3   | Board / secondary grade |
+| `T`   | 4   | Treated / impregnated   |
+
+A single product may be sold at different quality grades. The category determines which price row applies.
+
+### Size (`Size_id`)
+
+Size represents a **dimension / length tier** for the same product type.
+
+| Value       | ID  | Meaning                  |
+| ----------- | --- | ------------------------ |
+| `NORMAL`    | 0   | Standard length          |
+| `EXTRA`     | 1   | Longer variant           |
+| `EXTRA2`    | 2   | Longest variant          |
+| `UNDEFINED` | 3   | No specific size variant |
+
+### Client type (`ClientType`)
+
+| Value | ID  | Meaning                                       |
+| ----- | --- | --------------------------------------------- |
+| `PF`  | 1   | Persoană fizică — natural person / individual |
+| `PJ`  | 2   | Persoană juridică — legal entity / company    |
+
+---
+
 ## 6.1 User
 
 A user should conceptually contain:
@@ -305,29 +355,32 @@ authenticated + approved admin
 
 ## 6.2 Customer
 
-A customer can be either:
+A customer is either `PF` (persoană fizică — individual) or `PJ` (persoană juridică — legal entity/company). See section 6.0 for enum values.
 
-- PF — persoană fizică;
-- PJ — persoană juridică.
+### Fields
 
-A customer may contain information such as:
+| Field           | Type           | Notes                                    |
+| --------------- | -------------- | ---------------------------------------- |
+| `type`          | `ClientType`   | PF or PJ                                 |
+| `name`          | string         | Required; must be non-empty              |
+| `address`       | string \| null | Billing / main address                   |
+| `code`          | string \| null | Company registration or tax code; unique |
+| `other_details` | string \| null | Free-form extra information              |
+| `tva`           | boolean        | Reverse-charge VAT flag (see below)      |
+| `client_phones` | array          | One or more phone numbers with labels    |
 
-- name;
-- phone;
-- email;
-- address;
-- customer type;
-- company/legal information where applicable;
-- tax-related information;
-- pricing classification.
+### TVA (reverse-charge VAT)
 
-The exact fields should follow the existing database model.
+The `tva` field is only meaningful for PJ clients.
 
-### PJ pricing rule
+When `tva = true`, the client operates under reverse-charge VAT ("Taxare inversă fără TVA"):
 
-A PJ customer that pays taxes may qualify for special pricing.
+- Prices for **M3** products are reduced by **100 RON per m³**.
+- Prices for **BUNDLE** products are reduced by **5 RON per bundle**.
+- **BUC** and **M2** products are unaffected.
+- When saving an offer/order, the comment field is automatically prepended with `"Taxare inversa - fără TVA"`.
 
-This rule must be centralized rather than duplicated across offer/order components.
+This rule is applied in the price-lookup logic and must not be duplicated across components. See section 10 for the full pricing model.
 
 ---
 
@@ -335,36 +388,35 @@ This rule must be centralized rather than duplicated across offer/order componen
 
 A product represents an item sold by the depot.
 
-A product may have:
+### Fields
 
-- name;
-- category;
-- unit;
-- dimensions/size;
-- quality;
-- standard price;
-- special price(s);
-- stock;
-- warehouse-specific stock in the future.
+| Field            | Type      | Notes                                                                              |
+| ---------------- | --------- | ---------------------------------------------------------------------------------- |
+| `name`           | string    | Unique product name                                                                |
+| `unit_id`        | `Unit_id` | BUC, M2, M3, or BUNDLE — determines the price-calculation formula                  |
+| `size_id`        | `Size_id` | Dimension/length tier; used for price lookup when no product-specific price exists |
+| `thickness`      | number    | In mm; used in M3 volume formula                                                   |
+| `width`          | number    | In mm; used in M3 volume formula                                                   |
+| `length`         | number    | In mm; used in M3 volume formula                                                   |
+| `m2_brut`        | number    | Gross m² per piece; used for M2 price calculation                                  |
+| `m2_util`        | number    | Net (usable) m² per piece; used for M2 NET-mode quantity conversion                |
+| `piece_per_pack` | number    | Pieces per pack; used for M2 PAC-mode and pack breakdown display                   |
 
-Products may exist without a currently configured price.
+`m2_brut`, `m2_util`, and `piece_per_pack` are only relevant for products with `unit_id = M2`.
 
-The application must be able to identify products that require price configuration.
+For M3 products without `width` (i.e. products sold by the piece rather than by volume), the price formula falls back to `unit_price × quantity`.
+
+Products may exist without a currently configured price. The application must be able to identify products that require price configuration.
 
 ---
 
-## 6.4 Category
+## 6.4 Category (quality grade)
 
-Products belong to categories.
+In the domain, "category" means the **quality grade** of a product or of a specific line item in an offer/order. The four grades are: **A** (premium), **AB** (standard), **B** (board/secondary), **T** (treated/impregnated). See section 6.0 for enum values.
 
-Categories may have:
+A single physical product may be sold at multiple quality grades. Each grade has its own price row in the `prices_new` table.
 
-- name;
-- standard pricing;
-- special pricing;
-- category-level configuration.
-
-Pricing can be configured at category level as well as product level.
+Pricing is configured at the category level via the `prices_new` table (matched by `category_id + unit_id + size_id`). Product-specific overrides are also possible (matched by `product_id + category_id + unit_id`). See section 10 for the full lookup hierarchy.
 
 ---
 
@@ -388,44 +440,53 @@ Do not implement future stock semantics by pretending incoming stock is already 
 
 ---
 
-## 6.6 Offer
+## 6.6 Offer and Order
 
-An offer is a commercial proposal for a customer.
+Offers and orders are stored in the same `orders` database table and share the same data shape. They are distinguished by the `just_offer` boolean flag:
 
-An offer contains:
+- `just_offer = true` → the record is an **offer** (a commercial proposal not yet confirmed).
+- `just_offer = false` → the record is an **order** (accepted/active).
 
-- customer;
-- products;
-- quantities;
-- product qualities;
-- prices;
-- possible special prices;
-- description/additional information;
-- creation metadata;
-- relevant dates/status.
+An offer is converted to an order by setting `just_offer = false`.
 
-An offer is not necessarily an order.
+### Order / offer fields
 
----
+| Field                  | Type              | Notes                                                                           |
+| ---------------------- | ----------------- | ------------------------------------------------------------------------------- |
+| `client_id`            | number            | FK → clients                                                                    |
+| `operator_id`          | uuid              | FK → profiles (the employee who created it)                                     |
+| `date_order_placed`    | timestamp         | Creation timestamp (UTC)                                                        |
+| `expected_delivery`    | date              | Target delivery date                                                            |
+| `until_delivery_date`  | boolean           | `true` = deliver any time before the expected date (flexible deadline)          |
+| `for_first_hour`       | boolean           | `true` = deliver in the first hour of the delivery day (morning priority)       |
+| `date_order_delivered` | date \| null      | Set when marked as delivered; `null` = not yet delivered                        |
+| `total_amount`         | number            | Sum of all line-item prices before voucher                                      |
+| `total_amount_final`   | number            | Total after voucher discount                                                    |
+| `voucher`              | string            | Discount code; see section 10 for format                                        |
+| `comment`              | string            | Free-form notes; delivery fee and TVA note are appended here automatically      |
+| `total_quantity`       | number            | Total **M3 volume** across all line items (used for transport/tonnage overview) |
+| `paid_amount`          | number            | Amount already paid by the customer                                             |
+| `delivery_fee`         | number            | Delivery cost in RON; appended to comment as `"Transport: N RON"`               |
+| `delivery_address`     | string            | Delivery address for this order; defaults to `client.address` if not overridden |
+| `sort_order`           | number            | Admin drag-and-drop priority position                                           |
+| `just_offer`           | boolean           | `true` = offer, `false` = order                                                 |
+| `deleted_at`           | timestamp \| null | Soft-delete timestamp; `null` = active                                          |
 
-## 6.7 Order
+### Order item fields
 
-An order represents an accepted/active customer order.
+Each line item in an order (table `order_items`) contains:
 
-An order contains:
+| Field          | Type    | Notes                                                                                                                                          |
+| -------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `product_id`   | number  | FK → products                                                                                                                                  |
+| `order_id`     | number  | FK → orders                                                                                                                                    |
+| `quantity`     | number  | Quantity in the product's native unit (or m² for M2 products stored as BRUT m²)                                                                |
+| `category_id`  | number  | Quality grade chosen for this line item (FK → categories)                                                                                      |
+| `price`        | number  | Total price for this line item (already calculated)                                                                                            |
+| `item_status`  | boolean | `false` = pending; `true` = delivered/completed. Set to `true` for all items when the order is marked delivered. Can also be toggled per item. |
+| `packs_pieces` | string  | For M2 products: pack breakdown in format `"Np + Mb"` (N full packs, M extra pieces). Empty for non-M2 products.                               |
 
-- customer;
-- products;
-- quantities;
-- quality;
-- prices;
-- description;
-- creation date;
-- delivery date;
-- delivery status;
-- ordering/admin priority where applicable.
-
-An order can eventually be marked as delivered.
+An order can be marked as delivered, which sets `date_order_delivered` to today and sets all `item_status` flags to `true`.
 
 ---
 
@@ -602,7 +663,7 @@ Users can:
 
 - browse/select products;
 - set product quantity;
-- set product quality;
+- set product category (quality grade: A, AB, B, or T);
 - view selected products;
 - edit selected products;
 - remove selected products;
@@ -816,7 +877,7 @@ The transformation should preserve:
 - customer;
 - products;
 - quantities;
-- qualities;
+- categories (quality grades);
 - prices;
 - special prices;
 - relevant description/data.
@@ -942,7 +1003,7 @@ Create offer
  ↓
 Select products
  ↓
-Set quantity + quality
+Set quantity + category (quality grade)
  ↓
 Select/create customer
  ↓
@@ -970,40 +1031,176 @@ An offer may also be used as the starting point for creating an order while allo
 
 # 10. Pricing Rules
 
-Pricing is a core business domain and must be treated carefully.
+Pricing is a core business domain and must be treated carefully. All price calculations must go through the shared `ProductUtil` service (`@shared/utils/product.util`). Do not re-implement the same formula in component templates or page components.
 
-Potential pricing sources include:
+---
 
-1. standard product price;
-2. category price;
-3. special product price;
-4. special category price;
-5. customer-specific/business classification rules.
+## 10.1 Price lookup hierarchy
 
-The exact priority of pricing sources must be defined centrally in the pricing logic.
+Prices are stored in the `prices_new` table. Each row has `unit_id`, `category_id`, `size_id`, and optionally `product_id`.
+
+**Lookup order (applied per line item):**
+
+1. Check whether any row in `prices_new` has a non-null `product_id` matching this product.
+2. **If yes** → use the row that matches `product_id + category_id + unit_id` (product-specific price).
+3. **If no** → use the row that matches `size_id + category_id + unit_id` (category/size matrix price).
+
+If no matching price row exists the product is considered unpriceable and must be flagged to the admin.
+
+---
+
+## 10.2 Price calculation formulas
+
+The formula used depends on the product's `unit_id`.
+
+### BUC and BUNDLE
+
+```
+total = quantity × unit_price
+```
+
+### M3
+
+```
+total = (width × length × thickness / 1,000,000) × unit_price × quantity
+```
+
+> Units: `width`, `length`, `thickness` are in **mm**. Dividing by 1,000,000 converts mm³ → m³.
+
+If the product has no `width` (e.g. sold by the piece rather than by volume):
+
+```
+total = unit_price × quantity
+```
+
+### M2
+
+M2 products require the user to choose a **quantity input mode**:
+
+| Mode   | Input meaning           | `totalPieces` formula        |
+| ------ | ----------------------- | ---------------------------- |
+| `BRUT` | desired m² (gross)      | `ceil(qty / m2_brut)`        |
+| `NET`  | desired m² (net/usable) | `ceil(qty / m2_util)`        |
+| `BUC`  | individual pieces       | `ceil(qty)`                  |
+| `PAC`  | number of packs         | `ceil(qty × piece_per_pack)` |
+
+Once `totalPieces` is known:
+
+```
+total = totalPieces × m2_brut × unit_price
+```
+
+The **pack breakdown** (`packs_pieces`) is also derived from `totalPieces`:
+
+```
+packsNeeded     = floor(totalPieces / piece_per_pack)
+extraPieces     = totalPieces mod piece_per_pack
+packs_pieces    = "Np + Mb"   (e.g. "3p + 2b" = 3 full packs + 2 extra pieces)
+```
+
+When recalculating a saved cart item, `BRUT` mode is used as the default.
+
+---
+
+## 10.3 Price adjustments
+
+Adjustments are applied **on top of the looked-up unit price** before the formula in 10.2 is run.
+
+### Category B board discount
+
+Applies when **all three** conditions are true:
+
+- `unit_id = M3`
+- `category_id = B`
+- `product.thickness = 2.5`
+
+```
+unit_price -= 50   // RON per m³
+```
+
+This is the only hardcoded thickness-based pricing rule.
+
+### TVA reverse-charge discount
+
+Applies when `client.tva = true` (PJ customers with reverse-charge VAT):
+
+| Unit   | Adjustment                   |
+| ------ | ---------------------------- |
+| M3     | `unit_price -= 100` RON/m³   |
+| BUNDLE | `unit_price -= 5` RON/bundle |
+| BUC    | no adjustment                |
+| M2     | no adjustment                |
+
+### Manual per-row discount (offer overview)
+
+In the offer overview page, an employee can manually set a different unit price for any price row. The difference is stored as a `discount` value and applied when recalculating cart item prices.
+
+**Order of adjustments:** Category B board discount → TVA discount → manual discount.
+
+---
+
+## 10.4 Total price and voucher
+
+```
+totalPrice (before voucher) = sum of all line-item totals
+```
+
+A voucher can be applied in the offer overview:
+
+- **Percentage discount:** voucher string contains `%` (e.g. `"15%"`) →
+  `finalTotal = totalPrice × (1 − 0.15)`
+- **Absolute discount:** voucher string is a number (e.g. `"200"`) →
+  `finalTotal = totalPrice − 200`
+- A leading `-` character is stripped before parsing.
+
+The `total_amount` field on the order stores the pre-voucher total; `total_amount_final` stores the post-voucher total.
+
+---
+
+## 10.5 Total quantity (`total_quantity`)
+
+`total_quantity` is the **total M3 volume** across all line items. It is used for transport and tonnage display, not for pricing.
+
+```
+volumeM3 per item = (width × thickness × length / 1,000,000) × quantity
+                    [× 10 for BUNDLE items, since a bundle = 10 pieces]
+```
+
+M2 and BUC items are excluded from this total.
+
+---
+
+## 10.6 Centralisation rule
 
 Do not calculate prices independently in multiple components.
 
-If the pricing hierarchy changes, update the central pricing behavior and all dependent tests.
+If the pricing hierarchy or a formula changes:
+
+1. Update `ProductUtil` (`@shared/utils/product.util`).
+2. Update `getExactPrice` in `selected-product-list.component.ts` if the lookup logic changes.
+3. Update `calculateActualPrice` in `offer-overview-page.component.ts` if the adjustment logic changes.
+4. Update any relevant tests.
+5. Update this section of SPEC.md.
 
 ---
 
 # 11. Customer Pricing
 
-Customers may be:
+Customers are either PF (individual) or PJ (legal entity). See section 6.2 for client fields.
 
-```text
-PF
-PJ
-```
+## Reverse-charge VAT (TVA) pricing
 
-A PJ customer may receive special pricing when the relevant tax/business condition applies.
+When a PJ customer has `tva = true`, they operate under reverse-charge VAT. This triggers automatic price reductions for M3 and BUNDLE products (see section 10.3 for exact amounts) and adds the note `"Taxare inversa - fără TVA"` to the order comment.
 
-The UI should expose only the pricing choices relevant to the selected customer.
+The mechanism is the `tva` boolean on the client record — there is no separate pricing table for TVA customers. The UI should make the TVA status clearly visible when selecting a customer.
 
-Pricing must be reproducible: the saved order/offer should retain the actual commercial price used rather than relying exclusively on a future recalculation of today's product price.
+## Price reproducibility
 
-This is especially important because product prices can change after an order has been created.
+Pricing must be reproducible: the saved order/offer must retain the actual commercial price used at the time of saving (stored as `price` on each `order_item`).
+
+Do not rely on recalculating prices from today's product configuration when displaying historical orders — the `prices_new` table may have changed since the order was created.
+
+The `total_amount` and `total_amount_final` fields on the order record also persist the total at save time.
 
 ---
 
@@ -1015,6 +1212,10 @@ Current functionality:
 - edit stock;
 - use stock information while creating orders.
 
+### `booked_stock`
+
+The `stocks` table (and the TypeScript `Stock` type) contains a `booked_stock` column. This field is **not currently used** by any application code and is reserved for a future stock-reservation feature. Do not rely on it or write to it until the feature is explicitly implemented.
+
 Future functionality:
 
 - ordered/incoming stock;
@@ -1025,12 +1226,10 @@ Future functionality:
 The system should distinguish conceptually between:
 
 ```text
-available stock
-incoming/ordered stock
-reserved stock
+available stock      ← currently implemented (stock field)
+reserved stock       ← future (booked_stock field, not yet active)
+incoming/ordered     ← future (coming_wares feature — tracking only, not yet affecting stock)
 ```
-
-even if not all three are implemented yet.
 
 Do not implement future inventory concepts prematurely unless the feature is explicitly requested.
 
@@ -1287,7 +1486,7 @@ The printed document should prioritize:
 - order/offer information;
 - product list;
 - quantities;
-- qualities;
+- categories (quality grades);
 - prices where applicable;
 - totals where applicable;
 - relevant dates;
@@ -1352,7 +1551,7 @@ Pay particular attention to:
 
 # 25. State Management
 
-Use the simplest state mechanism appropriate to the feature.
+I prefer signal store because it is centralized, modern and signal based and already used in the project, but use the simplest state mechanism appropriate to the feature.
 
 ### Local component state
 
@@ -1722,19 +1921,22 @@ Do not perform a large folder restructuring unless it provides a clear benefit.
 
 Use consistent terminology throughout the application.
 
-| Concept   | Preferred English | Romanian      | Hungarian      |
-| --------- | ----------------- | ------------- | -------------- |
-| Customer  | Customer          | Client        | Ügyfél         |
-| Product   | Product           | Produs        | Termék         |
-| Offer     | Offer             | Ofertă        | Ajánlat        |
-| Order     | Order             | Comandă       | Rendelés       |
-| Stock     | Stock             | Stoc          | Készlet        |
-| Delivered | Delivered         | Livrat        | Kiszállítva    |
-| User      | User              | Utilizator    | Felhasználó    |
-| Admin     | Admin             | Administrator | Adminisztrátor |
-| Approval  | Approval          | Aprobare      | Jóváhagyás     |
-| Warehouse | Warehouse         | Depozit       | Raktár         |
-| Category  | Category          | Categorie     | Kategória      |
+| Concept       | Preferred English   | Romanian                | Hungarian           |
+| ------------- | ------------------- | ----------------------- | ------------------- |
+| Customer      | Customer            | Client                  | Ügyfél              |
+| Product       | Product             | Produs                  | Termék              |
+| Offer         | Offer               | Ofertă                  | Ajánlat             |
+| Order         | Order               | Comandă                 | Rendelés            |
+| Stock         | Stock               | Stoc                    | Készlet             |
+| Delivered     | Delivered           | Livrat                  | Kiszállítva         |
+| User          | User                | Utilizator              | Felhasználó         |
+| Admin         | Admin               | Administrator           | Adminisztrátor      |
+| Approval      | Approval            | Aprobare                | Jóváhagyás          |
+| Warehouse     | Warehouse           | Depozit                 | Raktár              |
+| Category      | Category            | Categorie               | Kategória           |
+| Quality grade | Category (A/AB/B/T) | Categorie (calitate)    | Kategória (minőség) |
+| Bundle (unit) | Bundle              | Balot / Legătură        | Köteg               |
+| Reverse VAT   | Reverse-charge VAT  | Taxare inversă fără TVA | Fordított ÁFA       |
 
 Use the project's existing translation terminology when it already differs from this table. Consistency is more important than literal translation.
 
