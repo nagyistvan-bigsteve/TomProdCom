@@ -14,6 +14,8 @@
   ViewChild,
 } from '@angular/core';
 import {
+  M2_QUANTITIES,
+  M2Quantities,
   OrderItemsResponse,
   OrderResponse,
   Price2,
@@ -112,6 +114,7 @@ export class OrderDetailsComponent implements OnInit {
   isProductSelectet: boolean = false;
   filteredOptions: Product[] = [];
   selectedProductQuantity: number = 1;
+  selectedM2Quantity = signal<M2Quantities>('BRUT');
   selectedProductPrice: Price2[] | undefined;
   enableCategory: { enable: boolean; category: Category }[] = [
     { enable: false, category: Category.A },
@@ -184,7 +187,7 @@ export class OrderDetailsComponent implements OnInit {
 
   openEditDialog(): void {
     const dialogRef = this._dialog.open(this.editOfferDialog, {
-      width: '350px',
+      width: '90%',
     });
 
     dialogRef
@@ -203,7 +206,7 @@ export class OrderDetailsComponent implements OnInit {
         this.selectedProduct,
         this.findExistingCategories()!,
         this.selectedProductQuantity,
-        'BRUT',
+        this.selectedM2Quantity(),
         this.selectedCategory,
       );
 
@@ -271,9 +274,17 @@ export class OrderDetailsComponent implements OnInit {
   optionSelected(product: Product): void {
     this.isProductSelectet = true;
     this.selectedProduct = product;
+    this.selectedM2Quantity.set('BRUT');
     this.catalogStore.setSelectedProduct(product.id);
     this.selectedProductPrice = this.catalogStore.pricesForSelectedProduct();
     this.findExistingCategories();
+  }
+
+  m2SetUnit(): void {
+    this.selectedM2Quantity.update((current) => {
+      const index = M2_QUANTITIES.indexOf(current);
+      return M2_QUANTITIES[(index + 1) % M2_QUANTITIES.length];
+    });
   }
 
   findExistingCategories(): undefined | number {

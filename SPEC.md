@@ -1760,6 +1760,15 @@ When changing UI:
 
 A visual improvement is not successful if it breaks another screen size.
 
+### UI consistency rules
+
+When adding a new interactive element to an existing view, match the visual style of equivalent controls already present in the application:
+
+- **Dark container context** (`add-form-conteiner`, product cards): text must be `white`; borders must use `rgba(255, 255, 255, ...)` — not Bootstrap's `border-dark`, which is invisible on dark backgrounds.
+- **Clickable non-button elements**: set `cursor: pointer` via CSS — Bootstrap 5 has no `cursor-pointer` utility class.
+- **Tappable badges / unit toggles**: use the `.m2-unit-badge` pattern (white text, semi-transparent white border, `border-radius: 4px`) for any tap-to-cycle control rendered inside a dark container.
+- Before shipping a UI change, visually compare the new element against the equivalent control on an existing screen (e.g. the M2 unit toggle in `selected-product` on `/offer/create`). The two should be perceptually consistent.
+
 ---
 
 ## 27.10 Angular upgrades

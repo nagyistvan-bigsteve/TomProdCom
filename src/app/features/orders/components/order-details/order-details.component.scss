@@ -37,6 +37,21 @@
   padding: 8px;
 }
 
+.m2-unit-badge {
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.875rem;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.7);
+  }
+}
+
 ::ng-deep {
   .comment-edit-input .mat-mdc-form-field-subscript-wrapper {
     display: none;
