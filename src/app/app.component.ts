@@ -1,12 +1,12 @@
-import { Component, inject, OnInit } from '@angular/core';
+﻿import { Component, inject, OnInit } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { MatButtonModule } from '@angular/material/button';
-import { Language } from './models/enums';
+import { Language } from '@core/models/enums';
 import { RouterModule } from '@angular/router';
-import { TopbarComponent } from './components/app-container/topbar/topbar.component';
-import { useAuthStore } from './services/store/auth-store';
-import { AppVersionService } from './services/core/app-version.service';
-import { SidebarComponent } from './components/app-container/sidebar/sidebar.component';
+import { TopbarComponent } from '@shared/components/layout/topbar/topbar.component';
+import { useAuthStore } from '@core/store/auth-store';
+import { AppVersionService } from '@core/services/app-version.service';
+import { SidebarComponent } from '@shared/components/layout/sidebar/sidebar.component';
 
 @Component({
   standalone: true,
