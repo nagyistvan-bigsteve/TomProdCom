@@ -21,26 +21,61 @@ Angular 19 PWA for lumber depot order management. Mobile-first, supports Romania
 
 **Layered flow:**
 ```
-Pages & Components → NgRX Signal Stores → Query Services → Supabase
+features/ (pages & components) → feature stores → feature services → @core/services/supabase.service
 ```
 
-### State Management (NgRX Signals)
+### Folder Structure (`src/app/`)
 
-All state lives in `src/app/services/store/`:
-- **`auth-store.ts`** — user auth, role (`user`/`admin`), approval status; persists to localStorage
-- **`cart/`** — offer line items, totals; persists to localStorage
-- **`client/`** — currently selected client
-- **`product/`** — entity store for products, prices, stocks
-- **`order/`** — active order during creation workflow
-- **`custom-features/with-busy`** — reusable async loading state pattern used across stores
+```
+core/          Singleton infrastructure (guards, models, auth, supabase client)
+shared/        Reusable UI and utilities shared across features
+features/      Self-contained feature slices (each owns pages, components, services, store)
+app.routes.ts  Top-level route tree
+app.config.ts  Angular providers
+app.component  Shell with <router-outlet>, topbar, sidebar
+```
 
-### Data Layer (`src/app/services/query-services/`)
+Each folder has its own `CLAUDE.md` with detailed context. Read the relevant one before working in that area.
 
-Each service wraps Supabase queries as RxJS Observables. No direct Supabase calls outside these services.
+### TypeScript Path Aliases
+
+```
+@core/*      → src/app/core/*
+@shared/*    → src/app/shared/*
+@features/*  → src/app/features/*
+```
+
+Use these aliases for all cross-folder imports. Relative imports are only acceptable within the same directory.
+
+### core/ — Singleton Infrastructure
+
+- **`guards/`** — `authGuard` (3-level access control), `cuiValidator` (Romanian CUI)
+- **`models/`** — all domain interfaces, enums, animations
+- **`services/`** — `SupabaseService` (client), `AppVersionService` (force-reload on deploy), `InstallService` (PWA prompt)
+- **`store/auth-store.ts`** — global auth state (role, approved flag); persists to localStorage
+- **`store/custom-features/with-busy/`** — reusable NgRX Signals async-loading pattern
+
+### shared/ — Cross-Feature Reusables
+
+- **`components/layout/`** — `TopbarComponent`, `SidebarComponent`, `LanguageSwitcherComponent`
+- **`components/dialogs/`** — generic confirm-delete and confirm-restore dialogs
+- **`directives/`** — `DecimalInputDirective`
+- **`utils/`** — `NotificationService`, `filter.util`, `product.util`, `order-pdf-generator.util`
+
+### features/ — Feature Slices
+
+| Feature | Routes | Owns |
+|---|---|---|
+| `admin/` | `/settings`, `/deleted` | user approval, product/price admin |
+| `auth/` | `/auth`, `/user`, `/wait-to-approve`, `/reset-password` | login, signup, account |
+| `clients/` | `/clients` | client CRUD, client store |
+| `coming-wares/` | `/coming-wares` | incoming stock tracking |
+| `orders/` | `/offer/*`, `/orders`, `/offers`, `/deleted` | offer workflow, cart store, PDF |
+| `products/` | `/products` | catalog, stock, pricing, product store |
 
 ### Routing & Guards
 
-`app.routes.ts` defines the route tree. `auth-guard.service.ts` enforces three levels:
+`app.routes.ts` defines the route tree. `authGuard` enforces three levels:
 1. Unauthenticated → `/auth`
 2. Authenticated but unapproved → `/wait-to-approve`
 3. Non-admin accessing admin routes → `/offer`
@@ -50,13 +85,15 @@ Admin-only routes: `/settings`, `/deleted`
 ### Order Creation Workflow
 
 Multi-step flow under `/offer`:
-- `/offer/client` → select customer
-- `/offer/create` → build cart (products, quantities, prices)
-- `/offer/overview` → review and confirm
+- `/offer/client` → select customer (`features/orders/pages/select-client/`)
+- `/offer/create` → build cart (`features/orders/pages/create-offer/`)
+- `/offer/overview` → review and confirm (`features/orders/pages/offer-overview/`)
+
+State held in `@features/orders/store/cart/` and `@features/orders/store/order/`.
 
 ### Domain Model
 
-Key types defined in `src/app/models/models.ts` and `src/app/models/enums.ts`:
+Key types in `@core/models/models` and `@core/models/enums`:
 - **Units:** `BUC` (pieces), `M2`, `M3`, `BUNDLE`
 - **Categories:** `A`, `AB`, `B`, `T` (quality grades)
 - **ClientType:** `PF` (individual), `PJ` (company — different pricing rules)

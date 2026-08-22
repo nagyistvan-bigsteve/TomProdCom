@@ -1,0 +1,211 @@
+﻿import {
+  Component,
+  effect,
+  ElementRef,
+  EventEmitter,
+  inject,
+  Output,
+  ViewChild,
+} from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Observable } from 'rxjs';
+import { Product, Products } from '@core/models/models';
+import { Size_id, Unit_id } from '@core/models/enums';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { ReactiveFormsModule, FormControl, FormsModule } from '@angular/forms';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatDividerModule } from '@angular/material/divider';
+import { FilterUtil } from '@shared/utils/filter.util';
+import { ProductStore } from '@features/products/store/product.store';
+
+@Component({
+  selector: 'app-product-list',
+  templateUrl: './product-list.component.html',
+  imports: [
+    CommonModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    MatAutocompleteModule,
+    ReactiveFormsModule,
+    FormsModule,
+    TranslateModule,
+    MatChipsModule,
+    MatDividerModule,
+  ],
+  styleUrls: ['./product-list.component.scss'],
+})
+export class ProductSelectComponent {
+  @ViewChild('input') input: ElementRef<HTMLInputElement> | null = null;
+  @Output() selectedProduct = new EventEmitter<Product>();
+
+  //variables for storing the products
+  products: Products = [];
+  filteredProducts: Observable<Products> | undefined;
+
+  //Variables for the unit mapping
+  productsByUnits: { unit: Unit_id; products: Products }[] = [];
+  selectedUnit: Unit_id = Unit_id.UNDEFINED;
+
+  //variables for the size mapping
+  productsBySizes: { size: Size_id; products: Products }[] = [];
+  selectedSize: Size_id = Size_id.UNDEFINED;
+
+  //variables for the product select
+  myControl = new FormControl('');
+  filteredOptions: Product[] = [];
+  productsByFilter: Products = [];
+
+  private filterUtil = inject(FilterUtil);
+  readonly productStore = inject(ProductStore);
+  private justSelected: boolean = true;
+  private firstFocus: boolean = true;
+
+  constructor() {
+    effect(() => {
+      const products = this.productStore.productsEntities();
+      if (products.length) {
+        this.fetchProductGroups(products);
+      }
+    });
+  }
+
+  fetchProductGroups(products: Products) {
+    this.products = products;
+    this.productsByUnits = this.groupProductsByUnit(products);
+    this.productsByUnits.unshift({
+      unit: Unit_id.UNDEFINED,
+      products: products,
+    });
+
+    this.productsBySizes = this.groupProductsBySize(products);
+    this.productsBySizes.unshift({
+      size: Size_id.UNDEFINED,
+      products: products,
+    });
+
+    this.productsByFilter = this.fetchProductsByFilters();
+  }
+
+  fetchProductsByFilters(): Products {
+    if (
+      this.selectedSize === Size_id.UNDEFINED &&
+      this.selectedUnit === Unit_id.UNDEFINED
+    ) {
+      return this.products;
+    }
+
+    if (this.selectedUnit === Unit_id.UNDEFINED) {
+      return this.products.filter(
+        (product) => product.size_id === this.selectedSize
+      );
+    }
+
+    if (this.selectedSize === Size_id.UNDEFINED) {
+      return this.products.filter(
+        (product) => product.unit_id === this.selectedUnit
+      );
+    }
+
+    return this.products.filter(
+      (product) =>
+        product.unit_id === this.selectedUnit &&
+        product.size_id === this.selectedSize
+    );
+  }
+
+  optionSelected(product: Product) {
+    this.selectedProduct.emit(product);
+    this.justSelected = true;
+  }
+
+  displayProductLabel(product: Product): string {
+    return product ? product.name : '';
+  }
+
+  onFilterChange() {
+    this.myControl.setValue('');
+    this.productsByFilter = this.fetchProductsByFilters();
+  }
+
+  disableSizeChip(productsBySize: {
+    size: Size_id;
+    products: Products;
+  }): boolean {
+    if (this.selectedSize === productsBySize.size) {
+      return true;
+    }
+
+    if (
+      this.selectedUnit !== Unit_id.UNDEFINED &&
+      !productsBySize.products.filter((p) => p.unit_id === this.selectedUnit)
+        .length
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  onInputFocus(): void {
+    if (this.firstFocus) {
+      this.filter();
+      this.firstFocus = false;
+    }
+
+    if (this.justSelected) {
+      this.justSelected = false;
+
+      return;
+    }
+
+    this.myControl.setValue('');
+
+    setTimeout(() => this.filter());
+  }
+
+  filter(): void {
+    this.filteredOptions = this.filterUtil.productFilter(
+      this.input,
+      this.productsByFilter
+    );
+  }
+
+  private groupProductsByUnit(
+    products: Products
+  ): { unit: Unit_id; products: Products }[] {
+    const grouped = products.reduce((acc, product) => {
+      if (!acc[product.unit_id]) {
+        acc[product.unit_id] = [];
+      }
+      acc[product.unit_id].push(product);
+      return acc;
+    }, {} as Record<Unit_id, Products>);
+
+    return Object.entries(grouped).map(([unit, products]) => ({
+      unit: parseInt(unit) as Unit_id,
+      products,
+    }));
+  }
+
+  private groupProductsBySize(
+    products: Products
+  ): { size: Size_id; products: Products }[] {
+    const grouped = products.reduce((acc, product) => {
+      if (!acc[product.size_id]) {
+        acc[product.size_id] = [];
+      }
+      acc[product.size_id].push(product);
+      return acc;
+    }, {} as Record<Size_id, Products>);
+
+    return Object.entries(grouped).map(([size, products]) => ({
+      size: parseInt(size) as Size_id,
+      products,
+    }));
+  }
+}

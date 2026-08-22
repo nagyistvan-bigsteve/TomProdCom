@@ -1,0 +1,62 @@
+﻿import {
+  Component,
+  DestroyRef,
+  EventEmitter,
+  inject,
+  Input,
+  OnInit,
+  Output,
+} from '@angular/core';
+import { LanguageSwitcherComponent } from '../language-swicher/language-switcher.component';
+import { TranslateModule } from '@ngx-translate/core';
+import { CommonModule, Location } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
+import { useAuthStore } from '@core/store/auth-store';
+import { Router } from '@angular/router';
+import { MatBadgeModule } from '@angular/material/badge';
+import { InstallService } from '@core/services/install.service';
+
+@Component({
+  selector: 'app-topbar',
+  imports: [
+    LanguageSwitcherComponent,
+    TranslateModule,
+    MatIconModule,
+    MatButtonModule,
+    MatBadgeModule,
+    CommonModule,
+  ],
+  templateUrl: './topbar.component.html',
+  styleUrl: './topbar.component.scss',
+  animations: [ENTER_AND_LEAVE_ANIMATION],
+})
+export class TopbarComponent implements OnInit {
+  @Output() sidebarToggle = new EventEmitter<void>();
+
+  private location = inject(Location);
+  private router = inject(Router);
+  public authStore = inject(useAuthStore);
+  public installService = inject(InstallService);
+
+  ngOnInit(): void {
+    this.authStore.fetchUnapprovedUsers();
+  }
+
+  installApp(): void {
+    this.installService.promptInstall();
+  }
+
+  toggleSidebar(): void {
+    this.sidebarToggle.emit();
+  }
+
+  goBack(): void {
+    this.location.back();
+  }
+
+  goToUserPage(): void {
+    this.router.navigate(['/user']);
+  }
+}

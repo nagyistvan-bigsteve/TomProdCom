@@ -1,4 +1,10 @@
-import { Directive, ElementRef, HostListener, inject, OnInit } from '@angular/core';
+import {
+  Directive,
+  ElementRef,
+  HostListener,
+  inject,
+  OnInit,
+} from '@angular/core';
 
 @Directive({
   selector: 'input[type=number]',
@@ -29,19 +35,24 @@ export class DecimalInputDirective implements OnInit {
   }
 
   @HostListener('input', ['$event.target'])
-  onInput(input: HTMLInputElement): void {
-    let value = input.value.replace(/,/g, '.');
+  onInput(input: EventTarget | null): void {
+    if (!input) {
+      return;
+    }
+
+    let value = (input as HTMLInputElement).value.replace(/,/g, '.');
     value = value.replace(/[^\d.]/g, '');
 
     const dotIdx = value.indexOf('.');
     if (dotIdx !== -1) {
-      value = value.slice(0, dotIdx + 1) + value.slice(dotIdx + 1).replace(/\./g, '');
+      value =
+        value.slice(0, dotIdx + 1) + value.slice(dotIdx + 1).replace(/\./g, '');
     }
 
-    if (input.value !== value) {
-      const cursor = input.selectionStart ?? value.length;
-      input.value = value;
-      input.setSelectionRange(cursor, cursor);
+    if ((input as HTMLInputElement).value !== value) {
+      const cursor = (input as HTMLInputElement).selectionStart ?? value.length;
+      (input as HTMLInputElement).value = value;
+      (input as HTMLInputElement).setSelectionRange(cursor, cursor);
     }
   }
 }
