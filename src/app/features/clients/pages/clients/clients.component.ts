@@ -24,10 +24,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { ClientStore } from '@features/clients/store/client.store';
 import { toSignal } from '@angular/core/rxjs-interop';
-import {
-  ENTER_AND_LEAVE_ANIMATION,
-  ENTER_ANIMATION,
-} from '@core/models/animations';
+import { ENTER_ANIMATION } from '@core/models/animations';
 import { ClientHistoryComponent } from '@features/clients/components/client-history/client-history.component';
 
 @Component({
