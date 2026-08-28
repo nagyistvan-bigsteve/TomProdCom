@@ -9,7 +9,7 @@ Client (customer) management. The selected client is held in `ClientStore` and p
 Used both as a standalone dialog and as an embedded form in the offer workflow.
 
 - `@Input() withoutForwardButton: boolean` — hides the "continue to offer" navigation button when true (used in standalone context).
-- Form groups: `name`, `type` (PF/PJ), `address`, `delivery_address`, `code`, `other_details`, plus a `phones` FormArray.
+- Form groups: `name`, `type` (PF/PJ), `address`, `code`, `other_details`, plus a `phones` FormArray.
 - Validation:
   - PF clients: `code` must be exactly 13 digits.
   - PJ clients: `code` must pass `cuiValidator()` (Romanian CUI format), unless the "foreign client" mode is enabled.
@@ -76,7 +76,8 @@ See SPEC.md §10.3 for the exact TVA discount amounts and SPEC.md §6.2 for the 
 
 ## Address fields
 
-Clients have two address fields (both in the database; `delivery_address` is currently missing from the TypeScript `Client` model — tracked in SPEC.md §6.2):
+Clients have one address field:
 
 - `address` — billing / main address
-- `delivery_address` — physical delivery location (may differ from billing address for PJ clients)
+
+`delivery_address` belongs to the **Order** record (not the Client). An order's `delivery_address` defaults to the client's billing `address` if not overridden. See SPEC.md §6.6 for the order field definition.

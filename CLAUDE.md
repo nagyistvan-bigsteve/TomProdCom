@@ -98,7 +98,7 @@ State held in `@features/orders/store/cart/` and `@features/orders/store/order/`
 
 Key types in `@core/models/models` and `@core/models/enums`:
 
-- **Units:** `BUC` (pieces), `M2`, `M3`, `BUNDLE`
+- **Units:** `BUC` (pieces), `M2`, `M3`, `BOUNDLE` (bundles — spelled with a U in the enum; do not rename)
 - **Categories:** `A`, `AB`, `B`, `T` (quality grades)
 - **ClientType:** `PF` (individual), `PJ` (company — different pricing rules)
 - **Size:** `NORMAL`, `EXTRA`, `EXTRA2`, `UNDEFINED`

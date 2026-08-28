@@ -63,12 +63,14 @@ Sequential flow — state persists via `CartStore` (localStorage) across all ste
 
 ```
 /offer          → start-page/      navigation buttons only (→ /offer/create, → /products)
-/offer/client   → select-client/   pick a customer → sets ClientStore
-/offer/create   → create-offer/    add products, set quantities and categories → builds CartStore
-/offer/overview → offer-overview/  review pricing, set delivery details → saves to DB
+/offer/create   → create-offer/    (step 1) add products, set quantities and categories → builds CartStore
+/offer/client   → select-client/   (step 2) pick a customer → sets ClientStore
+/offer/overview → offer-overview/  (step 3) review pricing, set delivery details → saves to DB
 ```
 
-> Note: the `/offer` route name is a misnomer — this is really a landing/start page. It may be renamed to `/landing` or `/start` in a future refactor.
+> The route listing above reflects the actual workflow order: **products first, then client**. The route `/offer/client` appears alphabetically before `/offer/create` but is visited second. See SPEC.md §9 for the canonical workflow diagram.
+>
+> Note: the `/offer` start route name is a misnomer — this is really a landing/start page. It may be renamed to `/landing` or `/start` in a future refactor.
 
 ### `start-page/`
 

@@ -465,7 +465,7 @@ An offer is converted to an order by setting `just_offer = false`.
 | `voucher`              | string            | Discount code; see section 10 for format                                        |
 | `comment`              | string            | Free-form notes; delivery fee and TVA note are appended here automatically      |
 | `total_quantity`       | number            | Total **M3 volume** across all line items (used for transport/tonnage overview) |
-| `paid_amount`          | number            | Amount already paid by the customer                                             |
+| `paid_amount`          | number            | Amount already paid by the customer; editable via a popup triggered by tapping the price cell in the order table |
 | `delivery_fee`         | number            | Delivery cost in RON; appended to comment as `"Transport: N RON"`               |
 | `delivery_address`     | string            | Delivery address for this order; defaults to `client.address` if not overridden |
 | `sort_order`           | number            | Admin drag-and-drop priority position                                           |
@@ -982,9 +982,13 @@ Route:
 - view deleted orders;
 - restore deleted orders.
 
+### Auto-purge
+
+Soft-deleted **orders** are automatically and permanently purged **10 days** after their `deleted_at` timestamp. A countdown is shown in the Deleted page so employees know how long before an order is unrecoverable. The constant `DAYS_UNTIL_PERMANENT_DELETE = 10` controls this threshold.
+
 ### Deleted users
 
-Deleted users are permanently erased after 10 days.
+Denied/deleted users are permanently erased after 10 days.
 
 This retention behavior should be implemented deliberately and safely.
 
@@ -1026,6 +1030,10 @@ Keep as offer       Transform to order
 ```
 
 An offer may also be used as the starting point for creating an order while allowing the user to make changes.
+
+### Cart persistence
+
+The product selection (cart) is persisted to `localStorage` throughout the offer creation workflow. If the user returns to the offer creation flow after more than **10 minutes** of inactivity, they are prompted to either restore the saved cart or discard it and start fresh. If the stale cart is detected outside the offer creation routes, it is silently discarded.
 
 ---
 
@@ -1235,26 +1243,42 @@ Current functionality:
 
 - view stock;
 - edit stock;
-- use stock information while creating orders.
+- use stock information while creating orders;
+- track incoming shipments and increment stock on verified delivery.
 
 ### `booked_stock`
 
-The `stocks` table (and the TypeScript `Stock` type) contains a `booked_stock` column. This field is **not currently used** by any application code and is reserved for a future stock-reservation feature. Do not rely on it or write to it until the feature is explicitly implemented.
+The `stocks` table (and the TypeScript `Stock` type) contains a `booked_stock` column.
+
+**Current state — partially active via a Postgres trigger:**
+
+A database trigger (`trg_order_item_book_stock`) fires automatically on every INSERT into `order_items`. For real orders (`just_offer = false`) and non-M2 products, the trigger increments `booked_stock` by the ordered quantity. Offers (`just_offer = true`) are excluded.
+
+The release side is **incomplete**: the Supabase RPC `product_booked_stock_sold` (which decrements both `stock` and `booked_stock` on delivery) exists but is never called from the frontend. Consequently, `booked_stock` accumulates but is never decremented — the booking lifecycle does not close.
+
+Frontend service methods `addToBookedStock()`, `bookedStockSold()`, and `updateBookedStock()` in `stocks.service.ts` are **dead code** — they are defined but never called. They exist for a future wiring-up of the delivery decrement.
+
+### Incoming stock (`coming_wares`)
+
+The `coming_wares` feature tracks incoming shipments. When a shipment is inspected and verified, stock IS updated:
+
+- Items with `for_order = false`: delivered to the **warehouse** → `stock` is incremented via `addToProductStock()` when the item is verified as correct.
+- Items with `for_order = true`: delivered **directly to a customer's order** → stock is NOT incremented (the goods bypass the warehouse).
+- The `all_for_order` convenience flag forces all items in a shipment to `for_order = true`.
+
+### Stock concepts
+
+```text
+available stock      ← currently active (stocks.stock field)
+reserved stock       ← partially active (booked_stock incremented by trigger, never decremented)
+incoming/ordered     ← active (coming_wares feature — stock incremented on verification for warehouse items)
+```
 
 Future functionality:
 
-- ordered/incoming stock;
+- completing the `booked_stock` lifecycle (wire up delivery decrement);
 - stock per warehouse;
-- warehouse-specific inventory;
-- delivery-related stock changes.
-
-The system should distinguish conceptually between:
-
-```text
-available stock      ← currently implemented (stock field)
-reserved stock       ← future (booked_stock field, not yet active)
-incoming/ordered     ← future (coming_wares feature — tracking only, not yet affecting stock)
-```
+- warehouse-specific inventory.
 
 Do not implement future inventory concepts prematurely unless the feature is explicitly requested.
 
