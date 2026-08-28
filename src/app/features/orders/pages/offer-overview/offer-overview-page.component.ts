@@ -248,6 +248,7 @@ export class OfferOverviewPageComponent {
 
     this.usedPriceCategories = usedPrices.sort((a, b) => a.unit - b.unit);
     this.productStore.setUsedPriceCategories(this.usedPriceCategories);
+    this.productStore.setPricingClientId(this.clientStore.client()?.id ?? null);
   }
 
   loaded(): void {

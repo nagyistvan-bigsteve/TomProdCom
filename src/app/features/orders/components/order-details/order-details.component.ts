@@ -202,10 +202,12 @@ export class OrderDetailsComponent implements OnInit {
   }
 
   addOrderItem(): void {
+    const newUnitPrice = this.customUnitPrice ?? this.findExistingCategories();
+
     const { price, packsNeeded, extraPiecesNeeded, totalPiecesNeeded } =
       this.productUtil.calculatePrice(
         this.selectedProduct,
-        this.customUnitPrice ?? this.findExistingCategories()!,
+        newUnitPrice!,
         this.selectedProductQuantity,
         this.selectedM2Quantity(),
       );
@@ -221,6 +223,43 @@ export class OrderDetailsComponent implements OnInit {
 
       this.selectedProductQuantity =
         totalPiecesNeeded * this.selectedProduct.m2_brut;
+    }
+
+    const existingItem =
+      newUnitPrice != null ? this.findMergableItem(newUnitPrice) : undefined;
+
+    if (existingItem) {
+      const combinedQuantity = existingItem.quantity + this.selectedProductQuantity;
+      const combinedPrice = existingItem.price + price;
+
+      this.orderService
+        .editOrderItem(
+          existingItem.id,
+          this.order!.id,
+          { quantity: combinedQuantity, price: combinedPrice },
+          {
+            total_amount: (this.order!.totalAmount ?? 0) + price,
+            total_amount_final: (this.order!.totalAmountFinal ?? 0) + price,
+          },
+        )
+        .then((result) => {
+          if (result) {
+            this.fetchOrderItems();
+            setTimeout(() => {
+              const total = this.getUpdateOrderTotals();
+              this.orderService.updateOrderTotals(
+                this.order!.id,
+                total.totalAmount,
+                total.totalAmountFinal,
+                total.totalQuantity,
+              );
+              this.order!.totalAmount = total.totalAmount;
+              this.order!.totalAmountFinal = total.totalAmountFinal;
+              this.order!.totalQuantity = total.totalQuantity;
+            }, 250);
+          }
+        });
+      return;
     }
 
     this.orderService
@@ -251,6 +290,32 @@ export class OrderDetailsComponent implements OnInit {
       });
   }
 
+  private findMergableItem(newUnitPrice: number): OrderItemsResponse | undefined {
+    if (!this.orderItems || this.selectedProduct.unit_id === Unit_id.M2) {
+      return undefined;
+    }
+    return this.orderItems.find((item) => {
+      if (item.product.id !== this.selectedProduct.id) return false;
+      if (
+        Category[item.category.name as keyof typeof Category] !==
+        this.selectedCategory
+      )
+        return false;
+
+      const existingUnitPrice =
+        item.product.unit_id === Unit_id.M3 && item.product.width
+          ? item.price /
+            (item.quantity *
+              ((item.product.width *
+                item.product.thickness *
+                item.product.length) /
+                1_000_000))
+          : item.price / item.quantity;
+
+      return Math.abs(existingUnitPrice - newUnitPrice) < 0.01;
+    });
+  }
+
   deleteOrderItem(item: OrderItemsResponse): void {
     this.orderService.deleteOrderItem(item).then((result) => {
       if (result) {
@@ -279,6 +344,14 @@ export class OrderDetailsComponent implements OnInit {
     this.catalogStore.setSelectedProduct(product.id);
     this.selectedProductPrice = this.catalogStore.pricesForSelectedProduct();
     this.findExistingCategories();
+
+    const currentIsValid = this.enableCategory.some(
+      (c) => c.category === this.selectedCategory && c.enable,
+    );
+    if (!currentIsValid) {
+      const first = this.enableCategory.find((c) => c.enable);
+      if (first) this.selectedCategory = first.category;
+    }
   }
 
   m2SetUnit(): void {
@@ -295,12 +368,9 @@ export class OrderDetailsComponent implements OnInit {
       return;
     }
 
-    this.enableCategory.forEach((categoryItem) => {
-      categoryItem.enable = this.selectedProductPrice!.find(
-        (price) => price.category_id === categoryItem.category,
-      )?.price
-        ? true
-        : false;
+    const available = this.catalogStore.availableCategoriesForSelectedProduct();
+    this.enableCategory.forEach((cat) => {
+      cat.enable = available.includes(cat.category);
     });
 
     const price = this.selectedProductPrice!.find(
