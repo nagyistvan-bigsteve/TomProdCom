@@ -1,6 +1,63 @@
 ﻿import { Injectable } from '@angular/core';
-import { M2Quantities, Product, ProductItems } from '@core/models/models';
+import type { M2Quantities, Price2, Product, ProductItems } from '@core/models/models';
 import { Category, Unit_id } from '@core/models/enums';
+
+/** Applies the Category B board discount: −50 RON/m³ when unit=M3, category=B, thickness=2.5 cm. */
+export function applyBDiscount(
+  unitPrice: number,
+  unitId: Unit_id,
+  categoryId: Category,
+  thickness: number,
+): number {
+  if (unitId === Unit_id.M3 && categoryId === Category.B && thickness === 2.5) {
+    return unitPrice - 50;
+  }
+  return unitPrice;
+}
+
+/** Applies the TVA reverse-charge discount: −100 RON/m³ for M3, −5 RON/bundle for BUNDLE. */
+export function applyTvaDiscount(
+  unitPrice: number,
+  unitId: Unit_id,
+  isTva: boolean,
+): number {
+  if (!isTva) return unitPrice;
+  if (unitId === Unit_id.M3) return unitPrice - 100;
+  if (unitId === Unit_id.BOUNDLE) return unitPrice - 5;
+  return unitPrice;
+}
+
+/**
+ * Computes the effective display unit price for a price row in the offer overview panel.
+ *
+ * The −50 B board discount is applied ONLY for product-specific rows (product_id set)
+ * where the named product has thickness 2.5 cm. Generic rows (product_id = null) always
+ * show the raw DB price minus TVA — the per-item −50 adjustment is handled automatically
+ * by getExactPrice / compareSavedPrice and should not affect the panel display.
+ */
+export function calculateActualPrice(
+  price: Price2,
+  isTva: boolean,
+  cartItems: ProductItems,
+): number {
+  let basePrice = price.price;
+
+  const hasEligible25Item =
+    price.product_id !== null &&
+    cartItems.some(
+      (item) =>
+        item.category === Category.B &&
+        item.product.unit_id === Unit_id.M3 &&
+        item.product.thickness === 2.5 &&
+        price.product_id === item.product.id,
+    );
+
+  if (hasEligible25Item) {
+    basePrice = applyBDiscount(basePrice, price.unit_id, price.category_id, 2.5);
+  }
+
+  return applyTvaDiscount(basePrice, price.unit_id, isTva);
+}
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +68,6 @@ export class ProductUtil {
     price: number,
     quantity: number,
     m2_quantity?: M2Quantities,
-    category?: Category,
   ): {
     price: number;
     packsNeeded: number;
@@ -39,21 +95,13 @@ export class ProductUtil {
     }
 
     if (product.unit_id === Unit_id.M3) {
-      calculatedPrice =
-        ((product.width * product.length * product.thickness) / 1000000) *
-        price *
-        +quantity;
-
-      if (product.thickness === 2.5 && category === Category.B) {
-        //In case of B board the price is 50 ron lower
-        calculatedPrice =
-          ((product.width * product.length * product.thickness) / 1000000) *
-          (price - 50) *
-          +quantity;
-      }
-
       if (!product.width) {
         calculatedPrice = price * +quantity;
+      } else {
+        calculatedPrice =
+          ((product.width * product.length * product.thickness) / 1000000) *
+          price *
+          +quantity;
       }
     }
 

@@ -112,6 +112,7 @@ export class OrderDetailsComponent implements OnInit {
     piece_per_pack: null,
   };
   isProductSelectet: boolean = false;
+  customUnitPrice: number | null = null;
   filteredOptions: Product[] = [];
   selectedProductQuantity: number = 1;
   selectedM2Quantity = signal<M2Quantities>('BRUT');
@@ -204,10 +205,9 @@ export class OrderDetailsComponent implements OnInit {
     const { price, packsNeeded, extraPiecesNeeded, totalPiecesNeeded } =
       this.productUtil.calculatePrice(
         this.selectedProduct,
-        this.findExistingCategories()!,
+        this.customUnitPrice ?? this.findExistingCategories()!,
         this.selectedProductQuantity,
         this.selectedM2Quantity(),
-        this.selectedCategory,
       );
 
     let packsPieces = '';
@@ -275,6 +275,7 @@ export class OrderDetailsComponent implements OnInit {
     this.isProductSelectet = true;
     this.selectedProduct = product;
     this.selectedM2Quantity.set('BRUT');
+    this.customUnitPrice = null;
     this.catalogStore.setSelectedProduct(product.id);
     this.selectedProductPrice = this.catalogStore.pricesForSelectedProduct();
     this.findExistingCategories();
@@ -307,21 +308,26 @@ export class OrderDetailsComponent implements OnInit {
     );
 
     if (price) {
+      let unitPrice = price.price;
+
+      if (
+        price.unit_id === Unit_id.M3 &&
+        this.selectedCategory === Category.B &&
+        this.selectedProduct.thickness === 2.5
+      ) {
+        unitPrice -= 50;
+      }
+
       if (isTva) {
-        if (price.product_id) {
-          if (price.unit_id === Unit_id.BOUNDLE) {
-            return price.price - 5;
-          }
-          if (price.unit_id === Unit_id.M3) {
-            return price.price - 100;
-          }
-        } else {
-          if (price.unit_id === Unit_id.M3) {
-            return price.price - 100;
-          }
+        if (price.unit_id === Unit_id.M3) {
+          unitPrice -= 100;
+        }
+        if (price.unit_id === Unit_id.BOUNDLE) {
+          unitPrice -= 5;
         }
       }
-      return price?.price ? price.price : undefined;
+
+      return unitPrice || undefined;
     }
     return undefined;
   }
@@ -361,7 +367,7 @@ export class OrderDetailsComponent implements OnInit {
 
   transformExactOfferToOrder(order: OrderResponse): void {
     const dialogRef = this._dialog.open(this.confirmTransformExactOfferDialog, {
-      width: '300px',
+      width: '90%',
     });
 
     dialogRef
@@ -393,11 +399,13 @@ export class OrderDetailsComponent implements OnInit {
             quantity: item.quantity,
             price: item.price,
             category: Category[item.category.name as keyof typeof Category],
+            manualPrice: true,
           }));
           this.clientStore.setClientId(
             this.clientStore.clientsEntityMap()[order.clientId].id,
           );
           this.productStore.setProductItems(productItems);
+          this.productStore.setPricingClientId(order.clientId);
           if (this.deleteOffer) {
             this.orderService.permanentlyDeleteOrder(order.id);
           }

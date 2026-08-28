@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "test:unit": "vitest run --config vitest.config.mjs --no-cache",
+    "test:unit:watch": "vitest --config vitest.config.mjs --no-cache"
   },
   "private": true,
   "dependencies": {
@@ -39,6 +41,7 @@
     "@angular/cli": "^19.1.5",
     "@angular/compiler-cli": "^19.1.0",
     "@types/jasmine": "~5.1.0",
+    "@vitest/coverage-v8": "^4.1.11",
     "angular-cli-ghpages": "^2.0.3",
     "gh-pages": "^6.3.0",
     "jasmine-core": "~5.5.0",
@@ -47,6 +50,8 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vite": "^6.4.3",
+    "vitest": "^4.1.11"
   }
 }

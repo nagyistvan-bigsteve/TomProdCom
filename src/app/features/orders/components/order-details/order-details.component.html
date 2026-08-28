@@ -342,18 +342,36 @@
 
           @if (isProductSelectet && selectedProduct.unit_id === 2) {
             <div (click)="m2SetUnit()" class="m2-unit-badge ms-2">
-              @if (selectedM2Quantity() === "BRUT" || selectedM2Quantity() === "NET") {
+              @if (
+                selectedM2Quantity() === "BRUT" ||
+                selectedM2Quantity() === "NET"
+              ) {
                 M2
               }
               {{ selectedM2Quantity() }}
             </div>
           }
 
-          <div class="d-flex align-items-center justify-content-end flex-grow-1">
+          <div
+            class="d-flex align-items-center justify-content-end flex-grow-1"
+          >
             <button mat-icon-button (click)="addOrderItem()">
               <i class="material-icons text-white fs-1">add_circle</i>
             </button>
           </div>
+        </div>
+        <div>
+          <mat-form-field class="mt-2 custom-price-field" appearance="fill">
+            <mat-label>{{
+              "ORDER.DETAILS.EDIT_DIALOG.CUSTOM_PRICE_INPUT" | translate
+            }}</mat-label>
+            <input
+              matInput
+              [(ngModel)]="customUnitPrice"
+              type="number"
+              [ngModelOptions]="{ standalone: true }"
+            />
+          </mat-form-field>
         </div>
       </form>
     </div>

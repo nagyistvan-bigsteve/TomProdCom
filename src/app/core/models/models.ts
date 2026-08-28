@@ -46,6 +46,7 @@ export type ProductItem = {
   category: Category;
   packsNeeded?: number;
   extraPiecesNeeded?: number;
+  manualPrice?: boolean;
 };
 
 export type ExactOrderItem = {

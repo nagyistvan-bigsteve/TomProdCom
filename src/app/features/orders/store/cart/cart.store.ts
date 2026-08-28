@@ -6,7 +6,7 @@
   withMethods,
   withState,
 } from '@ngrx/signals';
-import { ProductItem, ProductItems } from '@core/models/models';
+import { ProductItem, ProductItems, UsedPricesInOrder } from '@core/models/models';
 import { Category } from '@core/models/enums';
 import { MatDialog } from '@angular/material/dialog';
 import { computed, inject } from '@angular/core';
@@ -30,6 +30,8 @@ export const CartStore = signalStore(
       const state = {
         productItems: store.productItems(),
         lastUpdated: store.lastUpdated(),
+        usedPriceCategories: store.usedPriceCategories(),
+        pricingClientId: store.pricingClientId(),
       };
 
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -132,10 +134,22 @@ export const CartStore = signalStore(
         }
       },
 
+      setUsedPriceCategories(categories: UsedPricesInOrder) {
+        patchState(store, { usedPriceCategories: categories });
+        persistState();
+      },
+
+      setPricingClientId(id: number | null) {
+        patchState(store, { pricingClientId: id });
+        persistState();
+      },
+
       deleteProductItems() {
         patchState(store, {
           productItems: [],
           lastUpdated: new Date().toLocaleString('sv-SE'),
+          usedPriceCategories: [],
+          pricingClientId: null,
         });
 
         persistState();

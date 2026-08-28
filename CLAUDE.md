@@ -20,6 +20,7 @@ Angular 19 PWA for lumber depot order management. Mobile-first, supports Romania
 **Stack:** Angular 19 (standalone components) · NgRX Signals · Angular Material + Bootstrap 5 · Supabase (PostgreSQL + Auth + RLS) · Firebase Hosting
 
 **Layered flow:**
+
 ```
 features/ (pages & components) → feature stores → feature services → @core/services/supabase.service
 ```
@@ -64,18 +65,19 @@ Use these aliases for all cross-folder imports. Relative imports are only accept
 
 ### features/ — Feature Slices
 
-| Feature | Routes | Owns |
-|---|---|---|
-| `admin/` | `/settings`, `/deleted` | user approval, product/price admin |
-| `auth/` | `/auth`, `/user`, `/wait-to-approve`, `/reset-password` | login, signup, account |
-| `clients/` | `/clients` | client CRUD, client store |
-| `coming-wares/` | `/coming-wares` | incoming stock tracking |
-| `orders/` | `/offer/*`, `/orders`, `/offers`, `/deleted` | offer workflow, cart store, PDF |
-| `products/` | `/products` | catalog, stock, pricing, product store |
+| Feature         | Routes                                                  | Owns                                   |
+| --------------- | ------------------------------------------------------- | -------------------------------------- |
+| `admin/`        | `/settings`, `/deleted`                                 | user approval, product/price admin     |
+| `auth/`         | `/auth`, `/user`, `/wait-to-approve`, `/reset-password` | login, signup, account                 |
+| `clients/`      | `/clients`                                              | client CRUD, client store              |
+| `coming-wares/` | `/coming-wares`                                         | incoming stock tracking                |
+| `orders/`       | `/offer/*`, `/orders`, `/offers`, `/deleted`            | offer workflow, cart store, PDF        |
+| `products/`     | `/products`                                             | catalog, stock, pricing, product store |
 
 ### Routing & Guards
 
 `app.routes.ts` defines the route tree. `authGuard` enforces three levels:
+
 1. Unauthenticated → `/auth`
 2. Authenticated but unapproved → `/wait-to-approve`
 3. Non-admin accessing admin routes → `/offer`
@@ -85,6 +87,7 @@ Admin-only routes: `/settings`, `/deleted`
 ### Order Creation Workflow
 
 Multi-step flow under `/offer`:
+
 - `/offer/client` → select customer (`features/orders/pages/select-client/`)
 - `/offer/create` → build cart (`features/orders/pages/create-offer/`)
 - `/offer/overview` → review and confirm (`features/orders/pages/offer-overview/`)
@@ -94,6 +97,7 @@ State held in `@features/orders/store/cart/` and `@features/orders/store/order/`
 ### Domain Model
 
 Key types in `@core/models/models` and `@core/models/enums`:
+
 - **Units:** `BUC` (pieces), `M2`, `M3`, `BUNDLE`
 - **Categories:** `A`, `AB`, `B`, `T` (quality grades)
 - **ClientType:** `PF` (individual), `PJ` (company — different pricing rules)
@@ -119,25 +123,26 @@ Before writing code, invoke the matching skill or plugin rather than working fro
 
 ### Skills
 
-| Skill | When to invoke |
-|---|---|
-| `angular-developer` | Any Angular component, service, store, routing, signals, forms, animations, DI, testing, or CLI work |
-| `supabase` | Any Supabase task: auth, database, RLS, edge functions, realtime, storage, migrations, debugging |
+| Skill                              | When to invoke                                                                                                    |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `angular-developer`                | Any Angular component, service, store, routing, signals, forms, animations, DI, testing, or CLI work              |
+| `supabase`                         | Any Supabase task: auth, database, RLS, edge functions, realtime, storage, migrations, debugging                  |
 | `supabase-postgres-best-practices` | Before writing or changing anything in the Postgres database (schema, columns, indexes, RLS, triggers, functions) |
-| `frontend-design:frontend-design` | Aesthetic direction, typography, layout decisions, any new UI or visual redesign |
-| `code-review` | After implementing a non-trivial change, before reporting it done |
-| `verify` | To confirm a change works correctly in the running app |
-| `security-review` | Any change touching auth, RLS, role logic, pricing, deletion, or sensitive operations |
+| `frontend-design:frontend-design`  | Aesthetic direction, typography, layout decisions, any new UI or visual redesign                                  |
+| `code-review`                      | After implementing a non-trivial change, before reporting it done                                                 |
+| `verify`                           | To confirm a change works correctly in the running app                                                            |
+| `security-review`                  | Any change touching auth, RLS, role logic, pricing, deletion, or sensitive operations                             |
 
 ### MCP Plugins
 
-| Plugin | When to use |
-|---|---|
-| `context7` | Fetch current docs for Angular, Supabase, RxJS, NgRx, Material, or any third-party library before writing library-specific code |
-| `supabase` (MCP) | Inspect schema, run migrations, query logs, manage branches, execute SQL directly against the project |
+| Plugin           | When to use                                                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `context7`       | Fetch current docs for Angular, Supabase, RxJS, NgRx, Material, or any third-party library before writing library-specific code |
+| `supabase` (MCP) | Inspect schema, run migrations, query logs, manage branches, execute SQL directly against the project                           |
 
 ## Key Conventions
 
 - All components are **standalone** (no NgModules)
 - Prefer **Signals** over RxJS for new state; use RxJS only for async data fetching
 - `SPEC.md` in the repo root is the authoritative business requirements document — consult it for domain rules (pricing logic, stock semantics, approval flow, etc.)
+- **Unit tests**: Every bug fix or new feature that touches pricing, cart, or core business logic must include a matching Vitest test in a `<module>.vitest.spec.ts` file. Run with `npm run test:unit`. Angular component behaviour is covered by the existing Karma+Jasmine suite (`npm test`) but the suites are always emty. When you work on a new feature in a component or a new business logic or a bigger bug fix, you should extend the existing test files with new testcases. Pure helper functions must be exported so they can be tested without Angular DI.

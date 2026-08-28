@@ -1,6 +1,7 @@
 ﻿import {
   Component,
   DestroyRef,
+  effect,
   inject,
   signal,
   TemplateRef,
@@ -27,13 +28,13 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Category, Unit_id } from '@core/models/enums';
+
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { Price2, UsedPricesInOrder } from '@core/models/models';
+import { Price2, ProductItem, UsedPricesInOrder } from '@core/models/models';
 import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
-import { ProductUtil } from '@shared/utils/product.util';
+import { calculateActualPrice, ProductUtil } from '@shared/utils/product.util';
 import { ClientStore } from '@features/clients/store/client.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 
@@ -98,6 +99,37 @@ export class OfferOverviewPageComponent {
 
   usedPriceCategories: UsedPricesInOrder = [];
   private pricesCache: Price2[] = [];
+  private lastClientId = signal<number | null>(null);
+
+  constructor() {
+    effect(() => {
+      const currentId = this.clientStore.client()?.id ?? null;
+      const previous = this.lastClientId();
+
+      if (previous !== null && previous !== currentId) {
+        this.resetForClientChange();
+      } else if (previous === null && currentId !== null) {
+        const storedClientId = this.productStore.pricingClientId();
+        if (storedClientId !== null && storedClientId !== currentId) {
+          this.resetForClientChange();
+        }
+      }
+
+      this.lastClientId.set(currentId);
+    });
+  }
+
+  private resetForClientChange(): void {
+    this.usedPriceCategories = [];
+    this.productStore.setUsedPriceCategories([]);
+    this.productStore.productItems().forEach((item) => {
+      if (item.manualPrice) {
+        this.productStore.updateProductItem(item.product.id, item.category, {
+          manualPrice: false,
+        });
+      }
+    });
+  }
 
   get totalPrice(): number {
     let total = this.price;
@@ -130,15 +162,49 @@ export class OfferOverviewPageComponent {
 
   // Set the final price and calculate the discount
   setFinalPrice(index: number, finalPrice: number): void {
+    const row = this.usedPriceCategories[index];
     const updated = {
-      ...this.usedPriceCategories[index],
-      discount: finalPrice - this.usedPriceCategories[index].price,
+      ...row,
+      discount: finalPrice - row.price,
     };
 
     const newArray = [...this.usedPriceCategories];
     newArray[index] = updated;
 
     this.usedPriceCategories = newArray;
+    this.productStore.setUsedPriceCategories(this.usedPriceCategories);
+
+    this.productStore.productItems().forEach((item: ProductItem) => {
+      const matchesRow =
+        item.category === row.category &&
+        item.product.unit_id === row.unit &&
+        (row.productId
+          ? item.product.id === row.productId
+          : item.product.size_id === row.size);
+
+      if (matchesRow) {
+        if (!row.productId) {
+          const hasOwnRow = this.usedPriceCategories.some(
+            (r) =>
+              r.productId === item.product.id &&
+              r.unit === row.unit &&
+              r.category === row.category,
+          );
+          if (hasOwnRow) return;
+        }
+
+        const newPrice = this.productUtil.calculatePrice(
+          item.product,
+          finalPrice,
+          item.quantity,
+          'BRUT',
+        ).price;
+        this.productStore.updateProductItem(item.product.id, item.category, {
+          price: newPrice,
+          manualPrice: true,
+        });
+      }
+    });
   }
 
   getProductName(productId: number): string | undefined {
@@ -152,7 +218,11 @@ export class OfferOverviewPageComponent {
 
     const isTva = this.clientStore.client()?.tva ?? false;
 
-    const previousDiscounts = [...this.usedPriceCategories];
+    const previousDiscounts =
+      this.usedPriceCategories.length
+        ? [...this.usedPriceCategories]
+        : [...this.productStore.usedPriceCategories()];
+
     const expandedPrices = this.expandPrices(prices);
 
     const usedPrices: UsedPricesInOrder = expandedPrices.map((price) => {
@@ -163,7 +233,7 @@ export class OfferOverviewPageComponent {
           p.category === price.category_id &&
           p.unit === price.unit_id &&
           p.size === price.size_id &&
-          p.productId === price.product_id,
+          (p.productId ?? null) === price.product_id,
       );
 
       return {
@@ -177,6 +247,7 @@ export class OfferOverviewPageComponent {
     });
 
     this.usedPriceCategories = usedPrices.sort((a, b) => a.unit - b.unit);
+    this.productStore.setUsedPriceCategories(this.usedPriceCategories);
   }
 
   loaded(): void {
@@ -259,27 +330,7 @@ export class OfferOverviewPageComponent {
   }
 
   private calculateActualPrice(price: Price2, isTva: boolean): number {
-    let basePrice = price.price;
-
-    if (
-      price.unit_id === Unit_id.M3 &&
-      price.category_id === Category.B &&
-      this.productStore.productItems().some(
-        (item) =>
-          item.category === Category.B &&
-          item.product.unit_id === Unit_id.M3 &&
-          item.product.thickness === 2.5 &&
-          (price.product_id === null || price.product_id === item.product.id),
-      )
-    ) {
-      basePrice -= 50;
-    }
-
-    if (!isTva) return basePrice;
-    if (price.unit_id === Unit_id.BOUNDLE) return basePrice - 5;
-    if (price.unit_id === Unit_id.M3) return basePrice - 100;
-
-    return basePrice;
+    return calculateActualPrice(price, isTva, this.productStore.productItems());
   }
 
   private expandPrices(prices: Price2[]): Price2[] {

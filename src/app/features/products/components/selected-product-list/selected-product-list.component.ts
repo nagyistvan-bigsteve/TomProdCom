@@ -23,7 +23,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CartStore } from '@features/orders/store/cart/cart.store';
 import { Price2, ProductItem, UsedPricesInOrder } from '@core/models/models';
 import { Category, Unit_id } from '@core/models/enums';
-import { ProductUtil } from '@shared/utils/product.util';
+import { applyBDiscount, applyTvaDiscount, ProductUtil } from '@shared/utils/product.util';
 import { FormsModule } from '@angular/forms';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { ClientStore } from '@features/clients/store/client.store';
@@ -76,7 +76,7 @@ export class SelectedProductListComponent implements OnChanges {
   constructor() {
     effect(() => {
       const prices = this.productStore.pricesEntities();
-      this.clientStore.isClientSelected(); // track for reactivity on client change
+      this.clientStore.client(); // track full client object — re-fires when switching between clients
 
       if (!prices.length) return;
 
@@ -286,6 +286,8 @@ export class SelectedProductListComponent implements OnChanges {
 
   private compareSavedPrice(): void {
     this.cartStore.productItems().forEach((item) => {
+      if (item.manualPrice) return;
+
       let calculatedPrice = this.getCalculatedPrice(item.category, item);
 
       if (calculatedPrice != item.price) {
@@ -308,7 +310,6 @@ export class SelectedProductListComponent implements OnChanges {
       newPrice,
       item.quantity,
       'BRUT',
-      category,
     ).price;
 
     return calculatedNewPrice;
@@ -325,7 +326,6 @@ export class SelectedProductListComponent implements OnChanges {
         newPrice,
         item.quantity,
         'BRUT',
-        newCategory,
       ).price;
 
       this.cartStore.updateProductItem(item.product.id, item.category, {
@@ -361,13 +361,9 @@ export class SelectedProductListComponent implements OnChanges {
             price.unit_id === item.product.unit_id,
         )?.price;
 
-    if (isTva && exactPrice) {
-      if (item.product.unit_id === Unit_id.M3) {
-        exactPrice = exactPrice - 100;
-      }
-      if (item.product.unit_id === Unit_id.BOUNDLE) {
-        exactPrice = exactPrice - 5;
-      }
+    if (exactPrice) {
+      exactPrice = applyBDiscount(exactPrice, item.product.unit_id, newCategory, item.product.thickness);
+      exactPrice = applyTvaDiscount(exactPrice, item.product.unit_id, isTva);
     }
 
     if (this.discounts.length) {

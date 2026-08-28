@@ -25,7 +25,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ProductUtil } from '@shared/utils/product.util';
+import { applyBDiscount, ProductUtil } from '@shared/utils/product.util';
 import { ProductStore } from '@features/products/store/product.store';
 
 @Component({
@@ -215,13 +215,18 @@ export class SelectedProductComponent implements OnChanges {
   }
 
   private calculatePrice(): void {
+    const adjustedUnitPrice = applyBDiscount(
+      this.selectedPrice?.price!,
+      this.selectedProduct!.unit_id,
+      this.selectedCategory,
+      this.selectedProduct!.thickness,
+    );
     const { price, packsNeeded, extraPiecesNeeded, totalPiecesNeeded } =
       this.productUtil.calculatePrice(
         this.selectedProduct!,
-        this.selectedPrice?.price!,
+        adjustedUnitPrice,
         +this.quantity,
         this.m2_quantity(),
-        this.selectedCategory,
       );
 
     this.calculatedPrice = price;

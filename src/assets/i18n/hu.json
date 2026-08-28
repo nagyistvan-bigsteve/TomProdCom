@@ -262,6 +262,7 @@
         "DESCRIPTION": "{{product}} módosítása.",
         "QUANTITY_INPUT": "Mennyiség",
         "CATEGORY_INPUT": "Minőség",
+        "CUSTOM_PRICE_INPUT": "Egyedi ár (RON/egység)",
         "CANCEL_BUTTON": "Mégse",
         "SAVE_BUTTON": "Mentés"
       }

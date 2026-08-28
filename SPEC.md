@@ -395,9 +395,9 @@ A product represents an item sold by the depot.
 | `name`           | string    | Unique product name                                                                |
 | `unit_id`        | `Unit_id` | BUC, M2, M3, or BUNDLE — determines the price-calculation formula                  |
 | `size_id`        | `Size_id` | Dimension/length tier; used for price lookup when no product-specific price exists |
-| `thickness`      | number    | In mm; used in M3 volume formula                                                   |
-| `width`          | number    | In mm; used in M3 volume formula                                                   |
-| `length`         | number    | In mm; used in M3 volume formula                                                   |
+| `thickness`      | number    | In cm; used in M3 volume formula                                                   |
+| `width`          | number    | In cm; used in M3 volume formula. `null` for products sold by volume (no fixed width) |
+| `length`         | number    | In cm; used in M3 volume formula                                                   |
 | `m2_brut`        | number    | Gross m² per piece; used for M2 price calculation                                  |
 | `m2_util`        | number    | Net (usable) m² per piece; used for M2 NET-mode quantity conversion                |
 | `piece_per_pack` | number    | Pieces per pack; used for M2 PAC-mode and pack breakdown display                   |
@@ -1065,7 +1065,7 @@ total = quantity × unit_price
 total = (width × length × thickness / 1,000,000) × unit_price × quantity
 ```
 
-> Units: `width`, `length`, `thickness` are in **mm**. Dividing by 1,000,000 converts mm³ → m³.
+> Units: `width`, `length`, `thickness` are in **cm**. Dividing by 1,000,000 converts cm³ → m³.
 
 If the product has no `width` (e.g. sold by the piece rather than by volume):
 
@@ -1166,6 +1166,8 @@ volumeM3 per item = (width × thickness × length / 1,000,000) × quantity
                     [× 10 for BUNDLE items, since a bundle = 10 pieces]
 ```
 
+> Units: `width`, `thickness`, `length` are in **cm**. Dividing by 1,000,000 converts cm³ → m³.
+
 M2 and BUC items are excluded from this total.
 
 ---
@@ -1203,6 +1205,29 @@ Do not rely on recalculating prices from today's product configuration when disp
 The `total_amount` and `total_amount_final` fields on the order record also persist the total at save time.
 
 ---
+
+# 12. Testing
+
+## 12.1 Unit tests (Vitest)
+
+Pure business-logic functions — price formulas, discount adjustments, quantity calculations — must have Vitest unit tests.
+
+- **File naming**: `<module>.vitest.spec.ts` alongside the source file.
+- **Run**: `npm run test:unit` (single pass) or `npm run test:unit:watch` (watch mode).
+- **Config**: `vitest.config.mjs` at the project root. Path aliases (`@core`, `@shared`, `@features`) are resolved automatically.
+- **Scope**: Test exported pure functions. Do not use Angular `TestBed` or DI in Vitest tests — use plain `new ClassName()` for classes without constructor dependencies.
+
+Current test file: `src/app/shared/utils/product.util.vitest.spec.ts` covers `calculatePrice`, `applyBDiscount`, `applyTvaDiscount`, and adjustment ordering.
+
+## 12.2 Component tests (Karma + Jasmine)
+
+Angular component behaviour (routing, template rendering, DI interactions) is covered by the existing Karma+Jasmine setup.
+
+- **Run**: `npm test`
+
+## 12.3 Rule
+
+Every bug fix or new feature that touches pricing, cart state, or core business logic must include or update a matching Vitest test. This is not optional — the goal is to make regressions visible before they reach production.
 
 # 12. Inventory and Stock
 

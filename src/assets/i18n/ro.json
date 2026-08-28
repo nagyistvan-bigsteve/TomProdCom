@@ -262,6 +262,7 @@
         "DESCRIPTION": "Editare {{product}}.",
         "QUANTITY_INPUT": "Cantitate",
         "CATEGORY_INPUT": "Calitate",
+        "CUSTOM_PRICE_INPUT": "Preț special (RON/unitate)",
         "CANCEL_BUTTON": "Înapoi",
         "SAVE_BUTTON": "Salvare"
       }
