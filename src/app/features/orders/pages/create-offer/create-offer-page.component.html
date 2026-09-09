@@ -20,23 +20,29 @@
       ></app-selected-product>
     }
 
-    <!-- Mini cart bar: mobile only, shows added items at a glance -->
+    <!-- Mini cart summary: mobile only, shows while on product panel -->
     @if (!isDesktop() && productStore.productItems().length > 0) {
       <div class="mini-cart-bar" (click)="selectProductOn = false">
-        <mat-icon class="mini-cart-icon">shopping_cart</mat-icon>
-        <div class="mini-cart-scroll">
-          @for (item of productStore.productItems(); track $index; let last = $last) {
-            <span class="mini-cart-chip">
-              {{ item.product.name }}&nbsp;{{ item.quantity | number: "1.0-2" }}×
+        <div class="mini-cart-header">
+          <div class="d-flex align-items-center gap-2">
+            <mat-icon class="mini-cart-icon">shopping_cart</mat-icon>
+            <span class="mini-cart-total">
+              {{ productStore.cartTotal() | number: "1.0-0" }} RON
             </span>
-            @if (!last) {
-              <span class="mini-cart-sep">·</span>
-            }
+          </div>
+          <mat-icon class="mini-cart-chevron">chevron_right</mat-icon>
+        </div>
+        <div class="mini-cart-list">
+          @for (item of productStore.productItems(); track $index; let last = $last) {
+            <div class="mini-cart-row" [class.last]="last">
+              <span class="mini-cart-name">{{ item.product.name }}</span>
+              <span class="mini-cart-meta">
+                {{ "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category | translate }}
+                · {{ item.quantity | number: "1.0-2" }}×
+              </span>
+            </div>
           }
         </div>
-        <span class="mini-cart-total">
-          {{ productStore.cartTotal() | number: "1.0-0" }}&nbsp;RON
-        </span>
       </div>
     }
   </div>

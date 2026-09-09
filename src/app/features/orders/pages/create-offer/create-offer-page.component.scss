@@ -22,16 +22,18 @@
   }
 }
 
+// ── Panels ─────────────────────────────────────────────
 .product-panel {
   display: flex;
   flex-direction: column;
   overflow: hidden;
   flex: 1;
+  padding: var(--space-3) var(--space-3) 0;
 
   @include md {
     flex: 1;
     min-width: 0;
-    padding-right: var(--space-4);
+    padding: 0 var(--space-4) 0 0;
     border-right: 1px solid rgba(255, 255, 255, 0.15);
     overflow-y: auto;
   }
@@ -62,19 +64,17 @@
 
 // ── Mini cart bar (mobile only) ──────────────────────────
 .mini-cart-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  background-color: rgba(0, 0, 0, 0.2);
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  cursor: pointer;
-  min-height: 48px;
   flex-shrink: 0;
+  // Negative margins to break out of product-panel padding
+  margin-left: calc(-1 * var(--space-3));
+  margin-right: calc(-1 * var(--space-3));
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
   transition: background-color 0.15s;
 
   &:active {
-    background-color: rgba(0, 0, 0, 0.35);
+    background-color: rgba(0, 0, 0, 0.32);
   }
 
   @include md {
@@ -82,49 +82,67 @@
   }
 }
 
-.mini-cart-icon {
-  flex-shrink: 0;
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  opacity: 0.85;
-}
-
-.mini-cart-scroll {
-  flex: 1;
+.mini-cart-header {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  overflow-x: auto;
-  scrollbar-width: none;
-  min-width: 0;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  min-height: 44px;
 }
 
-.mini-cart-chip {
-  white-space: nowrap;
-  font-size: 0.8125rem;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 2px 8px;
-  border-radius: 12px;
-  flex-shrink: 0;
-}
-
-.mini-cart-sep {
-  color: rgba(255, 255, 255, 0.4);
-  flex-shrink: 0;
-  font-size: 0.75rem;
+.mini-cart-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
 }
 
 .mini-cart-total {
-  flex-shrink: 0;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
+}
+
+.mini-cart-chevron {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  opacity: 0.55;
+}
+
+.mini-cart-list {
+  max-height: 30vh;
+  overflow-y: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.mini-cart-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  // Left indent aligns with icon in header
+  padding: 6px var(--space-3) 6px calc(var(--space-3) + 26px);
+  gap: var(--space-3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+  &.last {
+    border-bottom: none;
+  }
+}
+
+.mini-cart-name {
+  font-size: 0.8125rem;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  padding-left: var(--space-1);
+}
+
+.mini-cart-meta {
+  font-size: 0.8125rem;
+  opacity: 0.7;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 // ── Mobile FAB ──────────────────────────────────────────
