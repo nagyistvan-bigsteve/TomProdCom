@@ -1,7 +1,6 @@
 <!-- Mobile: toggle between product-select and cart panels -->
 <!-- Desktop: both panels visible side-by-side -->
 <div class="create-offer-layout">
-
   <!-- Left / primary panel: product search -->
   <div
     class="product-panel"
@@ -33,12 +32,21 @@
           <mat-icon class="mini-cart-chevron">chevron_right</mat-icon>
         </div>
         <div class="mini-cart-list">
-          @for (item of productStore.productItems(); track $index; let last = $last) {
+          @for (
+            item of productStore.productItems();
+            track $index;
+            let last = $last
+          ) {
             <div class="mini-cart-row" [class.last]="last">
-              <span class="mini-cart-name">{{ item.product.name }}</span>
+              <span class="mini-cart-name"
+                >{{ item.product.name }}<span class="px-2">·</span
+                >{{
+                  "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category
+                    | translate
+                }}
+              </span>
               <span class="mini-cart-meta">
-                {{ "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category | translate }}
-                · {{ item.quantity | number: "1.0-2" }}×
+                {{ item.quantity | number: "1.0-2" }}×
               </span>
             </div>
           }
@@ -62,11 +70,17 @@
       mat-fab
       (click)="selectProductOn = !selectProductOn"
       [attr.aria-label]="selectProductOn ? 'Show cart' : 'Back to products'"
-      [matBadge]="selectProductOn && productStore.productItems().length ? productStore.productItems().length : null"
+      [matBadge]="
+        selectProductOn && productStore.productItems().length
+          ? productStore.productItems().length
+          : null
+      "
       matBadgeColor="warn"
       matBadgePosition="above after"
     >
-      <mat-icon>{{ selectProductOn ? "shopping_cart" : "arrow_back" }}</mat-icon>
+      <mat-icon>{{
+        selectProductOn ? "shopping_cart" : "arrow_back"
+      }}</mat-icon>
     </button>
   }
 </div>
