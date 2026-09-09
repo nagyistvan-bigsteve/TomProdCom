@@ -1,4 +1,4 @@
-@use 'breakpoints' as *;
+@use "breakpoints" as *;
 
 :host {
   flex: 1;
@@ -7,6 +7,27 @@
   background-color: rgb(57, 72, 60);
   color: white;
   overflow-y: auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.header-title {
+  flex: 1;
+  font-weight: 500;
+}
+
+.step-chip {
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 2px var(--space-2);
+  border-radius: 10px;
 }
 
 .offer-page-container {
@@ -38,21 +59,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-
-  @include sm {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
 }
 
 .voucher-wrapper {
   width: 100%;
-
-  @include sm {
-    flex: 0 0 200px;
-  }
 }
 
 .total-display {
@@ -66,22 +76,30 @@
   width: 100%;
 }
 
-.total-quantity-card {
-  width: 100%;
-  padding: 0 var(--space-6);
-  font-family: 'Roboto', sans-serif;
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: 1.5rem;
-  color: #1a1b1f;
-  border-radius: 12px;
-  background-color: #faf9fd;
+.overview-layout {
+  display: grid;
+  gap: var(--space-3);
 
-  .total-quantity {
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  @include md {
+    grid-template-columns: 1fr 360px;
+    grid-template-areas: "pl pr" "pl cl" "pl bo";
+    gap: var(--space-4) var(--space-6);
+    align-items: start;
+  }
+}
+
+@include md {
+  .section-prices {
+    grid-area: pr;
+  }
+  .section-client {
+    grid-area: cl;
+  }
+  .section-products {
+    grid-area: pl;
+  }
+  .section-bottom {
+    grid-area: bo;
   }
 }
 
@@ -150,8 +168,12 @@
           font-weight: 500;
         }
 
-        &.positive .discount-value { color: #388e3c; }
-        &.negative .discount-value { color: #d32f2f; }
+        &.positive .discount-value {
+          color: #388e3c;
+        }
+        &.negative .discount-value {
+          color: #d32f2f;
+        }
       }
     }
   }

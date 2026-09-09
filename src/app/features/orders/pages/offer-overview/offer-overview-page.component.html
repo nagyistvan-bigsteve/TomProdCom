@@ -1,9 +1,19 @@
+<!-- Page header strip -->
+<div class="page-header">
+  <button mat-icon-button (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span class="header-title">{{ "OVERVIEW_PAGE.TITLE" | translate }}</span>
+  <span class="step-chip">3 / 3</span>
+</div>
+
 <div class="offer-page-container">
   <div
-    class="full-width"
-    [ngClass]="{ 'd-none': !isLoaded && !clientStore.isBusy() }"
+    class="overview-layout full-width"
+    [class.d-none]="!isLoaded && !clientStore.isBusy()"
   >
-    <div class="full-width mb-3">
+    <!-- Prices: mobile=1st / desktop=right-col top (grid-area: pr) -->
+    <div class="section-prices">
       <mat-accordion class="w-100" multi>
         <mat-expansion-panel [expanded]="false">
           <mat-expansion-panel-header class="px-3">
@@ -105,43 +115,44 @@
       </mat-accordion>
     </div>
 
-    <app-client-details class="full-width mb-3"></app-client-details>
-
-    <app-selected-product-list
-      [isInOverview]="true"
-      [discounts]="usedPriceCategories"
-      (isLoaded)="loaded()"
-      (pricesOutput)="getPriceList($event)"
-      class="full-width"
-    ></app-selected-product-list>
-
-    <div class="total-quantity-card mt-2">
-      <div class="total-quantity">
-        <div>{{ "COMING_WARES.TOTAL_QUANTITY" | translate }}:</div>
-        <div>{{ getTotalQuantity() | number: "1.0-2" }} m³</div>
-      </div>
-    </div>
-  </div>
-
-  <div
-    class="full-width"
-    [ngClass]="{ 'd-none': !isLoaded }"
-  >
-    <div class="bottom-bar mb-3">
-      <div class="voucher-wrapper">
-        <mat-form-field appearance="outline" class="w-100 voucher-input">
-          <mat-label>{{ "WORDS.VOUCHER" | translate }}</mat-label>
-          <input matInput [(ngModel)]="voucher" />
-        </mat-form-field>
-      </div>
-      <div class="total-display">
-        {{ "WORDS.TOTAL" | translate }}: {{ totalPrice | currency: "RON" }}
-      </div>
+    <!-- Client: mobile=2nd / desktop=right-col middle (grid-area: cl) -->
+    <div class="section-client">
+      <app-client-details class="full-width"></app-client-details>
     </div>
 
-    <button mat-flat-button color="primary" class="confirm-btn" (click)="confirmOffer()">
-      {{ "OVERVIEW_PAGE.BUTTONS.CONFIRM" | translate }}
-    </button>
+    <!-- Products: mobile=3rd / desktop=left-col spanning all rows (grid-area: pl) -->
+    <div class="section-products">
+      <app-selected-product-list
+        [isInOverview]="true"
+        [discounts]="usedPriceCategories"
+        (isLoaded)="loaded()"
+        (pricesOutput)="getPriceList($event)"
+        class="w-100"
+      ></app-selected-product-list>
+    </div>
+
+    <!-- Bottom: mobile=4th / desktop=right-col bottom (grid-area: bo) -->
+    <div class="section-bottom" [class.d-none]="!isLoaded">
+      <div class="bottom-bar mb-3">
+        <div class="voucher-wrapper">
+          <mat-form-field
+            appearance="outline"
+            class="w-100 voucher-input"
+            subscriptSizing="dynamic"
+          >
+            <mat-label>{{ "WORDS.VOUCHER" | translate }}</mat-label>
+            <input matInput [(ngModel)]="voucher" />
+          </mat-form-field>
+        </div>
+        <div class="total-display">
+          {{ "WORDS.TOTAL" | translate }}: {{ totalPrice | currency: "RON" }}
+        </div>
+      </div>
+
+      <button mat-flat-button color="primary" class="confirm-btn" (click)="confirmOffer()">
+        {{ "OVERVIEW_PAGE.BUTTONS.CONFIRM" | translate }}
+      </button>
+    </div>
   </div>
 
   @if (!isLoaded) {

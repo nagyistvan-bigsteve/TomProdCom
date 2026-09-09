@@ -6,9 +6,10 @@ Client (customer) management. The selected client is held in `ClientStore` and p
 
 ### `add-client/` — create or edit a client
 
-Used both as a standalone dialog and as an embedded form in the offer workflow.
+Used both as a standalone page section and as an embedded form in the offer workflow (`select-client` page uses it with `[withoutForwardButton]="true"`).
 
-- `@Input() withoutForwardButton: boolean` — hides the "continue to offer" navigation button when true (used in standalone context).
+- `@Input() withoutForwardButton: boolean` — hides the "continue to offer" navigation button. Always set to `true` when embedded in `select-client-page`, which owns its own Continue bar.
+- **Card width:** `mat-card` uses `width: calc(100% - 2rem)` to account for the Bootstrap `mx-3` class (`margin: 0 1rem !important` on each side). Do not change this back to `width: 100%` or `width: 90vw` — either causes horizontal overflow in the two-column select-client layout.
 - Form groups: `name`, `type` (PF/PJ), `address`, `code`, `other_details`, plus a `phones` FormArray.
 - Validation:
   - PF clients: `code` must be exactly 13 digits.

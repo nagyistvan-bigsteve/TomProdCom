@@ -1,4 +1,4 @@
-<div class="d-flex flex-column justify-content-evenly h-100 w-100">
+<div class="d-flex flex-column w-100" [class.justify-content-evenly]="!isInOverview" [class.h-100]="!isInOverview">
   <div class="d-flex align-items-center w-100">
     <mat-accordion
       class="w-100"

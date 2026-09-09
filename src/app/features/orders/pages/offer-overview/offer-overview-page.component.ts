@@ -218,10 +218,9 @@ export class OfferOverviewPageComponent {
 
     const isTva = this.clientStore.client()?.tva ?? false;
 
-    const previousDiscounts =
-      this.usedPriceCategories.length
-        ? [...this.usedPriceCategories]
-        : [...this.productStore.usedPriceCategories()];
+    const previousDiscounts = this.usedPriceCategories.length
+      ? [...this.usedPriceCategories]
+      : [...this.productStore.usedPriceCategories()];
 
     const expandedPrices = this.expandPrices(prices);
 
@@ -257,7 +256,7 @@ export class OfferOverviewPageComponent {
 
   confirmOffer() {
     const dialogRef = this._dialog.open(this.confirmOfferDialog, {
-      width: '300px',
+      width: '90%',
     });
 
     let totalOrderQuantity = this.getTotalQuantity();
@@ -322,6 +321,10 @@ export class OfferOverviewPageComponent {
           this.comment = '';
         }
       });
+  }
+
+  goBack(): void {
+    this.router.navigate(['/offer/client']);
   }
 
   getTotalQuantity(): number {

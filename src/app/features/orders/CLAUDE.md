@@ -79,8 +79,14 @@ Two `mat-flat-button` / `mat-stroked-button` actions: "Create Offer" (→ `/offe
 
 ### `select-client/`
 
-Autocomplete over all clients (from `ClientStore`). Selecting a client calls `ClientStore.setClientId()`. The selected client persists in the store for the rest of the workflow.  
-**Layout:** centered column, max-width 480px (560px on tablet+). No viewport-unit widths.
+Autocomplete over all clients (from `ClientStore`). Selecting a client calls `ClientStore.setClientId()`. The selected client persists in the store for the rest of the workflow.
+
+Embeds `AddClientComponent` with `[withoutForwardButton]="true"` — the page owns the Continue navigation via its own animated bottom bar that appears once a client is selected.
+
+**Layout:**
+- Page header strip: back button (→ `/offer/create`) + title + `2 / 3` step chip.
+- **Mobile** (`< 960px`): vertical stack — autocomplete search field at top, `add-client` form below, animated Continue bar slides in at the bottom once a client is selected.
+- **Desktop** (`≥ 960px`): two-column row — search panel fixed at `flex: 0 0 360px` left, `add-client` form fills remaining right column with `overflow-y: auto`. Continue bar is right-aligned (200px width).
 
 ### `create-offer/`
 
@@ -98,8 +104,13 @@ Duplicate handling: if the same `(category + product.name)` is already in the ca
 
 ### `offer-overview/`
 
-Final review before saving.  
-**Layout:** flex column, `overflow-y: auto` on `:host`; content max-width 960px centered on desktop. No `vh`/`vw` units.
+Final review before saving.
+
+**Layout:**
+- Page header strip: back button (→ `/offer/client`) + title (`OVERVIEW_PAGE.TITLE`) + `3 / 3` step chip.
+- `:host` is `overflow-y: auto`; `.offer-page-container` is `max-width: 960px; margin: 0 auto` on desktop. No `vh`/`vw` units.
+- **Mobile** (`< 960px`): single-column grid, DOM order — prices accordion, client info, product list, discount + confirm.
+- **Desktop** (`≥ 960px`): CSS Grid two-column. `grid-template-areas: "pl pr" "pl cl" "pl bo"` — product list (`pl`) fills the left column spanning all rows; right column (360px) stacks prices (`pr`), client (`cl`), and discount/confirm (`bo`) top-to-bottom. The DOM order is preserved for correct mobile rendering without needing CSS `order` overrides.
 
 Key features:
 - Receives price rows from `SelectedProductListComponent` via `@Output() pricesOutput`.

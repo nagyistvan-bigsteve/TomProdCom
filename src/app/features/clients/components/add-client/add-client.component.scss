@@ -1,12 +1,12 @@
-.full-width {
-  width: 90vw;
-}
 mat-card {
   color: rgb(57, 72, 60);
-  width: 90vw;
-  max-height: 82vh;
+  width: calc(100% - 2rem);
   overflow: auto;
   transition: max-height 0.5s;
+}
+
+.full-width {
+  width: 100%;
 }
 
 .reduced-height {

@@ -1,3 +1,5 @@
+@use 'breakpoints' as *;
+
 ::ng-deep {
   .mat-content {
     height: 100%;
@@ -34,8 +36,13 @@
 }
 
 .limited-height {
-  max-height: 40vh;
+  max-height: 42.5vh;
   overflow: auto;
+
+  @include md {
+    max-height: none;
+    overflow: visible;
+  }
 }
 
 .button-background {

@@ -155,7 +155,7 @@ export class OrderTableComponent implements OnInit {
     this.paidAmount = null;
 
     const dialogRef = this._dialog.open(this.paidAmountDialog, {
-      width: '300px',
+      width: '90%',
       data: { maxAmount: totalAmount + deliveryFee - alreadyPaidAmount },
     });
 
@@ -286,7 +286,7 @@ export class OrderTableComponent implements OnInit {
 
   deleteOrder(order: OrderResponse): void {
     const dialogRef = this._dialog.open(this.confirmDeleteDialog, {
-      width: '300px',
+      width: '90%',
     });
 
     dialogRef
@@ -360,7 +360,9 @@ export class OrderTableComponent implements OnInit {
     if (!name && !address) return orders;
     return orders.filter((order) => {
       const clientName =
-        this.clientStore.clientsEntityMap()[order.clientId]?.name?.toLowerCase() ?? '';
+        this.clientStore
+          .clientsEntityMap()
+          [order.clientId]?.name?.toLowerCase() ?? '';
       const deliveryAddress = order.delivery_address?.toLowerCase() ?? '';
       return clientName.includes(name) && deliveryAddress.includes(address);
     });

@@ -229,7 +229,8 @@ export class OrderDetailsComponent implements OnInit {
       newUnitPrice != null ? this.findMergableItem(newUnitPrice) : undefined;
 
     if (existingItem) {
-      const combinedQuantity = existingItem.quantity + this.selectedProductQuantity;
+      const combinedQuantity =
+        existingItem.quantity + this.selectedProductQuantity;
       const combinedPrice = existingItem.price + price;
 
       this.orderService
@@ -290,7 +291,9 @@ export class OrderDetailsComponent implements OnInit {
       });
   }
 
-  private findMergableItem(newUnitPrice: number): OrderItemsResponse | undefined {
+  private findMergableItem(
+    newUnitPrice: number,
+  ): OrderItemsResponse | undefined {
     if (!this.orderItems || this.selectedProduct.unit_id === Unit_id.M2) {
       return undefined;
     }
@@ -455,7 +458,7 @@ export class OrderDetailsComponent implements OnInit {
 
   transformOfferToOrder(order: OrderResponse): void {
     const dialogRef = this._dialog.open(this.confirmTransformOfferDialog, {
-      width: '300px',
+      width: '90%',
     });
 
     dialogRef
@@ -487,7 +490,7 @@ export class OrderDetailsComponent implements OnInit {
 
   confirmDelivered(id: number): void {
     const dialogRef = this._dialog.open(this.confirmDeliveredDialog, {
-      width: '300px',
+      width: '90%',
     });
 
     dialogRef

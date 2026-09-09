@@ -1,34 +1,59 @@
-<div class="search-container">
-  <mat-form-field class="w-100" appearance="fill">
-    <mat-label>{{ "SELECT_CLIENT.TITLE" | translate }}</mat-label>
-    <input
-      type="text"
-      matInput
-      [formControl]="clientSearch"
-      [matAutocomplete]="auto"
-    />
-    @if (clientStore.isClientSelected()) {
-      <button
-        matSuffix
-        mat-icon-button
-        aria-label="Clear"
-        (click)="clearClient()"
-      >
-        <mat-icon>close</mat-icon>
-      </button>
-    }
-    <mat-autocomplete
-      #auto="matAutocomplete"
-      (optionSelected)="selectClient($event.option.value)"
-      [displayWith]="displayClientLabel"
-    >
-      @for (client of filteredClients(); track client.id) {
-        <mat-option [value]="client">
-          {{ client.name }} ({{ client.type === 1 ? "PF" : "PJ" }})
-        </mat-option>
-      }
-    </mat-autocomplete>
-  </mat-form-field>
-
-  <app-add-client />
+<!-- Page header strip -->
+<div class="page-header">
+  <button mat-icon-button (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span class="header-title">{{ "SELECT_CLIENT.TITLE" | translate }}</span>
+  <span class="step-chip">2 / 3</span>
 </div>
+
+<!-- Main layout: stacked on mobile, side-by-side on desktop -->
+<div class="client-layout">
+  <!-- Left / top: search existing clients -->
+  <div class="search-panel">
+    <mat-form-field class="w-100" appearance="fill">
+      <mat-label>{{ "SELECT_CLIENT.TITLE" | translate }}</mat-label>
+      <input
+        type="text"
+        matInput
+        [formControl]="clientSearch"
+        [matAutocomplete]="auto"
+      />
+      @if (clientStore.isClientSelected()) {
+        <button
+          matSuffix
+          mat-icon-button
+          aria-label="Clear"
+          (click)="clearClient()"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+      <mat-autocomplete
+        #auto="matAutocomplete"
+        (optionSelected)="selectClient($event.option.value)"
+        [displayWith]="displayClientLabel"
+      >
+        @for (client of filteredClients(); track client.id) {
+          <mat-option [value]="client">
+            {{ client.name }} ({{ client.type === 1 ? "PF" : "PJ" }})
+          </mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+  </div>
+
+  <!-- Right / bottom: add or edit client form -->
+  <div class="form-panel">
+    <app-add-client [withoutForwardButton]="true" />
+  </div>
+</div>
+
+<!-- Continue bar: appears when a client is selected -->
+@if (clientStore.isClientSelected()) {
+  <div @enterAndLeaveAnimation class="continue-bar">
+    <button mat-flat-button class="continue-btn" (click)="goToOverview()">
+      {{ "ADD_CLIENT.FORWARD_BUTTON" | translate }}
+    </button>
+  </div>
+}

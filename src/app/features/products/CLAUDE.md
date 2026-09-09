@@ -24,6 +24,10 @@ The running list of products added to the current offer cart.
 - Emits `@Output() pricesOutput: EventEmitter<Price2[]>` so the offer-overview page knows which price rows are in use.
 - `getTotalPriceInA()` / `getTotalPriceInB()` compute hypothetical totals at category A and B prices — displayed as reference prices during cart review.
 
+**Layout constraints (`isInOverview` flag):**
+- The root div's `h-100` and `justify-content-evenly` classes are **only applied when `!isInOverview`** (i.e., in the create-offer cart panel). In overview mode these are omitted to prevent the single-child accordion from being vertically centred inside the element, which would create an empty gap above the product list.
+- The `.limited-height` class (`max-height: 42.5vh; overflow: auto`) is applied to the accordion when `isInOverview` is true. On desktop (`≥ 960px`) this constraint is lifted via a breakpoint override so the product list expands naturally in its grid column.
+
 ### `overwrite-dialog/` — cart duplicate confirmation
 
 Opened by `create-offer-page` when the user adds a product+category combination that already exists in the cart.
