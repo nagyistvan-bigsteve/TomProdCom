@@ -269,7 +269,8 @@ export class SelectedProductListComponent implements OnChanges {
             (price) =>
               price.category_id === item.category &&
               price.size_id === item.product.size_id &&
-              price.unit_id === item.product.unit_id,
+              price.unit_id === item.product.unit_id &&
+              !price.product_id,
           );
 
       if (!exactPrice) {
@@ -358,7 +359,8 @@ export class SelectedProductListComponent implements OnChanges {
           (price) =>
             price.category_id === newCategory &&
             price.size_id === item.product.size_id &&
-            price.unit_id === item.product.unit_id,
+            price.unit_id === item.product.unit_id &&
+            !price.product_id,
         )?.price;
 
     if (exactPrice) {

@@ -5,12 +5,7 @@ import { MatOptionModule } from '@angular/material/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { Category, Size_id, Unit_id } from '@core/models/enums';
 import { MatDividerModule } from '@angular/material/divider';
-import {
-  Price2,
-  PriceResponse2,
-  Product,
-  Products,
-} from '@core/models/models';
+import { Price2, PriceResponse2, Product, Products } from '@core/models/models';
 import {
   ENTER_AND_LEAVE_ANIMATION,
   ENTER_ANIMATION,
@@ -48,7 +43,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
 })
 export class ChangePricesComponent implements OnInit {
   sizeOptions = this.enumToArray(Size_id, ['UNDEFINED']);
-  categoryOptions = this.enumToArray(Category, ['AB']);
+  categoryOptions = this.enumToArray(Category);
   categoryArray = this.enumToArray(Category);
 
   searchControl = new FormControl('');
