@@ -211,6 +211,8 @@ export const CartStore = signalStore(
 
         if (!storedData) return;
 
+        const OFFER_CREATION_PATHS = ['/offer/create', '/offer/client', '/offer/overview'];
+
         try {
           const parsedData = JSON.parse(storedData);
           const lastUpdated = parsedData.lastUpdated
@@ -222,10 +224,11 @@ export const CartStore = signalStore(
             : Infinity;
 
           if (ageMs > STALE_THRESHOLD_MS) {
-            if (
-              !location.path().includes('offer') ||
-              location.path() === 'offers'
-            ) {
+            const isOnOfferCreationPage = OFFER_CREATION_PATHS.some((p) =>
+              location.path().startsWith(p),
+            );
+
+            if (!isOnOfferCreationPage) {
               localStorage.removeItem(STORAGE_KEY);
               return;
             }
@@ -238,7 +241,10 @@ export const CartStore = signalStore(
               .afterClosed()
               .subscribe((keepData: boolean) => {
                 if (keepData) {
-                  patchState(store, parsedData);
+                  const freshTimestamp = new Date().toLocaleString('sv-SE');
+                  const restoredData = { ...parsedData, lastUpdated: freshTimestamp };
+                  patchState(store, restoredData);
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify(restoredData));
                 } else {
                   localStorage.removeItem(STORAGE_KEY);
                 }
