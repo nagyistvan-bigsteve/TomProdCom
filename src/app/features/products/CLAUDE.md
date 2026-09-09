@@ -12,6 +12,8 @@ Used on the `/products` page and embedded inside the offer creation flow (`/offe
 
 Shows one product selected for an offer line item. Lets the user enter quantity, choose the quantity input mode for M2 products (BRUT / NET / BUC / PAC), and set the quality category (A / AB / B / T).
 
+**Add button:** full-width `mat-flat-button` with `add_shopping_cart` icon, app-red background (`rgb(134, 2, 2)`). Styled via `--mdc-filled-button-container-color` / `--mdc-filled-button-label-text-color` CSS custom properties in the component SCSS (no `!important`).
+
 ### `selected-product-list/` — cart line-item list
 
 The running list of products added to the current offer cart.

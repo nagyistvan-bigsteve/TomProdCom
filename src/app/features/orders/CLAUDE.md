@@ -74,15 +74,23 @@ Sequential flow — state persists via `CartStore` (localStorage) across all ste
 
 ### `start-page/`
 
-Two navigation buttons: "Create Offer" (→ `/offer/create`) and "Products" (→ `/products`). No recent-offers display.
+Two `mat-flat-button` / `mat-stroked-button` actions: "Create Offer" (→ `/offer/create`) and "Products" (→ `/products`).  
+**Layout:** mobile — single column, max-width 480px; desktop (≥960px) — two-column: image left, buttons right (max-width 900px).
 
 ### `select-client/`
 
-Autocomplete over all clients (from `ClientStore`). Selecting a client calls `ClientStore.setClientId()`. The selected client persists in the store for the rest of the workflow.
+Autocomplete over all clients (from `ClientStore`). Selecting a client calls `ClientStore.setClientId()`. The selected client persists in the store for the rest of the workflow.  
+**Layout:** centered column, max-width 480px (560px on tablet+). No viewport-unit widths.
 
 ### `create-offer/`
 
 Product selection and cart building. Calls into `CartStore` for all mutations.
+
+**Responsive layout:**
+- **Mobile** (`< 960px`): two panels (product-panel, cart-panel) toggle via a fixed red `mat-fab` (bottom-right). While on the product panel a "mini-cart bar" at the panel bottom shows all cart items (name · category · quantity) and the running total; tapping it switches to the cart panel.
+- **Desktop** (`≥ 960px`): both panels side-by-side (`flex: 1` each) with a divider. Toggle FAB is hidden. The `isDesktop` signal is derived from `BreakpointObserver('(min-width: 960px)')`.
+
+Cart panel has `padding-bottom: 88px` on mobile to keep the last rows scrollable above the fixed FAB (56px FAB + 24px offset + 8px breathing room).
 
 Duplicate handling: if the same `(category + product.name)` is already in the cart, an `OverwriteDialogComponent` opens:
 - "Overwrite" → replaces the item.
@@ -90,7 +98,8 @@ Duplicate handling: if the same `(category + product.name)` is already in the ca
 
 ### `offer-overview/`
 
-Final review before saving.
+Final review before saving.  
+**Layout:** flex column, `overflow-y: auto` on `:host`; content max-width 960px centered on desktop. No `vh`/`vw` units.
 
 Key features:
 - Receives price rows from `SelectedProductListComponent` via `@Output() pricesOutput`.

@@ -140,6 +140,65 @@ Before writing code, invoke the matching skill or plugin rather than working fro
 | `context7`       | Fetch current docs for Angular, Supabase, RxJS, NgRx, Material, or any third-party library before writing library-specific code |
 | `supabase` (MCP) | Inspect schema, run migrations, query logs, manage branches, execute SQL directly against the project                           |
 
+## Layout & Styling System
+
+### App Shell Layout
+
+`app.component` wraps all authenticated pages in `<main class="app-content">`. This element:
+- `padding-top: 56px` — clears the fixed topbar (`height: 56px`)
+- `height: 100vh; display: flex; flex-direction: column` — lets child pages fill remaining height
+- On desktop (≥960px): gains `margin-left: 280px` when `[class.sidebar-open]` is active, shifting content clear of the persistent sidebar
+
+Page component `:host` selectors use `flex: 1` (not `height: 100%`) to fill the shell:
+```scss
+:host {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  background-color: rgb(57, 72, 60);
+}
+```
+
+### Topbar & Sidebar
+
+- **Topbar** (`app-topbar`): `mat-toolbar`, `position: fixed` on `:host`, height `56px`, z-index 900.
+- **Sidebar** (`app-sidebar`): `position: fixed; top: 56px; height: calc(100vh - 56px)`, z-index 800. On mobile it overlays with a backdrop; on desktop (≥960px) the backdrop is hidden via CSS so the sidebar acts as a persistent drawer — content shift is handled by `.sidebar-open` on `app-content`.
+
+### Breakpoints
+
+Breakpoint mixins live in `src/_breakpoints.scss`. Component SCSS files import them via:
+```scss
+@use 'breakpoints' as *;
+```
+This works because `angular.json` sets `stylePreprocessorOptions.includePaths: ["src"]`.
+
+| Mixin | Min-width | Use for |
+|---|---|---|
+| `@include sm` | 600px | Tablet portrait |
+| `@include md` | 960px | Tablet landscape / desktop |
+| `@include lg` | 1280px | Large desktop |
+
+Always write **mobile styles first**, then override with `sm`/`md`/`lg` blocks.
+
+### Spacing Tokens
+
+CSS custom properties in `styles.scss `:root``, available in all components without importing:
+
+```
+--space-1: 4px   --space-2: 8px   --space-3: 12px  --space-4: 16px
+--space-6: 24px  --space-8: 32px  --space-12: 48px
+```
+
+Use `var(--space-N)` in `.scss` files. Bootstrap `p-*`/`gap-*` utilities are acceptable in templates (`p-3` = 12px, `p-4` = 16px).
+
+### Anti-patterns (do not use)
+
+- `height: 92vh` / `max-width: 96vw` — use flex `flex: 1` and `max-width` with `margin: 0 auto`
+- `height: 100%` on page `:host` — use `flex: 1` instead
+- Bootstrap `fs-*` for text sizing — use Material type classes (`mat-body-medium`, `mat-title-large`, etc.)
+- Random `px` padding values — use `var(--space-N)` or Bootstrap utilities
+
 ## Key Conventions
 
 - All components are **standalone** (no NgModules)
