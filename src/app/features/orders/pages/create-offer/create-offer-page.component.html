@@ -61,12 +61,12 @@
       class="toggle-fab"
       mat-fab
       (click)="selectProductOn = !selectProductOn"
-      [attr.aria-label]="selectProductOn ? 'Show cart' : 'Add product'"
+      [attr.aria-label]="selectProductOn ? 'Show cart' : 'Back to products'"
+      [matBadge]="selectProductOn && productStore.productItems().length ? productStore.productItems().length : null"
+      matBadgeColor="warn"
+      matBadgePosition="above after"
     >
       <mat-icon>{{ selectProductOn ? "shopping_cart" : "arrow_back" }}</mat-icon>
-      @if (selectProductOn && productStore.productItems().length) {
-        <span class="cart-badge">{{ productStore.productItems().length }}</span>
-      }
     </button>
   }
 </div>

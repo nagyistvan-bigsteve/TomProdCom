@@ -15,6 +15,7 @@ import { OverlayModule } from '@angular/cdk/overlay';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { CartStore } from '@features/orders/store/cart/cart.store';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatBadgeModule } from '@angular/material/badge';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { map } from 'rxjs';
 
@@ -31,6 +32,7 @@ import { map } from 'rxjs';
     MatSnackBarModule,
     OverlayModule,
     MatDividerModule,
+    MatBadgeModule,
   ],
   standalone: true,
   templateUrl: './create-offer-page.component.html',
