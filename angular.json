@@ -79,6 +79,7 @@
               ]
             },
             "staging": {
+              "baseHref": "/",
               "index": "src/index.staging.html",
               "budgets": [
                 {
