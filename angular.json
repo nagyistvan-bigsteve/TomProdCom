@@ -79,7 +79,11 @@
               ]
             },
             "staging": {
-              "index": "src/index.staging.html",
+              "baseHref": "/",
+              "index": {
+                "input": "src/index.staging.html",
+                "output": "index.html"
+              },
               "budgets": [
                 {
                   "type": "initial",
@@ -93,7 +97,6 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "ngsw-config.json",
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",

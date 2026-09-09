@@ -58,27 +58,13 @@ export const useAuthStore = signalStore(
             await supabaseService.client.auth.signUp({
               email,
               password,
+              options: { data: { name: userName } },
             });
 
           if (authError) throw authError;
 
           const userId = authData.user?.id;
           if (!userId) throw new Error('User ID not found after signup');
-
-          const { error: profileError } = await supabaseService.client
-            .from('profiles')
-            .insert({
-              id: userId,
-              email,
-              role: 'user',
-              approved: false,
-              name: userName,
-            });
-
-          if (profileError) {
-            await supabaseService.client.auth.admin.deleteUser(userId);
-            throw profileError;
-          }
 
           patchState(store, {
             isAuthenticated: true,
