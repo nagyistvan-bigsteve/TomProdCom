@@ -1,9 +1,7 @@
-﻿import {
+import {
   Component,
-  DestroyRef,
   EventEmitter,
   inject,
-  Input,
   OnInit,
   Output,
 } from '@angular/core';
@@ -12,6 +10,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule, Location } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatToolbarModule } from '@angular/material/toolbar';
 import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
 import { useAuthStore } from '@core/store/auth-store';
 import { Router } from '@angular/router';
@@ -25,6 +24,7 @@ import { InstallService } from '@core/services/install.service';
     TranslateModule,
     MatIconModule,
     MatButtonModule,
+    MatToolbarModule,
     MatBadgeModule,
     CommonModule,
   ],

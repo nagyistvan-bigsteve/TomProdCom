@@ -1,21 +1,18 @@
-<div
-  class="d-flex justify-content-between align-items-center w-100 py-2 px-4 border-bottom border-dark topbar-color"
->
-  <div class="d-flex align-items-center font-weight-bold">
+<mat-toolbar class="topbar">
+  <div class="topbar-left">
     @if (authStore.isAuthenticated()) {
       <button
         @enterAndLeaveAnimation
         mat-icon-button
-        class="me-1"
+        aria-label="Menu"
         (click)="toggleSidebar()"
       >
         <mat-icon>menu</mat-icon>
       </button>
-
       <button
         @enterAndLeaveAnimation
         mat-icon-button
-        class="me-3"
+        aria-label="Back"
         (click)="goBack()"
       >
         <mat-icon>arrow_back</mat-icon>
@@ -24,18 +21,20 @@
     <button
       mat-icon-button
       *ngIf="installService.installPromptAvailable | async"
+      aria-label="Install app"
       (click)="installApp()"
-      class="border border-1 ms-3"
     >
-      <mat-icon class="d-flex align-items-center justify-content-center"
-        >download</mat-icon
-      >
+      <mat-icon>download</mat-icon>
     </button>
   </div>
-  <div class="d-flex align-items-center justify-content-end fs-2">
+
+  <span class="topbar-spacer"></span>
+
+  <div class="topbar-right">
     <img
-      class="rounded img-fluid w-25 me-3"
+      class="topbar-logo"
       src="assets/images/logo-outline.png"
+      alt="Logo"
     />
     @if (
       authStore.isAuthenticated() &&
@@ -44,17 +43,10 @@
     ) {
       <button mat-icon-button (click)="goToUserPage()">
         <mat-icon
-          [matBadge]="
-            authStore.unapprovedUsersNumber()
-              ? authStore.unapprovedUsersNumber()
-              : ''
-          "
-          class="d-flex align-items-center justify-content-center"
-          >account_circle</mat-icon
-        >
+          [matBadge]="authStore.unapprovedUsersNumber() ? authStore.unapprovedUsersNumber() : ''"
+        >account_circle</mat-icon>
       </button>
     }
-
     <app-language-switcher></app-language-switcher>
   </div>
-</div>
+</mat-toolbar>

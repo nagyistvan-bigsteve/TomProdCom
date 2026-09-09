@@ -1,11 +1,12 @@
 @if (authStore.isAuthenticated()) {
-  <app-topbar class="fixed-top" (sidebarToggle)="toggleSidebar()"></app-topbar>
-  <app-sidebar
-    [isOpen]="isSidebarOpen"
-    (closeEvent)="closeSidebar()"
-  ></app-sidebar>
-  <router-outlet></router-outlet>
+  <app-topbar (sidebarToggle)="toggleSidebar()"></app-topbar>
+  <app-sidebar [isOpen]="isSidebarOpen" (closeEvent)="closeSidebar()"></app-sidebar>
+  <main class="app-content" [class.sidebar-open]="isSidebarOpen">
+    <router-outlet></router-outlet>
+  </main>
 } @else {
-  <app-topbar class="fixed-top"></app-topbar>
-  <router-outlet></router-outlet>
+  <app-topbar></app-topbar>
+  <main class="app-content">
+    <router-outlet></router-outlet>
+  </main>
 }

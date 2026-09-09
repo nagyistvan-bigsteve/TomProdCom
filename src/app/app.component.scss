@@ -1,7 +1,17 @@
-app-topbar {
-  z-index: 900 !important;
-}
+@use 'breakpoints' as *;
 
-app-sidebad {
-  z-index: 1000 !important;
+.app-content {
+  padding-top: 56px;
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+
+  @include md {
+    transition: margin-left 0.3s ease-in-out;
+
+    &.sidebar-open {
+      margin-left: 280px;
+    }
+  }
 }

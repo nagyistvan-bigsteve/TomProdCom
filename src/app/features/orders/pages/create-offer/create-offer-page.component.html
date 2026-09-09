@@ -1,86 +1,66 @@
-<div class="page-container justify-content-between w-100">
-  <div
-    class="d-flex flex-column px-2 w-100"
-    [class]="{ 'select-product-off': !selectProductOn }"
-  >
-    @if (selectProductOn) {
-      <app-product-list
-        @enterAnimation
-        (selectedProduct)="getSelectedProduct($event)"
-      ></app-product-list>
+<!-- Mobile: toggle between product-select and cart panels -->
+<!-- Desktop: both panels visible side-by-side -->
+<div class="create-offer-layout">
 
-      @if (selectedProduct) {
-        <app-selected-product
-          @enterAnimation
-          (addProduct)="addProductToList($event)"
-          [selectedProduct]="selectedProduct"
-        ></app-selected-product>
-      }
-    } @else {
-      <div
-        class="d-flex justify-content-evenly align-items-center px-2 mb-2 rounded shadow select-product-tile py-4"
-      >
-        <button
-          class="button-background"
-          mat-fab
-          (click)="selectProductOn = !selectProductOn"
-        >
-          <mat-icon class="fs-1 icon-color">keyboard_arrow_left</mat-icon>
-        </button>
-        <div class="fs-2">
-          {{ "OFFER_PAGE.CREATE_OFFER.TILE_BUTTONS.ADD_PRODUCT" | translate }}
-        </div>
-      </div>
+  <!-- Left / primary panel: product search -->
+  <div
+    class="product-panel"
+    [class.hidden-mobile]="!selectProductOn && !isDesktop()"
+  >
+    <app-product-list
+      @enterAnimation
+      (selectedProduct)="getSelectedProduct($event)"
+    ></app-product-list>
+
+    @if (selectedProduct) {
+      <app-selected-product
+        @enterAnimation
+        (addProduct)="addProductToList($event)"
+        [selectedProduct]="selectedProduct"
+      ></app-selected-product>
     }
-  </div>
-  <div class="product-list px-2">
-    @if (!selectProductOn) {
-      <app-selected-product-list @enterAnimation></app-selected-product-list>
-    } @else {
-      <div
-        class="d-flex flex-column align-items-center select-product-tile rounded shadow"
-      >
-        <div class="fs-2 pt-2">
-          {{
-            "OFFER_PAGE.CREATE_OFFER.TILE_BUTTONS.SHOW_PRODUCT_LIST"
-              | translate
-          }}:
-        </div>
-        <div
-          class="d-flex justify-content-evenly align-items-center h-100 w-100"
-        >
-          <div class="short-product-list">
-            @for (
-              item of productStore.productItems();
-              track $index;
-              let last = $last
-            ) {
-              <div class="d-flex justify-content-center p-1">
-                {{ item.product.name }} -
-                {{
-                  "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + item.category
-                    | translate
-                }}
-                {{ item.quantity | number: "1.0-2" }}x
-              </div>
-              @if (!last) {
-                <div class="d-flex justify-content-center">
-                  <mat-divider class="w-50"></mat-divider>
-                </div>
-              }
+
+    <!-- Mini cart bar: mobile only, shows added items at a glance -->
+    @if (!isDesktop() && productStore.productItems().length > 0) {
+      <div class="mini-cart-bar" (click)="selectProductOn = false">
+        <mat-icon class="mini-cart-icon">shopping_cart</mat-icon>
+        <div class="mini-cart-scroll">
+          @for (item of productStore.productItems(); track $index; let last = $last) {
+            <span class="mini-cart-chip">
+              {{ item.product.name }}&nbsp;{{ item.quantity | number: "1.0-2" }}×
+            </span>
+            @if (!last) {
+              <span class="mini-cart-sep">·</span>
             }
-          </div>
-          <div class="d-flex justify-content-center align-items-center">
-            <button
-              class="button-background"
-              mat-fab
-              (click)="selectProductOn = !selectProductOn"
-            >
-              <mat-icon class="fs-1 color-white">keyboard_arrow_right</mat-icon>
-            </button>
-          </div>
+          }
         </div>
+        <span class="mini-cart-total">
+          {{ productStore.cartTotal() | number: "1.0-0" }}&nbsp;RON
+        </span>
       </div>
     }
   </div>
+
+  <!-- Right / secondary panel: cart -->
+  <div
+    class="cart-panel"
+    [class.hidden-mobile]="selectProductOn && !isDesktop()"
+  >
+    <app-selected-product-list @enterAnimation></app-selected-product-list>
+  </div>
+
+  <!-- Mobile toggle FAB — only visible on mobile -->
+  @if (!isDesktop()) {
+    <button
+      class="toggle-fab"
+      mat-fab
+      (click)="selectProductOn = !selectProductOn"
+      [attr.aria-label]="selectProductOn ? 'Show cart' : 'Add product'"
+    >
+      <mat-icon>{{ selectProductOn ? "shopping_cart" : "arrow_back" }}</mat-icon>
+      @if (selectProductOn && productStore.productItems().length) {
+        <span class="cart-badge">{{ productStore.productItems().length }}</span>
+      }
+    </button>
+  }
 </div>

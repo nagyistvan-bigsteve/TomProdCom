@@ -1,64 +1,78 @@
+@use 'breakpoints' as *;
+
 :host {
-  height: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: end;
-  align-items: center;
-
   background-color: rgb(57, 72, 60);
   color: white;
+  overflow-y: auto;
 }
 
 .offer-page-container {
-  height: 93vh;
-  max-height: 93vh;
-  overflow: auto;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-evenly;
   align-items: center;
+  padding: var(--space-4) var(--space-2);
+  gap: var(--space-4);
+  width: 100%;
+
+  @include sm {
+    padding: var(--space-4);
+  }
+
+  @include md {
+    padding: var(--space-6);
+    max-width: 960px;
+    margin: 0 auto;
+  }
 }
 
 .full-width {
-  width: 90vw;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  overflow: auto;
+  width: 100%;
 }
 
-.discount-button {
-  background-color: rgba(252, 246, 238, 0.473);
-  transition: transform 0.5s;
-  transition: background-color 0.5s;
+.bottom-bar {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 
-  &:active {
-    transform: scale(0.85);
-    background-color: rgb(97, 97, 97);
-
-    &::before {
-      opacity: 1;
-    }
+  @include sm {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
   }
+}
 
-  &::before {
-    z-index: 0;
-    transition: opacity 0.5s;
-  }
+.voucher-wrapper {
+  width: 100%;
 
-  &:hover::after {
-    opacity: 1;
+  @include sm {
+    flex: 0 0 200px;
   }
+}
+
+.total-display {
+  font-size: 1.125rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.confirm-btn {
+  width: 100%;
 }
 
 .total-quantity-card {
-  padding: 0 24px;
-  font-family: "Roboto";
+  width: 100%;
+  padding: 0 var(--space-6);
+  font-family: 'Roboto', sans-serif;
   font-size: 1rem;
   font-weight: 500;
   line-height: 1.5rem;
-  letter-spacing: 0.009rem;
   color: #1a1b1f;
   border-radius: 12px;
   background-color: #faf9fd;
@@ -71,72 +85,49 @@
   }
 }
 
-.voucher-input {
-  width: 25vw;
-}
-
-::ng-deep {
-  .voucher-input {
-    .mdc-text-field--outlined {
-      border-color: white !important;
-    }
-
-    .mdc-floating-label {
-      color: white !important;
-    }
-
-    .mat-mdc-notch-piece {
-      width: 100% !important;
-      text-align: center;
-    }
-
-    .mat-mdc-form-field-subscript-wrapper {
-      display: none;
-    }
-  }
-  .delivery-input-field {
-    .mat-mdc-form-field-subscript-wrapper {
-      display: none;
-    }
-  }
-}
-
 .price-row {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1.5rem;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+
+  @include sm {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-6);
+  }
 
   .price-info {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--space-1);
 
     .price-label {
       font-weight: 600;
-      font-size: 1rem;
+      font-size: 0.9375rem;
       color: rgba(0, 0, 0, 0.87);
     }
 
     .price-details {
       display: flex;
       flex-direction: column;
-      gap: 0.25rem;
-      font-size: 0.9rem;
+      gap: 2px;
+      font-size: 0.875rem;
 
       .base-prices,
       .final-prices,
       .discount-info {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: var(--space-2);
         flex-wrap: wrap;
 
         .label {
           font-weight: 500;
           color: rgba(0, 0, 0, 0.6);
-          min-width: 60px;
+          min-width: 56px;
         }
 
         .price-value {
@@ -145,13 +136,12 @@
           &.final {
             font-weight: 600;
             color: #1976d2;
-            font-size: 0.95rem;
           }
         }
 
         .currency {
           color: rgba(0, 0, 0, 0.5);
-          font-size: 0.85rem;
+          font-size: 0.8125rem;
         }
       }
 
@@ -160,20 +150,19 @@
           font-weight: 500;
         }
 
-        &.positive .discount-value {
-          color: #388e3c;
-        }
-
-        &.negative .discount-value {
-          color: #d32f2f;
-        }
+        &.positive .discount-value { color: #388e3c; }
+        &.negative .discount-value { color: #d32f2f; }
       }
     }
   }
 
   .price-input-wrapper {
-    flex-shrink: 0;
-    width: 160px;
+    width: 100%;
+
+    @include sm {
+      flex-shrink: 0;
+      width: 160px;
+    }
 
     .price-field {
       width: 100%;
@@ -197,13 +186,10 @@
   }
 }
 
-@media (max-width: 768px) {
-  .price-row {
-    flex-direction: column;
-    align-items: flex-start;
-
-    .price-input-wrapper {
-      width: 100%;
+::ng-deep {
+  .delivery-input-field {
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
     }
   }
 }

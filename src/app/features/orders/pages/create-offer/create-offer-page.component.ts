@@ -1,4 +1,4 @@
-﻿import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { ProductSelectComponent } from '@features/products/components/product-list/product-list.component';
 import { Product, ProductItem } from '@core/models/models';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -12,9 +12,11 @@ import { OverwriteDialogComponent } from '@features/products/components/overwrit
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { OverlayModule } from '@angular/cdk/overlay';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { CartStore } from '@features/orders/store/cart/cart.store';
 import { MatDividerModule } from '@angular/material/divider';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-create-offer-page',
@@ -43,6 +45,13 @@ export class CreateOfferPageComponent {
   private _snackBar = inject(MatSnackBar);
   private _dialog = inject(MatDialog);
   readonly productStore = inject(CartStore);
+
+  readonly isDesktop = toSignal(
+    inject(BreakpointObserver)
+      .observe('(min-width: 960px)')
+      .pipe(map((r) => r.matches)),
+    { initialValue: false },
+  );
 
   getSelectedProduct(product: Product): void {
     this.selectedProduct = product;

@@ -1,12 +1,13 @@
-﻿import { Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { MatButtonModule } from '@angular/material/button';
 import { ENTER_ANIMATION } from '@core/models/animations';
 
 @Component({
   selector: 'app-offer-page',
   standalone: true,
-  imports: [TranslateModule],
+  imports: [TranslateModule, MatButtonModule],
   templateUrl: './start-page.component.html',
   styleUrl: './start-page.component.scss',
   animations: ENTER_ANIMATION,

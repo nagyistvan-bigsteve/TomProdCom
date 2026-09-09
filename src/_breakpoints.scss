@@ -1,0 +1,10 @@
+// Mobile-first breakpoints for this project.
+// Component SCSS files: @use 'breakpoints' as *;  (works via stylePreprocessorOptions includePaths)
+
+$bp-sm: 600px;   // tablet portrait
+$bp-md: 960px;   // tablet landscape / small desktop
+$bp-lg: 1280px;  // desktop
+
+@mixin sm { @media (min-width: $bp-sm) { @content; } }
+@mixin md { @media (min-width: $bp-md) { @content; } }
+@mixin lg { @media (min-width: $bp-lg) { @content; } }

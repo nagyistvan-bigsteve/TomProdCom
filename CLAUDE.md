@@ -128,7 +128,7 @@ Before writing code, invoke the matching skill or plugin rather than working fro
 | `angular-developer`                | Any Angular component, service, store, routing, signals, forms, animations, DI, testing, or CLI work              |
 | `supabase`                         | Any Supabase task: auth, database, RLS, edge functions, realtime, storage, migrations, debugging                  |
 | `supabase-postgres-best-practices` | Before writing or changing anything in the Postgres database (schema, columns, indexes, RLS, triggers, functions) |
-| `frontend-design:frontend-design`  | Aesthetic direction, typography, layout decisions, any new UI or visual redesign                                  |
+| `angular-material-design`          | Any component template, SCSS, or layout — spacing, typography, responsive breakpoints, Material component sizing  |
 | `code-review`                      | After implementing a non-trivial change, before reporting it done                                                 |
 | `verify`                           | To confirm a change works correctly in the running app                                                            |
 | `security-review`                  | Any change touching auth, RLS, role logic, pricing, deletion, or sensitive operations                             |
