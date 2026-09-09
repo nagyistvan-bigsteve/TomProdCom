@@ -15,4 +15,4 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TOM_PROD_COM }}
           channelId: staging
           projectId: tom-prod-com
-          expires: 365d
+          expires: 30d
