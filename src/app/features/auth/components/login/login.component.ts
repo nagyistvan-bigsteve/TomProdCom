@@ -1,4 +1,4 @@
-﻿import { Component, EventEmitter, inject, Output } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -7,11 +7,10 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { ENTER_ANIMATION } from '@core/models/animations';
+import { MatIconModule } from '@angular/material/icon';
 import { useAuthStore } from '@core/store/auth-store';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SupabaseService } from '@core/services/supabase.service';
@@ -21,23 +20,22 @@ import { SupabaseService } from '@core/services/supabase.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   imports: [
-    CommonModule,
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    MatIconModule,
     TranslateModule,
   ],
-  animations: [ENTER_ANIMATION],
 })
 export class LoginComponent {
-  @Output() toggleAuth = new EventEmitter<void>();
-
   private router = inject(Router);
   private authStore = inject(useAuthStore);
   private translateService = inject(TranslateService);
   private supabaseService = inject(SupabaseService);
+
+  showPassword = signal(false);
 
   loginForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
@@ -47,11 +45,14 @@ export class LoginComponent {
     ]),
   });
 
+  togglePassword() {
+    this.showPassword.update(v => !v);
+  }
+
   async login() {
     if (this.loginForm.invalid) return;
 
     const { email, password } = this.loginForm.value;
-
     const { success, error } = await this.authStore.login(email!, password!);
 
     if (error) {
@@ -66,37 +67,29 @@ export class LoginComponent {
         await this.authStore.logout();
         return;
       }
-
       this.router.navigate(['/offer']);
     }
-  }
-
-  showAlert(message: string) {
-    alert(message);
   }
 
   async resetPassword() {
     const email = this.loginForm.get('email')?.value;
     if (!email) {
-      this.showAlert(
-        this.translateService.instant('RESET_PASSWORD.ENTER_EMAIL_FIRST')
-      );
+      this.showAlert(this.translateService.instant('RESET_PASSWORD.ENTER_EMAIL_FIRST'));
       return;
     }
 
-    const { error } =
-      await this.supabaseService.client.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://tom-prod-com.web.app/reset-password',
-      });
+    const { error } = await this.supabaseService.client.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://tom-prod-com.web.app/reset-password',
+    });
 
     if (error) {
-      this.showAlert(
-        this.translateService.instant('RESET_PASSWORD.EMAIL_SENT_ERROR')
-      );
+      this.showAlert(this.translateService.instant('RESET_PASSWORD.EMAIL_SENT_ERROR'));
     } else {
-      this.showAlert(
-        this.translateService.instant('RESET_PASSWORD.EMAIL_SENT_SUCCESS')
-      );
+      this.showAlert(this.translateService.instant('RESET_PASSWORD.EMAIL_SENT_SUCCESS'));
     }
+  }
+
+  private showAlert(message: string) {
+    alert(message);
   }
 }

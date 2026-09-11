@@ -173,6 +173,7 @@
       "ENTER": "Log in"
     },
     "WAIT_TO_APPROVE": {
+      "HEADING": "Cont în așteptare",
       "TITLE": "Trebuie să aștepți până când un administrator îți aprobă contul.",
       "BUTTON": "Refresh"
     },
@@ -446,7 +447,8 @@
     "EMAIL_SENT_SUCCESS": "Verifică-ți e-mailul pentru instrucțiuni de resetare a parolei.",
     "EMAIL_SENT_ERROR": "Eroare la trimiterea e-mailului de resetare a parolei.",
     "SESSION_ERROR": "Eroare de autentificare",
-    "INVALID_FORM": "Te rugăm să completezi toate câmpurile corect."
+    "INVALID_FORM": "Te rugăm să completezi toate câmpurile corect.",
+    "VERIFYING": "Se verifică sesiunea..."
   },
   "PRINT_POPUP": {
     "TITLE_ORDER": "Comanda",

@@ -251,16 +251,44 @@ Apply `::ng-deep` to style the toggle group and individual toggles:
 }
 ```
 
-### `mat-icon` in dialogs (white background)
+### `mat-icon` on white backgrounds (dialogs, auth cards, any white surface)
 
-The global theme in `styles.scss` sets `mat.icon-overrides(color: white)` so all icons are white by default — correct for the dark-green app shell but invisible on the white dialog background. Override per icon with a component-scoped class:
+The global theme in `styles.scss` sets `mat.icon-overrides(color: white)` so all icons are white by default — correct for the dark-green app shell but invisible on any white surface. Override with a component-scoped class applied **directly on `<mat-icon>`**:
 
 ```scss
 .dialog-icon-dark    { color: rgba(0, 0, 0, 0.54); }  // neutral icons (close, edit)
 .dialog-icon-danger  { color: rgb(134, 2, 2); }        // destructive icons (delete)
+.field-icon          { color: rgba(0, 0, 0, 0.45); }   // form field prefix/suffix icons
 ```
 
-Apply these classes directly on the `<mat-icon>` element. Never rely on the inherited white for icons rendered inside `mat-dialog-content`.
+For a `mat-icon-button` on a white surface, override the icon via the button token instead of the icon class — this is cleaner because the button controls the icon's inherited color:
+
+```scss
+.my-icon-btn {
+  --mat-icon-button-icon-color: rgba(0, 0, 0, 0.45);
+}
+```
+
+See `auth/components/login/login.component.scss` (`.visibility-btn`) for a live example of the icon-button pattern.
+
+### Dark-green `mat-flat-button` (brand submit button)
+
+Use these CSS custom properties to create the app-branded dark-green filled button. Set them on the button element's class; they cascade into the Material component:
+
+```scss
+.submit-btn {
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  --mdc-filled-button-container-color: rgb(57, 72, 60);
+  --mdc-filled-button-label-text-color: white;
+  --mdc-filled-button-disabled-container-color: rgba(57, 72, 60, 0.3);
+  --mdc-filled-button-disabled-label-text-color: rgba(255, 255, 255, 0.5);
+}
+```
+
+See `auth/components/login/login.component.scss` for the live example.
 
 ### Anti-patterns (do not use)
 

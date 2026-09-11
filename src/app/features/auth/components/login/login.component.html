@@ -1,27 +1,35 @@
-<div @enterAnimation class="login-container">
-  <form [formGroup]="loginForm" (ngSubmit)="login()">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ "AUTH.EMAIL" | translate }}</mat-label>
-      <input matInput type="email" formControlName="email" required />
-    </mat-form-field>
+<form [formGroup]="loginForm" (ngSubmit)="login()" class="auth-form">
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>{{ "AUTH.EMAIL" | translate }}</mat-label>
+    <mat-icon matPrefix class="field-icon">alternate_email</mat-icon>
+    <input matInput type="email" formControlName="email" autocomplete="email" />
+  </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>{{ "AUTH.PASSWORD" | translate }}</mat-label>
-      <input matInput type="password" formControlName="password" required />
-    </mat-form-field>
-
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>{{ "AUTH.PASSWORD" | translate }}</mat-label>
+    <mat-icon matPrefix class="field-icon">lock</mat-icon>
+    <input
+      matInput
+      [type]="showPassword() ? 'text' : 'password'"
+      formControlName="password"
+      autocomplete="current-password"
+    />
     <button
-      mat-raised-button
-      color="primary"
-      type="submit"
-      class="full-width"
-      [disabled]="loginForm.invalid"
+      mat-icon-button
+      matSuffix
+      type="button"
+      class="visibility-btn"
+      (click)="togglePassword()"
     >
-      {{ "AUTH.LOG_IN.ENTER" | translate }}
+      <mat-icon class="field-icon">{{ showPassword() ? "visibility_off" : "visibility" }}</mat-icon>
     </button>
-  </form>
+  </mat-form-field>
 
-  <button mat-button (click)="resetPassword()">
+  <button mat-button type="button" class="forgot-btn" (click)="resetPassword()">
     {{ "RESET_PASSWORD.RESET_BUTTON" | translate }}
   </button>
-</div>
+
+  <button mat-flat-button type="submit" class="submit-btn" [disabled]="loginForm.invalid">
+    {{ "AUTH.LOG_IN.ENTER" | translate }}
+  </button>
+</form>

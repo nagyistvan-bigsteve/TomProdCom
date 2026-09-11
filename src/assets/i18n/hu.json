@@ -173,6 +173,7 @@
       "ENTER": "Bejelentkezés"
     },
     "WAIT_TO_APPROVE": {
+      "HEADING": "Fiók jóváhagyásra vár",
       "TITLE": "Várnod kell, amíg egy adminisztrátor jóváhagyja a fiókodat.",
       "BUTTON": "Frissítés"
     },
@@ -446,7 +447,8 @@
     "EMAIL_SENT_SUCCESS": "Ellenőrizd az e-mailedet a jelszó visszaállítási utasításokért.",
     "EMAIL_SENT_ERROR": "Hiba történt a jelszó visszaállító e-mail küldésekor.",
     "SESSION_ERROR": "Bejelentkezési hiba",
-    "INVALID_FORM": "Kérlek töltsd ki helyesen az összes mezőt."
+    "INVALID_FORM": "Kérlek töltsd ki helyesen az összes mezőt.",
+    "VERIFYING": "Munkamenet ellenőrzése..."
   },
   "PRINT_POPUP": {
     "TITLE_ORDER": "Rendelés",
