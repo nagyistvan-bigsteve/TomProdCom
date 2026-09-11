@@ -1,34 +1,35 @@
 @if (unapprovedUsers | async; as users) {
-<mat-accordion @enterAnimation class="w-100" multi>
-  <mat-expansion-panel [expanded]="users.length !== 0">
-    <mat-expansion-panel-header class="px-3">
-      <div class="d-flex justify-content-center align-items-center">
-        {{ "AUTH.APPROVE.TITLE" | translate }}
+  @if (users.length) {
+    <div class="section-card" @enterAnimation>
+      <div class="section-header">
+        <mat-icon class="section-icon pending-icon">pending</mat-icon>
+        <span class="mat-title-small section-title">{{ "AUTH.APPROVE.TITLE" | translate }}</span>
+        <span class="count-badge">{{ users.length }}</span>
       </div>
-    </mat-expansion-panel-header>
-    <div class="w-100 users-container">
-      @for (user of users; track $index; let last = $last) {
-      <div class="d-flex mx-1 justify-content-between align-items-center py-1">
-        <div class="d-flex flex-column">
-          <div>{{ user.name }}</div>
-          <div>({{ user.email }})</div>
-        </div>
-        <div class="d-flex">
-          <button mat-icon-button (click)="approveUser(user.id)">
-            <mat-icon class="text-success">add_circle_outline</mat-icon>
-          </button>
-          <button mat-icon-button (click)="denieUser(user.id)">
-            <mat-icon class="text-danger">remove_circle_outline</mat-icon>
-          </button>
-        </div>
+      <div class="users-body">
+        @for (user of users; track user.id; let last = $last) {
+          <div class="user-row">
+            <div class="user-avatar">
+              <mat-icon>person</mat-icon>
+            </div>
+            <div class="user-info">
+              <span class="user-name">{{ user.name }}</span>
+              <span class="user-email">{{ user.email }}</span>
+            </div>
+            <div class="user-actions">
+              <button mat-icon-button class="approve-btn" (click)="approveUser(user.id)">
+                <mat-icon>check_circle</mat-icon>
+              </button>
+              <button mat-icon-button class="deny-btn" (click)="denieUser(user.id)">
+                <mat-icon>cancel</mat-icon>
+              </button>
+            </div>
+          </div>
+          @if (!last) {
+            <mat-divider />
+          }
+        }
       </div>
-      @if(!last) {
-      <mat-divider></mat-divider>} } @if (users.length === 0) {
-      <div class="fs-5 w-100">
-        {{ "AUTH.APPROVE.NO_LIST" | translate }}
-      </div>
-      }
     </div>
-  </mat-expansion-panel>
-</mat-accordion>
+  }
 }

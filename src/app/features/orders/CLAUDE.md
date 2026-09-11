@@ -187,6 +187,25 @@ Admin-only view of soft-deleted orders.
 - Restore: `restoreDeletedOrder()` sets `deleted_at = null`.
 - Permanent delete: `permanentlyDeleteOrder()` hard-deletes the order and its items.
 
+**Layout:**
+- `:host` uses `flex: 1; min-height: 0; overflow-y: auto` — the whole page scrolls. No `padding-top` hack.
+- Standard `.page-header` strip with `NAVBAR.DELETED` title + a count badge (only shown when orders exist).
+- `.page-content` has `padding: var(--space-4) var(--space-3)` on mobile, increasing at `sm` and `md`.
+- **Orders grid** (`.orders-grid`): single column on mobile/tablet, **two columns** at `lg` (≥1280px).
+- **Cards** (`.order-card`): plain `<div>` (not `mat-card`), white background, `border-radius: 12px`, `box-shadow`. The card sets `--mat-icon-color: rgba(0,0,0,0.45)` to override the global white icon theme for white-background cards.
+  - Header section (`.card-header`): order ID + days-remaining chip + "deleted N days ago" label.
+  - Body section (`.card-body`): detail rows — created date, delivered date (optional), total price, operator (optional). Price row has a top border separator.
+  - Actions (`.card-actions`): stacked vertically on mobile, side-by-side at `sm`+. Restore = `mat-stroked-button`, permanent delete = `mat-flat-button` with red styling.
+
+**Days-remaining chip colors** (via `getDaysClass(days: number)`):
+| Class | Condition | Appearance |
+|---|---|---|
+| `days-ok` | > 5 days | Green border/text |
+| `days-warn` | 3–5 days | Orange border/text |
+| `days-danger` | ≤ 2 days | Red border/text |
+
+> **No `mat-card` or `mat-chip`** — these were removed and replaced with plain styled divs. Do not re-add them.
+
 ## services/
 
 - `orders.service.ts` — Supabase queries for `orders` and `order_items`.

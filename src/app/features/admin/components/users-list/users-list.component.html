@@ -1,59 +1,61 @@
 @if (usersList | async; as users) {
-<mat-accordion class="w-100" multi>
-  <mat-expansion-panel [expanded]="users.length !== 0">
-    <mat-expansion-panel-header class="px-3">
-      <div class="d-flex justify-content-center align-items-center">
-        {{ "USER.USER_LIST.TITLE" | translate }}
-      </div>
-    </mat-expansion-panel-header>
-    <div class="w-100">
-      <div>
-        <div class="text-danger fs-6">
-          {{ "USER.USER_LIST.ADMINS" | translate }}
-        </div>
-        @for (user of users; let last = $last; track $index) { @if(user.role ===
-        'admin') {
-        <div
-          @enterAnimation
-          class="d-flex justify-content-between align-items-center ps-2 border-bottom border-bottom-1"
-          [ngClass]="{ 'border-bottom-0': last }"
-        >
-          <div class="d-flex flex-column">
-            <div>{{ user.name }}</div>
-            <div>{{ user.email }}</div>
+  <div class="section-card">
+    <div class="section-header">
+      <mat-icon class="section-icon">people</mat-icon>
+      <span class="mat-title-small section-title">{{ "USER.USER_LIST.TITLE" | translate }}</span>
+    </div>
+
+    <div class="group-label admin-label">
+      <mat-icon class="group-icon">manage_accounts</mat-icon>
+      {{ "USER.USER_LIST.ADMINS" | translate }}
+    </div>
+    @for (user of users; track user.id) {
+      @if (user.role === 'admin') {
+        <div class="user-row" @enterAnimation>
+          <div class="user-avatar admin-avatar">
+            <mat-icon>person</mat-icon>
+          </div>
+          <div class="user-info">
+            <span class="user-name">{{ user.name }}</span>
+            <span class="user-email">{{ user.email }}</span>
           </div>
           <button
             mat-icon-button
+            class="demote-btn"
             [disabled]="authStore.id() === user.id"
             (click)="changeUserRole(user.id, user.role)"
           >
-            <mat-icon class="text-danger">arrow_circle_down</mat-icon>
+            <mat-icon>arrow_circle_down</mat-icon>
           </button>
         </div>
-        } }
-      </div>
-      <mat-divider class="my-3" />
+      }
+    }
 
-      <div>
-        <div class="fs-6">{{ "USER.USER_LIST.USERS" | translate }}</div>
-        @for (user of users; let last = $last; track $index) { @if(user.role ===
-        'user') {
-        <div
-          @enterAnimation
-          class="d-flex justify-content-between align-items-center ps-2 border-bottom border-bottom-1"
-          [ngClass]="{ 'border-bottom-0': last }"
-        >
-          <div class="d-flex flex-column">
-            <div>{{ user.name }}</div>
-            <div>{{ user.email }}</div>
+    <mat-divider class="group-divider" />
+
+    <div class="group-label">
+      <mat-icon class="group-icon">person</mat-icon>
+      {{ "USER.USER_LIST.USERS" | translate }}
+    </div>
+    @for (user of users; track user.id) {
+      @if (user.role === 'user') {
+        <div class="user-row" @enterAnimation>
+          <div class="user-avatar">
+            <mat-icon>person</mat-icon>
           </div>
-          <button mat-icon-button (click)="changeUserRole(user.id, user.role)">
-            <mat-icon class="text-success">arrow_circle_up</mat-icon>
+          <div class="user-info">
+            <span class="user-name">{{ user.name }}</span>
+            <span class="user-email">{{ user.email }}</span>
+          </div>
+          <button
+            mat-icon-button
+            class="promote-btn"
+            (click)="changeUserRole(user.id, user.role)"
+          >
+            <mat-icon>arrow_circle_up</mat-icon>
           </button>
         </div>
-        } }
-      </div>
-    </div>
-  </mat-expansion-panel>
-</mat-accordion>
+      }
+    }
+  </div>
 }

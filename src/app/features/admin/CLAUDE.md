@@ -85,6 +85,10 @@ Lists all users where `approved = false` (fetched via `AuthStore.fetchUnapproved
 - **Approve:** calls `AuthStore.approveUser(id)` → sets `profiles.approved = true`.
 - **Deny:** calls `AuthStore.denyUser(id)` → **permanently hard-deletes the user** from Supabase (not soft-delete). The user record is gone.
 
+**Layout:** Frosted card (`.section-card`, `rgba(255,255,255,0.08)` on the dark-green background). Section header shows an orange `pending` icon and a count badge. Each pending user gets a row with a small avatar circle, name + email (truncated), and green check / red cancel icon buttons. The component renders nothing when the unapproved list is empty — the parent (`user.component`) guards the `@if(users.length)` check before mounting it.
+
+> **No `mat-accordion`** — the old expansion panel was removed. Do not re-add it.
+
 ### `users-list/` — approved users and role management
 
 Lists all approved users (fetched via `AuthStore.fetchUsers()`).
@@ -93,6 +97,10 @@ Lists all approved users (fetched via `AuthStore.fetchUsers()`).
   - Promoting to admin: also inserts a row into the `admin_users` table.
   - Demoting to user: also deletes the row from `admin_users`.
 - An admin cannot accidentally demote themselves without a safeguard (enforced in `AuthStore`).
+
+**Layout:** Same frosted card pattern as `approve-user`. Users are split into two groups (admins first, regular users second) separated by a `<mat-divider>` and uppercase group labels. Admin rows use a red-tinted avatar; regular-user rows use a neutral avatar. Demote button (↓) is red; promote button (↑) is green. The self-demotion button is `[disabled]` and faded via `opacity: 0.3`.
+
+> **No `mat-accordion`** — the old expansion panel was removed. Do not re-add it.
 
 ## Important notes
 

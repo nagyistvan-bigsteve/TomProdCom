@@ -1,5 +1,4 @@
-﻿import { Component, inject } from '@angular/core';
-import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
+import { Component, inject } from '@angular/core';
 import { useAuthStore } from '@core/store/auth-store';
 import { CommonModule } from '@angular/common';
 import { ENTER_ANIMATION } from '@core/models/animations';
@@ -11,8 +10,6 @@ import { TranslateModule } from '@ngx-translate/core';
 @Component({
   selector: 'app-approve-user',
   imports: [
-    MatAccordion,
-    MatExpansionModule,
     CommonModule,
     MatButtonModule,
     MatIconModule,

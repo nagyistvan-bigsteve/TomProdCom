@@ -27,10 +27,17 @@ Handles the Supabase magic-link callback for password reset.
 
 Accessible to **all authenticated and approved users**, but content is conditional:
 
-- **All users** see their own profile information (name, email).
+- **All users** see their own profile information (name, email, role).
 - **Admins additionally** see `ApproveUserComponent` (pending users) and `UsersListComponent` (all approved users with role management).
 
 This page fetches unapproved users on init via `authStore.fetchUnapprovedUsers()`. The count badge on the user-page navigation link reflects pending approvals.
+
+**Layout:**
+- Standard `.page-header` strip (matches settings/clients) with the `NAVBAR.ACCOUNT` title.
+- `:host` uses `flex: 1; min-height: 0; overflow-y: auto` — the whole page scrolls.
+- `.page-content` is centered at `max-width: 720px` on desktop (`@include md`).
+- **Profile card** (`.profile-card`): frosted dark card (`rgba(255,255,255,0.08)`), centered column layout — 72px avatar circle → name in `mat-title-large` → email + role rows with icons → full-width logout button. Role is displayed as a pill chip (`.role-chip`). The logout button uses `--mdc-outlined-button-*` CSS custom properties for dark-background styling.
+- **Admin section** (`.admin-section`): stacks `ApproveUserComponent` (only when pending users exist) and `UsersListComponent` below the profile card with `gap: var(--space-4)`. Both components receive no inputs — they self-fetch from `authStore`.
 
 ### `wait-to-approve/` — approval pending
 
