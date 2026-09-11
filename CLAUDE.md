@@ -198,6 +198,59 @@ CSS custom properties in `styles.scss `:root``, available in all components with
 
 Use `var(--space-N)` in `.scss` files. Bootstrap `p-*`/`gap-*` utilities are acceptable in templates (`p-3` = 12px, `p-4` = 16px).
 
+### `mat-form-field` on dark backgrounds
+
+`mat-form-field[appearance="outline"]` uses Material's default dark label/input colors. On pages with a dark background (`rgb(57, 72, 60)`), you must explicitly restyle the field. Use **both** CSS custom properties (for proper theming) and `::ng-deep` MDC class overrides (for reliability across Material versions):
+
+```scss
+// On the .field-class element (CSS custom properties cascade into the component)
+.my-field {
+  --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.65);
+  --mdc-outlined-text-field-hover-label-text-color: rgba(255, 255, 255, 0.85);
+  --mdc-outlined-text-field-focus-label-text-color: white;
+  --mdc-outlined-text-field-input-text-color: white;
+  --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.35);
+  --mdc-outlined-text-field-hover-outline-color: rgba(255, 255, 255, 0.65);
+  --mdc-outlined-text-field-focus-outline-color: white;
+  --mdc-outlined-text-field-caret-color: white;
+}
+
+// ::ng-deep MDC class overrides as fallback
+::ng-deep {
+  .my-field {
+    .mdc-floating-label, .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.65); }
+    .mdc-text-field--focused .mdc-floating-label { color: white; }
+    input.mdc-text-field__input { color: white; caret-color: white; }
+
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__leading,
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__notch,
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__trailing {
+      border-color: white;
+    }
+  }
+}
+```
+
+See `clients.component.scss` and `products.component.scss` for live examples.
+
+### `mat-button-toggle-group` on dark backgrounds
+
+Apply `::ng-deep` to style the toggle group and individual toggles:
+
+```scss
+::ng-deep {
+  .my-toggle.mat-button-toggle-group { border-color: rgba(255, 255, 255, 0.25); }
+  .my-toggle .mat-button-toggle { flex: 1; background: rgba(0,0,0,0.15); color: rgba(255,255,255,0.7); }
+  .my-toggle .mat-button-toggle-button { width: 100%; }
+  .my-toggle .mat-button-toggle-checked { background: rgba(255,255,255,0.18); color: white; font-weight: 600; }
+}
+```
+
 ### Anti-patterns (do not use)
 
 - `height: 92vh` / `max-width: 96vw` — use flex `flex: 1` and `max-width` with `margin: 0 auto`

@@ -1,58 +1,62 @@
-<mat-form-field class="full-width client-search-input pt-2 mb-2">
-  <mat-label>{{ "SELECT_CLIENT.TITLE" | translate }}</mat-label>
-  <input
-    type="text"
-    matInput
-    [formControl]="clientSearch"
-    [matAutocomplete]="auto"
-  />
-  @if (clientStore.isClientSelected()) {
-    <button
-      matSuffix
-      mat-icon-button
-      aria-label="Clear"
-      (click)="clearClient()"
-    >
-      <mat-icon class="text-black">close</mat-icon>
-    </button>
-  }
-  <mat-autocomplete
-    #auto="matAutocomplete"
-    (optionSelected)="selectClient($event.option.value)"
-    [displayWith]="displayClientLabel"
-  >
-    @for (client of filteredClients(); track client.id) {
-      <mat-option [value]="client">
-        {{ client.name }} ({{ client.type === 1 ? "PF" : "PJ" }})
-      </mat-option>
+<div class="page-header">
+  <span class="header-title">{{ "NAVBAR.CLIENTS_BUTTON" | translate }}</span>
+</div>
+
+<div class="page-content">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>{{ "SELECT_CLIENT.TITLE" | translate }}</mat-label>
+    <input
+      type="text"
+      matInput
+      [formControl]="clientSearch"
+      [matAutocomplete]="auto"
+    />
+    @if (clientStore.isClientSelected()) {
+      <button
+        matSuffix
+        mat-icon-button
+        aria-label="Clear"
+        (click)="clearClient()"
+      >
+        <mat-icon>close</mat-icon>
+      </button>
     }
-  </mat-autocomplete>
-</mat-form-field>
-
-@if (!clientStore.isClientSelected()) {
-  <app-add-client @enterAnimation [withoutForwardButton]="true" />
-} @else {
-  <div class="d-flex gap-2 mb-2" @enterAnimation>
-    <div
-      class="card-button rounded shadow border border-white py-2 px-4"
-      [ngClass]="{ 'card-button-selected': showClientHistory() }"
-      (click)="showClientHistory.set(true); showClientDetails.set(false)"
+    <mat-autocomplete
+      #auto="matAutocomplete"
+      (optionSelected)="selectClient($event.option.value)"
+      [displayWith]="displayClientLabel"
     >
-      {{ "CLIENT_DETAILS.ORDERS" | translate }}
-    </div>
-    <div
-      class="card-button rounded shadow border border-white py-2 px-4"
-      [ngClass]="{ 'card-button-selected': showClientDetails() }"
-      (click)="showClientHistory.set(false); showClientDetails.set(true)"
-    >
-      {{ "CLIENT_DETAILS.TITLE" | translate }}
-    </div>
-  </div>
+      @for (client of filteredClients(); track client.id) {
+        <mat-option [value]="client">
+          {{ client.name }} ({{ client.type === 1 ? "PF" : "PJ" }})
+        </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
 
-  @if (showClientDetails()) {
+  @if (!clientStore.isClientSelected()) {
     <app-add-client @enterAnimation [withoutForwardButton]="true" />
+  } @else {
+    <div @enterAnimation class="selected-client-area">
+      <mat-button-toggle-group
+        class="tab-toggle"
+        [value]="activeTabValue()"
+        (change)="setTab($event.value)"
+      >
+        <mat-button-toggle value="history">
+          {{ "CLIENT_DETAILS.ORDERS" | translate }}
+        </mat-button-toggle>
+        <mat-button-toggle value="details">
+          {{ "CLIENT_DETAILS.TITLE" | translate }}
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      @if (showClientDetails()) {
+        <app-add-client @enterAnimation [withoutForwardButton]="true" />
+      }
+      @if (showClientHistory()) {
+        <app-client-history @enterAnimation />
+      }
+    </div>
   }
-  @if (showClientHistory()) {
-    <app-client-history class="full-width" />
-  }
-}
+</div>

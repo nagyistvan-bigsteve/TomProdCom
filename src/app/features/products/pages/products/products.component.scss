@@ -1,37 +1,252 @@
+@use "breakpoints" as *;
+
 :host {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(57, 72, 60);
+  color: white;
+  overflow: hidden;
+}
+
+.page-header {
+  flex-shrink: 0;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.header-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.loading-state {
+  flex: 1;
   display: flex;
   justify-content: center;
-  align-items: end;
+  align-items: center;
+}
 
-  background-color: rgb(57, 72, 60);
+.page-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  @include md {
+    max-width: 960px;
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+.controls-row {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) 0;
+
+  @include md {
+    padding: var(--space-4) var(--space-4) 0;
+  }
+}
+
+.search-field {
+  flex: 1;
+
+  --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.65);
+  --mdc-outlined-text-field-hover-label-text-color: rgba(255, 255, 255, 0.85);
+  --mdc-outlined-text-field-focus-label-text-color: white;
+  --mdc-outlined-text-field-input-text-color: white;
+  --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.35);
+  --mdc-outlined-text-field-hover-outline-color: rgba(255, 255, 255, 0.65);
+  --mdc-outlined-text-field-focus-outline-color: white;
+  --mdc-outlined-text-field-caret-color: white;
+}
+
+.sort-btn {
+  flex-shrink: 0;
+  background-color: rgba(255, 255, 255, 0.1);
   color: white;
 }
 
-.product-list-container {
-  height: 82vh;
-  overflow: auto;
-  width: 90vw;
+.product-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-3);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  align-content: start;
+
+  @include sm {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  @include md {
+    grid-template-columns: repeat(3, 1fr);
+    padding: var(--space-4);
+  }
 }
 
-.product-list-item:hover {
-  background-color: rgb(78, 97, 82);
+.product-card {
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  transition: background 0.15s;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.25);
+  }
+
+  &.editing {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
 }
 
-.stock-warning {
-  color: rgb(251, 255, 17);
+.product-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.product-name {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.35;
+  flex: 1;
+}
+
+.edit-btn {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.6);
+  width: 36px;
+  height: 36px;
+
+  &:hover {
+    color: white;
+  }
+}
+
+.product-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.stock-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.875rem;
+}
+
+.meta-label {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.8125rem;
+}
+
+.stock-sep {
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .stock-good {
   color: rgb(141, 216, 27);
+  font-weight: 600;
 }
 
-.icon-button {
+.stock-warning {
+  color: rgb(251, 255, 17);
+  font-weight: 600;
+}
+
+.m3-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.875rem;
+}
+
+.m3-value {
+  font-weight: 500;
+}
+
+.edit-row {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  margin-top: var(--space-1);
+}
+
+.stock-edit-field {
+  flex: 1;
+
+  --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.65);
+  --mdc-outlined-text-field-hover-label-text-color: rgba(255, 255, 255, 0.85);
+  --mdc-outlined-text-field-focus-label-text-color: white;
+  --mdc-outlined-text-field-input-text-color: white;
+  --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.35);
+  --mdc-outlined-text-field-hover-outline-color: rgba(255, 255, 255, 0.65);
+  --mdc-outlined-text-field-focus-outline-color: white;
+  --mdc-outlined-text-field-caret-color: white;
+}
+
+.save-btn {
+  flex-shrink: 0;
   background-color: rgb(78, 97, 82);
+  color: white;
 }
 
 ::ng-deep {
-  .products-name-input .mat-mdc-form-field-subscript-wrapper {
-    display: none;
+  .search-field,
+  .stock-edit-field {
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+
+    .mdc-floating-label,
+    .mat-mdc-floating-label {
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled):hover .mdc-notched-outline__leading,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled):hover .mdc-notched-outline__notch,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled):hover .mdc-notched-outline__trailing {
+      border-color: rgba(255, 255, 255, 0.65);
+    }
+
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__leading,
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__notch,
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__trailing {
+      border-color: white;
+    }
+
+    input.mdc-text-field__input {
+      color: white;
+      caret-color: white;
+    }
+
+    .mdc-text-field--focused .mdc-floating-label,
+    .mdc-text-field--focused .mat-mdc-floating-label {
+      color: white;
+    }
   }
 }

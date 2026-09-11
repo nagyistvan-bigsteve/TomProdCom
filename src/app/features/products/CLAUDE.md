@@ -40,7 +40,25 @@ Two choices:
 
 ### `products/` — main product catalogue page
 
-Inventory tool (not just a catalogue). Stock information is prominent. Admins can also edit product details and stock directly from this page.
+Inventory tool (not just a catalogue). Stock information is prominent. Admins can edit stock values inline directly from this page.
+
+**Layout:**
+- `:host` is `flex: 1; min-height: 0; overflow: hidden` — internal elements own scrolling, no `vh` units.
+- Page header strip (title + sort icon button) at the top, `flex-shrink: 0`.
+- `.page-body` is `flex: 1; min-height: 0`, centered to `max-width: 960px` on desktop (`@include md`).
+- `.controls-row` (search field + sort button) is `flex-shrink: 0` inside `.page-body`.
+- `.product-list` is `flex: 1; min-height: 0; overflow-y: auto` — this is the scroll container.
+
+**Product grid:** `.product-list` uses CSS Grid:
+- Mobile: 1 column
+- `@include sm` (≥600px): 2 columns
+- `@include md` (≥960px): 3 columns
+
+Product cards use `background: rgba(0,0,0,0.15)` with `border-radius: 8px`. Hovering darkens to `rgba(0,0,0,0.25)`. Active edit state uses `rgba(0,0,0,0.3)` with a brighter border.
+
+**Inline stock edit:** clicking the edit icon on a card reveals a `mat-form-field` + `mat-mini-fab` save button via `@enterAndLeaveAnimation`. The edit field uses the same dark-background `::ng-deep` MDC overrides as the search field (see root CLAUDE.md).
+
+**Stock colors:** `rgb(141, 216, 27)` (total stock) / `rgb(251, 255, 17)` (available = total − booked). M3 products additionally show the cubic-metre equivalent below the piece count.
 
 ## services/
 

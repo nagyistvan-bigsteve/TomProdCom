@@ -9,7 +9,7 @@ Client (customer) management. The selected client is held in `ClientStore` and p
 Used both as a standalone page section and as an embedded form in the offer workflow (`select-client` page uses it with `[withoutForwardButton]="true"`).
 
 - `@Input() withoutForwardButton: boolean` — hides the "continue to offer" navigation button. Always set to `true` when embedded in `select-client-page`, which owns its own Continue bar.
-- **Card width:** `mat-card` uses `width: calc(100% - 2rem)` to account for the Bootstrap `mx-3` class (`margin: 0 1rem !important` on each side). Do not change this back to `width: 100%` or `width: 90vw` — either causes horizontal overflow in the two-column select-client layout.
+- **Card width:** `mat-card` uses `class="w-100 p-3"` (Bootstrap `w-100`). The surrounding container — whether the `/clients` page content area or the `form-panel` column in `select-client-page` — provides the horizontal padding, so the card itself does not need margin offsets. Do not add `mx-3` back.
 - Form groups: `name`, `type` (PF/PJ), `address`, `code`, `other_details`, plus a `phones` FormArray.
 - Validation:
   - PF clients: `code` must be exactly 13 digits.
@@ -42,7 +42,10 @@ Fetches and displays past orders for the currently selected client via `OrdersSe
 
 - Searchable autocomplete filters clients by name (diacritic-insensitive).
 - `selectClient(client)` calls `clientStore.setClientId(client.id)`.
-- `showClientHistory` and `showClientDetails` signals toggle the detail panels below the list.
+- `showClientHistory` and `showClientDetails` signals toggle the detail panels below the search field. A `mat-button-toggle-group` tab bar switches between the two views.
+- **Auto-tab on selection:** an `effect` watches `isClientSelected()`. When a client is first selected and neither tab is active, it auto-activates the history tab. When the client is cleared, both signals reset to `false`. The effect uses `untracked()` to read the current tab signals without creating extra reactive dependencies.
+- **Layout:** `:host` uses `overflow-y: auto` (whole page scrolls); content is centered at `max-width: 720px` on desktop (`@include md`).
+- **`mat-form-field` on dark background:** the search field uses `--mdc-outlined-text-field-*` CSS custom properties plus `::ng-deep` MDC class overrides (see root CLAUDE.md) to ensure label and input text are white on the dark green background.
 
 ## services/
 

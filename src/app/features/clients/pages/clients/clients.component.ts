@@ -1,20 +1,19 @@
-﻿import {
+import {
   Component,
   computed,
   effect,
   inject,
   signal,
+  untracked,
   ViewChild,
 } from '@angular/core';
 import { AddClientComponent } from '@features/clients/components/add-client/add-client.component';
 import { TranslateModule } from '@ngx-translate/core';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { Client } from '@core/models/models';
 import { CommonModule } from '@angular/common';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import {
   MatAutocompleteModule,
   MatAutocompleteTrigger,
@@ -22,6 +21,7 @@ import {
 import { MatOptionModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ClientStore } from '@features/clients/store/client.store';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ENTER_ANIMATION } from '@core/models/animations';
@@ -33,19 +33,15 @@ import { ClientHistoryComponent } from '@features/clients/components/client-hist
     AddClientComponent,
     ClientHistoryComponent,
     TranslateModule,
-    MatExpansionModule,
     CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSelectModule,
     MatAutocompleteModule,
     MatOptionModule,
-    AddClientComponent,
-    TranslateModule,
     MatIconModule,
-    FormsModule,
     MatButtonModule,
+    MatButtonToggleModule,
   ],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss',
@@ -71,10 +67,7 @@ export class ClientsComponent {
     }
 
     const search = this.normalize(searchValue);
-
-    if (!search) {
-      return allClients;
-    }
+    if (!search) return allClients;
 
     return allClients.filter((client) =>
       this.normalize(client.name).includes(search),
@@ -84,6 +77,12 @@ export class ClientsComponent {
   showClientHistory = signal(false);
   showClientDetails = signal(false);
 
+  readonly activeTabValue = computed(() => {
+    if (this.showClientHistory()) return 'history';
+    if (this.showClientDetails()) return 'details';
+    return null;
+  });
+
   constructor() {
     effect(() => {
       const currentClient = this.clientStore.client();
@@ -91,6 +90,26 @@ export class ClientsComponent {
         this.clientSearch.setValue(currentClient, { emitEvent: false });
       }
     });
+
+    effect(() => {
+      const isSelected = this.clientStore.isClientSelected();
+      if (isSelected) {
+        if (
+          !untracked(() => this.showClientHistory()) &&
+          !untracked(() => this.showClientDetails())
+        ) {
+          this.showClientHistory.set(true);
+        }
+      } else {
+        this.showClientHistory.set(false);
+        this.showClientDetails.set(false);
+      }
+    });
+  }
+
+  setTab(value: string): void {
+    this.showClientHistory.set(value === 'history');
+    this.showClientDetails.set(value === 'details');
   }
 
   displayClientLabel(client: Client | string | null): string {
@@ -114,7 +133,7 @@ export class ClientsComponent {
   private normalize(text: string): string {
     return text
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[̀-ͯ]/g, '')
       .toLowerCase()
       .trim();
   }

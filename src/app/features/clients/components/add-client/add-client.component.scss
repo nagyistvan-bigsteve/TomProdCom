@@ -1,6 +1,6 @@
 mat-card {
   color: rgb(57, 72, 60);
-  width: calc(100% - 2rem);
+  width: 100%;
   overflow: auto;
   transition: max-height 0.5s;
 }
@@ -13,12 +13,68 @@ mat-card {
   max-height: 75vh;
 }
 
-.add_phones_button {
-  background-color: rgba(57, 72, 60, 0.555);
+.form-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: rgb(57, 72, 60);
+  margin: 0;
 }
 
-.delete_phone_number_icon {
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.add-phone-btn {
+  color: white;
+  background-color: rgb(57, 72, 60, 0.5);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: rgb(78, 97, 82);
+  }
+}
+
+.phone-row {
+  display: flex;
+  gap: var(--space-2);
+  padding-bottom: 8px;
+}
+
+.phone-label-field {
+  flex: 3;
+}
+
+.phone-number-field {
+  flex: 5;
+}
+
+.phone-delete-btn {
+  flex-shrink: 0;
+}
+
+.delete-icon {
   color: rgb(148, 7, 7);
+}
+
+.submit-btn {
+  height: 44px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  margin-top: var(--space-1);
 }
 
 ::ng-deep {
