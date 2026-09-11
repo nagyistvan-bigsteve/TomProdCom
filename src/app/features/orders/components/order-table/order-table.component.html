@@ -1,357 +1,360 @@
-<div class="filter-section d-flex flex-column w-100">
+<div class="controls-panel">
   @if (!justOffers) {
-    <div class="d-flex mb-2 gap-2">
-      <mat-form-field>
-        <mat-label class="d-flex justify-content-center align-items-center"
-          ><i class="material-icons">filter_alt</i>
-          {{ "ORDER.TABLE.FILTER.FILTER_LABEL" | translate }}</mat-label
-        >
-        <mat-select
-          [(ngModel)]="tableFilter"
-          (ngModelChange)="filterItems(false)"
-        >
-          <mat-option [disabled]="tableFilter === 'all'" value="all">{{
-            "ORDER.TABLE.FILTER.ALL" | translate
-          }}</mat-option>
-          <mat-option [disabled]="tableFilter === 'open'" value="open">{{
-            "ORDER.TABLE.FILTER.OPEN" | translate
-          }}</mat-option>
-          <mat-option [disabled]="tableFilter === 'closed'" value="closed">{{
-            "ORDER.TABLE.FILTER.CLOSED" | translate
-          }}</mat-option>
-          <mat-option
-            [disabled]="tableFilter === 'expectedToday'"
-            value="expectedToday"
-            >{{ "ORDER.TABLE.FILTER.EXPECTED_TODAY" | translate }}</mat-option
+    <div class="filter-sort-row">
+      <mat-button-toggle-group
+        [(ngModel)]="tableFilter"
+        (ngModelChange)="filterItems(false)"
+        [hideSingleSelectionIndicator]="true"
+        class="status-toggles"
+      >
+        <mat-button-toggle value="all">{{
+          "ORDER.TABLE.FILTER.ALL" | translate
+        }}</mat-button-toggle>
+        <mat-button-toggle value="open">{{
+          "ORDER.TABLE.FILTER.OPEN" | translate
+        }}</mat-button-toggle>
+        <mat-button-toggle value="closed">{{
+          "ORDER.TABLE.FILTER.CLOSED" | translate
+        }}</mat-button-toggle>
+        <mat-button-toggle value="expectedToday">{{
+          "ORDER.TABLE.FILTER.EXPECTED_TODAY" | translate
+        }}</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <button
+        mat-icon-button
+        [matMenuTriggerFor]="sortMenu"
+        class="sort-btn"
+        [matTooltip]="'ORDER.TABLE.FILTER.SORT_LABEL' | translate"
+      >
+        <mat-icon>sort</mat-icon>
+      </button>
+      <mat-menu #sortMenu="matMenu">
+        <button mat-menu-item (click)="tableSort = 'delivery'; sortItems()">
+          <mat-icon [class.active-sort]="tableSort === 'delivery'"
+            >local_shipping</mat-icon
           >
-        </mat-select>
-      </mat-form-field>
-      <mat-form-field>
-        <mat-label class="d-flex justify-content-center align-items-center"
-          ><i class="material-icons">sort</i>
-          {{ "ORDER.TABLE.FILTER.SORT_LABEL" | translate }}</mat-label
-        >
-        <mat-select [(ngModel)]="tableSort" (ngModelChange)="sortItems()">
-          <mat-option [disabled]="tableSort === 'delivery'" value="delivery">{{
-            "ORDER.TABLE.FILTER.DELIVERY" | translate
-          }}</mat-option>
-          <mat-option [disabled]="tableSort === 'creation'" value="creation">{{
-            "ORDER.TABLE.FILTER.CREATION" | translate
-          }}</mat-option>
-          <mat-option [disabled]="tableSort === 'admin'" value="admin">{{
-            "ORDER.TABLE.FILTER.ADMIN" | translate
-          }}</mat-option>
-        </mat-select>
-      </mat-form-field>
+          {{ "ORDER.TABLE.FILTER.DELIVERY" | translate }}
+        </button>
+        <button mat-menu-item (click)="tableSort = 'creation'; sortItems()">
+          <mat-icon [class.active-sort]="tableSort === 'creation'"
+            >calendar_today</mat-icon
+          >
+          {{ "ORDER.TABLE.FILTER.CREATION" | translate }}
+        </button>
+        <button mat-menu-item (click)="tableSort = 'admin'; sortItems()">
+          <mat-icon [class.active-sort]="tableSort === 'admin'"
+            >low_priority</mat-icon
+          >
+          {{ "ORDER.TABLE.FILTER.ADMIN" | translate }}
+        </button>
+      </mat-menu>
     </div>
   }
 
-  <div class="d-flex gap-2 mb-2">
-    <mat-form-field class="flex-grow-1">
-      <mat-label>{{ "ORDER.TABLE.FILTER.NAME_FILTER" | translate }}</mat-label>
-      <input matInput [formControl]="nameFilter" />
-      @if (nameFilter.value) {
-        <button matSuffix mat-icon-button (click)="nameFilter.setValue('')">
+  <div class="search-date-row">
+    <mat-form-field appearance="fill" class="search-field">
+      <mat-label>{{ "ORDER.TABLE.FILTER.SEARCH_LABEL" | translate }}</mat-label>
+      <mat-icon matPrefix class="search-icon-prefix">search</mat-icon>
+      <input matInput [formControl]="searchFilter" />
+      @if (searchFilter.value) {
+        <button
+          matSuffix
+          mat-icon-button
+          aria-label="Clear"
+          (click)="searchFilter.setValue('')"
+        >
           <mat-icon>close</mat-icon>
         </button>
       }
     </mat-form-field>
-    <mat-form-field class="flex-grow-1">
-      <mat-label>{{
-        "ORDER.TABLE.FILTER.ADDRESS_FILTER" | translate
-      }}</mat-label>
-      <input matInput [formControl]="addressFilter" />
-      @if (addressFilter.value) {
-        <button matSuffix mat-icon-button (click)="addressFilter.setValue('')">
-          <mat-icon>close</mat-icon>
-        </button>
+
+    <mat-form-field appearance="fill" class="date-field">
+      <mat-label>{{ "ORDER.TABLE.FILTER.DATE_RANGE" | translate }}</mat-label>
+      <mat-date-range-input [formGroup]="dateRange" [rangePicker]="picker">
+        <input
+          matStartDate
+          formControlName="start"
+          [placeholder]="'ORDER.TABLE.FILTER.START_DATE' | translate"
+        />
+        <input
+          matEndDate
+          formControlName="end"
+          [placeholder]="'ORDER.TABLE.FILTER.END_DATE' | translate"
+        />
+      </mat-date-range-input>
+      <mat-datepicker-toggle matIconSuffix [for]="picker" />
+      <mat-date-range-picker #picker />
+      @if (dateRange.controls.start.hasError("matStartDateInvalid")) {
+        <mat-error>{{
+          "ORDER.TABLE.FILTER.INVALID_START" | translate
+        }}</mat-error>
+      }
+      @if (dateRange.controls.end.hasError("matEndDateInvalid")) {
+        <mat-error>{{
+          "ORDER.TABLE.FILTER.INVALID_END" | translate
+        }}</mat-error>
       }
     </mat-form-field>
   </div>
-
-  <mat-form-field class="mb-1">
-    <mat-label>{{ "ORDER.TABLE.FILTER.DATE_RANGE" | translate }}</mat-label>
-    <mat-date-range-input [formGroup]="dateRange" [rangePicker]="picker">
-      <input
-        matStartDate
-        formControlName="start"
-        [placeholder]="'ORDER.TABLE.FILTER.START_DATE' | translate"
-      />
-      <input
-        matEndDate
-        formControlName="end"
-        [placeholder]="'ORDER.TABLE.FILTER.END_DATE' | translate"
-      />
-    </mat-date-range-input>
-    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-    <mat-date-range-picker #picker></mat-date-range-picker>
-
-    @if (dateRange.controls.start.hasError("matStartDateInvalid")) {
-      <mat-error>{{
-        "ORDER.TABLE.FILTER.INVALID_START" | translate
-      }}</mat-error>
-    }
-    @if (dateRange.controls.end.hasError("matEndDateInvalid")) {
-      <mat-error>{{ "ORDER.TABLE.FILTER.INVALID_END" | translate }}</mat-error>
-    }
-  </mat-form-field>
 </div>
 
-<table
-  #table
-  mat-table
-  [dataSource]="dataSource"
-  multiTemplateDataRows
-  cdkDropList
-  (cdkDropListDropped)="drop($event)"
-  [cdkDropListData]="dataSource"
-  [cdkDropListAutoScrollDisabled]="false"
-  [cdkDropListAutoScrollStep]="5"
-  [cdkDropListDisabled]="!isDragDropEnabled()"
-  class="mat-elevation-z8 rounded overflow-hidden order-table"
->
-  <!-- Client Column -->
-  <ng-container matColumnDef="CLIENT">
-    <th mat-header-cell *matHeaderCellDef>
-      {{ "ORDER.TABLE.CONTENT.CLIENT" | translate }}
-    </th>
-    <td mat-cell *matCellDef="let order" class="client-name">
-      @if (!clientStore.isBusy()) {
-        {{ clientStore.clientsEntityMap()[order.clientId].name }}
-      }
-    </td>
-  </ng-container>
-
-  <!-- Client Delivery Column -->
-  <ng-container matColumnDef="DELIVERY_PLACE">
-    <th mat-header-cell *matHeaderCellDef>
-      {{ "ORDER.TABLE.CONTENT.DELIVERY_PLACE" | translate }}
-    </th>
-    <td mat-cell *matCellDef="let order">
-      {{ order.delivery_address }}
-    </td>
-  </ng-container>
-
-  <!-- Expected Delivery Column -->
-  <ng-container matColumnDef="EXPECTED_DELIVERY">
-    <th mat-header-cell *matHeaderCellDef>
-      {{ "ORDER.TABLE.CONTENT.EXPECTED_DELIVERY" | translate }}
-    </th>
-    <td mat-cell *matCellDef="let order">
-      @if (!justOffers) {
-        @if (order.untilDeliveryDate) {
-          <div
-            [matTooltip]="
-              'ORDER.TABLE.CONTENT.EXPECTED_DELIVERY_TOOLTIP'
-                | translate: { date: order.expectedDelivery | date: 'MM.dd' }
-            "
-            class="until-delivery rounded"
-            [ngClass]="
-              !isExpectedDeliveryInFuture(
-                order.expectedDelivery,
-                order.dateOrderDelivered
-              )
-                ? 'in-past'
-                : ''
-            "
-          >
-            {{ order.expectedDelivery | date }}
-            <span class="until-delivery-start">*</span>
-          </div>
-          {{
-            order.forFirstHour
-              ? ("ORDER.TABLE.CONTENT.FIRST_HOUR" | translate)
-              : ""
-          }}
-        } @else {
-          <div
-            [ngClass]="
-              !isExpectedDeliveryInFuture(
-                order.expectedDelivery,
-                order.dateOrderDelivered
-              )
-                ? 'in-past'
-                : ''
-            "
-          >
-            {{ order.expectedDelivery | date }}
-            <br />
-            {{
-              order.forFirstHour
-                ? ("ORDER.TABLE.CONTENT.FIRST_HOUR" | translate)
-                : ""
-            }}
-          </div>
+<div class="table-body">
+  <table
+    #table
+    mat-table
+    [dataSource]="dataSource"
+    multiTemplateDataRows
+    cdkDropList
+    (cdkDropListDropped)="drop($event)"
+    [cdkDropListData]="dataSource"
+    [cdkDropListAutoScrollDisabled]="false"
+    [cdkDropListAutoScrollStep]="5"
+    [cdkDropListDisabled]="!isDragDropEnabled()"
+    class="order-table"
+  >
+    <!-- Client Column -->
+    <ng-container matColumnDef="CLIENT">
+      <th mat-header-cell *matHeaderCellDef>
+        {{ "ORDER.TABLE.CONTENT.CLIENT" | translate }}
+      </th>
+      <td mat-cell *matCellDef="let order" class="client-cell">
+        @if (!clientStore.isBusy()) {
+          {{ clientStore.clientsEntityMap()[order.clientId].name }}
         }
-      } @else {
-        {{ order.dateOrderPlaced | date }}
-      }
-    </td>
-  </ng-container>
+      </td>
+    </ng-container>
 
-  <!-- Quantity Column -->
-  <ng-container matColumnDef="QUANTITY">
-    <th mat-header-cell *matHeaderCellDef>
-      {{ "ORDER.TABLE.CONTENT.QUANTITY" | translate }}
-    </th>
-    <td mat-cell *matCellDef="let order">
-      {{ order.totalQuantity | number: "1.0-2" }} m³
-    </td>
-  </ng-container>
+    <!-- Delivery Place Column — hidden on mobile, shown in expanded row instead -->
+    <ng-container matColumnDef="DELIVERY_PLACE">
+      <th mat-header-cell *matHeaderCellDef class="hide-mobile">
+        {{ "ORDER.TABLE.CONTENT.DELIVERY_PLACE" | translate }}
+      </th>
+      <td mat-cell *matCellDef="let order" class="address-cell hide-mobile">
+        {{ order.delivery_address }}
+      </td>
+    </ng-container>
 
-  <!-- Total Amount Column -->
-  <ng-container matColumnDef="TOTAL_AMOUND_FINAL">
-    <th mat-header-cell *matHeaderCellDef>
-      {{ "ORDER.TABLE.CONTENT.TOTAL_AMOUND_FINAL" | translate }}
-    </th>
-    <td mat-cell *matCellDef="let order">
-      @if (order.dateOrderDelivered || justOffers) {
-        <div>
-          {{
-            order.totalAmountFinal + order.deliveryFee - order.paidAmount
-              | number: "1.0-1"
-          }}
-        </div>
-      } @else {
-        <div
-          (click)="
-            payOrder(
-              $event,
-              order.id,
-              order.totalAmountFinal,
-              order.paidAmount,
-              order.deliveryFee
-            )
-          "
-        >
-          {{
-            order.totalAmountFinal + order.deliveryFee - order.paidAmount
-              | number: "1.0-1"
-          }}
-        </div>
-      }
-    </td>
-  </ng-container>
-
-  <!-- Expand column -->
-  <ng-container matColumnDef="expandedDetail">
-    <td
-      mat-cell
-      *matCellDef="let order"
-      [attr.colspan]="displayedColumns.length"
-      class="px-1"
-    >
-      <div
-        class="order-detail-wrapper"
-        [class.order-detail-wrapper-expanded]="isExpanded(order)"
-      >
-        <div class="order-detail" [ngClass]="{ 'py-1': isExpanded(order) }">
-          <div>
-            @if (!justOffers) {
-              <div class="order-detail-item">
-                {{ "ORDER.TABLE.CONTENT.ORDER_PLACED" | translate }}
-                {{ order.dateOrderPlaced | date }}
-              </div>
-            } @else {
-              <div class="order-detail-item">
-                {{ "ORDER.TABLE.CONTENT.OFFER_EXPECTED_DELIVERY" | translate }}
-                {{ order.expectedDelivery | date }}
-              </div>
-            }
-            @if (order.voucher != "") {
-              <div class="order-detail-item detail-voucher">
-                {{ "ORDER.TABLE.CONTENT.VOUCHER" | translate }}
-                {{ order.voucher }}
-                {{ !isPercentageVoucher(order.voucher) ? "RON" : "" }}
-              </div>
-            }
-            @if (order.dateOrderDelivered) {
-              <div class="order-detail-item rounded expected-delivery-bg w-100">
-                {{ "ORDER.TABLE.CONTENT.ORDER_DELIVERED" | translate }}
-                {{ order.dateOrderDelivered | date }}
-              </div>
-            }
-            @if (order.paidAmount) {
-              <div class="order-detail-item">
-                {{ "ORDER.TABLE.CONTENT.PAID_AMOUNT" | translate }}
-                {{ order.paidAmount | number: "1.0-2" }}
-              </div>
-            }
-            <div class="order-detail-item">
-              {{ "ORDER.TABLE.CONTENT.OPERATOR" | translate }}
-              {{ order.operator.name }}
-            </div>
-            @if (order.comment != "") {
-              <div
-                class="rounded multiline-text border border-secondary border-1 p-2"
-              >
-                {{ order.comment }}
-              </div>
-            }
-          </div>
-          <div
-            class="h-100 d-flex flex-column justify-content-center align-items-center"
-          >
-            <button
-              class="w-100"
-              (click)="showOrderDetails(order)"
-              mat-raised-button
+    <!-- Expected Delivery / Offer Placed Column -->
+    <ng-container matColumnDef="EXPECTED_DELIVERY">
+      <th mat-header-cell *matHeaderCellDef class="date-header">
+        {{ "ORDER.TABLE.CONTENT.EXPECTED_DELIVERY" | translate }}
+      </th>
+      <td mat-cell *matCellDef="let order" class="date-cell">
+        @if (!justOffers) {
+          @if (order.untilDeliveryDate) {
+            <div
+              [matTooltip]="
+                'ORDER.TABLE.CONTENT.EXPECTED_DELIVERY_TOOLTIP'
+                  | translate: { date: order.expectedDelivery | date: 'MM.dd' }
+              "
+              class="delivery-badge until-delivery"
+              [class.in-past]="
+                !isExpectedDeliveryInFuture(
+                  order.expectedDelivery,
+                  order.dateOrderDelivered
+                )
+              "
             >
-              {{ "ORDER.TABLE.CONTENT.DETAILS_BUTTON" | translate }}
-            </button>
-            @if (
-              authStore.role() === "admin" ||
-              (authStore.id() === order.operator.id && justOffers)
-            ) {
-              <button
-                (click)="deleteOrder(order)"
-                mat-raised-button
-                class="delete-button mt-1 w-100"
-              >
-                {{ "ORDER.TABLE.CONTENT.DELETE_BUTTON" | translate }}
-              </button>
-            }
+              {{ order.expectedDelivery | date: "MM.dd" }}
+              <span class="until-star">*</span>
+            </div>
+          } @else {
+            <div
+              [class.in-past]="
+                !isExpectedDeliveryInFuture(
+                  order.expectedDelivery,
+                  order.dateOrderDelivered
+                )
+              "
+            >
+              {{ order.expectedDelivery | date: "MM.dd" }}
+            </div>
+          }
+          @if (order.forFirstHour) {
+            <div class="first-hour-tag">
+              {{ "ORDER.TABLE.CONTENT.FIRST_HOUR" | translate }}
+            </div>
+          }
+        } @else {
+          {{ order.dateOrderPlaced | date: "MM.dd" }}
+        }
+      </td>
+    </ng-container>
+
+    <!-- Quantity Column — hidden on small, shown in expanded row instead -->
+    <ng-container matColumnDef="QUANTITY">
+      <th mat-header-cell *matHeaderCellDef class="hide-sm">
+        {{ "ORDER.TABLE.CONTENT.QUANTITY" | translate }}
+      </th>
+      <td mat-cell *matCellDef="let order" class="qty-cell hide-sm">
+        {{ order.totalQuantity | number: "1.0-2" }} m³
+      </td>
+    </ng-container>
+
+    <!-- Total Amount Column -->
+    <ng-container matColumnDef="TOTAL_AMOUND_FINAL">
+      <th mat-header-cell *matHeaderCellDef class="amount-header">
+        {{ "ORDER.TABLE.CONTENT.TOTAL_AMOUND_FINAL" | translate }}
+      </th>
+      <td mat-cell *matCellDef="let order" class="amount-cell">
+        @if (order.dateOrderDelivered || justOffers) {
+          <span>{{
+            order.totalAmountFinal + order.deliveryFee - order.paidAmount
+              | number: "1.0-1"
+          }}</span>
+        } @else {
+          <button
+            class="amount-btn"
+            (click)="
+              payOrder(
+                $event,
+                order.id,
+                order.totalAmountFinal,
+                order.paidAmount,
+                order.deliveryFee
+              )
+            "
+          >
+            {{
+              order.totalAmountFinal + order.deliveryFee - order.paidAmount
+                | number: "1.0-1"
+            }}
+          </button>
+        }
+      </td>
+    </ng-container>
+
+    <!-- Expanded detail row -->
+    <ng-container matColumnDef="expandedDetail">
+      <td
+        mat-cell
+        *matCellDef="let order"
+        [attr.colspan]="displayedColumns.length"
+        class="expand-detail-td"
+      >
+        <div class="row-expand-wrapper" [class.expanded]="isExpanded(order)">
+          <!-- Direct grid child: no padding, overflow hidden, min-height 0 -->
+          <div class="row-expand-inner">
+            <!-- Content with padding lives one level deeper -->
+            <div class="row-expand-content">
+              <div class="expand-info">
+                @if (!justOffers) {
+                  <span class="info-item">
+                    <mat-icon class="info-icon">event</mat-icon>
+                    {{ order.dateOrderPlaced | date }}
+                  </span>
+                } @else {
+                  <span class="info-item">
+                    <mat-icon class="info-icon">event</mat-icon>
+                    {{ order.expectedDelivery | date }}
+                  </span>
+                }
+
+                <!-- Address: shown here on mobile when column is hidden -->
+                @if (order.delivery_address) {
+                  <span class="info-item show-mobile">
+                    <mat-icon class="info-icon">place</mat-icon>
+                    {{ order.delivery_address }}
+                  </span>
+                }
+
+                <!-- Quantity: shown here on small screens when column is hidden -->
+                <span class="info-item show-sm">
+                  <mat-icon class="info-icon">straighten</mat-icon>
+                  {{ order.totalQuantity | number: "1.0-2" }} m³
+                </span>
+
+                @if (order.voucher) {
+                  <span class="info-item voucher-item">
+                    <mat-icon class="info-icon">sell</mat-icon>
+                    {{ order.voucher
+                    }}{{ !isPercentageVoucher(order.voucher) ? " RON" : "" }}
+                  </span>
+                }
+                @if (order.dateOrderDelivered) {
+                  <span class="info-item delivered-item">
+                    <mat-icon class="info-icon">check_circle</mat-icon>
+                    {{ order.dateOrderDelivered | date }}
+                  </span>
+                }
+                @if (order.paidAmount) {
+                  <span class="info-item paid-item">
+                    <mat-icon class="info-icon">price_check</mat-icon>
+                    {{ order.paidAmount | number: "1.0-2" }} RON
+                  </span>
+                }
+                <span class="info-item">
+                  <mat-icon class="info-icon">person</mat-icon>
+                  {{ order.operator.name }}
+                </span>
+                @if (order.comment) {
+                  <div class="expand-comment multiline-text">
+                    {{ order.comment }}
+                  </div>
+                }
+              </div>
+              <div class="expand-actions">
+                <button
+                  mat-stroked-button
+                  class="details-btn"
+                  (click)="showOrderDetails(order)"
+                >
+                  {{ "ORDER.TABLE.CONTENT.DETAILS_BUTTON" | translate }}
+                </button>
+                @if (
+                  authStore.role() === "admin" ||
+                  (authStore.id() === order.operator.id && justOffers)
+                ) {
+                  <button
+                    mat-stroked-button
+                    class="delete-btn"
+                    (click)="deleteOrder(order)"
+                  >
+                    {{ "ORDER.TABLE.CONTENT.DELETE_BUTTON" | translate }}
+                  </button>
+                }
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </td>
-  </ng-container>
+      </td>
+    </ng-container>
 
-  <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-  <tr
-    mat-row
-    *matRowDef="let order; columns: displayedColumns"
-    class="element-row"
-    [class.expanded-row]="isExpanded(order)"
-    (click)="toggle(order)"
-    cdkDrag
-    [cdkDragDisabled]="!isDragDropEnabled()"
-    [cdkDragData]="order"
-    [cdkDragStartDelay]="200"
-    [cdkDragLockAxis]="'y'"
-  ></tr>
-  <tr
-    mat-row
-    *matRowDef="let row; columns: ['expandedDetail']"
-    class="detail-row"
-  ></tr>
-</table>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr
+      mat-row
+      *matRowDef="let order; columns: displayedColumns"
+      class="element-row"
+      [class.expanded-row]="isExpanded(order)"
+      (click)="toggle(order)"
+      cdkDrag
+      [cdkDragDisabled]="!isDragDropEnabled()"
+      [cdkDragData]="order"
+      [cdkDragStartDelay]="200"
+      [cdkDragLockAxis]="'y'"
+    ></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: ['expandedDetail']"
+      class="detail-row"
+    ></tr>
+  </table>
+</div>
 
 @if (displayedOrdersStat.numberOfOrders && !justOffers) {
-  <div class="d-flex align-items-center justify-content-center">
-    <div class="w-100 rounded shadow bg-white text-black mt-2 p-2">
-      <div>
-        {{ "ORDER.TABLE.CONTENT.NUMBER_OF_ORDERS" | translate }}
-        {{ displayedOrdersStat.numberOfOrders }}
-      </div>
-      <div>
-        {{
-          "ORDER.TABLE.CONTENT.TOTAL_PRICE"
-            | translate
-              : { price: displayedOrdersStat.totalPrice | number: "1.0-2" }
-        }}
-      </div>
-    </div>
+  <div class="stats-bar">
+    <span>
+      {{ "ORDER.TABLE.CONTENT.NUMBER_OF_ORDERS" | translate }}
+      {{ displayedOrdersStat.numberOfOrders }}
+    </span>
+    <span>
+      {{
+        "ORDER.TABLE.CONTENT.TOTAL_PRICE"
+          | translate
+            : { price: displayedOrdersStat.totalPrice | number: "1.0-2" }
+      }}
+    </span>
   </div>
 }
 
@@ -360,13 +363,13 @@
     {{ "ORDER.TABLE.CONTENT.PAY_DIALOG.TITLE" | translate }}
   </h2>
   <mat-dialog-content>
-    <div class="w-100 mt-2 fs-6">
+    <div class="w-100 mt-2">
       {{
         "ORDER.TABLE.CONTENT.PAY_DIALOG.DESCRIPTION"
           | translate: { maxAmount: data.maxAmount | number: "1.0-2" }
       }}
     </div>
-    <mat-form-field class="w-100 mt-4" appearance="outline">
+    <mat-form-field class="w-100 mt-4" appearance="fill">
       <mat-label>{{
         "ORDER.TABLE.CONTENT.PAY_DIALOG.INPUT_LABEL" | translate
       }}</mat-label>
@@ -377,9 +380,7 @@
         [max]="data.maxAmount"
         [(ngModel)]="paidAmount"
         #ngModelRef="ngModel"
-        [ngModelOptions]="{
-          standalone: true,
-        }"
+        [ngModelOptions]="{ standalone: true }"
         [placeholder]="
           'ORDER.TABLE.CONTENT.PAY_DIALOG.INPUT_PLACEHOLDER' | translate
         "
@@ -391,7 +392,7 @@
       {{ "ORDER.TABLE.CONTENT.PAY_DIALOG.CANCEL_BUTTON" | translate }}
     </button>
     <button
-      mat-raised-button
+      mat-flat-button
       color="warn"
       [disabled]="!ngModelRef.valid || paidAmount === null"
       [mat-dialog-close]="true"
@@ -414,7 +415,7 @@
         "OFFER_PAGE.CREATE_OFFER.DELETE_ITEM_POPUP.CANCEL_BUTTON" | translate
       }}
     </button>
-    <button mat-raised-button color="warn" [mat-dialog-close]="true">
+    <button mat-flat-button color="warn" [mat-dialog-close]="true">
       {{
         "OFFER_PAGE.CREATE_OFFER.DELETE_ITEM_POPUP.DELETE_BUTTON" | translate
       }}

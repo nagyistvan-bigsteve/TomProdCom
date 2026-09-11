@@ -1,189 +1,204 @@
 @if (order && !clientStore.isBusy()) {
-  <div id="content" class="d-flex flex-column w-100 h-100 pb-3">
+  <!-- Page header -->
+  <div class="detail-header">
+    <button mat-icon-button (click)="closeDetailsComponent()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <div class="header-text">
+      <span class="mat-title-medium header-client">{{ client().name }}</span>
+      <span class="mat-body-medium header-date">{{
+        order.dateOrderPlaced | date: "yyyy.MM.dd"
+      }}</span>
+    </div>
+    <div class="header-actions">
+      <button mat-icon-button (click)="print()" [disabled]="isLoading()">
+        <mat-icon>print</mat-icon>
+      </button>
+      <button mat-icon-button (click)="openEditDialog()">
+        <mat-icon>edit_note</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Scrollable body -->
+  <div class="detail-body">
     @if (!isLoading()) {
-      <div class="d-flex align-items-center justify-content-between w-100 px-1">
-        {{ client().name }} -
-        {{ order.dateOrderPlaced | date: "yyyy.MM.dd" }}
-        <div class="d-flex">
-          <button
-            class="d-flex align-items-center"
-            mat-icon-button
-            (click)="print()"
-            [disabled]="isLoading()"
-          >
-            <mat-icon>print</mat-icon>
-          </button>
-          <button
-            class="d-flex align-items-center"
-            mat-icon-button
-            (click)="openEditDialog()"
-          >
-            <mat-icon>edit_note</mat-icon>
-          </button>
-          <button
-            class="d-flex align-items-center"
-            mat-icon-button
-            (click)="closeDetailsComponent()"
-          >
-            <mat-icon>cancel</mat-icon>
-          </button>
-        </div>
-      </div>
-      <mat-divider class="my-3"></mat-divider>
-      <div class="bg-white text-dark rounded shadow p-3">
-        @for (
-          item of orderItems;
-          let i = $index;
-          let last = $last;
-          track $index
-        ) {
-          <div class="position-relative">
-            <div
-              class="d-flex align-items-center justify-content-between flex-wrap py-2 px-1"
-              [ngClass]="{
-                'border-1 border-bottom': !last,
-              }"
+      <div class="detail-layout">
+        <!-- Items card -->
+        <div class="detail-card items-section">
+          @for (
+            item of orderItems;
+            let last = $last;
+            let i = $index;
+            track $index
+          ) {
+            <div class="item-row" [class.item-row-divider]="!last">
+              <div class="item-name-cat">
+                <span class="item-name">{{ item.product.name }}</span>
+                <span class="item-category">{{ item.category.name }}</span>
+              </div>
+              <div class="item-right">
+                @if (item.packsPieces) {
+                  <span class="item-qty">
+                    {{ item.packsPieces }} ({{
+                      item.quantity | number: "1.0-2"
+                    }}
+                    {{
+                      "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                        item.product.unit_id | translate
+                    }})
+                  </span>
+                } @else if (!item.packsPieces && item.product.unit_id === 3) {
+                  <span class="item-qty">
+                    {{ item.quantity }}
+                    {{
+                      (item.product.width
+                        ? "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
+                        : "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.3"
+                      ) | translate
+                    }}
+                  </span>
+                } @else {
+                  <span class="item-qty">
+                    {{ item.quantity }}
+                    {{
+                      "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                        item.product.unit_id | translate
+                    }}
+                  </span>
+                }
+                <span class="item-price"
+                  >{{ item.price | number: "1.0-1" }} RON</span
+                >
+              </div>
+            </div>
+          }
+          <div class="total-row">
+            <span class="total-label">Total</span>
+            <span class="total-value"
+              >{{
+                order.totalAmountFinal + order.deliveryFee | number: "1.0-1"
+              }}
+              RON</span
             >
-              <span class="text-nowrap">
-                {{ item.product.name }} - <b>{{ item.category.name }}</b>
-              </span>
-              @if (item.packsPieces) {
-                <span class="text-nowrap">
-                  {{ item.packsPieces }} ({{ item.quantity | number: "1.0-2" }}
-                  {{
-                    "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                      item.product.unit_id | translate
-                  }})
-                </span>
-              }
-              @if (!item.packsPieces && item.product.unit_id === 3) {
-                <span class="text-nowrap">
-                  {{ item.quantity }}
-                  {{
-                    (item.product.width
-                      ? "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
-                      : "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.3"
-                    ) | translate
-                  }}
-                </span>
-              }
-              @if (!item.packsPieces && item.product.unit_id !== 3) {
-                <span class="text-nowrap">
-                  {{ item.quantity }}
-                  {{
-                    "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                      item.product.unit_id | translate
-                  }}
-                </span>
-              }
-              <span class="text-nowrap"
-                >{{ item.price | number: "1.0-1" }} RON</span
-              >
-            </div>
           </div>
-        }
-      </div>
-
-      <div
-        class="d-flex flex-column bg-white text-dark rounded shadow p-3 mt-3"
-      >
-        <div class="client-detail-item">
-          <b class="pe-1"> {{ client().type === 1 ? "CNP " : "CUI " }} </b>
-          :
-          {{ client().code }}
         </div>
-        @for (
-          phone of client().client_phones;
-          track $index;
-          let first = $first
-        ) {
-          <div
-            (click)="callNumber(phone.phone)"
-            class="client-detail-item pt-1"
-          >
-            @if (first) {
-              <i class="material-icons">phone_iphone</i>:
+
+        <!-- Right column: client info + actions always together -->
+        <div class="right-col">
+          <!-- Client & order info card -->
+          <div class="detail-card client-section">
+            <div class="info-row">
+              <mat-icon class="info-row-icon">badge</mat-icon>
+              <span class="info-row-label">{{
+                client().type === 1 ? "CNP" : "CUI"
+              }}</span>
+              <span class="info-row-value">{{ client().code }}</span>
+            </div>
+
+            @for (
+              phone of client().client_phones;
+              track $index;
+              let first = $first
+            ) {
+              <div class="info-row clickable" (click)="callNumber(phone.phone)">
+                <mat-icon class="info-row-icon">{{
+                  first ? "phone_iphone" : "phone"
+                }}</mat-icon>
+                <span class="info-row-value"
+                  >{{ phone.phone }}
+                  @if (phone.label) {
+                    &nbsp;–&nbsp;{{ phone.label }}
+                  }
+                </span>
+              </div>
             }
-            <div [ngClass]="{ 'ms-4': !first }">
-              {{ phone.phone }}
-              @if (phone.label) {
-                - ({{ phone.label }})
-              }
-            </div>
-          </div>
-        }
-        <div
-          (click)="openInMapsApp(order.delivery_address!)"
-          class="client-detail-item pt-1"
-        >
-          <i class="material-icons">delivery_dining</i>
-          : {{ order.delivery_address }}
-        </div>
-        <mat-divider class="mb-1" />
-        <div class="client-detail-item">
-          {{
-            client().type === 1
-              ? ("PRINT_POPUP.ADDRESS_PF" | translate)
-              : ("PRINT_POPUP.ADDRESS_PJ" | translate)
-          }}
-          {{ client().address }}
-        </div>
-        <mat-divider class="mb-1" />
-        @if (client().other_details) {
-          <div class="client-detail-item">{{ client().other_details }}</div>
-          <mat-divider class="mb-2 mt-1" />
-        }
-        @if (order.comment) {
-          <div class="client-detail-item multiline-text">
-            {{ order.comment }}
-          </div>
-        }
-      </div>
-      @if (!order.dateOrderDelivered && !justOffers) {
-        <button
-          class="mt-3"
-          mat-flat-button
-          (click)="confirmDelivered(order.id)"
-        >
-          {{ "ORDER.DETAILS.DELIVERED_BUTTON" | translate }}
-        </button>
-      }
-      @if (justOffers) {
-        <button
-          class="mt-3"
-          mat-flat-button
-          (click)="transformOfferToOrder(order)"
-        >
-          {{ "ORDER.DETAILS.SIMPLE_TRANSFORM_BUTTON" | translate }}
-        </button>
 
-        <button
-          class="mt-3"
-          mat-raised-button
-          (click)="transformExactOfferToOrder(order)"
-        >
-          {{ "ORDER.DETAILS.TOTAL_TRANSFORM_BUTTON" | translate }}
-        </button>
-      }
+            <div
+              class="info-row clickable"
+              (click)="openInMapsApp(order.delivery_address!)"
+            >
+              <mat-icon class="info-row-icon">local_shipping</mat-icon>
+              <span class="info-row-value">{{ order.delivery_address }}</span>
+            </div>
+
+            <mat-divider class="card-divider" />
+
+            <div class="info-row">
+              <mat-icon class="info-row-icon">home</mat-icon>
+              <span class="info-row-value">
+                {{
+                  client().type === 1
+                    ? ("PRINT_POPUP.ADDRESS_PF" | translate)
+                    : ("PRINT_POPUP.ADDRESS_PJ" | translate)
+                }}
+                {{ client().address }}
+              </span>
+            </div>
+
+            @if (client().other_details) {
+              <div class="info-row">
+                <mat-icon class="info-row-icon">info_outline</mat-icon>
+                <span class="info-row-value">{{ client().other_details }}</span>
+              </div>
+            }
+
+            @if (order.comment) {
+              <mat-divider class="card-divider" />
+              <div class="order-comment multiline-text">
+                {{ order.comment }}
+              </div>
+            }
+          </div>
+
+          <!-- Action buttons -->
+          <div class="detail-actions">
+            @if (!order.dateOrderDelivered && !justOffers) {
+              <button
+                mat-flat-button
+                class="primary-action-btn"
+                (click)="confirmDelivered(order.id)"
+              >
+                {{ "ORDER.DETAILS.DELIVERED_BUTTON" | translate }}
+              </button>
+            }
+            @if (justOffers) {
+              <button
+                mat-stroked-button
+                class="secondary-action-btn"
+                (click)="transformOfferToOrder(order)"
+              >
+                {{ "ORDER.DETAILS.SIMPLE_TRANSFORM_BUTTON" | translate }}
+              </button>
+              <button
+                mat-flat-button
+                class="primary-action-btn"
+                (click)="transformExactOfferToOrder(order)"
+              >
+                {{ "ORDER.DETAILS.TOTAL_TRANSFORM_BUTTON" | translate }}
+              </button>
+            }
+          </div>
+        </div>
+        <!-- /right-col -->
+      </div>
+      <!-- /detail-layout -->
     } @else {
-      <div class="d-flex justify-content-center align-items-center w-100 h-100">
+      <div class="loading-container">
         <mat-spinner></mat-spinner>
       </div>
     }
   </div>
 }
 
+<!-- Edit dialog template -->
 <ng-template #editOfferDialog>
-  <div class="d-flex justify-content-between align-items-center">
-    <h2 class="text-center w-80" mat-dialog-title>
+  <div class="d-flex justify-content-between align-items-center pe-2">
+    <h2 mat-dialog-title>
       {{ "ORDER.DETAILS.EDIT_DIALOG.TITLE" | translate }}
     </h2>
-    <button
-      class="d-flex align-items-center justify-content-center me-4"
-      mat-icon-button
-      [mat-dialog-close]="false"
-    >
-      <i class="material-icons">cancel</i>
+    <button mat-icon-button [mat-dialog-close]="false">
+      <mat-icon class="dialog-icon-dark">close</mat-icon>
     </button>
   </div>
 
@@ -193,23 +208,22 @@
       <textarea [rows]="3" matInput [(ngModel)]="orderComment"></textarea>
     </mat-form-field>
 
+    <mat-form-field class="w-100" appearance="outline">
+      <mat-label>{{
+        "ORDER.DETAILS.EDIT_DIALOG.DISCOUNT_INPUT" | translate
+      }}</mat-label>
+      <input matInput [(ngModel)]="orderVoucher" />
+    </mat-form-field>
+
     <div class="edit-order-popup-list">
-      @for (
-        item of orderItems;
-        let i = $index;
-        let last = $last;
-        track $index
-      ) {
+      @for (item of orderItems; let last = $last; track $index) {
         <div
           class="d-flex align-items-center justify-content-between flex-wrap py-2 w-100"
-          [ngClass]="{
-            'border-1 border-bottom': !last,
-          }"
+          [class.border-bottom]="!last"
         >
           <span class="text-nowrap">
-            {{ item.product.name }} - <b>{{ item.category.name }}</b>
+            {{ item.product.name }} – <b>{{ item.category.name }}</b>
           </span>
-
           @if (item.packsPieces) {
             <span class="text-nowrap">
               {{ item.packsPieces }} ({{ item.quantity | number: "1.0-2" }}
@@ -218,8 +232,7 @@
                   item.product.unit_id | translate
               }})
             </span>
-          }
-          @if (!item.packsPieces && item.product.unit_id === 3) {
+          } @else if (!item.packsPieces && item.product.unit_id === 3) {
             <span class="text-nowrap">
               {{ item.quantity }}
               {{
@@ -229,8 +242,7 @@
                 ) | translate
               }}
             </span>
-          }
-          @if (!item.packsPieces && item.product.unit_id !== 3) {
+          } @else {
             <span class="text-nowrap">
               {{ item.quantity }}
               {{
@@ -239,15 +251,14 @@
               }}
             </span>
           }
-
           <button mat-icon-button (click)="deleteOrderItem(item)">
-            <i class="material-icons">delete</i>
+            <mat-icon>delete</mat-icon>
           </button>
         </div>
       }
     </div>
 
-    <div class="add-form-conteiner rounded">
+    <div class="add-form-container rounded">
       <form class="w-100">
         <mat-chip-listbox
           class="ms-2"
@@ -301,12 +312,10 @@
           >
         </mat-chip-listbox>
 
-        <mat-form-field class="w-100" appearance="fill">
-          <mat-label>
-            {{
-              "OFFER_PAGE.CREATE_OFFER.PRODUCT_SELECT.SELECT_LABEL" | translate
-            }}
-          </mat-label>
+        <mat-form-field class="w-100 mt-2" appearance="fill">
+          <mat-label>{{
+            "OFFER_PAGE.CREATE_OFFER.PRODUCT_SELECT.SELECT_LABEL" | translate
+          }}</mat-label>
           <input
             #input
             type="text"
@@ -327,11 +336,12 @@
             }
           </mat-autocomplete>
         </mat-form-field>
-        <div class="d-flex w-100 align-items-center">
-          <mat-form-field class="mt-2 w-50" appearance="fill">
-            <mat-label>
-              {{ "PRINT_POPUP.TABLE.QUANTITY" | translate }}
-            </mat-label>
+
+        <div class="d-flex w-100 align-items-center gap-2 mt-1">
+          <mat-form-field class="flex-grow-1" appearance="fill">
+            <mat-label>{{
+              "PRINT_POPUP.TABLE.QUANTITY" | translate
+            }}</mat-label>
             <input
               matInput
               [(ngModel)]="selectedProductQuantity"
@@ -341,7 +351,7 @@
           </mat-form-field>
 
           @if (isProductSelectet && selectedProduct.unit_id === 2) {
-            <div (click)="m2SetUnit()" class="m2-unit-badge ms-2">
+            <div (click)="m2SetUnit()" class="m2-unit-badge">
               @if (
                 selectedM2Quantity() === "BRUT" ||
                 selectedM2Quantity() === "NET"
@@ -352,32 +362,41 @@
             </div>
           }
 
-          <div
-            class="d-flex align-items-center justify-content-end flex-grow-1"
-          >
-            <button mat-icon-button (click)="addOrderItem()">
-              <i class="material-icons text-white fs-1">add_circle</i>
-            </button>
-          </div>
+          <button mat-icon-button (click)="addOrderItem()">
+            <mat-icon
+              class="text-white"
+              style="font-size: 2rem; width: 2rem; height: 2rem"
+              >add_circle</mat-icon
+            >
+          </button>
         </div>
-        <div>
-          <mat-form-field class="mt-2 custom-price-field" appearance="fill">
-            <mat-label>{{
-              "ORDER.DETAILS.EDIT_DIALOG.CUSTOM_PRICE_INPUT" | translate
-            }}</mat-label>
-            <input
-              matInput
-              [(ngModel)]="customUnitPrice"
-              type="number"
-              [ngModelOptions]="{ standalone: true }"
-            />
-          </mat-form-field>
-        </div>
+
+        <mat-form-field class="w-100 mt-1" appearance="fill">
+          <mat-label>{{
+            "ORDER.DETAILS.EDIT_DIALOG.CUSTOM_PRICE_INPUT" | translate
+          }}</mat-label>
+          <input
+            matInput
+            [(ngModel)]="customUnitPrice"
+            type="number"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </mat-form-field>
       </form>
     </div>
   </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button [mat-dialog-close]="false">
+      {{ "ORDER.DETAILS.POPUP_CANCEL" | translate }}
+    </button>
+    <button mat-flat-button color="primary" [mat-dialog-close]="true">
+      {{ "ORDER.DETAILS.EDIT_DIALOG.SAVE_BUTTON" | translate }}
+    </button>
+  </mat-dialog-actions>
 </ng-template>
 
+<!-- Confirm transform exact dialog -->
 <ng-template #confirmTransformExactOfferDialog>
   <h2 class="text-center" mat-dialog-title>
     {{ "ORDER.DETAILS.TRANSFORM_POPUP" | translate }}
@@ -391,12 +410,13 @@
     <button mat-button [mat-dialog-close]="false">
       {{ "ORDER.DETAILS.POPUP_CANCEL" | translate }}
     </button>
-    <button mat-raised-button color="warn" [mat-dialog-close]="true">
+    <button mat-flat-button color="warn" [mat-dialog-close]="true">
       {{ "ORDER.DETAILS.POPUP_CONFIRM" | translate }}
     </button>
   </mat-dialog-actions>
 </ng-template>
 
+<!-- Confirm simple transform dialog -->
 <ng-template #confirmTransformOfferDialog>
   <h2 class="text-center" mat-dialog-title>
     {{ "ORDER.DETAILS.TRANSFORM_POPUP" | translate }}
@@ -413,12 +433,13 @@
     <button mat-button [mat-dialog-close]="false">
       {{ "ORDER.DETAILS.POPUP_CANCEL" | translate }}
     </button>
-    <button mat-raised-button color="warn" [mat-dialog-close]="true">
+    <button mat-flat-button color="warn" [mat-dialog-close]="true">
       {{ "ORDER.DETAILS.POPUP_CONFIRM" | translate }}
     </button>
   </mat-dialog-actions>
 </ng-template>
 
+<!-- Confirm delivered dialog -->
 <ng-template #confirmDeliveredDialog>
   <h2 class="text-center" mat-dialog-title>
     {{ "ORDER.DETAILS.POPUP_TITLE" | translate }}
@@ -427,7 +448,7 @@
     <button mat-button [mat-dialog-close]="false">
       {{ "ORDER.DETAILS.POPUP_CANCEL" | translate }}
     </button>
-    <button mat-raised-button color="warn" [mat-dialog-close]="true">
+    <button mat-flat-button color="warn" [mat-dialog-close]="true">
       {{ "ORDER.DETAILS.POPUP_CONFIRM" | translate }}
     </button>
   </mat-dialog-actions>

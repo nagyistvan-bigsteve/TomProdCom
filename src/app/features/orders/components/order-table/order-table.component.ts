@@ -1,6 +1,5 @@
 ﻿import {
   Component,
-  computed,
   DestroyRef,
   EventEmitter,
   inject,
@@ -38,6 +37,8 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatMenuModule } from '@angular/material/menu';
 import {
   CdkDragDrop,
   CdkDropList,
@@ -65,6 +66,8 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
     MatTooltipModule,
     MatInputModule,
     MatSelectModule,
+    MatButtonToggleModule,
+    MatMenuModule,
     CdkDropList,
     CdkDrag,
   ],
@@ -99,8 +102,7 @@ export class OrderTableComponent implements OnInit {
   columnsToDisplayStrings: string[] = [];
   tableFilter: 'all' | 'open' | 'closed' | 'expectedToday' = 'open';
   tableSort: 'delivery' | 'creation' | 'admin' = 'delivery';
-  nameFilter = new FormControl<string>('');
-  addressFilter = new FormControl<string>('');
+  searchFilter = new FormControl<string>('');
   expandedElement: OrderResponse | null = null;
   displayedColumns: string[] = [
     'CLIENT',
@@ -119,14 +121,13 @@ export class OrderTableComponent implements OnInit {
     this.isLoading.emit(true);
     this.fetchOrders();
 
-    this.dateRange.valueChanges.subscribe((range) => {
-      this.filterByDate(range.start, range.end, this.orders);
-    });
-
-    this.nameFilter.valueChanges
+    this.dateRange.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.filterItems(false));
-    this.addressFilter.valueChanges
+      .subscribe((range) => {
+        this.filterByDate(range.start, range.end, this.orders);
+      });
+
+    this.searchFilter.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.filterItems(false));
   }
@@ -241,8 +242,8 @@ export class OrderTableComponent implements OnInit {
         this.dataSource.data = this.applyTextFilters(
           this.orders.filter(
             (item) =>
-              new Date(item.expectedDelivery).getDay() ===
-                currentDate.getDay() &&
+              new Date(item.expectedDelivery).getDate() ===
+                currentDate.getDate() &&
               new Date(item.expectedDelivery).getMonth() ===
                 currentDate.getMonth() &&
               new Date(item.expectedDelivery).getFullYear() ===
@@ -355,16 +356,13 @@ export class OrderTableComponent implements OnInit {
   }
 
   private applyTextFilters(orders: OrderResponse[]): OrderResponse[] {
-    const name = this.nameFilter.value?.toLowerCase().trim() ?? '';
-    const address = this.addressFilter.value?.toLowerCase().trim() ?? '';
-    if (!name && !address) return orders;
+    const search = this.searchFilter.value?.toLowerCase().trim() ?? '';
+    if (!search) return orders;
     return orders.filter((order) => {
       const clientName =
-        this.clientStore
-          .clientsEntityMap()
-          [order.clientId]?.name?.toLowerCase() ?? '';
+        this.clientStore.clientsEntityMap()[order.clientId]?.name?.toLowerCase() ?? '';
       const deliveryAddress = order.delivery_address?.toLowerCase() ?? '';
-      return clientName.includes(name) && deliveryAddress.includes(address);
+      return clientName.includes(search) || deliveryAddress.includes(search);
     });
   }
 

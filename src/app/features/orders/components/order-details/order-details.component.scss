@@ -1,38 +1,313 @@
+@use 'breakpoints' as *;
+
 :host {
-  width: 100vw !important;
-  padding-left: 4vw;
-  padding-right: 4vw;
-  max-height: 92vh !important;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+// ─── Page header ───────────────────────────────────────────────────────────────
+
+.detail-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3) var(--space-1) var(--space-1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.header-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.header-client {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-date {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.8125rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+// ─── Scrollable body ───────────────────────────────────────────────────────────
+
+// Pure scroll container — no layout responsibility
+.detail-body {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  height: 100%;
+  padding: var(--space-4) var(--space-3);
+
+  @include md {
+    padding: var(--space-6);
+  }
 }
+
+// Inner layout wrapper — flex on mobile, two-column grid on desktop
+.detail-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  @include md {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    grid-template-areas: 'items right';
+    gap: var(--space-4) var(--space-6);
+    align-items: start;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+}
+
+// Right column: client card + action buttons grouped together
+// gap mirrors the detail-layout row gap so spacing feels consistent
+.right-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  @include md {
+    grid-area: right;
+    gap: var(--space-4);
+  }
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+// ─── Cards ─────────────────────────────────────────────────────────────────────
+
+.detail-card {
+  background: white;
+  color: rgba(0, 0, 0, 0.87);
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+// ─── Items section ─────────────────────────────────────────────────────────────
+
+.items-section {
+  @include md {
+    grid-area: items;
+  }
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3);
+}
+
+.item-row-divider {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.item-name-cat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.item-name {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-category {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.55);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.item-qty {
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+}
+
+.item-price {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: rgba(0, 0, 0, 0.04);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.total-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.total-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+// ─── Client section ────────────────────────────────────────────────────────────
+
+.client-section {}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+}
+
+.info-row.clickable {
+  cursor: pointer;
+  transition: background-color 0.12s;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  &:active {
+    background-color: rgba(0, 0, 0, 0.08);
+  }
+}
+
+.info-row-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: rgba(0, 0, 0, 0.45);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.info-row-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+  min-width: 28px;
+}
+
+.info-row-value {
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.8);
+  flex: 1;
+  word-break: break-word;
+}
+
+.card-divider {
+  margin: var(--space-1) 0;
+}
+
+.order-comment {
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.65);
+  font-style: italic;
+  white-space: pre-line;
+}
+
+// ─── Actions ───────────────────────────────────────────────────────────────────
+
+.detail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.primary-action-btn {
+  width: 100%;
+  height: 48px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background-color: rgba(95, 1, 1, 0.85);
+  color: white;
+
+  &:hover:not([disabled]) {
+    background-color: rgba(95, 1, 1, 1);
+  }
+}
+
+.secondary-action-btn {
+  width: 100%;
+  height: 44px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.4) !important;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.65) !important;
+  }
+}
+
+// Dialog icons are inside a white dialog — override the global white icon color
+.dialog-icon-dark {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+// ─── Edit dialog internals ─────────────────────────────────────────────────────
 
 .multiline-text {
   white-space: pre-line;
 }
 
-.text-truncate {
-  white-space: wrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.client-detail-item {
-  padding: 2px 0;
-  display: flex;
-  align-items: center;
-  width: fit-content;
-}
-
 .edit-order-popup-list {
-  max-height: 60vh;
+  max-height: 55vh;
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-.add-form-conteiner {
-  background-color: rgb(57, 72, 60) !important;
+.add-form-container {
+  background-color: rgb(57, 72, 60);
   margin: -8px;
   padding: 8px;
 }
@@ -41,11 +316,12 @@
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 4px;
-  padding: 4px 8px;
+  padding: 4px 10px;
   cursor: pointer;
   user-select: none;
   font-size: 0.875rem;
   white-space: nowrap;
+  flex-shrink: 0;
 
   &:hover {
     border-color: rgba(255, 255, 255, 0.7);

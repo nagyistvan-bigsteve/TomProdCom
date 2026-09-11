@@ -46,10 +46,10 @@
         "SELECT_LABEL": "Termékek"
       },
       "PRICE_CATEGORY": {
-        "4": "A+",
         "1": "A",
         "2": "A/B",
         "3": "B",
+        "4": "A+",
         "LABEL": "Válassz kategóriát!"
       },
       "PRODUCT_LIST": {
@@ -265,7 +265,8 @@
         "CATEGORY_INPUT": "Minőség",
         "CUSTOM_PRICE_INPUT": "Egyedi ár (RON/egység)",
         "CANCEL_BUTTON": "Mégse",
-        "SAVE_BUTTON": "Mentés"
+        "SAVE_BUTTON": "Mentés",
+        "DISCOUNT_INPUT": "Kedvezmény (pl: 10%, 500 RON)"
       }
     },
     "TABLE": {
@@ -285,7 +286,8 @@
         "FILTER_LABEL": "Szűrés:",
         "SORT_LABEL": "Rendezés:",
         "NAME_FILTER": "Keresés név szerint",
-        "ADDRESS_FILTER": "Keresés cím szerint"
+        "ADDRESS_FILTER": "Keresés cím szerint",
+        "SEARCH_LABEL": "Keresés"
       },
       "CONTENT": {
         "CLIENT": "Kliens",

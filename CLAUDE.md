@@ -153,12 +153,18 @@ Page component `:host` selectors use `flex: 1` (not `height: 100%`) to fill the 
 ```scss
 :host {
   flex: 1;
+  min-height: 0;          /* required — see flex scroll trap below */
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow: hidden;        /* or overflow: auto if the page itself scrolls */
   background-color: rgb(57, 72, 60);
 }
 ```
+
+> **Flex scroll trap — read this before adding internal scroll to any page:**
+> Flexbox items default to `min-height: auto`, which lets a flex child grow to its full content size even when `flex: 1` is set. Without `min-height: 0` on every flex item in the chain, `overflow-y: auto` on a child element has no bounded height to scroll within — the element just expands to fit its content and the *parent* scrolls instead. Every `:host` that sits inside a flex column must declare `min-height: 0`. Similarly, any internal scrollable region (e.g. a list or table body) inside a flex column must also declare `min-height: 0` to be properly bounded.
+>
+> The same trap occurs when mixing `display: grid` inside a flex item: make the grid the scroll container's *child* (inner wrapper), not the scroll container itself, to keep separation of concerns clean.
 
 ### Topbar & Sidebar
 
@@ -196,8 +202,11 @@ Use `var(--space-N)` in `.scss` files. Bootstrap `p-*`/`gap-*` utilities are acc
 
 - `height: 92vh` / `max-width: 96vw` — use flex `flex: 1` and `max-width` with `margin: 0 auto`
 - `height: 100%` on page `:host` — use `flex: 1` instead
+- `flex: 1` without `min-height: 0` on `:host` — causes the whole page to scroll instead of the intended inner element (see flex scroll trap above)
 - Bootstrap `fs-*` for text sizing — use Material type classes (`mat-body-medium`, `mat-title-large`, etc.)
 - Random `px` padding values — use `var(--space-N)` or Bootstrap utilities
+- Component-scoped `tr.detail-row { height: 0 }` in Material table SCSS — Angular Material creates table rows through its own `ViewContainerRef`; they may not receive the component's `_ngcontent` scoping attribute. Use `::ng-deep tr.detail-row { height: 0 }` instead.
+- Observable subscriptions (e.g. `formControl.valueChanges.subscribe(...)`) without `takeUntilDestroyed(this.destroyRef)` — if the component is navigated away from and back, old subscriptions accumulate and fire alongside new ones.
 
 ## Key Conventions
 

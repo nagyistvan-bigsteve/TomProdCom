@@ -46,10 +46,10 @@
         "SELECT_LABEL": "Produse"
       },
       "PRICE_CATEGORY": {
-        "4": "A+",
         "1": "A",
         "2": "A/B",
         "3": "B",
+        "4": "A+",
         "LABEL": "Alege categorie!"
       },
       "PRODUCT_LIST": {
@@ -265,7 +265,8 @@
         "CATEGORY_INPUT": "Calitate",
         "CUSTOM_PRICE_INPUT": "Preț special (RON/unitate)",
         "CANCEL_BUTTON": "Înapoi",
-        "SAVE_BUTTON": "Salvare"
+        "SAVE_BUTTON": "Salvează",
+        "DISCOUNT_INPUT": "Reducere (ex: 10%, 500 RON)"
       }
     },
     "TABLE": {
@@ -285,7 +286,8 @@
         "FILTER_LABEL": "Filtrare:",
         "SORT_LABEL": "Sortare:",
         "NAME_FILTER": "Caută după nume",
-        "ADDRESS_FILTER": "Caută după adresă"
+        "ADDRESS_FILTER": "Caută după adresă",
+        "SEARCH_LABEL": "Căutare"
       },
       "CONTENT": {
         "CLIENT": "Client",

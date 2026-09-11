@@ -127,6 +127,7 @@ export class OrderDetailsComponent implements OnInit {
   isLoading = signal(false);
 
   orderComment: string = '';
+  orderVoucher: string = '';
 
   private readonly productStore = inject(CartStore);
   readonly catalogStore = inject(ProductStore);
@@ -149,6 +150,7 @@ export class OrderDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.fetchOrderItems();
     this.orderComment = this.order!.comment;
+    this.orderVoucher = this.order!.voucher ?? '';
   }
 
   fetchOrderItems(): void {
@@ -196,9 +198,37 @@ export class OrderDetailsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result) {
+          const newFinalPrice = this.calculateFinalPriceWithVoucher(
+            this.order!.totalAmount ?? 0,
+            this.orderVoucher,
+          );
           this.updateOrderComment(this.orderComment);
+          this.orderService.updateOrderVoucherAndTotal(
+            this.order!.id,
+            this.orderVoucher,
+            newFinalPrice,
+          );
+          if (this.order) {
+            this.order.comment = this.orderComment;
+            this.order.voucher = this.orderVoucher;
+            this.order.totalAmountFinal = newFinalPrice;
+          }
         }
       });
+  }
+
+  private calculateFinalPriceWithVoucher(baseAmount: number, voucher: string): number {
+    if (!voucher.trim()) return baseAmount;
+    const clean = voucher.replace('-', '').trim();
+    let total = baseAmount;
+    if (clean.includes('%')) {
+      const pct = parseFloat(clean.replace('%', '')) / 100;
+      if (!isNaN(pct)) total -= total * pct;
+    } else {
+      const val = parseFloat(clean);
+      if (!isNaN(val)) total -= val;
+    }
+    return Math.max(0, Math.round(total * 100) / 100);
   }
 
   addOrderItem(): void {
