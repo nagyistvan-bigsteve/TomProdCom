@@ -1,8 +1,88 @@
-.add-product {
-  height: 60vh;
-  overflow: auto;
+@use 'breakpoints' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
 }
 
-.full-width {
+.product-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 var(--space-3);
+
+  @include sm {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.full-span {
+  @include sm {
+    grid-column: span 2;
+  }
+}
+
+.form-field {
   width: 100%;
+
+  --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.65);
+  --mdc-outlined-text-field-hover-label-text-color: rgba(255, 255, 255, 0.85);
+  --mdc-outlined-text-field-focus-label-text-color: white;
+  --mdc-outlined-text-field-input-text-color: white;
+  --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.35);
+  --mdc-outlined-text-field-hover-outline-color: rgba(255, 255, 255, 0.65);
+  --mdc-outlined-text-field-focus-outline-color: white;
+  --mdc-outlined-text-field-caret-color: white;
+}
+
+.save-btn {
+  background-color: rgb(78, 97, 82);
+  color: white;
+}
+
+::ng-deep {
+  .form-field {
+    .mdc-floating-label,
+    .mat-mdc-floating-label {
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .mdc-text-field--focused .mdc-floating-label,
+    .mdc-text-field--focused .mat-mdc-floating-label {
+      color: white;
+    }
+
+    input.mdc-text-field__input {
+      color: white;
+      caret-color: white;
+    }
+
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled):hover .mdc-notched-outline__leading,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled):hover .mdc-notched-outline__notch,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled):hover .mdc-notched-outline__trailing {
+      border-color: rgba(255, 255, 255, 0.65);
+    }
+
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__leading,
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__notch,
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__trailing {
+      border-color: white;
+    }
+
+    .mat-mdc-select-value-text,
+    .mat-mdc-select-placeholder {
+      color: white;
+    }
+
+    .mat-mdc-select-arrow {
+      color: rgba(255, 255, 255, 0.65);
+    }
+  }
 }

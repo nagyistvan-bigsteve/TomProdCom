@@ -225,9 +225,10 @@
       "PRICE_TYPE": {
         "UNIC": "Preț unic",
         "M3": "m³",
-        "NEW": "Fără preț"
+        "NEW": "Setare unic"
       },
-      "UNIC_SEARCH": "Produse cu preț unic"
+      "UNIC_SEARCH": "Produse cu preț unic",
+      "OVERRIDE_SEARCH": "Toate produsele"
     },
     "STOCK": "Stoc",
     "PRODUCT": "Produs"

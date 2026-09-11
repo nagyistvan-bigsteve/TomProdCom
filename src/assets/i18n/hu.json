@@ -225,9 +225,10 @@
       "PRICE_TYPE": {
         "UNIC": "Egyedi ár",
         "M3": "m³",
-        "NEW": "Ár nélkül"
+        "NEW": "Egyedi beáll."
       },
-      "UNIC_SEARCH": "Egyedi áru termékek"
+      "UNIC_SEARCH": "Egyedi áru termékek",
+      "OVERRIDE_SEARCH": "Összes termék"
     },
     "STOCK": "Készlet",
     "PRODUCT": "Termék"

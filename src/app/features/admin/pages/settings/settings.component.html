@@ -1,22 +1,60 @@
-<div class="settings-page-container">
-  <div class="d-flex justify-content-center w-100 pb-2">
-    <mat-button-toggle-group [formControl]="settingControl">
-      <mat-button-toggle value="add_product">{{
-        "SETTINGS.TYPE.ADD_PRODUCT" | translate
-      }}</mat-button-toggle>
-      <mat-button-toggle value="update_product">{{
-        "SETTINGS.TYPE.EDIT_PRODUCT" | translate
-      }}</mat-button-toggle>
-      <mat-button-toggle value="price">{{
-        "SETTINGS.TYPE.EDIT_PRICE" | translate
-      }}</mat-button-toggle>
+<div class="page-header">
+  <span class="mat-title-medium header-title">{{ "NAVBAR.SETTINGS" | translate }}</span>
+</div>
+
+<div class="settings-layout">
+  <nav class="side-nav">
+    <button
+      class="nav-item"
+      [class.active]="settingControl.value === 'add_product'"
+      (click)="settingControl.setValue('add_product')"
+    >
+      <mat-icon class="nav-icon">add_box</mat-icon>
+      <span>{{ "SETTINGS.TYPE.ADD_PRODUCT" | translate }}</span>
+    </button>
+    <button
+      class="nav-item"
+      [class.active]="settingControl.value === 'update_product'"
+      (click)="settingControl.setValue('update_product')"
+    >
+      <mat-icon class="nav-icon">edit_note</mat-icon>
+      <span>{{ "SETTINGS.TYPE.EDIT_PRODUCT" | translate }}</span>
+    </button>
+    <button
+      class="nav-item"
+      [class.active]="settingControl.value === 'price'"
+      (click)="settingControl.setValue('price')"
+    >
+      <mat-icon class="nav-icon">price_change</mat-icon>
+      <span>{{ "SETTINGS.TYPE.EDIT_PRICE" | translate }}</span>
+    </button>
+  </nav>
+
+  <div class="tab-bar">
+    <mat-button-toggle-group class="settings-toggle" [formControl]="settingControl">
+      <mat-button-toggle value="add_product">
+        {{ "SETTINGS.TYPE.ADD_PRODUCT" | translate }}
+      </mat-button-toggle>
+      <mat-button-toggle value="update_product">
+        {{ "SETTINGS.TYPE.EDIT_PRODUCT" | translate }}
+      </mat-button-toggle>
+      <mat-button-toggle value="price">
+        {{ "SETTINGS.TYPE.EDIT_PRICE" | translate }}
+      </mat-button-toggle>
     </mat-button-toggle-group>
   </div>
-  @switch (settingControl.value) { @case ("price") {
-  <app-change-prices @enterAnimation class="w-100"></app-change-prices>
-  } @case ("update_product") {
-  <app-update-products @enterAnimation class="w-100"></app-update-products>
-  } @case ("add_product") {
-  <app-add-product @enterAnimation class="w-100"></app-add-product>
-  } }
+
+  <div class="content-panel">
+    @switch (settingControl.value) {
+      @case ("price") {
+        <app-change-prices @enterAnimation />
+      }
+      @case ("update_product") {
+        <app-update-products @enterAnimation />
+      }
+      @case ("add_product") {
+        <app-add-product @enterAnimation />
+      }
+    }
+  </div>
 </div>

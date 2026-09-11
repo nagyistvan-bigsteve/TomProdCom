@@ -6,6 +6,7 @@ import { UpdateProductsComponent } from '@features/admin/components/update-produ
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { AddProductComponent } from '@features/admin/components/add-product/add-product.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-settings',
@@ -16,11 +17,12 @@ import { TranslateModule } from '@ngx-translate/core';
     UpdateProductsComponent,
     AddProductComponent,
     TranslateModule,
+    MatIconModule,
   ],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
   animations: [ENTER_ANIMATION],
 })
 export class SettingsComponent {
-  settingControl = new FormControl('');
+  settingControl = new FormControl('add_product');
 }
