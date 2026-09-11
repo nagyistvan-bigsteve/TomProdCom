@@ -251,6 +251,17 @@ Apply `::ng-deep` to style the toggle group and individual toggles:
 }
 ```
 
+### `mat-icon` in dialogs (white background)
+
+The global theme in `styles.scss` sets `mat.icon-overrides(color: white)` so all icons are white by default — correct for the dark-green app shell but invisible on the white dialog background. Override per icon with a component-scoped class:
+
+```scss
+.dialog-icon-dark    { color: rgba(0, 0, 0, 0.54); }  // neutral icons (close, edit)
+.dialog-icon-danger  { color: rgb(134, 2, 2); }        // destructive icons (delete)
+```
+
+Apply these classes directly on the `<mat-icon>` element. Never rely on the inherited white for icons rendered inside `mat-dialog-content`.
+
 ### Anti-patterns (do not use)
 
 - `height: 92vh` / `max-width: 96vw` — use flex `flex: 1` and `max-width` with `margin: 0 auto`

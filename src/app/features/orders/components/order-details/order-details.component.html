@@ -217,178 +217,259 @@
 
     <div class="edit-order-popup-list">
       @for (item of orderItems; let last = $last; track $index) {
-        <div
-          class="d-flex align-items-center justify-content-between flex-wrap py-2 w-100"
-          [class.border-bottom]="!last"
-        >
-          <span class="text-nowrap">
-            {{ item.product.name }} – <b>{{ item.category.name }}</b>
-          </span>
-          @if (item.packsPieces) {
-            <span class="text-nowrap">
-              {{ item.packsPieces }} ({{ item.quantity | number: "1.0-2" }}
-              {{
-                "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                  item.product.unit_id | translate
-              }})
+        @if (editingItemId() === item.id) {
+          <div class="item-inline-edit" [class.border-bottom]="!last">
+            <mat-chip-listbox
+              [(ngModel)]="editingItemCategory"
+              [hideSingleSelectionIndicator]="true"
+              [ngModelOptions]="{ standalone: true }"
+            >
+              @for (cat of editingItemEnabledCategories; track cat.category) {
+                <mat-chip-option
+                  [value]="cat.category"
+                  [selected]="cat.category === editingItemCategory"
+                  [disabled]="
+                    !cat.enable || cat.category === editingItemCategory
+                  "
+                >
+                  {{
+                    "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + cat.category
+                      | translate
+                  }}
+                </mat-chip-option>
+              }
+            </mat-chip-listbox>
+            <div class="d-flex align-items-center gap-2 mt-2">
+              <mat-form-field class="flex-grow-1" appearance="fill">
+                <mat-label>{{
+                  "PRINT_POPUP.TABLE.QUANTITY" | translate
+                }}</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="editingItemQuantity"
+                  type="number"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+              </mat-form-field>
+              <button
+                mat-icon-button
+                class="item-action-btn"
+                (click)="cancelEditItem()"
+              >
+                <mat-icon class="text-white">close</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                class="item-action-btn"
+                (click)="saveEditItem(item)"
+              >
+                <mat-icon class="text-white">check</mat-icon>
+              </button>
+            </div>
+          </div>
+        } @else {
+          <div class="item-row" [class.border-bottom]="!last">
+            <span class="item-name">
+              {{ item.product.name }} – <b>{{ item.category.name }}</b>
             </span>
-          } @else if (!item.packsPieces && item.product.unit_id === 3) {
-            <span class="text-nowrap">
-              {{ item.quantity }}
-              {{
-                (item.product.width
-                  ? "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
-                  : "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.3"
-                ) | translate
-              }}
-            </span>
-          } @else {
-            <span class="text-nowrap">
-              {{ item.quantity }}
-              {{
-                "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
-                  item.product.unit_id | translate
-              }}
-            </span>
-          }
-          <button mat-icon-button (click)="deleteOrderItem(item)">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </div>
+            <div class="item-actions">
+              @if (item.packsPieces) {
+                <span class="text-nowrap item-qty">
+                  {{ item.packsPieces }} ({{ item.quantity | number: "1.0-2" }}
+                  {{
+                    "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                      item.product.unit_id | translate
+                  }})
+                </span>
+              } @else if (!item.packsPieces && item.product.unit_id === 3) {
+                <span class="text-nowrap item-qty">
+                  {{ item.quantity }}
+                  {{
+                    (item.product.width
+                      ? "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
+                      : "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.3"
+                    ) | translate
+                  }}
+                </span>
+              } @else {
+                <span class="text-nowrap item-qty">
+                  {{ item.quantity }}
+                  {{
+                    "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
+                      item.product.unit_id | translate
+                  }}
+                </span>
+              }
+              <button
+                mat-icon-button
+                class="item-action-btn"
+                (click)="startEditItem(item)"
+              >
+                <mat-icon class="dialog-icon-dark">edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                class="item-action-btn"
+                (click)="deleteOrderItem(item)"
+              >
+                <mat-icon class="dialog-icon-danger">delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
       }
     </div>
 
-    <div class="add-form-container rounded">
-      <form class="w-100">
-        <mat-chip-listbox
-          class="ms-2"
-          [(ngModel)]="selectedCategory"
-          [hideSingleSelectionIndicator]="true"
-          [ngModelOptions]="{ standalone: true }"
-        >
-          <mat-chip-option
-            [value]="categoryEnum.A"
-            [selected]="categoryEnum.A === selectedCategory"
-            [disabled]="
-              categoryEnum.A === selectedCategory || !enableCategory[0].enable
-            "
-            >{{
-              "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.A
-                | translate
-            }}</mat-chip-option
-          >
-          <mat-chip-option
-            [value]="categoryEnum.AB"
-            [selected]="categoryEnum.AB === selectedCategory"
-            [disabled]="
-              categoryEnum.AB === selectedCategory || !enableCategory[1].enable
-            "
-            >{{
-              "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.AB
-                | translate
-            }}</mat-chip-option
-          >
-          <mat-chip-option
-            [value]="categoryEnum.B"
-            [selected]="categoryEnum.B === selectedCategory"
-            [disabled]="
-              categoryEnum.B === selectedCategory || !enableCategory[2].enable
-            "
-            >{{
-              "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.B
-                | translate
-            }}</mat-chip-option
-          >
-          <mat-chip-option
-            [value]="categoryEnum.T"
-            [selected]="categoryEnum.T === selectedCategory"
-            [disabled]="
-              categoryEnum.T === selectedCategory || !enableCategory[3].enable
-            "
-            >{{
-              "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.T
-                | translate
-            }}</mat-chip-option
-          >
-        </mat-chip-listbox>
+    <button
+      mat-stroked-button
+      class="add-product-toggle"
+      (click)="showAddForm.set(!showAddForm())"
+    >
+      <mat-icon class="text-dark">{{
+        showAddForm() ? "expand_less" : "add"
+      }}</mat-icon>
+      {{ "ORDER.DETAILS.EDIT_DIALOG.ADD_PRODUCT_BUTTON" | translate }}
+    </button>
 
-        <mat-form-field class="w-100 mt-2" appearance="fill">
-          <mat-label>{{
-            "OFFER_PAGE.CREATE_OFFER.PRODUCT_SELECT.SELECT_LABEL" | translate
-          }}</mat-label>
-          <input
-            #input
-            type="text"
-            matInput
-            [formControl]="myControl"
-            [matAutocomplete]="auto"
-            (input)="filter()"
-            (focus)="filter()"
-          />
-          <mat-autocomplete
-            #auto="matAutocomplete"
-            requireSelection
-            (optionSelected)="optionSelected($event.option.value)"
-            [displayWith]="displayProductLabel"
+    @if (showAddForm()) {
+      <div class="add-form-container rounded">
+        <form class="w-100">
+          <mat-chip-listbox
+            class="ms-2"
+            [(ngModel)]="selectedCategory"
+            [hideSingleSelectionIndicator]="true"
+            [ngModelOptions]="{ standalone: true }"
           >
-            @for (option of filteredOptions; track option) {
-              <mat-option [value]="option">{{ option.name }}</mat-option>
-            }
-          </mat-autocomplete>
-        </mat-form-field>
+            <mat-chip-option
+              [value]="categoryEnum.A"
+              [selected]="categoryEnum.A === selectedCategory"
+              [disabled]="
+                categoryEnum.A === selectedCategory || !enableCategory[0].enable
+              "
+              >{{
+                "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.A
+                  | translate
+              }}</mat-chip-option
+            >
+            <mat-chip-option
+              [value]="categoryEnum.AB"
+              [selected]="categoryEnum.AB === selectedCategory"
+              [disabled]="
+                categoryEnum.AB === selectedCategory ||
+                !enableCategory[1].enable
+              "
+              >{{
+                "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.AB
+                  | translate
+              }}</mat-chip-option
+            >
+            <mat-chip-option
+              [value]="categoryEnum.B"
+              [selected]="categoryEnum.B === selectedCategory"
+              [disabled]="
+                categoryEnum.B === selectedCategory || !enableCategory[2].enable
+              "
+              >{{
+                "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.B
+                  | translate
+              }}</mat-chip-option
+            >
+            <mat-chip-option
+              [value]="categoryEnum.T"
+              [selected]="categoryEnum.T === selectedCategory"
+              [disabled]="
+                categoryEnum.T === selectedCategory || !enableCategory[3].enable
+              "
+              >{{
+                "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + categoryEnum.T
+                  | translate
+              }}</mat-chip-option
+            >
+          </mat-chip-listbox>
 
-        <div class="d-flex w-100 align-items-center gap-2 mt-1">
-          <mat-form-field class="flex-grow-1" appearance="fill">
+          <mat-form-field class="w-100 mt-2" appearance="fill">
             <mat-label>{{
-              "PRINT_POPUP.TABLE.QUANTITY" | translate
+              "OFFER_PAGE.CREATE_OFFER.PRODUCT_SELECT.SELECT_LABEL" | translate
+            }}</mat-label>
+            <input
+              #input
+              type="text"
+              matInput
+              [formControl]="myControl"
+              [matAutocomplete]="auto"
+              (input)="filter()"
+              (focus)="filter()"
+            />
+            <mat-autocomplete
+              #auto="matAutocomplete"
+              requireSelection
+              (optionSelected)="optionSelected($event.option.value)"
+              [displayWith]="displayProductLabel"
+            >
+              @for (option of filteredOptions; track option) {
+                <mat-option [value]="option">{{ option.name }}</mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <div class="d-flex w-100 align-items-center gap-2 mt-1">
+            <mat-form-field class="flex-grow-1" appearance="fill">
+              <mat-label>{{
+                "PRINT_POPUP.TABLE.QUANTITY" | translate
+              }}</mat-label>
+              <input
+                matInput
+                [(ngModel)]="selectedProductQuantity"
+                type="number"
+                [ngModelOptions]="{ standalone: true }"
+              />
+            </mat-form-field>
+
+            @if (isProductSelectet && selectedProduct.unit_id === 2) {
+              <div (click)="m2SetUnit()" class="m2-unit-badge">
+                @if (
+                  selectedM2Quantity() === "BRUT" ||
+                  selectedM2Quantity() === "NET"
+                ) {
+                  M2
+                }
+                {{ selectedM2Quantity() }}
+              </div>
+            }
+
+            <button mat-icon-button (click)="addOrderItem()">
+              <mat-icon
+                class="text-white"
+                style="
+                  font-size: 2rem;
+                  width: 2rem;
+                  height: 2rem;
+                  line-height: 2rem;
+                "
+                >add_circle</mat-icon
+              >
+            </button>
+          </div>
+
+          <mat-form-field class="w-100 mt-1" appearance="fill">
+            <mat-label>{{
+              "ORDER.DETAILS.EDIT_DIALOG.CUSTOM_PRICE_INPUT" | translate
             }}</mat-label>
             <input
               matInput
-              [(ngModel)]="selectedProductQuantity"
+              [(ngModel)]="customUnitPrice"
               type="number"
               [ngModelOptions]="{ standalone: true }"
             />
           </mat-form-field>
-
-          @if (isProductSelectet && selectedProduct.unit_id === 2) {
-            <div (click)="m2SetUnit()" class="m2-unit-badge">
-              @if (
-                selectedM2Quantity() === "BRUT" ||
-                selectedM2Quantity() === "NET"
-              ) {
-                M2
-              }
-              {{ selectedM2Quantity() }}
-            </div>
-          }
-
-          <button mat-icon-button (click)="addOrderItem()">
-            <mat-icon
-              class="text-white"
-              style="font-size: 2rem; width: 2rem; height: 2rem"
-              >add_circle</mat-icon
-            >
-          </button>
-        </div>
-
-        <mat-form-field class="w-100 mt-1" appearance="fill">
-          <mat-label>{{
-            "ORDER.DETAILS.EDIT_DIALOG.CUSTOM_PRICE_INPUT" | translate
-          }}</mat-label>
-          <input
-            matInput
-            [(ngModel)]="customUnitPrice"
-            type="number"
-            [ngModelOptions]="{ standalone: true }"
-          />
-        </mat-form-field>
-      </form>
-    </div>
+        </form>
+      </div>
+    }
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
     <button mat-button [mat-dialog-close]="false">
-      {{ "ORDER.DETAILS.POPUP_CANCEL" | translate }}
+      {{ "ORDER.DETAILS.EDIT_DIALOG.CANCEL_BUTTON" | translate }}
     </button>
     <button mat-flat-button color="primary" [mat-dialog-close]="true">
       {{ "ORDER.DETAILS.EDIT_DIALOG.SAVE_BUTTON" | translate }}

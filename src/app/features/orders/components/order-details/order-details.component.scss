@@ -1,4 +1,4 @@
-@use 'breakpoints' as *;
+@use "breakpoints" as *;
 
 :host {
   flex: 1;
@@ -68,7 +68,7 @@
   @include md {
     display: grid;
     grid-template-columns: 1fr 320px;
-    grid-template-areas: 'items right';
+    grid-template-areas: "items right";
     gap: var(--space-4) var(--space-6);
     align-items: start;
     max-width: 960px;
@@ -193,7 +193,8 @@
 
 // ─── Client section ────────────────────────────────────────────────────────────
 
-.client-section {}
+.client-section {
+}
 
 .info-row {
   display: flex;
@@ -294,6 +295,10 @@
   color: rgba(0, 0, 0, 0.54);
 }
 
+.dialog-icon-danger {
+  color: rgb(134, 2, 2);
+}
+
 // ─── Edit dialog internals ─────────────────────────────────────────────────────
 
 .multiline-text {
@@ -301,9 +306,59 @@
 }
 
 .edit-order-popup-list {
-  max-height: 55vh;
   overflow-y: auto;
   overflow-x: hidden;
+  padding: 0;
+}
+
+// Normal item row
+.item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+
+  .item-name {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .item-actions {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 0;
+
+    .item-qty {
+      font-size: 0.875rem;
+      color: rgba(0, 0, 0, 0.65);
+      white-space: nowrap;
+    }
+  }
+}
+
+// Inline edit panel per item (same dark background as add-form)
+.item-inline-edit {
+  background-color: rgb(57, 72, 60);
+  border-radius: 8px;
+  padding: var(--space-2);
+  margin: var(--space-1) 0;
+  color: white;
+}
+
+.item-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// "Add product" toggle button
+.add-product-toggle {
+  width: 100%;
+  min-height: 40px;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+  color: rgba(0, 0, 0, 0.7) !important;
 }
 
 .add-form-container {
@@ -334,6 +389,6 @@
   }
 
   .mat-mdc-dialog-content {
-    max-height: 87vh !important;
+    max-height: calc(90vh - 130px) !important;
   }
 }

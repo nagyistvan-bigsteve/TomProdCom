@@ -48,6 +48,7 @@ import { OrderPdfComponent } from '@features/orders/components/pdf/order-pdf/ord
 import { OrderPdfGeneratorUtil } from '@shared/utils/order-pdf-generator.util';
 import { ClientStore } from '@features/clients/store/client.store';
 import { ProductStore } from '@features/products/store/product.store';
+import { computePricesForProduct } from '@features/products/store/product.computed';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 
 @Component({
@@ -126,6 +127,17 @@ export class OrderDetailsComponent implements OnInit {
   isPrinting = signal(false);
   isLoading = signal(false);
 
+  showAddForm = signal(false);
+  editingItemId = signal<number | null>(null);
+  editingItemQuantity: number = 1;
+  editingItemCategory: Category = Category.A;
+  editingItemEnabledCategories: { enable: boolean; category: Category }[] = [
+    { enable: false, category: Category.A },
+    { enable: false, category: Category.AB },
+    { enable: false, category: Category.B },
+    { enable: false, category: Category.T },
+  ];
+
   orderComment: string = '';
   orderVoucher: string = '';
 
@@ -191,6 +203,7 @@ export class OrderDetailsComponent implements OnInit {
   openEditDialog(): void {
     const dialogRef = this._dialog.open(this.editOfferDialog, {
       width: '90%',
+      maxHeight: '95vh',
     });
 
     dialogRef
@@ -217,7 +230,10 @@ export class OrderDetailsComponent implements OnInit {
       });
   }
 
-  private calculateFinalPriceWithVoucher(baseAmount: number, voucher: string): number {
+  private calculateFinalPriceWithVoucher(
+    baseAmount: number,
+    voucher: string,
+  ): number {
     if (!voucher.trim()) return baseAmount;
     const clean = voucher.replace('-', '').trim();
     let total = baseAmount;
@@ -347,6 +363,109 @@ export class OrderDetailsComponent implements OnInit {
 
       return Math.abs(existingUnitPrice - newUnitPrice) < 0.01;
     });
+  }
+
+  startEditItem(item: OrderItemsResponse): void {
+    this.editingItemId.set(item.id);
+    this.editingItemQuantity = item.quantity;
+    this.editingItemCategory =
+      Category[item.category.name as keyof typeof Category];
+    this.showAddForm.set(false);
+
+    const prices = computePricesForProduct(
+      item.product.id,
+      this.catalogStore.productsEntityMap(),
+      this.catalogStore.pricesEntities(),
+    );
+    const available = prices.map((p) => p.category_id as Category);
+    this.editingItemEnabledCategories = this.editingItemEnabledCategories.map(
+      (cat) => ({ ...cat, enable: available.includes(cat.category) }),
+    );
+  }
+
+  cancelEditItem(): void {
+    this.editingItemId.set(null);
+  }
+
+  saveEditItem(item: OrderItemsResponse): void {
+    const newCategory = this.editingItemCategory;
+    const newQuantity = this.editingItemQuantity;
+
+    const prices = computePricesForProduct(
+      item.product.id,
+      this.catalogStore.productsEntityMap(),
+      this.catalogStore.pricesEntities(),
+    );
+
+    const priceEntry = prices.find((p) => p.category_id === newCategory);
+    const isTva = this.client()?.tva ?? false;
+
+    let unitPrice: number;
+    if (priceEntry) {
+      unitPrice = priceEntry.price;
+      if (
+        priceEntry.unit_id === Unit_id.M3 &&
+        newCategory === Category.B &&
+        item.product.thickness === 2.5
+      ) {
+        unitPrice -= 50;
+      }
+      if (isTva) {
+        if (priceEntry.unit_id === Unit_id.M3) unitPrice -= 100;
+        if (priceEntry.unit_id === Unit_id.BOUNDLE) unitPrice -= 5;
+      }
+    } else {
+      unitPrice =
+        item.product.unit_id === Unit_id.M3 && item.product.width
+          ? item.price /
+            (item.quantity *
+              ((item.product.width *
+                item.product.thickness *
+                item.product.length) /
+                1_000_000))
+          : item.price / item.quantity;
+    }
+
+    const fullProduct =
+      this.catalogStore.productsEntityMap()[item.product.id] ??
+      (item.product as any);
+    const { price } = this.productUtil.calculatePrice(
+      fullProduct,
+      unitPrice,
+      newQuantity,
+      item.product.unit_id === Unit_id.M2 ? 'BRUT' : undefined,
+    );
+
+    const priceDiff = price - item.price;
+
+    this.orderService
+      .editOrderItem(
+        item.id,
+        this.order!.id,
+        { category_id: newCategory as any, quantity: newQuantity, price },
+        {
+          total_amount: (this.order!.totalAmount ?? 0) + priceDiff,
+          total_amount_final: (this.order!.totalAmountFinal ?? 0) + priceDiff,
+        },
+      )
+      .then((result) => {
+        if (result) {
+          this.editingItemId.set(null);
+          this.fetchOrderItems();
+          setTimeout(() => {
+            const total = this.getUpdateOrderTotals();
+            this.orderService.updateOrderTotals(
+              this.order!.id,
+              total.totalAmount,
+              total.totalAmountFinal,
+              total.totalQuantity,
+            );
+            this.order!.totalAmount = total.totalAmount;
+            this.order!.totalAmountFinal = total.totalAmountFinal;
+            this.order!.totalQuantity = total.totalQuantity;
+          }, 250);
+        }
+      });
   }
 
   deleteOrderItem(item: OrderItemsResponse): void {

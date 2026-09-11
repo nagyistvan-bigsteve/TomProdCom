@@ -27,9 +27,25 @@ Key capabilities:
   - **Desktop** (`≥ 960px`): CSS Grid `"items right"`, two columns (1fr + 320px). `items-section` is the left column; `.right-col` (client card + actions together) is the right column. Grouping client + actions in one div prevents empty space between them when the items list is long.
 - `:host` uses `flex: 1; min-height: 0; overflow: hidden`; `:host` of parent (`orders/` page) must also have `min-height: 0` or the child cannot constrain its height.
 
+**Card design (`.detail-card`):**
+- Both the items section and the client/info section render inside white rounded cards (`border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.18)`).
+- **Items card:** each line item uses `.item-row` (flex, `justify-content: space-between`) with `.item-row-divider` (bottom border) between rows. Left: `.item-name-cat` (product name + category as two-line column). Right: `.item-right` (quantity on top, price below, right-aligned). Total appears in `.total-row` at the bottom of the card.
+- **Client card:** each detail row uses `.info-row` with a small Material icon (`.info-row-icon`, 18px), an optional label chip (`.info-row-label`), and the value (`.info-row-value`). Phone and delivery address rows are `.clickable` (tap-to-call / open-in-maps).
+- **Action buttons:** `.primary-action-btn` (dark red `rgba(95,1,1,…)`, 48px full-width flat) for delivered/transform; `.secondary-action-btn` (white-border stroked, 44px) for the load-into-cart transform.
+
+**Icon color overrides:**
+The global `mat.icon-overrides(color: white)` in `styles.scss` makes all icons white by default (correct for the dark app shell). Inside the white dialog, this must be overridden per icon:
+- `.dialog-icon-dark` — `rgba(0,0,0,0.54)` for neutral actions (close, edit).
+- `.dialog-icon-danger` — `rgb(134,2,2)` (app red) for the delete action.
+
 **Edit dialog:**
+- Opens with `maxHeight: '95vh'` to prevent overflow on small screens. The `mat-dialog-content` uses `max-height: calc(90vh - 130px)` via `::ng-deep` to bound the scrollable area while leaving room for the title bar and action row.
 - Edits `orderComment` (comment) and `orderVoucher` (discount code/amount, e.g. `10%` or `500`).
-- Dialog has explicit **Save** (`[mat-dialog-close]="true"`) and **Cancel** (`[mat-dialog-close]="false"`) buttons. Item add/delete operations inside the dialog save immediately; comment and voucher are only persisted on Save.
+- **Item list** (`.edit-order-popup-list`): each row shows `[name–category] [qty] [edit] [delete(red)]`. Edit and delete save immediately to the DB — they do not wait for the dialog's Save button.
+- **Inline item editing:** clicking the pencil button opens `.item-inline-edit` (dark panel, same background as add form) replacing that row. Shows category chips (populated from `computePricesForProduct` — does NOT mutate `selectedProductId` in the store) and a quantity input. ✓ saves via `saveEditItem()`, ✗ cancels. Opening inline edit closes the add form if it was open.
+  - `saveEditItem()`: looks up the unit price for the new category from the price table (applying TVA and B-2.5cm adjustments), calls `productUtil.calculatePrice()` using the full product from `catalogStore.productsEntityMap()` (because `OrderItemsResponse.product` is a partial type missing `m2_brut` etc.), then calls `editOrderItem()` and recalculates totals via `getUpdateOrderTotals()` after a 250 ms settle.
+- **Add product form**: hidden by default, revealed by the "Termék hozzáadása" / "Adaugă produs" toggle button (`showAddForm` signal). Same chip + autocomplete + quantity form as before.
+- Dialog has explicit **Save** (`[mat-dialog-close]="true"`) and **Cancel** (`[mat-dialog-close]="false"`) buttons. Comment and voucher are only persisted on Save. Item mutations (add / inline-edit / delete) persist immediately regardless.
 - On Save: calls `OrdersService.updateOrderVoucherAndTotal()` which recalculates `total_amount_final` from `totalAmount` using the new voucher and clamps to `Math.max(0, result)` (never negative). Updates the in-memory `order` object immediately.
 
 ### `order-table/` — reusable table for orders and offers

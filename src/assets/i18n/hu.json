@@ -267,7 +267,8 @@
         "CUSTOM_PRICE_INPUT": "Egyedi ár (RON/egység)",
         "CANCEL_BUTTON": "Mégse",
         "SAVE_BUTTON": "Mentés",
-        "DISCOUNT_INPUT": "Kedvezmény (pl: 10%, 500 RON)"
+        "DISCOUNT_INPUT": "Kedvezmény (pl: 10%, 500 RON)",
+        "ADD_PRODUCT_BUTTON": "Termék hozzáadása"
       }
     },
     "TABLE": {

@@ -267,7 +267,8 @@
         "CUSTOM_PRICE_INPUT": "Preț special (RON/unitate)",
         "CANCEL_BUTTON": "Înapoi",
         "SAVE_BUTTON": "Salvează",
-        "DISCOUNT_INPUT": "Reducere (ex: 10%, 500 RON)"
+        "DISCOUNT_INPUT": "Reducere (ex: 10%, 500 RON)",
+        "ADD_PRODUCT_BUTTON": "Adaugă produs"
       }
     },
     "TABLE": {
