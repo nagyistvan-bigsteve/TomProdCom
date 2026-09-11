@@ -1,5 +1,6 @@
 ﻿import {
   Component,
+  computed,
   DestroyRef,
   effect,
   EventEmitter,
@@ -59,8 +60,23 @@ export class SelectedProductListComponent implements OnChanges {
   @Input() isInOverview: boolean = false;
   @Input() discounts: UsedPricesInOrder = [];
 
-  totalPriceInA: number = 0;
-  totalPriceInB: number = 0;
+  readonly totalPriceInB = computed(() => {
+    const prices = this.productStore.pricesEntities();
+    if (!prices.length) return 0;
+    return this.cartStore.productItems().reduce((sum, item) => {
+      const priceInB = this.getCalculatedPrice(Category.B, item);
+      return sum + (priceInB ? priceInB : item.price);
+    }, 0);
+  });
+
+  readonly totalPriceInA = computed(() => {
+    const prices = this.productStore.pricesEntities();
+    if (!prices.length) return 0;
+    return this.cartStore.productItems().reduce((sum, item) => {
+      const priceInA = this.getCalculatedPrice(Category.A, item);
+      return sum + (priceInA ? priceInA : item.price);
+    }, 0);
+  });
 
   editingItem: ProductItem | null = null;
   editableQuantity: number | null = null;
@@ -87,8 +103,6 @@ export class SelectedProductListComponent implements OnChanges {
       untracked(() => {
         this.compareSavedPrice();
         this.getUsedPrices();
-        this.getTotalPriceInB();
-        this.getTotalPriceInA();
         if (!this.initialized) {
           this.initialized = true;
           this.isLoaded.emit();
@@ -99,28 +113,6 @@ export class SelectedProductListComponent implements OnChanges {
 
   ngOnChanges(): void {
     this.compareSavedPrice();
-  }
-
-  getTotalPriceInB(): void {
-    if (this.cartStore.productItems()) {
-      this.totalPriceInB = 0;
-      this.cartStore.productItems()?.forEach((item) => {
-        let priceInB = this.getCalculatedPrice(Category.B, item);
-        this.totalPriceInB =
-          this.totalPriceInB + (priceInB ? priceInB : item.price);
-      });
-    }
-  }
-
-  getTotalPriceInA(): void {
-    if (this.cartStore.productItems()) {
-      this.totalPriceInA = 0;
-      this.cartStore.productItems()?.forEach((item) => {
-        let priceInA = this.getCalculatedPrice(Category.A, item);
-        this.totalPriceInA =
-          this.totalPriceInA + (priceInA ? priceInA : item.price);
-      });
-    }
   }
 
   changeCategory(event: any, item: ProductItem): void {
@@ -164,9 +156,6 @@ export class SelectedProductListComponent implements OnChanges {
 
         this.editingItem = null;
         this.editableQuantity = null;
-
-        this.getTotalPriceInB();
-        this.getTotalPriceInA();
       } else {
         const price = (item.price / item.quantity) * this.editableQuantity;
 
@@ -181,9 +170,6 @@ export class SelectedProductListComponent implements OnChanges {
 
         this.editingItem = null;
         this.editableQuantity = null;
-
-        this.getTotalPriceInB();
-        this.getTotalPriceInA();
       }
     }
   }
@@ -247,8 +233,6 @@ export class SelectedProductListComponent implements OnChanges {
           }
           this.compareSavedPrice();
           this.getUsedPrices();
-          this.getTotalPriceInB();
-          this.getTotalPriceInA();
         }
       });
   }
