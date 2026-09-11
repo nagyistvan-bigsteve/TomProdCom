@@ -66,10 +66,12 @@ export const useAuthStore = signalStore(
           const userId = authData.user?.id;
           if (!userId) throw new Error('User ID not found after signup');
 
+          const role = 'user';
+
           patchState(store, {
             isAuthenticated: true,
             email,
-            role: 'user',
+            role,
             approved: false,
             name: userName,
             id: userId,
@@ -358,5 +360,5 @@ export const useAuthStore = signalStore(
         // Optional cleanup if needed
       },
     };
-  })
+  }),
 );
