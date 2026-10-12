@@ -343,6 +343,8 @@ A user should conceptually contain:
 - approval status;
 - creation/update information.
 
+The displayed user name (sidebar header, user page) comes from `profiles.name`, which is the source of truth. If it is empty, the app falls back to the `name` in the Supabase Auth user metadata, then to the email. These fallbacks are for display only and are never used for authorization.
+
 Relevant states include:
 
 ```text
