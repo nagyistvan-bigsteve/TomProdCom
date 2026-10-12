@@ -128,7 +128,7 @@ Before writing code, invoke the matching skill or plugin rather than working fro
 | `angular-developer`                | Any Angular component, service, store, routing, signals, forms, animations, DI, testing, or CLI work              |
 | `supabase`                         | Any Supabase task: auth, database, RLS, edge functions, realtime, storage, migrations, debugging                  |
 | `supabase-postgres-best-practices` | Before writing or changing anything in the Postgres database (schema, columns, indexes, RLS, triggers, functions) |
-| `frontend-design:frontend-design`  | Aesthetic direction, typography, layout decisions, any new UI or visual redesign                                  |
+| `angular-material-design`          | Any component template, SCSS, or layout — spacing, typography, responsive breakpoints, Material component sizing  |
 | `code-review`                      | After implementing a non-trivial change, before reporting it done                                                 |
 | `verify`                           | To confirm a change works correctly in the running app                                                            |
 | `security-review`                  | Any change touching auth, RLS, role logic, pricing, deletion, or sensitive operations                             |
@@ -139,6 +139,166 @@ Before writing code, invoke the matching skill or plugin rather than working fro
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `context7`       | Fetch current docs for Angular, Supabase, RxJS, NgRx, Material, or any third-party library before writing library-specific code |
 | `supabase` (MCP) | Inspect schema, run migrations, query logs, manage branches, execute SQL directly against the project                           |
+
+## Layout & Styling System
+
+### App Shell Layout
+
+`app.component` wraps all authenticated pages in `<main class="app-content">`. This element:
+- `padding-top: 56px` — clears the fixed topbar (`height: 56px`)
+- `height: 100vh; display: flex; flex-direction: column` — lets child pages fill remaining height
+- On desktop (≥960px): gains `margin-left: 280px` when `[class.sidebar-open]` is active, shifting content clear of the persistent sidebar
+
+Page component `:host` selectors use `flex: 1` (not `height: 100%`) to fill the shell:
+```scss
+:host {
+  flex: 1;
+  min-height: 0;          /* required — see flex scroll trap below */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;        /* or overflow: auto if the page itself scrolls */
+  background-color: rgb(57, 72, 60);
+}
+```
+
+> **Flex scroll trap — read this before adding internal scroll to any page:**
+> Flexbox items default to `min-height: auto`, which lets a flex child grow to its full content size even when `flex: 1` is set. Without `min-height: 0` on every flex item in the chain, `overflow-y: auto` on a child element has no bounded height to scroll within — the element just expands to fit its content and the *parent* scrolls instead. Every `:host` that sits inside a flex column must declare `min-height: 0`. Similarly, any internal scrollable region (e.g. a list or table body) inside a flex column must also declare `min-height: 0` to be properly bounded.
+>
+> The same trap occurs when mixing `display: grid` inside a flex item: make the grid the scroll container's *child* (inner wrapper), not the scroll container itself, to keep separation of concerns clean.
+
+### Topbar & Sidebar
+
+- **Topbar** (`app-topbar`): `mat-toolbar`, `position: fixed` on `:host`, height `56px`, z-index 900.
+- **Sidebar** (`app-sidebar`): `position: fixed; top: 56px; height: calc(100vh - 56px)`, z-index 800. On mobile it overlays with a backdrop; on desktop (≥960px) the backdrop is hidden via CSS so the sidebar acts as a persistent drawer — content shift is handled by `.sidebar-open` on `app-content`.
+
+### Breakpoints
+
+Breakpoint mixins live in `src/_breakpoints.scss`. Component SCSS files import them via:
+```scss
+@use 'breakpoints' as *;
+```
+This works because `angular.json` sets `stylePreprocessorOptions.includePaths: ["src"]`.
+
+| Mixin | Min-width | Use for |
+|---|---|---|
+| `@include sm` | 600px | Tablet portrait |
+| `@include md` | 960px | Tablet landscape / desktop |
+| `@include lg` | 1280px | Large desktop |
+
+Always write **mobile styles first**, then override with `sm`/`md`/`lg` blocks.
+
+### Spacing Tokens
+
+CSS custom properties in `styles.scss `:root``, available in all components without importing:
+
+```
+--space-1: 4px   --space-2: 8px   --space-3: 12px  --space-4: 16px
+--space-6: 24px  --space-8: 32px  --space-12: 48px
+```
+
+Use `var(--space-N)` in `.scss` files. Bootstrap `p-*`/`gap-*` utilities are acceptable in templates (`p-3` = 12px, `p-4` = 16px).
+
+### `mat-form-field` on dark backgrounds
+
+`mat-form-field[appearance="outline"]` uses Material's default dark label/input colors. On pages with a dark background (`rgb(57, 72, 60)`), you must explicitly restyle the field. Use **both** CSS custom properties (for proper theming) and `::ng-deep` MDC class overrides (for reliability across Material versions):
+
+```scss
+// On the .field-class element (CSS custom properties cascade into the component)
+.my-field {
+  --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.65);
+  --mdc-outlined-text-field-hover-label-text-color: rgba(255, 255, 255, 0.85);
+  --mdc-outlined-text-field-focus-label-text-color: white;
+  --mdc-outlined-text-field-input-text-color: white;
+  --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.35);
+  --mdc-outlined-text-field-hover-outline-color: rgba(255, 255, 255, 0.65);
+  --mdc-outlined-text-field-focus-outline-color: white;
+  --mdc-outlined-text-field-caret-color: white;
+}
+
+// ::ng-deep MDC class overrides as fallback
+::ng-deep {
+  .my-field {
+    .mdc-floating-label, .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.65); }
+    .mdc-text-field--focused .mdc-floating-label { color: white; }
+    input.mdc-text-field__input { color: white; caret-color: white; }
+
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+      border-color: rgba(255, 255, 255, 0.35);
+    }
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__leading,
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__notch,
+    .mdc-text-field--outlined.mdc-text-field--focused .mdc-notched-outline__trailing {
+      border-color: white;
+    }
+  }
+}
+```
+
+See `clients.component.scss` and `products.component.scss` for live examples.
+
+### `mat-button-toggle-group` on dark backgrounds
+
+Apply `::ng-deep` to style the toggle group and individual toggles:
+
+```scss
+::ng-deep {
+  .my-toggle.mat-button-toggle-group { border-color: rgba(255, 255, 255, 0.25); }
+  .my-toggle .mat-button-toggle { flex: 1; background: rgba(0,0,0,0.15); color: rgba(255,255,255,0.7); }
+  .my-toggle .mat-button-toggle-button { width: 100%; }
+  .my-toggle .mat-button-toggle-checked { background: rgba(255,255,255,0.18); color: white; font-weight: 600; }
+}
+```
+
+### `mat-icon` on white backgrounds (dialogs, auth cards, any white surface)
+
+The global theme in `styles.scss` sets `mat.icon-overrides(color: white)` so all icons are white by default — correct for the dark-green app shell but invisible on any white surface. Override with a component-scoped class applied **directly on `<mat-icon>`**:
+
+```scss
+.dialog-icon-dark    { color: rgba(0, 0, 0, 0.54); }  // neutral icons (close, edit)
+.dialog-icon-danger  { color: rgb(134, 2, 2); }        // destructive icons (delete)
+.field-icon          { color: rgba(0, 0, 0, 0.45); }   // form field prefix/suffix icons
+```
+
+For a `mat-icon-button` on a white surface, override the icon via the button token instead of the icon class — this is cleaner because the button controls the icon's inherited color:
+
+```scss
+.my-icon-btn {
+  --mat-icon-button-icon-color: rgba(0, 0, 0, 0.45);
+}
+```
+
+See `auth/components/login/login.component.scss` (`.visibility-btn`) for a live example of the icon-button pattern.
+
+### Dark-green `mat-flat-button` (brand submit button)
+
+Use these CSS custom properties to create the app-branded dark-green filled button. Set them on the button element's class; they cascade into the Material component:
+
+```scss
+.submit-btn {
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  --mdc-filled-button-container-color: rgb(57, 72, 60);
+  --mdc-filled-button-label-text-color: white;
+  --mdc-filled-button-disabled-container-color: rgba(57, 72, 60, 0.3);
+  --mdc-filled-button-disabled-label-text-color: rgba(255, 255, 255, 0.5);
+}
+```
+
+See `auth/components/login/login.component.scss` for the live example.
+
+### Anti-patterns (do not use)
+
+- `height: 92vh` / `max-width: 96vw` — use flex `flex: 1` and `max-width` with `margin: 0 auto`
+- `height: 100%` on page `:host` — use `flex: 1` instead
+- `flex: 1` without `min-height: 0` on `:host` — causes the whole page to scroll instead of the intended inner element (see flex scroll trap above)
+- Bootstrap `fs-*` for text sizing — use Material type classes (`mat-body-medium`, `mat-title-large`, etc.)
+- Random `px` padding values — use `var(--space-N)` or Bootstrap utilities
+- Component-scoped `tr.detail-row { height: 0 }` in Material table SCSS — Angular Material creates table rows through its own `ViewContainerRef`; they may not receive the component's `_ngcontent` scoping attribute. Use `::ng-deep tr.detail-row { height: 0 }` instead.
+- Observable subscriptions (e.g. `formControl.valueChanges.subscribe(...)`) without `takeUntilDestroyed(this.destroyRef)` — if the component is navigated away from and back, old subscriptions accumulate and fire alongside new ones.
 
 ## Key Conventions
 

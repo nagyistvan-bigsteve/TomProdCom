@@ -1,9 +1,7 @@
-﻿import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TranslateModule } from '@ngx-translate/core';
@@ -22,10 +20,8 @@ interface DeletedOrderWithDays extends OrderResponse {
   standalone: true,
   imports: [
     CommonModule,
-    MatCardModule,
     MatButtonModule,
     MatIconModule,
-    MatChipsModule,
     MatProgressSpinnerModule,
     MatDialogModule,
     TranslateModule,
@@ -40,17 +36,21 @@ export class DeletedOrdersComponent {
 
   private readonly DAYS_UNTIL_PERMANENT_DELETE = 10;
 
-  // Signals
   deletedOrders = signal<DeletedOrderWithDays[]>([]);
   isLoading = signal(true);
   isProcessing = signal(false);
 
-  // Computed
   ordersCount = computed(() => this.deletedOrders().length);
   hasOrders = computed(() => this.ordersCount() > 0);
 
   constructor() {
     this.loadDeletedOrders();
+  }
+
+  getDaysClass(days: number): string {
+    if (days > 5) return 'days-ok';
+    if (days > 2) return 'days-warn';
+    return 'days-danger';
   }
 
   private loadDeletedOrders(): void {
@@ -75,14 +75,13 @@ export class DeletedOrdersComponent {
             };
           })
           .filter((order) => {
-            // Auto-delete orders older than 10 days
             if (order.daysUntilDelete <= 0) {
               this.orderService.permanentlyDeleteOrder(order.id);
               return false;
             }
             return true;
           })
-          .sort((a, b) => b.daysAgo - a.daysAgo); // Sort by deletion date (newest first)
+          .sort((a, b) => b.daysAgo - a.daysAgo);
 
         this.deletedOrders.set(ordersWithDays);
         this.isLoading.set(false);
@@ -108,7 +107,6 @@ export class DeletedOrdersComponent {
         this.isProcessing.set(true);
         this.orderService.restoreDeletedOrder(order.id).then((success) => {
           if (success) {
-            // Remove from list
             this.deletedOrders.update((orders) =>
               orders.filter((o) => o.id !== order.id),
             );
@@ -134,7 +132,6 @@ export class DeletedOrdersComponent {
         this.isProcessing.set(true);
         this.orderService.permanentlyDeleteOrder(order.id).then((success) => {
           if (success) {
-            // Remove from list
             this.deletedOrders.update((orders) =>
               orders.filter((o) => o.id !== order.id),
             );

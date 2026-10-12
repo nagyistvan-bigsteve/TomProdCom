@@ -377,6 +377,24 @@ export class OrdersService {
     return true;
   }
 
+  async updateOrderVoucherAndTotal(
+    id: number,
+    voucher: string,
+    totalAmountFinal: number,
+  ): Promise<boolean> {
+    const { error } = await this.supabaseService.client
+      .from('orders')
+      .update({ voucher, total_amount_final: totalAmountFinal })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Failed to update the voucher, ', error);
+      return false;
+    }
+
+    return true;
+  }
+
   async transformOfferToOrder(id: number): Promise<boolean> {
     const { error } = await this.supabaseService.client
       .from('orders')

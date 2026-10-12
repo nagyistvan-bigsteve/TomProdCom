@@ -46,10 +46,10 @@
         "SELECT_LABEL": "Produse"
       },
       "PRICE_CATEGORY": {
-        "4": "A+",
         "1": "A",
         "2": "A/B",
         "3": "B",
+        "4": "A+",
         "LABEL": "Alege categorie!"
       },
       "PRODUCT_LIST": {
@@ -97,6 +97,7 @@
     "SEARCH": "Cautare..."
   },
   "OVERVIEW_PAGE": {
+    "TITLE": "Confirmare ofertă",
     "BUTTONS": {
       "CONFIRM": "Confirmare comanda"
     },
@@ -172,6 +173,7 @@
       "ENTER": "Log in"
     },
     "WAIT_TO_APPROVE": {
+      "HEADING": "Cont în așteptare",
       "TITLE": "Trebuie să aștepți până când un administrator îți aprobă contul.",
       "BUTTON": "Refresh"
     },
@@ -224,9 +226,10 @@
       "PRICE_TYPE": {
         "UNIC": "Preț unic",
         "M3": "m³",
-        "NEW": "Fără preț"
+        "NEW": "Setare unic"
       },
-      "UNIC_SEARCH": "Produse cu preț unic"
+      "UNIC_SEARCH": "Produse cu preț unic",
+      "OVERRIDE_SEARCH": "Toate produsele"
     },
     "STOCK": "Stoc",
     "PRODUCT": "Produs"
@@ -264,7 +267,9 @@
         "CATEGORY_INPUT": "Calitate",
         "CUSTOM_PRICE_INPUT": "Preț special (RON/unitate)",
         "CANCEL_BUTTON": "Înapoi",
-        "SAVE_BUTTON": "Salvare"
+        "SAVE_BUTTON": "Salvează",
+        "DISCOUNT_INPUT": "Reducere (ex: 10%, 500 RON)",
+        "ADD_PRODUCT_BUTTON": "Adaugă produs"
       }
     },
     "TABLE": {
@@ -284,7 +289,8 @@
         "FILTER_LABEL": "Filtrare:",
         "SORT_LABEL": "Sortare:",
         "NAME_FILTER": "Caută după nume",
-        "ADDRESS_FILTER": "Caută după adresă"
+        "ADDRESS_FILTER": "Caută după adresă",
+        "SEARCH_LABEL": "Căutare"
       },
       "CONTENT": {
         "CLIENT": "Client",
@@ -441,7 +447,8 @@
     "EMAIL_SENT_SUCCESS": "Verifică-ți e-mailul pentru instrucțiuni de resetare a parolei.",
     "EMAIL_SENT_ERROR": "Eroare la trimiterea e-mailului de resetare a parolei.",
     "SESSION_ERROR": "Eroare de autentificare",
-    "INVALID_FORM": "Te rugăm să completezi toate câmpurile corect."
+    "INVALID_FORM": "Te rugăm să completezi toate câmpurile corect.",
+    "VERIFYING": "Se verifică sesiunea..."
   },
   "PRINT_POPUP": {
     "TITLE_ORDER": "Comanda",

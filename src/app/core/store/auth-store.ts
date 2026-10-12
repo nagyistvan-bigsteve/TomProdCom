@@ -358,5 +358,5 @@ export const useAuthStore = signalStore(
         // Optional cleanup if needed
       },
     };
-  })
+  }),
 );

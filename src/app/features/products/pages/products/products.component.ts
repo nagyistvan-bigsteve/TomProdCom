@@ -1,7 +1,6 @@
 ﻿import { Component, computed, effect, inject, signal } from '@angular/core';
 import { Product, ProductWithStock } from '@core/models/models';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDivider } from '@angular/material/divider';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { FilterUtil } from '@shared/utils/filter.util';
@@ -21,7 +20,6 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
   imports: [
     DecimalInputDirective,
     MatProgressSpinnerModule,
-    MatDivider,
     TranslateModule,
     CommonModule,
     MatButtonModule,

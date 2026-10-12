@@ -1,4 +1,4 @@
-﻿import { Component, computed, effect, inject, ViewChild } from '@angular/core';
+import { Component, computed, effect, inject, ViewChild } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Client } from '@core/models/models';
 import { CommonModule } from '@angular/common';
@@ -16,6 +16,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { ClientStore } from '@features/clients/store/client.store';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
+import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
 
 @Component({
   selector: 'select-client-page',
@@ -35,11 +37,13 @@ import { toSignal } from '@angular/core/rxjs-interop';
   ],
   templateUrl: './select-client-page.component.html',
   styleUrl: './select-client-page.component.scss',
+  animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class SelectClientPageComponent {
   @ViewChild(MatAutocompleteTrigger) autocomplete!: MatAutocompleteTrigger;
 
   readonly clientStore = inject(ClientStore);
+  private readonly router = inject(Router);
 
   clientSearch = new FormControl<string | Client>('');
 
@@ -93,10 +97,18 @@ export class SelectClientPageComponent {
     });
   }
 
+  goBack(): void {
+    this.router.navigate(['/offer/create']);
+  }
+
+  goToOverview(): void {
+    this.router.navigate(['/offer/overview']);
+  }
+
   private normalize(text: string): string {
     return text
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[̀-ͯ]/g, '')
       .toLowerCase()
       .trim();
   }

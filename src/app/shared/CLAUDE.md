@@ -4,8 +4,8 @@ Reusable code with no feature affiliation. `shared/` may import from `core/` but
 
 ## components/layout/
 Shell components that wrap every page:
-- `topbar/` — top navigation bar with menu toggle and language switcher trigger
-- `sidebar/` — slide-in navigation menu with route links and role-based visibility
+- `topbar/` — `mat-toolbar`, `position: fixed` on `:host` (height 56px, z-index 900). Left group: menu toggle + back button. Right group: logo (32px tall) + optional admin badge + language switcher. Emits `sidebarToggle` output; does not manage sidebar state itself.
+- `sidebar/` — `position: fixed; top: 56px; height: calc(100vh - 56px)`, z-index 800. Slides in from `left: -280px` → `left: 0` on open. On mobile the backdrop (z-index 799) is shown; on desktop (≥960px) the backdrop is hidden via CSS and `AppComponent` shifts the main content by 280px instead.
 - `language-swicher/` — RO/HU language toggle; persists selection to localStorage
 
 Used only in `AppComponent`. Don't import these inside feature components.

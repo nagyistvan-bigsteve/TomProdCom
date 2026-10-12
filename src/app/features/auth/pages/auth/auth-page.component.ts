@@ -1,28 +1,24 @@
-﻿import { Component, signal } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { Component, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
 import { LoginComponent } from '@features/auth/components/login/login.component';
 import { SignupComponent } from '@features/auth/components/signup/signup.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { ENTER_ANIMATION } from '@core/models/animations';
 
 @Component({
   selector: 'app-page-auth',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
     MatButtonModule,
+    MatIconModule,
     LoginComponent,
     SignupComponent,
     TranslateModule,
   ],
   templateUrl: './auth-page.component.html',
   styleUrls: ['./auth-page.component.scss'],
+  animations: [ENTER_ANIMATION],
 })
 export class AuthPageComponent {
   private isSignupMode = signal(false);
@@ -31,12 +27,11 @@ export class AuthPageComponent {
     return this.isSignupMode();
   }
 
-  toggleFromLogin() {
-    this.isSignupMode.set(!this.isSignupMode());
+  setMode(signup: boolean) {
+    this.isSignupMode.set(signup);
   }
 
-  toggleMode(event: Event) {
-    event.preventDefault();
+  toggleFromLogin() {
     this.isSignupMode.set(!this.isSignupMode());
   }
 }

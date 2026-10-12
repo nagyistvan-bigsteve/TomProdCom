@@ -1,16 +1,20 @@
+<div class="page-header">
+  <span class="header-title">{{ "NAVBAR.PRODUCTS" | translate }}</span>
+</div>
+
 @if (products().length) {
-  <div class="page-container d-flex flex-column">
-    <div class="d-flex gap-3 mb-3 align-items-center">
-      <mat-form-field class="products-name-input w-100">
+  <div class="page-body">
+    <div class="controls-row">
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>{{ "WORDS.SEARCH" | translate }}</mat-label>
         <input
           matInput
           type="text"
-          [placeholder]="'WORDS.SEARCH' | translate"
           (input)="searchValue.set($any($event.target).value)"
         />
       </mat-form-field>
 
-      <button class="icon-button" mat-fab (click)="sortByStock()">
+      <button mat-icon-button class="sort-btn" (click)="sortByStock()">
         @if (sortDirection() === "asc") {
           <mat-icon>keyboard_arrow_up</mat-icon>
         } @else {
@@ -19,81 +23,75 @@
       </button>
     </div>
 
-    <!-- LIST -->
-    <div
-      class="product-list-container border rounded shadow d-flex flex-column"
-    >
+    <div class="product-list">
       @for (
         product of visibleProducts();
-        let last = $last;
         let index = $index;
         track product.id
       ) {
-        <div class="product-list-item p-3 border-bottom-1">
-          <div class="d-flex justify-content-between align-items-center">
-            <span class="fs-5"> {{ product.name }} </span>
+        <div class="product-card" [class.editing]="editOnIndex() === index">
+          <div class="product-row">
+            <span class="product-name">{{ product.name }}</span>
             <button
-              class="icon-button"
-              mat-mini-fab
+              mat-icon-button
+              class="edit-btn d-flex align-items-center justify-content-center"
               (click)="showEditStock(index)"
             >
-              <mat-icon>edit</mat-icon>
+              <mat-icon>{{
+                editOnIndex() === index ? "close" : "edit"
+              }}</mat-icon>
             </button>
           </div>
-          <div class="d-flex gap-4">
-            <div>
-              {{ "SNACKBAR.PRODUCT.STOCK" | translate }}
-              <span class="ms-1 stock-good"> {{ product.stock.stock }}</span>
-              /<span class="stock-warning">
-                {{ product.stock.stock - product.stock.booked_stock }}</span
-              >
+
+          <div class="product-meta">
+            <div class="stock-row">
+              <span class="meta-label">{{
+                "SNACKBAR.PRODUCT.STOCK" | translate
+              }}</span>
+              <span class="stock-good">{{ product.stock.stock }}</span>
+              <span class="stock-sep">/</span>
+              <span class="stock-warning">{{
+                product.stock.stock - product.stock.booked_stock
+              }}</span>
             </div>
             @if (product.unit_id === 3) {
-              <div>
-                <span>{{ calculateM3Qunatity(product) | number: "1.0-1" }}</span
-                ><span class="ms-1">{{ "WORDS.M3" | translate }}</span>
+              <div class="m3-row">
+                <span class="m3-value">{{
+                  calculateM3Qunatity(product) | number: "1.0-1"
+                }}</span>
+                <span class="meta-label">{{ "WORDS.M3" | translate }}</span>
               </div>
             }
           </div>
 
-          <div class="d-flex justify-content-between align-items-center mt-2">
-            @if (editOnIndex() === index) {
-              <div
-                @enterAndLeaveAnimation
-                class="d-flex gap-2 align-items-center"
+          @if (editOnIndex() === index) {
+            <div @enterAndLeaveAnimation class="edit-row">
+              <mat-form-field appearance="outline" class="stock-edit-field">
+                <mat-label>{{
+                  "CLIENT_DETAILS.EDIT_BUTTON" | translate
+                }}</mat-label>
+                <input
+                  #setInput
+                  matInput
+                  [value]="product.stock.stock"
+                  type="number"
+                />
+              </mat-form-field>
+              <button
+                mat-mini-fab
+                class="save-btn"
+                (click)="setStock(product, +setInput.value)"
               >
-                <mat-form-field class="products-name-input w-100">
-                  <mat-label>{{
-                    "CLIENT_DETAILS.EDIT_BUTTON" | translate
-                  }}</mat-label>
-                  <input
-                    #setInput
-                    matInput
-                    [value]="product.stock.stock"
-                    type="number"
-                    placeholder="Stock"
-                  />
-                </mat-form-field>
-                <button
-                  mat-fab
-                  class="icon-button"
-                  (click)="setStock(product, +setInput.value)"
-                >
-                  <mat-icon>save</mat-icon>
-                </button>
-              </div>
-            }
-          </div>
+                <mat-icon>save</mat-icon>
+              </button>
+            </div>
+          }
         </div>
-
-        @if (!last) {
-          <mat-divider class="mx-2 border-white" />
-        }
       }
     </div>
   </div>
 } @else {
-  <div class="d-flex h-100 justify-content-center align-items-center p-5">
+  <div class="loading-state">
     <mat-spinner />
   </div>
 }

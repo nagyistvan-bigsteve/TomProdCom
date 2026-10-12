@@ -19,20 +19,19 @@
                 [value]="price.category_id"
                 [selected]="price.category_id === selectedCategory"
                 [disabled]="price.category_id === selectedCategory"
-                >{{
+              >
+                {{
                   "OFFER_PAGE.CREATE_OFFER.PRICE_CATEGORY." + price.category_id
                     | translate
-                }}</mat-chip-option
-              >
+                }}
+              </mat-chip-option>
             }
           </mat-chip-listbox>
         </div>
 
         <mat-divider vertical="true" class="h-100 mx-2"></mat-divider>
 
-        <div
-          class="d-flex flex-column justify-content-center align-items-center mw-50"
-        >
+        <div class="d-flex flex-column justify-content-center align-items-center mw-50">
           <div class="d-flex justify-content-center align-items-center w-100">
             @if (selectedProduct.unit_id === 3) {
               {{
@@ -74,10 +73,10 @@
             />
           </div>
         </div>
+
         <mat-divider vertical="true" class="h-100 mx-2"></mat-divider>
-        <div
-          class="d-flex text-center align-items-center justify-content-center"
-        >
+
+        <div class="d-flex text-center align-items-center justify-content-center">
           <div class="d-flex flex-column">
             @if (calculatedPrice) {
               {{ this.calculatedPrice | number: "1.0-1" }}
@@ -104,13 +103,12 @@
       }
     </div>
   </div>
-  <div class="d-flex justify-content-center w-100">
-    <button
-      class="btn bg-success d-flex align-items-center mt-1 z-3"
-      (click)="addNewProduct()"
-      mat-icon-button
-    >
-      <mat-icon>add_circle</mat-icon>
-    </button>
-  </div>
+
+  <button
+    mat-flat-button
+    class="add-product-btn"
+    (click)="addNewProduct()"
+  >
+    <mat-icon>add_shopping_cart</mat-icon>
+  </button>
 }

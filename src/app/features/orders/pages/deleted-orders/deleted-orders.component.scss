@@ -1,165 +1,226 @@
+@use "breakpoints" as *;
+
 :host {
-  height: 100%;
-  width: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background-color: rgb(57, 72, 60);
   color: white;
   overflow-y: auto;
-
-  padding-top: 60px;
 }
 
-.deleted-orders-container {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 2rem 1rem;
+.page-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.header {
-  text-align: center;
-  margin-bottom: 2rem;
+.header-title {
+  flex: 1;
+  font-weight: 600;
+}
 
-  h2 {
-    margin: 0;
-    font-size: 2rem;
-    font-weight: 500;
+.count-badge {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 2px var(--space-3);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.page-content {
+  padding: var(--space-4) var(--space-3);
+
+  @include sm {
+    padding: var(--space-4);
   }
 
-  .subtitle {
-    margin: 0.5rem 0 0;
-    opacity: 0.8;
-    font-size: 0.95rem;
+  @include md {
+    padding: var(--space-6);
   }
 }
 
-.loading-container,
-.empty-state {
+.page-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.875rem;
+  margin: 0 0 var(--space-4);
+}
+
+.status-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: var(--space-12) var(--space-4);
+  gap: var(--space-3);
   text-align: center;
+}
 
-  p {
-    margin-top: 1rem;
-    opacity: 0.8;
+.empty-icon {
+  font-size: 64px;
+  width: 64px;
+  height: 64px;
+  opacity: 0.4;
+}
+
+.status-text {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.status-subtext {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.orders-grid {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+
+  @include lg {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
-.empty-state {
-  .empty-icon {
-    font-size: 80px;
-    width: 80px;
-    height: 80px;
-    opacity: 0.5;
-    margin-bottom: 1rem;
-  }
-
-  h3 {
-    margin: 0;
-    font-size: 1.5rem;
-  }
-}
-
-.orders-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
+// ─── Card ────────────────────────────────────────────────────────────────────
 
 .order-card {
-  background-color: white;
-  color: #333;
+  background: white;
+  color: rgba(0, 0, 0, 0.87);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
-  mat-card-header {
-    margin-bottom: 1rem;
+  // Override global white icon color for white-background cards
+  --mat-icon-color: rgba(0, 0, 0, 0.45);
+}
+
+.card-header {
+  padding: var(--space-4);
+  background: rgba(0, 0, 0, 0.025);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-1);
+}
+
+.order-id {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.days-chip {
+  border-radius: 20px;
+  padding: 2px var(--space-3);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.days-ok {
+    background: rgba(102, 187, 106, 0.15);
+    color: #2e7d32;
+    border: 1px solid rgba(102, 187, 106, 0.4);
   }
 
-  .order-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-
-    span {
-      font-size: 1.1rem;
-      font-weight: 500;
-    }
+  &.days-warn {
+    background: rgba(255, 167, 38, 0.15);
+    color: #e65100;
+    border: 1px solid rgba(255, 167, 38, 0.4);
   }
 
-  .order-details {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .detail-row {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-
-    mat-icon {
-      color: rgba(0, 0, 0, 0.54);
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-    }
-
-    .detail-label {
-      font-weight: 500;
-      color: rgba(0, 0, 0, 0.6);
-      min-width: 100px;
-    }
-
-    .detail-value {
-      color: rgba(0, 0, 0, 0.87);
-    }
-
-    &.price-row {
-      margin-top: 0.5rem;
-      padding-top: 0.75rem;
-      border-top: 1px solid rgba(0, 0, 0, 0.12);
-
-      .price {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #2e7d32;
-      }
-    }
-  }
-
-  mat-card-actions {
-    display: flex;
-    gap: 1rem;
-    padding: 1rem 1rem 0.5rem;
-    flex-wrap: wrap;
-
-    button {
-      flex: 1;
-      min-width: 150px;
-
-      mat-icon {
-        margin-right: 0.5rem;
-      }
-    }
+  &.days-danger {
+    background: rgba(239, 83, 80, 0.12);
+    color: #c62828;
+    border: 1px solid rgba(239, 83, 80, 0.35);
   }
 }
 
-@media (max-width: 768px) {
-  .deleted-orders-container {
-    padding: 1rem 0.5rem;
-  }
+.deleted-label {
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.5);
+}
 
-  .order-card mat-card-actions {
-    flex-direction: column;
+.card-body {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+}
 
-    button {
-      width: 100%;
-    }
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.detail-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.detail-label {
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 0.875rem;
+  min-width: 88px;
+}
+
+.detail-value {
+  font-size: 0.9375rem;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.price-row {
+  padding-top: var(--space-3);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  margin-top: var(--space-1);
+}
+
+.price {
+  font-weight: 600;
+  color: #1b5e20;
+  font-size: 1.0625rem;
+}
+
+// ─── Card actions ─────────────────────────────────────────────────────────────
+
+.card-actions {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  flex-direction: column;
+
+  @include sm {
+    flex-direction: row;
   }
+}
+
+.restore-btn {
+  flex: 1;
+  --mdc-outlined-button-outline-color: rgba(0, 0, 0, 0.2);
+  --mdc-outlined-button-label-text-color: rgba(0, 0, 0, 0.7);
+  --mat-icon-color: rgba(0, 0, 0, 0.55);
+  min-height: 35px;
+}
+
+.delete-btn {
+  flex: 1;
+  --mdc-filled-button-container-color: rgba(198, 40, 40, 0.1);
+  --mdc-filled-button-label-text-color: #c62828;
+  --mat-icon-color: #c62828;
+  min-height: 35px;
 }

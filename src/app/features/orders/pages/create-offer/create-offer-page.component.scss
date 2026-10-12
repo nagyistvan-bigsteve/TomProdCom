@@ -1,36 +1,163 @@
-:host {
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: end;
+@use 'breakpoints' as *;
 
+:host {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   background-color: rgb(57, 72, 60);
   color: white;
-}
-
-.product-list {
-  height: auto;
-  min-height: 20%;
-  max-height: 84%;
-  width: 100%;
-  overflow: auto;
-}
-
-.select-product-tile {
-  background-color: white;
-  color: rgb(57, 72, 60);
-  width: 100%;
-  height: 100%;
-  max-height: 100%;
   overflow: hidden;
+}
 
-  .button-background {
-    background-color: rgb(134, 2, 2);
+.create-offer-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+
+  @include md {
+    flex-direction: row;
+    padding: var(--space-2) var(--space-6);
+  }
+}
+
+// ── Panels ─────────────────────────────────────────────
+.product-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  padding: var(--space-3) var(--space-3) 0;
+
+  @include md {
+    flex: 1;
+    min-width: 0;
+    padding: 0 var(--space-4) 0 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    overflow-y: auto;
+  }
+}
+
+.cart-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  // Extra bottom padding = FAB height (56px) + FAB bottom offset (24px) + breathing room (8px)
+  padding: var(--space-3) var(--space-3) 88px;
+
+  @include md {
+    flex: 1;
+    min-width: 0;
+    padding: 0 0 0 var(--space-4);
+    overflow-y: auto;
+  }
+}
+
+// Hide a panel on mobile (toggled by FAB)
+.hidden-mobile {
+  display: none;
+
+  @include md {
+    display: flex;
+  }
+}
+
+// ── Mini cart bar (mobile only) ──────────────────────────
+.mini-cart-bar {
+  flex-shrink: 0;
+  // Negative margins to break out of product-panel padding
+  margin-left: calc(-1 * var(--space-3));
+  margin-right: calc(-1 * var(--space-3));
+  background-color: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  transition: background-color 0.15s;
+
+  &:active {
+    background-color: rgba(0, 0, 0, 0.32);
   }
 
-  .short-product-list {
-    width: 75%;
-    max-height: 12vh;
-    overflow: auto;
+  @include md {
+    display: none;
+  }
+}
+
+.mini-cart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  min-height: 44px;
+}
+
+.mini-cart-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+.mini-cart-total {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.mini-cart-chevron {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  opacity: 0.55;
+}
+
+.mini-cart-list {
+  max-height: 30vh;
+  overflow-y: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.mini-cart-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  // Left indent aligns with icon in header
+  padding: 6px var(--space-3) 6px calc(var(--space-3) + 26px);
+  gap: var(--space-3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+  &.last {
+    border-bottom: none;
+  }
+}
+
+.mini-cart-name {
+  font-size: 0.8125rem;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-cart-meta {
+  font-size: 0.8125rem;
+  opacity: 0.7;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+// ── Mobile FAB ──────────────────────────────────────────
+.toggle-fab {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-4);
+  z-index: 100;
+  background-color: rgb(134, 2, 2);
+  color: white;
+  overflow: visible; // allow matBadge to overflow the FAB circle
+
+  @include md {
+    display: none;
   }
 }

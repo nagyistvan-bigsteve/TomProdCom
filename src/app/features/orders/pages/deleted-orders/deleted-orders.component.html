@@ -1,116 +1,79 @@
-<div class="deleted-orders-container">
-  <div class="header">
-    <h3>{{ "DELETED_ORDERS.TITLE" | translate }}</h3>
-    <p class="subtitle">
-      {{ "DELETED_ORDERS.SUBTITLE" | translate }}
-    </p>
-  </div>
+<div class="page-header">
+  <span class="mat-title-medium header-title">{{ "NAVBAR.DELETED" | translate }}</span>
+  @if (hasOrders()) {
+    <span class="count-badge">{{ ordersCount() }}</span>
+  }
+</div>
 
+<div class="page-content">
   @if (isLoading()) {
-    <div class="loading-container">
-      <mat-spinner diameter="50"></mat-spinner>
-      <p>{{ "DELETED_ORDERS.LOADING" | translate }}</p>
+    <div class="status-container">
+      <mat-spinner diameter="48" />
+      <span class="mat-body-medium status-text">{{ "DELETED_ORDERS.LOADING" | translate }}</span>
     </div>
   } @else if (!hasOrders()) {
-    <div class="empty-state">
+    <div class="status-container">
       <mat-icon class="empty-icon">delete_sweep</mat-icon>
-      <h3>{{ "DELETED_ORDERS.NO_ORDERS" | translate }}</h3>
-      <p>{{ "DELETED_ORDERS.NO_ORDERS_MESSAGE" | translate }}</p>
+      <span class="mat-title-small">{{ "DELETED_ORDERS.NO_ORDERS" | translate }}</span>
+      <span class="mat-body-medium status-subtext">{{ "DELETED_ORDERS.NO_ORDERS_MESSAGE" | translate }}</span>
     </div>
   } @else {
-    <div class="orders-list">
+    <p class="page-subtitle">{{ "DELETED_ORDERS.SUBTITLE" | translate }}</p>
+    <div class="orders-grid">
       @for (order of deletedOrders(); track trackByOrderId($index, order)) {
-        <mat-card @enterAnimation class="order-card">
-          <mat-card-header>
-            <mat-card-title>
-              <div class="order-title">
-                <span
-                  >{{ "DELETED_ORDERS.ORDER_ID" | translate }}: #{{
-                    order.id
-                  }}</span
-                >
-                <mat-chip-set>
-                  <mat-chip highlighted>
-                    {{ order.daysUntilDelete }}
-                    {{ "DELETED_ORDERS.DAYS_LEFT" | translate }}
-                  </mat-chip>
-                </mat-chip-set>
-              </div>
-            </mat-card-title>
-            <mat-card-subtitle>
-              {{ "DELETED_ORDERS.DELETED" | translate }}:
-              {{ order.daysAgo }}
-              {{ "DELETED_ORDERS.DAYS_AGO" | translate }}
-            </mat-card-subtitle>
-          </mat-card-header>
-
-          <mat-card-content>
-            <div class="order-details">
-              <div class="detail-row">
-                <mat-icon>calendar_today</mat-icon>
-                <span class="detail-label"
-                  >{{ "DELETED_ORDERS.CREATED" | translate }}:</span
-                >
-                <span class="detail-value">{{
-                  order.dateOrderPlaced | date: "dd/MM/yyyy"
-                }}</span>
-              </div>
-
-              @if (order.dateOrderDelivered) {
-                <div class="detail-row">
-                  <mat-icon>local_shipping</mat-icon>
-                  <span class="detail-label"
-                    >{{ "DELETED_ORDERS.DELIVERED" | translate }}:</span
-                  >
-                  <span class="detail-value">{{
-                    order.dateOrderDelivered | date: "dd/MM/yyyy"
-                  }}</span>
-                </div>
-              }
-
-              <div class="detail-row price-row">
-                <mat-icon>attach_money</mat-icon>
-                <span class="detail-label"
-                  >{{ "DELETED_ORDERS.TOTAL" | translate }}:</span
-                >
-                <span class="detail-value price"
-                  >{{ order.totalAmountFinal | number: "1.2-2" }} RON</span
-                >
-              </div>
-
-              @if (order.operator) {
-                <div class="detail-row">
-                  <mat-icon>person</mat-icon>
-                  <span class="detail-label"
-                    >{{ "DELETED_ORDERS.OPERATOR" | translate }}:</span
-                  >
-                  <span class="detail-value">{{ order.operator.name }}</span>
-                </div>
-              }
+        <div class="order-card" @enterAnimation>
+          <div class="card-header">
+            <div class="card-title-row">
+              <span class="order-id mat-title-small">
+                {{ "DELETED_ORDERS.ORDER_ID" | translate }} #{{ order.id }}
+              </span>
+              <span class="days-chip" [class]="getDaysClass(order.daysUntilDelete)">
+                {{ order.daysUntilDelete }} {{ "DELETED_ORDERS.DAYS_LEFT" | translate }}
+              </span>
             </div>
-          </mat-card-content>
+            <span class="deleted-label">
+              {{ "DELETED_ORDERS.DELETED" | translate }}: {{ order.daysAgo }} {{ "DELETED_ORDERS.DAYS_AGO" | translate }}
+            </span>
+          </div>
 
-          <mat-card-actions>
-            <button
-              mat-raised-button
-              color="primary py-1"
-              (click)="restoreOrder(order)"
-              [disabled]="isProcessing()"
-            >
+          <div class="card-body">
+            <div class="detail-row">
+              <mat-icon class="detail-icon">calendar_today</mat-icon>
+              <span class="detail-label">{{ "DELETED_ORDERS.CREATED" | translate }}:</span>
+              <span class="detail-value">{{ order.dateOrderPlaced | date: "dd/MM/yyyy" }}</span>
+            </div>
+            @if (order.dateOrderDelivered) {
+              <div class="detail-row">
+                <mat-icon class="detail-icon">local_shipping</mat-icon>
+                <span class="detail-label">{{ "DELETED_ORDERS.DELIVERED" | translate }}:</span>
+                <span class="detail-value">{{ order.dateOrderDelivered | date: "dd/MM/yyyy" }}</span>
+              </div>
+            }
+            <div class="detail-row price-row">
+              <mat-icon class="detail-icon">payments</mat-icon>
+              <span class="detail-label">{{ "DELETED_ORDERS.TOTAL" | translate }}:</span>
+              <span class="detail-value price">{{ order.totalAmountFinal | number: "1.2-2" }} RON</span>
+            </div>
+            @if (order.operator) {
+              <div class="detail-row">
+                <mat-icon class="detail-icon">person</mat-icon>
+                <span class="detail-label">{{ "DELETED_ORDERS.OPERATOR" | translate }}:</span>
+                <span class="detail-value">{{ order.operator.name }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="card-actions">
+            <button mat-stroked-button class="restore-btn" (click)="restoreOrder(order)" [disabled]="isProcessing()">
               <mat-icon>restore</mat-icon>
               {{ "DELETED_ORDERS.RESTORE_BUTTON" | translate }}
             </button>
-            <button
-              mat-raised-button
-              color="warn py-1"
-              (click)="permanentlyDelete(order)"
-              [disabled]="isProcessing()"
-            >
+            <button mat-flat-button class="delete-btn" (click)="permanentlyDelete(order)" [disabled]="isProcessing()">
               <mat-icon>delete_forever</mat-icon>
               {{ "DELETED_ORDERS.DELETE_BUTTON" | translate }}
             </button>
-          </mat-card-actions>
-        </mat-card>
+          </div>
+        </div>
       }
     </div>
   }

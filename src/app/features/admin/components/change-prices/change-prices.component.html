@@ -1,168 +1,136 @@
-<div class="px-3 mb-1 w-100 d-flex justify-content-right">
-  <mat-button-toggle-group
-    class="w-100"
-    [value]="selectedPriceType"
-    (change)="priceTypeChange($event.value)"
-  >
-    <mat-button-toggle
-      class="w-100"
-      [checked]="selectedPriceType === 'unic'"
-      value="unic"
-      >{{
-        "SETTINGS.EDIT_PRICE.PRICE_TYPE.UNIC" | translate
-      }}</mat-button-toggle
-    >
-    <mat-button-toggle
-      class="w-100"
-      [checked]="selectedPriceType === 'm3'"
-      value="m3"
-      >{{ "SETTINGS.EDIT_PRICE.PRICE_TYPE.M3" | translate }}</mat-button-toggle
-    >
-    @if(productsWithoutPrices.length){
-    <mat-button-toggle
-      @leaveAnimation
-      class="w-100"
-      [checked]="selectedPriceType === 'new'"
-      value="new"
-      >{{ "SETTINGS.EDIT_PRICE.PRICE_TYPE.NEW" | translate }}</mat-button-toggle
-    >}
-  </mat-button-toggle-group>
-</div>
+<mat-button-toggle-group
+  class="type-toggle w-100 mb-3"
+  [value]="selectedPriceType"
+  (change)="priceTypeChange($event.value)"
+>
+  <mat-button-toggle class="w-100" [checked]="selectedPriceType === 'unic'" value="unic">
+    {{ "SETTINGS.EDIT_PRICE.PRICE_TYPE.UNIC" | translate }}
+  </mat-button-toggle>
+  <mat-button-toggle class="w-100" [checked]="selectedPriceType === 'm3'" value="m3">
+    {{ "SETTINGS.EDIT_PRICE.PRICE_TYPE.M3" | translate }}
+  </mat-button-toggle>
+  <mat-button-toggle class="w-100" [checked]="selectedPriceType === 'new'" value="new">
+    {{ "SETTINGS.EDIT_PRICE.PRICE_TYPE.NEW" | translate }}
+  </mat-button-toggle>
+</mat-button-toggle-group>
 
-<div class="price-type-container p-3 rounded mb-2 mx-3">
-  @switch (selectedPriceType) { @case ('unic') {
-  <div @enterAnimation>
-    <mat-form-field class="w-100" appearance="outline">
-      <mat-label>{{ "SETTINGS.EDIT_PRICE.UNIC_SEARCH" | translate }}</mat-label>
-      <input type="text" matInput [formControl]="searchControl" />
-    </mat-form-field>
+<div class="price-list-card">
+  @switch (selectedPriceType) {
+    @case ('unic') {
+      <div @enterAnimation>
+        <mat-form-field class="form-field w-100 mb-2" appearance="outline">
+          <mat-label>{{ "SETTINGS.EDIT_PRICE.UNIC_SEARCH" | translate }}</mat-label>
+          <input type="text" matInput [formControl]="searchControl" />
+        </mat-form-field>
 
-    <div class="unic-price-list-container text-dark w-100">
-      @for (item of displayedList; let i = $index; track $index) {
-      <div
-        (click)="selectItemFromUnicPrice(item.price, item.id)"
-        class="unic-item d-flex justify-content-between pt-2"
-        [ngClass]="{
-          'selected-item': item.id === selectedUnicItem.id
-        }"
-      >
-        <div>
-          {{ item.product.name }} -
-          {{ categoryArray[item.category_id - 1].key }}
-        </div>
-        <div>
-          {{ item.price }}
+        <div class="item-list">
+          @for (item of displayedList; let i = $index; track $index) {
+            <div
+              (click)="selectItemFromUnicPrice(item.price, item.id)"
+              class="list-item d-flex justify-content-between py-2"
+              [class.selected-item]="item.id === selectedUnicItem.id"
+            >
+              <span>{{ item.product.name }} — {{ categoryArray[item.category_id - 1].key }}</span>
+              <span class="item-price">{{ item.price }}</span>
+            </div>
+            <mat-divider />
+          }
         </div>
       </div>
-      <mat-divider />
-      }
-    </div>
-  </div>
-  } @case ('new') {
-  <div class="text-dark w-100">
-    @if(productsWithoutPrices.length){
-    <div class="d-flex flex-column align-items-center">
-      <mat-chip-listbox
-        [(ngModel)]="selectedCategory"
-        aria-label="Select Category"
-      >
-        @for (category of categoryArray; track $index) {
-        <mat-chip-option [value]="category.value">
-          {{ category.key }}
-        </mat-chip-option>
-        }
-      </mat-chip-listbox>
-    </div>
-
-    <div class="new-price-list-container mt-2">
-      @for(product of productsWithoutPrices; let last = $last; track $index) {
-      <div
-        (click)="selectNewItemForUnicPrice(product)"
-        class="new-item"
-        [ngClass]="{
-          'selected-item': product.id === selectedNewProduct?.id
-        }"
-      >
-        {{ product.name }}
-      </div>
-      <mat-divider />
-      }
-    </div>
     }
-  </div>
-  } @default () {
-  <div @enterAnimation class="d-flex flex-column text-dark align-items-center">
-    <mat-chip-listbox
-      [(ngModel)]="selectedCategory"
-      (ngModelChange)="onFilterChange()"
-      aria-label="Select Category"
-    >
-      @for (category of categoryOptions; track $index) {
-      <mat-chip-option [value]="category.value">
-        {{ category.key }}
-      </mat-chip-option>
-      }
-    </mat-chip-listbox>
+    @case ('new') {
+      <div @enterAnimation class="w-100">
+        <div class="d-flex flex-column align-items-center mb-3">
+          <mat-chip-listbox
+            [(ngModel)]="selectedCategory"
+            (ngModelChange)="onOverrideCategoryChange()"
+            aria-label="Select Category"
+          >
+            @for (category of categoryArray; track $index) {
+              <mat-chip-option [value]="category.value">{{ category.key }}</mat-chip-option>
+            }
+          </mat-chip-listbox>
+        </div>
 
-    <mat-chip-listbox
-      [(ngModel)]="selectedSize"
-      (ngModelChange)="onFilterChange()"
-      aria-label="Select Size"
-    >
-      @for (size of sizeOptions; track $index) {
-      <mat-chip-option [value]="size.value">
-        {{
-          "OFFER_PAGE.CREATE_OFFER.SIZE_FILTER.FILTER_OPTIONS." + size.value
-            | translate
-        }}
-      </mat-chip-option>
-      }
-    </mat-chip-listbox>
-  </div>
-  } }
+        <mat-form-field class="form-field w-100 mb-2" appearance="outline">
+          <mat-label>{{ "SETTINGS.EDIT_PRICE.OVERRIDE_SEARCH" | translate }}</mat-label>
+          <input type="text" matInput [formControl]="overrideSearch" />
+        </mat-form-field>
+
+        <div class="item-list">
+          @for (product of filteredOverrideProducts; let last = $last; track $index) {
+            <div
+              (click)="selectNewItemForUnicPrice(product)"
+              class="list-item py-2"
+              [class.selected-item]="product.id === selectedNewProduct?.id"
+            >
+              {{ product.name }}
+            </div>
+            <mat-divider />
+          }
+        </div>
+      </div>
+    }
+    @default {
+      <div @enterAnimation class="d-flex flex-column align-items-center gap-3">
+        <mat-chip-listbox
+          [(ngModel)]="selectedCategory"
+          (ngModelChange)="onFilterChange()"
+          aria-label="Select Category"
+        >
+          @for (category of categoryOptions; track $index) {
+            <mat-chip-option [value]="category.value">{{ category.key }}</mat-chip-option>
+          }
+        </mat-chip-listbox>
+
+        <mat-chip-listbox
+          [(ngModel)]="selectedSize"
+          (ngModelChange)="onFilterChange()"
+          aria-label="Select Size"
+        >
+          @for (size of sizeOptions; track $index) {
+            <mat-chip-option [value]="size.value">
+              {{ "OFFER_PAGE.CREATE_OFFER.SIZE_FILTER.FILTER_OPTIONS." + size.value | translate }}
+            </mat-chip-option>
+          }
+        </mat-chip-listbox>
+      </div>
+    }
+  }
 </div>
 
-<div class="px-3">
-  <div
-    class="d-flex height-transition flex-column align-items-center justify-content-center w-100 bg-white text-dark rounded shadow py-3"
+<div class="price-input-card">
+  <mat-form-field class="form-field" appearance="outline">
+    <mat-label>{{ "SETTINGS.EDIT_PRICE.PRICE" | translate }}</mat-label>
+    <input
+      (ngModelChange)="priceInputChange($event)"
+      [(ngModel)]="actualPrice"
+      type="number"
+      matInput
+    />
+  </mat-form-field>
+
+  <button
+    [disabled]="!isNewPrice"
+    @enterAndLeaveAnimation
+    (click)="updateNewPrice()"
+    mat-stroked-button
+    class="update-btn"
   >
-    <div>
-      <mat-form-field @enterAndLeaveAnimation>
-        <mat-label>{{ "SETTINGS.EDIT_PRICE.PRICE" | translate }}</mat-label>
-        <input
-          (ngModelChange)="priceInputChange($event)"
-          [(ngModel)]="actualPrice"
-          type="number"
-          matInput
-        />
-      </mat-form-field>
+    {{ "SETTINGS.EDIT_PRICE.UPDATE_BUTTON" | translate }}
+  </button>
 
-      <button
-        [disabled]="!isNewPrice"
-        @enterAndLeaveAnimation
-        class="mb-2"
-        (click)="updateNewPrice()"
-        mat-stroked-button
-      >
-        {{ "SETTINGS.EDIT_PRICE.UPDATE_BUTTON" | translate }}
-      </button>
-    </div>
-
-    @if(!selectedCurrentPrice && !selectedPriceType) {
-    <div @enterAndLeaveAnimation>
+  @if (!selectedCurrentPrice && !selectedPriceType) {
+    <p @enterAndLeaveAnimation class="no-selection-hint mat-body-medium">
       {{ "SETTINGS.EDIT_PRICE.NO_PRODUCT" | translate }}
-    </div>
-    } @else { @if (productsInFilterRange.length && !selectedPriceType) {
-    <div
-      @enterAndLeaveAnimation
-      class="d-flex flex-column align-items-center product-list-container rounded w-75 p-2"
-    >
-      @for (product of productsInFilterRange; track $index) {
-      <div>
-        {{ product.name }}
+    </p>
+  } @else {
+    @if (productsInFilterRange.length && !selectedPriceType) {
+      <div @enterAndLeaveAnimation class="product-list-container mt-2">
+        @for (product of productsInFilterRange; track $index) {
+          <div class="mat-body-medium">{{ product.name }}</div>
+        }
       </div>
-      }
-    </div>
-    } }
-  </div>
+    }
+  }
 </div>

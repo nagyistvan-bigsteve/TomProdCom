@@ -1,22 +1,33 @@
-<div class="d-flex flex-column align-items-center justify-content-center m-2">
-  <h2>{{ isSignup() ? "Sign Up" : "Login" }}</h2>
-  @if (isSignup()) {
-  <app-signup></app-signup>
-  }@else {
-  <app-login (toggleAuth)="toggleFromLogin()"></app-login>
-  }
-  <p>
-    {{
-      isSignup()
-        ? ("AUTH.SWITCH_LOG_IN" | translate)
-        : ("AUTH.SWITCH_SIGN_UP" | translate)
-    }}
-    <a href="#" (click)="toggleMode($event)">
-      {{
-        isSignup()
-          ? ("AUTH.LOG_IN.ENTER" | translate)
-          : ("AUTH.SIGN_UP.ENTER" | translate)
-      }}
-    </a>
-  </p>
+<div class="auth-wrapper">
+  <div class="brand">
+    <mat-icon class="brand-icon">forest</mat-icon>
+    <span class="brand-name mat-headline-small">TomProdCom</span>
+  </div>
+
+  <div class="auth-card">
+    <div class="auth-tabs" role="tablist">
+      <button
+        class="auth-tab"
+        role="tab"
+        [class.active]="!isSignup()"
+        (click)="setMode(false)"
+      >
+        {{ "AUTH.LOG_IN.ENTER" | translate }}
+      </button>
+      <button
+        class="auth-tab"
+        role="tab"
+        [class.active]="isSignup()"
+        (click)="setMode(true)"
+      >
+        {{ "AUTH.SIGN_UP.ENTER" | translate }}
+      </button>
+    </div>
+
+    @if (isSignup()) {
+      <app-signup @enterAnimation />
+    } @else {
+      <app-login @enterAnimation />
+    }
+  </div>
 </div>

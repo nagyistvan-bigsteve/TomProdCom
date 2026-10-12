@@ -1,32 +1,281 @@
+@use "breakpoints" as *;
+
 :host {
-  max-width: 96vw;
-  max-height: 91vh !important;
-  overflow: scroll;
-  margin-bottom: 8px;
-  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+  min-height: 0;
 }
 
-tr.detail-row {
-  height: 0;
+// ─── Controls panel ────────────────────────────────────────────────────────────
+
+.controls-panel {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  @include md {
+    padding: var(--space-3) var(--space-6);
+    gap: var(--space-3);
+  }
 }
 
-tr.order-row {
+.filter-sort-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+// Fix #4: buttons fill the row evenly — no empty space between last chip and sort icon
+.status-toggles {
+  flex: 1;
+  min-width: 0;
+
+  ::ng-deep .mat-button-toggle-group {
+    width: 100%;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  ::ng-deep .mat-button-toggle {
+    flex: 1;
+    font-size: 0.8125rem;
+    color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    background: transparent;
+  }
+
+  ::ng-deep .mat-button-toggle-checked {
+    background-color: rgba(95, 1, 1, 0.85) !important;
+    color: white !important;
+  }
+
+  ::ng-deep .mat-button-toggle-button {
+    height: 36px;
+  }
+}
+
+// Override global white-icon rule: search icon is inside a light-fill form field
+.controls-panel .search-icon-prefix {
+  color: rgba(0, 0, 0, 0.54);
+}
+
+.sort-btn {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.active-sort {
+  color: rgb(141, 216, 27);
+}
+
+.search-date-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  @include sm {
+    flex-direction: row;
+    gap: var(--space-3);
+  }
+}
+
+.search-field {
+  width: 100%;
+
+  @include sm {
+    flex: 1 1 220px;
+  }
+}
+
+.date-field {
+  width: 100%;
+
+  @include sm {
+    flex: 1 1 220px;
+  }
+}
+
+::ng-deep {
+  .controls-panel .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+}
+
+// ─── Table body ────────────────────────────────────────────────────────────────
+
+// Fix #1: side spacing via padding on the scroll container
+.table-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  min-height: 0;
+  padding: 0 var(--space-3) var(--space-3) var(--space-3);
+
+  @include md {
+    padding: 0 var(--space-6) var(--space-3) var(--space-6);
+  }
+}
+
+.order-table {
+  width: 100%;
+  min-width: 280px;
+
+  th.mat-mdc-header-cell {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-1);
+    white-space: nowrap;
+  }
+
+  // All regular data cells get padding; expand detail cell gets none (fix #2)
+  td.mat-mdc-cell:not(.expand-detail-td) {
+    font-size: 0.8125rem;
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-1);
+    word-break: break-word;
+  }
+
+  // Fix #2: expand detail cell must have zero padding so the grid can collapse to 0
+  td.expand-detail-td {
+    padding: 0 !important;
+  }
+}
+
+.client-cell {
+  max-width: 28vw;
+  font-weight: 500;
+
+  @include md {
+    max-width: 220px;
+  }
+}
+
+.address-cell {
+  max-width: 22vw;
+  color: rgba(0, 0, 0, 0.7);
+
+  @include md {
+    max-width: 200px;
+  }
+}
+
+.date-cell {
+  min-width: 52px;
+}
+
+.qty-cell {
+  white-space: nowrap;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.amount-cell {
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.amount-btn {
+  background: none;
+  border: none;
   cursor: pointer;
+  font-size: inherit;
+  font-weight: 500;
+  color: inherit;
+  padding: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: #1565c0;
+  }
 }
 
-tr.order-row:not(.expanded-row):hover {
-  background: whitesmoke;
+.hide-mobile {
+  @media (max-width: 599px) {
+    display: none !important;
+  }
 }
 
-tr.order-row:not(.expanded-row):active {
-  background: #efefef;
+.hide-sm {
+  @media (max-width: 767px) {
+    display: none !important;
+  }
 }
 
-.order-row td {
-  border-bottom-width: 0;
+// Fix #3: show address on mobile only (column hidden there), qty on small only
+.show-mobile {
+  @media (min-width: 600px) {
+    display: none !important;
+  }
 }
 
-.order-detail-wrapper {
+.show-sm {
+  @media (min-width: 768px) {
+    display: none !important;
+  }
+}
+
+// ─── Date badges ───────────────────────────────────────────────────────────────
+
+.delivery-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.until-delivery {
+  background-color: rgba(0, 0, 0, 0.07);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+
+.until-star {
+  color: #ba0000;
+  font-weight: 700;
+}
+
+.first-hour-tag {
+  font-size: 0.6875rem;
+  color: rgba(0, 0, 0, 0.55);
+  margin-top: 1px;
+}
+
+.in-past {
+  color: #ba0000;
+}
+
+// ─── Data rows ─────────────────────────────────────────────────────────────────
+
+::ng-deep tr.detail-row {
+  height: 0;
+  overflow: hidden;
+}
+
+.element-row {
+  cursor: pointer;
+  transition: background-color 0.1s;
+
+  &:not(.expanded-row):hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  &:not(.expanded-row):active {
+    background: rgba(0, 0, 0, 0.08);
+  }
+}
+
+.expanded-row {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+// ─── Expanded detail row ───────────────────────────────────────────────────────
+
+// Fix #2: grid wrapper — no background, no padding; overflow hides collapsed content
+.row-expand-wrapper {
   overflow: hidden;
   display: grid;
   grid-template-rows: 0fr;
@@ -34,96 +283,138 @@ tr.order-row:not(.expanded-row):active {
   transition: grid-template-rows 225ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.order-detail-wrapper-expanded {
+.row-expand-wrapper.expanded {
   grid-template-rows: 1fr;
 }
 
-.order-table {
-  width: 100 !important;
+// Fix #2: direct grid child — min-height 0 so it can collapse; no padding here
+.row-expand-inner {
+  min-height: 0;
+  overflow: hidden;
+}
 
-  th {
-    word-wrap: break-word !important;
-    text-wrap: wrap !important;
-  }
+// Content with the actual padding lives one level deeper, inside the collapsed container
+.row-expand-content {
+  background-color: #f4f4f4;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-2);
 
-  tr {
-    td {
-      font-size: 13px !important;
-      padding: 0 !important;
-      max-width: 20vw !important;
-      overflow: auto;
-      word-wrap: break-word;
-      text-wrap: wrap;
-    }
-
-    td.client-name {
-      max-width: 25vw !important;
-    }
+  @include sm {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
   }
 }
 
-.order-detail {
+.expand-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.info-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.info-icon {
+  font-size: 14px;
+  width: 14px;
+  height: 14px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.voucher-item {
+  color: #1565c0;
+}
+
+.delivered-item {
+  color: #2e7d32;
+}
+
+.paid-item {
+  color: #5c6bc0;
+}
+
+.expand-comment {
+  width: 100%;
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.65);
+  font-style: italic;
+  white-space: pre-line;
+  border-left: 2px solid rgba(0, 0, 0, 0.15);
+  padding-left: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.expand-actions {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-2);
+  flex-shrink: 0;
+
+  @include sm {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.details-btn {
+  color: rgb(57, 72, 60);
+  border-color: rgba(57, 72, 60, 0.4) !important;
+  font-size: 0.8125rem;
+
+  &:hover {
+    background-color: rgba(57, 72, 60, 0.06);
+  }
+}
+
+.delete-btn {
+  color: rgb(95, 1, 1);
+  border-color: rgba(95, 1, 1, 0.35) !important;
+  font-size: 0.8125rem;
+
+  &:hover {
+    background-color: rgba(95, 1, 1, 0.06);
+  }
+}
+
+// ─── Stats bar ─────────────────────────────────────────────────────────────────
+
+.stats-bar {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
-  min-height: 0;
-  width: 100%;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.7);
+  font-weight: 500;
 
-  .order-detail-item {
-    padding: 0.4rem 0.3rem 0 0.5rem;
+  @include md {
+    padding: var(--space-2) var(--space-6);
   }
 }
 
-.in-past {
-  color: #ba0000;
-}
-
-::ng-deep {
-  .detail-row {
-    background-color: #efefef !important;
-  }
-
-  .mat-mdc-raised-button {
-    color: rgb(72, 95, 77) !important;
-  }
-
-  .mat-mdc-raised-button.delete-button {
-    color: rgb(95, 1, 1) !important;
-  }
-
-  th.mdc-data-table__header-cell {
-    padding: 0px 4px !important;
-  }
-
-  .filter-section .mat-mdc-form-field-subscript-wrapper {
-    display: none;
-  }
-}
+// ─── Misc ──────────────────────────────────────────────────────────────────────
 
 .multiline-text {
   white-space: pre-line;
 }
 
-.until-delivery {
-  background-color: #deddddbb;
+// ─── CDK Drag & Drop ───────────────────────────────────────────────────────────
 
-  .until-delivery-start {
-    color: #ba0000;
-  }
-}
-
-// Drag handle styling
-.drag-handle-cell {
-  width: 48px;
-  padding-right: 8px !important;
-}
-
-.drag-cursor {
-  cursor: move;
-  color: rgba(0, 0, 0, 0.54);
-  user-select: none;
-}
-
-// CDK Drag & Drop styling
 .cdk-drag-preview {
   box-sizing: border-box;
   border-radius: 4px;
@@ -146,9 +437,4 @@ tr.order-row:not(.expanded-row):active {
 
 .cdk-drop-list-dragging .mat-mdc-row:not(.cdk-drag-placeholder) {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-}
-
-// Disable row hover effect when dragging
-.cdk-drop-list-dragging .mat-mdc-row {
-  cursor: move;
 }

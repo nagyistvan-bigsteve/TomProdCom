@@ -1,11 +1,15 @@
-<div
-  @enterAnimation
-  class="d-flex flex-column justify-content-evenly align-items-center h-75"
->
-  <div class="wait-container shadow rounded text-center w-75 fw-bold fs-3">
-    {{ "AUTH.WAIT_TO_APPROVE.TITLE" | translate }}
+<div class="content" @enterAnimation>
+  <div class="icon-wrapper">
+    <mat-icon class="pending-icon">pending_actions</mat-icon>
   </div>
-  <button mat-raised-button class="primary p-3 w-50" (click)="tryRefresh()">
+
+  <div class="text-section">
+    <h2 class="mat-title-large heading">{{ "AUTH.WAIT_TO_APPROVE.HEADING" | translate }}</h2>
+    <p class="mat-body-medium message">{{ "AUTH.WAIT_TO_APPROVE.TITLE" | translate }}</p>
+  </div>
+
+  <button mat-stroked-button class="refresh-btn" (click)="tryRefresh()">
+    <mat-icon>refresh</mat-icon>
     {{ "AUTH.WAIT_TO_APPROVE.BUTTON" | translate }}
   </button>
 </div>

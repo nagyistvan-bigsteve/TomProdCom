@@ -12,6 +12,8 @@ Used on the `/products` page and embedded inside the offer creation flow (`/offe
 
 Shows one product selected for an offer line item. Lets the user enter quantity, choose the quantity input mode for M2 products (BRUT / NET / BUC / PAC), and set the quality category (A / AB / B / T).
 
+**Add button:** full-width `mat-flat-button` with `add_shopping_cart` icon, app-red background (`rgb(134, 2, 2)`). Styled via `--mdc-filled-button-container-color` / `--mdc-filled-button-label-text-color` CSS custom properties in the component SCSS (no `!important`).
+
 ### `selected-product-list/` — cart line-item list
 
 The running list of products added to the current offer cart.
@@ -21,6 +23,10 @@ The running list of products added to the current offer cart.
 - `getExactPrice()` implements the full price-lookup hierarchy: product-specific price first, then size/category matrix. Also applies TVA adjustment (`client.tva=true` → M3 −100, BUNDLE −5) and any manual discounts from the offer-overview page.
 - Emits `@Output() pricesOutput: EventEmitter<Price2[]>` so the offer-overview page knows which price rows are in use.
 - `getTotalPriceInA()` / `getTotalPriceInB()` compute hypothetical totals at category A and B prices — displayed as reference prices during cart review.
+
+**Layout constraints (`isInOverview` flag):**
+- The root div's `h-100` and `justify-content-evenly` classes are **only applied when `!isInOverview`** (i.e., in the create-offer cart panel). In overview mode these are omitted to prevent the single-child accordion from being vertically centred inside the element, which would create an empty gap above the product list.
+- The `.limited-height` class (`max-height: 42.5vh; overflow: auto`) is applied to the accordion when `isInOverview` is true. On desktop (`≥ 960px`) this constraint is lifted via a breakpoint override so the product list expands naturally in its grid column.
 
 ### `overwrite-dialog/` — cart duplicate confirmation
 
@@ -34,7 +40,25 @@ Two choices:
 
 ### `products/` — main product catalogue page
 
-Inventory tool (not just a catalogue). Stock information is prominent. Admins can also edit product details and stock directly from this page.
+Inventory tool (not just a catalogue). Stock information is prominent. Admins can edit stock values inline directly from this page.
+
+**Layout:**
+- `:host` is `flex: 1; min-height: 0; overflow: hidden` — internal elements own scrolling, no `vh` units.
+- Page header strip (title + sort icon button) at the top, `flex-shrink: 0`.
+- `.page-body` is `flex: 1; min-height: 0`, centered to `max-width: 960px` on desktop (`@include md`).
+- `.controls-row` (search field + sort button) is `flex-shrink: 0` inside `.page-body`.
+- `.product-list` is `flex: 1; min-height: 0; overflow-y: auto` — this is the scroll container.
+
+**Product grid:** `.product-list` uses CSS Grid:
+- Mobile: 1 column
+- `@include sm` (≥600px): 2 columns
+- `@include md` (≥960px): 3 columns
+
+Product cards use `background: rgba(0,0,0,0.15)` with `border-radius: 8px`. Hovering darkens to `rgba(0,0,0,0.25)`. Active edit state uses `rgba(0,0,0,0.3)` with a brighter border.
+
+**Inline stock edit:** clicking the edit icon on a card reveals a `mat-form-field` + `mat-mini-fab` save button via `@enterAndLeaveAnimation`. The edit field uses the same dark-background `::ng-deep` MDC overrides as the search field (see root CLAUDE.md).
+
+**Stock colors:** `rgb(141, 216, 27)` (total stock) / `rgb(251, 255, 17)` (available = total − booked). M3 products additionally show the cubic-metre equivalent below the piece count.
 
 ## services/
 

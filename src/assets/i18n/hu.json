@@ -46,10 +46,10 @@
         "SELECT_LABEL": "Termékek"
       },
       "PRICE_CATEGORY": {
-        "4": "A+",
         "1": "A",
         "2": "A/B",
         "3": "B",
+        "4": "A+",
         "LABEL": "Válassz kategóriát!"
       },
       "PRODUCT_LIST": {
@@ -97,6 +97,7 @@
     "SEARCH": "Keresés..."
   },
   "OVERVIEW_PAGE": {
+    "TITLE": "Rendelés áttekintése",
     "BUTTONS": {
       "CONFIRM": "Rendelés mentése"
     },
@@ -172,6 +173,7 @@
       "ENTER": "Bejelentkezés"
     },
     "WAIT_TO_APPROVE": {
+      "HEADING": "Fiók jóváhagyásra vár",
       "TITLE": "Várnod kell, amíg egy adminisztrátor jóváhagyja a fiókodat.",
       "BUTTON": "Frissítés"
     },
@@ -224,9 +226,10 @@
       "PRICE_TYPE": {
         "UNIC": "Egyedi ár",
         "M3": "m³",
-        "NEW": "Ár nélkül"
+        "NEW": "Egyedi beáll."
       },
-      "UNIC_SEARCH": "Egyedi áru termékek"
+      "UNIC_SEARCH": "Egyedi áru termékek",
+      "OVERRIDE_SEARCH": "Összes termék"
     },
     "STOCK": "Készlet",
     "PRODUCT": "Termék"
@@ -264,7 +267,9 @@
         "CATEGORY_INPUT": "Minőség",
         "CUSTOM_PRICE_INPUT": "Egyedi ár (RON/egység)",
         "CANCEL_BUTTON": "Mégse",
-        "SAVE_BUTTON": "Mentés"
+        "SAVE_BUTTON": "Mentés",
+        "DISCOUNT_INPUT": "Kedvezmény (pl: 10%, 500 RON)",
+        "ADD_PRODUCT_BUTTON": "Termék hozzáadása"
       }
     },
     "TABLE": {
@@ -284,7 +289,8 @@
         "FILTER_LABEL": "Szűrés:",
         "SORT_LABEL": "Rendezés:",
         "NAME_FILTER": "Keresés név szerint",
-        "ADDRESS_FILTER": "Keresés cím szerint"
+        "ADDRESS_FILTER": "Keresés cím szerint",
+        "SEARCH_LABEL": "Keresés"
       },
       "CONTENT": {
         "CLIENT": "Kliens",
@@ -441,7 +447,8 @@
     "EMAIL_SENT_SUCCESS": "Ellenőrizd az e-mailedet a jelszó visszaállítási utasításokért.",
     "EMAIL_SENT_ERROR": "Hiba történt a jelszó visszaállító e-mail küldésekor.",
     "SESSION_ERROR": "Bejelentkezési hiba",
-    "INVALID_FORM": "Kérlek töltsd ki helyesen az összes mezőt."
+    "INVALID_FORM": "Kérlek töltsd ki helyesen az összes mezőt.",
+    "VERIFYING": "Munkamenet ellenőrzése..."
   },
   "PRINT_POPUP": {
     "TITLE_ORDER": "Rendelés",

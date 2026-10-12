@@ -1,4 +1,4 @@
-﻿import { Component, effect, inject, OnInit, untracked } from '@angular/core';
+import { Component, effect, inject, OnInit, untracked } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatOptionModule } from '@angular/material/core';
@@ -47,7 +47,7 @@ export class ChangePricesComponent implements OnInit {
   categoryArray = this.enumToArray(Category);
 
   searchControl = new FormControl('');
-  priceTypeControl = new FormControl('');
+  overrideSearch = new FormControl('');
 
   actualPrice: number = 0;
 
@@ -55,6 +55,7 @@ export class ChangePricesComponent implements OnInit {
   selectedUnicItem: { id: number; price: number } = { id: 0, price: 0 };
   selectedCurrentPrice: Price2 | null = null;
   selectedNewProduct: Product | null = null;
+  existingUnicPriceId: number | null = null;
 
   selectedSize: Size_id = Size_id.NORMAL;
   selectedCategory: Category = Category.A;
@@ -63,6 +64,8 @@ export class ChangePricesComponent implements OnInit {
   unicPriceList: PriceResponse2[] = [];
   displayedList: PriceResponse2[] = [];
   productsWithoutPrices: Products = [];
+  allProductsSorted: Products = [];
+  filteredOverrideProducts: Products = [];
 
   isNewPrice: boolean = false;
 
@@ -90,13 +93,26 @@ export class ChangePricesComponent implements OnInit {
         item.product.name.toLowerCase().includes(filterValue),
       );
     });
+
+    this.overrideSearch.valueChanges.subscribe(() => {
+      this.applyOverrideSearch();
+    });
   }
 
   priceTypeChange(priceType: 'unic' | 'm3' | 'new'): void {
     this.actualPrice = 0;
     this.selectedPriceType = priceType;
+
     if (this.selectedPriceType === 'm3') {
       this.onFilterChange();
+    }
+
+    if (this.selectedPriceType === 'new') {
+      this.selectedNewProduct = null;
+      this.existingUnicPriceId = null;
+      this.isNewPrice = false;
+      this.overrideSearch.setValue('', { emitEvent: false });
+      this.applyOverrideSearch();
     }
   }
 
@@ -149,6 +165,14 @@ export class ChangePricesComponent implements OnInit {
 
   updateNewPrice(): void {
     if (this.isNewPrice && this.actualPrice) {
+      // Override mode: existing unic price found for this product+category
+      if (this.selectedPriceType === 'new' && this.existingUnicPriceId != null) {
+        this.productStore.changePrice({ id: this.existingUnicPriceId, new_price: this.actualPrice });
+        this.existingUnicPriceId = null;
+        this.isNewPrice = false;
+        return;
+      }
+
       if (this.selectedPriceType !== 'unic' && !this.selectedCurrentPrice) {
         this.addNewPrice();
       } else {
@@ -208,6 +232,44 @@ export class ChangePricesComponent implements OnInit {
     this.actualPrice = 0;
     this.selectedCurrentPrice = null;
     this.selectedNewProduct = product;
+    this.checkExistingUnicPrice();
+  }
+
+  onOverrideCategoryChange(): void {
+    if (this.selectedNewProduct) {
+      this.checkExistingUnicPrice();
+    }
+  }
+
+  private checkExistingUnicPrice(): void {
+    if (!this.selectedNewProduct) {
+      this.existingUnicPriceId = null;
+      return;
+    }
+
+    const existing = this.unicPriceList.find(
+      (p) =>
+        p.product.id === this.selectedNewProduct!.id &&
+        p.category_id === this.selectedCategory,
+    );
+
+    if (existing) {
+      this.existingUnicPriceId = existing.id;
+      this.actualPrice = existing.price;
+    } else {
+      this.existingUnicPriceId = null;
+      this.actualPrice = 0;
+    }
+    this.isNewPrice = false;
+  }
+
+  private applyOverrideSearch(): void {
+    const query = (this.overrideSearch.value ?? '').toLowerCase();
+    this.filteredOverrideProducts = query
+      ? this.allProductsSorted.filter((p) =>
+          p.name.toLowerCase().includes(query),
+        )
+      : [...this.allProductsSorted];
   }
 
   private refreshUnicPriceList(): void {
@@ -243,6 +305,11 @@ export class ChangePricesComponent implements OnInit {
         price: this.selectedUnicItem.price,
       };
     }
+
+    // Re-check override pre-fill after unic list updates (e.g. after save)
+    if (this.selectedPriceType === 'new' && this.selectedNewProduct) {
+      this.checkExistingUnicPrice();
+    }
   }
 
   private refreshProductsWithoutPrices(): void {
@@ -253,18 +320,28 @@ export class ChangePricesComponent implements OnInit {
       prices.filter((p) => p.product_id != null).map((p) => p.product_id!),
     );
 
-    this.productsWithoutPrices = products
-      .filter((p) => !unicProductIds.has(p.id))
-      .sort((a, b) =>
+    // A matrix price (product_id = null) covers every product with the same unit_id + size_id
+    const matrixCoveredKeys = new Set(
+      prices
+        .filter((p) => p.product_id == null)
+        .map((p) => `${p.unit_id}_${p.size_id}`),
+    );
+
+    const sortByName = (arr: Products): Products =>
+      [...arr].sort((a, b) =>
         a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
       );
 
-    if (
-      !this.productsWithoutPrices.length &&
-      this.selectedPriceType === 'new'
-    ) {
-      this.priceTypeChange('m3');
-    }
+    this.productsWithoutPrices = sortByName(
+      products.filter(
+        (p) =>
+          !unicProductIds.has(p.id) &&
+          !matrixCoveredKeys.has(`${p.unit_id}_${p.size_id}`),
+      ),
+    );
+
+    this.allProductsSorted = sortByName(products);
+    this.applyOverrideSearch();
   }
 
   private enumToArray(

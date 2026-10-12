@@ -1,4 +1,64 @@
 :host {
-  max-height: 75vh;
-  overflow: auto;
+  display: block;
+  width: 100%;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.order-card {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.order-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.order-date {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.order-amount {
+  font-size: 1rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.order-delivered {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.875rem;
+  color: rgb(141, 216, 27);
+}
+
+.delivered-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.details-btn {
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.25);
+  height: 36px;
+  font-size: 0.875rem;
+
+  &:hover {
+    border-color: rgba(255, 255, 255, 0.6);
+    color: white;
+  }
 }

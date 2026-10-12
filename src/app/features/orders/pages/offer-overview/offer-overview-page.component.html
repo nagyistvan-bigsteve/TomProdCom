@@ -1,9 +1,19 @@
+<!-- Page header strip -->
+<div class="page-header">
+  <button mat-icon-button (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span class="header-title">{{ "OVERVIEW_PAGE.TITLE" | translate }}</span>
+  <span class="step-chip">3 / 3</span>
+</div>
+
 <div class="offer-page-container">
   <div
-    class="mb-3"
-    [ngClass]="{ 'd-none': !isLoaded && !clientStore.isBusy() }"
+    class="overview-layout full-width"
+    [class.d-none]="!isLoaded && !clientStore.isBusy()"
   >
-    <div class="full-width mb-3">
+    <!-- Prices: mobile=1st / desktop=right-col top (grid-area: pr) -->
+    <div class="section-prices">
       <mat-accordion class="w-100" multi>
         <mat-expansion-panel [expanded]="false">
           <mat-expansion-panel-header class="px-3">
@@ -30,7 +40,7 @@
                   (isAllPriceDifferent() && price.productId) ||
                   !isAllPriceDifferent()
                 ) {
-                  <div class="price-row py-1 px-3">
+                  <div class="price-row">
                     <div class="price-info">
                       <div class="price-label">
                         @if (price.unit === 2 || price.productId) {
@@ -54,16 +64,8 @@
                       </div>
                       <div class="price-details">
                         <div class="base-prices">
-                          <span class="label"
-                            >{{
-                              "OVERVIEW_PAGE.PRICES.BASE" | translate
-                            }}:</span
-                          >
-
-                          <span class="price-value">
-                            {{ price.price | number: "1.2-2" }}
-                          </span>
-
+                          <span class="label">{{ "OVERVIEW_PAGE.PRICES.BASE" | translate }}:</span>
+                          <span class="price-value">{{ price.price | number: "1.2-2" }}</span>
                           <span class="currency">RON</span>
                         </div>
                         @if (price.discount !== 0) {
@@ -72,28 +74,15 @@
                             [class.negative]="price.discount < 0"
                             [class.positive]="price.discount > 0"
                           >
-                            <span class="label"
-                              >{{
-                                "OVERVIEW_PAGE.PRICES.ADJUSTMENT" | translate
-                              }}:</span
-                            >
+                            <span class="label">{{ "OVERVIEW_PAGE.PRICES.ADJUSTMENT" | translate }}:</span>
                             <span class="discount-value">
-                              {{ price.discount > 0 ? "+" : ""
-                              }}{{ price.discount | number: "1.2-2" }} RON
+                              {{ price.discount > 0 ? "+" : "" }}{{ price.discount | number: "1.2-2" }} RON
                             </span>
                           </div>
                         }
                         <div class="final-prices">
-                          <span class="label"
-                            >{{
-                              "OVERVIEW_PAGE.PRICES.FINAL" | translate
-                            }}:</span
-                          >
-
-                          <span class="price-value final">
-                            {{ price.price + price.discount | number: "1.2-2" }}
-                          </span>
-
+                          <span class="label">{{ "OVERVIEW_PAGE.PRICES.FINAL" | translate }}:</span>
+                          <span class="price-value final">{{ price.price + price.discount | number: "1.2-2" }}</span>
                           <span class="currency">RON</span>
                         </div>
                       </div>
@@ -101,9 +90,7 @@
 
                     <div class="price-input-wrapper">
                       <mat-form-field appearance="outline" class="price-field">
-                        <mat-label>{{
-                          "OVERVIEW_PAGE.PRICES.SET_PRICE" | translate
-                        }}</mat-label>
+                        <mat-label>{{ "OVERVIEW_PAGE.PRICES.SET_PRICE" | translate }}</mat-label>
                         <input
                           matInput
                           type="number"
@@ -128,42 +115,46 @@
       </mat-accordion>
     </div>
 
-    <app-client-details class="full-width mb-3"></app-client-details>
+    <!-- Client: mobile=2nd / desktop=right-col middle (grid-area: cl) -->
+    <div class="section-client">
+      <app-client-details class="full-width"></app-client-details>
+    </div>
 
-    <app-selected-product-list
-      [isInOverview]="true"
-      [discounts]="usedPriceCategories"
-      (isLoaded)="loaded()"
-      (pricesOutput)="getPriceList($event)"
-      class="full-width"
-    ></app-selected-product-list>
-    <div class="mt-2 total-quantity-card">
-      <div class="total-quantity">
-        <div>{{ "COMING_WARES.TOTAL_QUANTITY" | translate }}:</div>
-        <div>{{ getTotalQuantity() | number: "1.0-2" }} m³</div>
+    <!-- Products: mobile=3rd / desktop=left-col spanning all rows (grid-area: pl) -->
+    <div class="section-products">
+      <app-selected-product-list
+        [isInOverview]="true"
+        [discounts]="usedPriceCategories"
+        (isLoaded)="loaded()"
+        (pricesOutput)="getPriceList($event)"
+        class="w-100"
+      ></app-selected-product-list>
+    </div>
+
+    <!-- Bottom: mobile=4th / desktop=right-col bottom (grid-area: bo) -->
+    <div class="section-bottom" [class.d-none]="!isLoaded">
+      <div class="bottom-bar mb-3">
+        <div class="voucher-wrapper">
+          <mat-form-field
+            appearance="outline"
+            class="w-100 voucher-input"
+            subscriptSizing="dynamic"
+          >
+            <mat-label>{{ "WORDS.VOUCHER" | translate }}</mat-label>
+            <input matInput [(ngModel)]="voucher" />
+          </mat-form-field>
+        </div>
+        <div class="total-display">
+          {{ "WORDS.TOTAL" | translate }}: {{ totalPrice | currency: "RON" }}
+        </div>
       </div>
+
+      <button mat-flat-button color="primary" class="confirm-btn" (click)="confirmOffer()">
+        {{ "OVERVIEW_PAGE.BUTTONS.CONFIRM" | translate }}
+      </button>
     </div>
   </div>
 
-  <div
-    class="w-100 d-flex flex-column justify-content-center"
-    [ngClass]="{ 'd-none': !isLoaded }"
-  >
-    <div class="d-flex w-100 align-items-center justify-content-evenly mb-3">
-      <mat-form-field appearance="outline" class="voucher-input">
-        <mat-label>{{ "WORDS.VOUCHER" | translate }}</mat-label>
-        <input matInput [(ngModel)]="voucher" />
-      </mat-form-field>
-
-      <div class="fs-5">
-        {{ "WORDS.TOTAL" | translate }}: {{ totalPrice | currency: "RON" }}
-      </div>
-    </div>
-
-    <button mat-raised-button color="primary" (click)="confirmOffer()">
-      {{ "OVERVIEW_PAGE.BUTTONS.CONFIRM" | translate }}
-    </button>
-  </div>
   @if (!isLoaded) {
     <mat-spinner />
   }
@@ -182,42 +173,34 @@
     </mat-form-field>
 
     <mat-form-field class="w-100" appearance="outline">
-      <mat-label>{{
-        "OVERVIEW_PAGE.POPUP.EXPECTED_DELIVERY" | translate
-      }}</mat-label>
+      <mat-label>{{ "OVERVIEW_PAGE.POPUP.EXPECTED_DELIVERY" | translate }}</mat-label>
       <input
         matInput
         [(ngModel)]="expectedDeliveryDate"
         [min]="currentDate"
         [matDatepicker]="picker"
       />
-      <mat-datepicker-toggle
-        matIconSuffix
-        [for]="picker"
-      ></mat-datepicker-toggle>
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
       <mat-datepicker touchUi #picker></mat-datepicker>
     </mat-form-field>
 
     <div class="d-flex flex-column justify-content-start text-start">
       <mat-checkbox
         [(ngModel)]="untilDeliveryDate"
-        [matTooltip]="
-          'OVERVIEW_PAGE.POPUP.DELIVERY_CHECKBOX_TOOLTIP' | translate
-        "
-        >{{ "OVERVIEW_PAGE.POPUP.DELIVERY_CHECKBOX" | translate }}</mat-checkbox
-      >
+        [matTooltip]="'OVERVIEW_PAGE.POPUP.DELIVERY_CHECKBOX_TOOLTIP' | translate"
+      >{{ "OVERVIEW_PAGE.POPUP.DELIVERY_CHECKBOX" | translate }}</mat-checkbox>
 
-      <mat-checkbox class="mt-2" [(ngModel)]="forFirstHour">{{
-        "OVERVIEW_PAGE.POPUP.FIRST_HOUR_CHECKBOX" | translate
-      }}</mat-checkbox>
+      <mat-checkbox class="mt-2" [(ngModel)]="forFirstHour">
+        {{ "OVERVIEW_PAGE.POPUP.FIRST_HOUR_CHECKBOX" | translate }}
+      </mat-checkbox>
 
-      <mat-checkbox class="mt-2" [(ngModel)]="justOffer">{{
-        "OVERVIEW_PAGE.POPUP.JUST_OFFER_CHECKBOX" | translate
-      }}</mat-checkbox>
+      <mat-checkbox class="mt-2" [(ngModel)]="justOffer">
+        {{ "OVERVIEW_PAGE.POPUP.JUST_OFFER_CHECKBOX" | translate }}
+      </mat-checkbox>
 
-      <mat-checkbox class="mt-2" [(ngModel)]="transferPayment">{{
-        "OVERVIEW_PAGE.POPUP.TRANSFER_PAYMENT" | translate
-      }}</mat-checkbox>
+      <mat-checkbox class="mt-2" [(ngModel)]="transferPayment">
+        {{ "OVERVIEW_PAGE.POPUP.TRANSFER_PAYMENT" | translate }}
+      </mat-checkbox>
     </div>
 
     <div class="delivery-input-field">
@@ -227,17 +210,11 @@
         appearance="outline"
         [floatLabel]="'always'"
       >
-        <mat-label>
-          {{ "OVERVIEW_PAGE.POPUP.DELIVERY_ADDRESS" | translate }}
-        </mat-label>
+        <mat-label>{{ "OVERVIEW_PAGE.POPUP.DELIVERY_ADDRESS" | translate }}</mat-label>
         <input
           matInput
           [(ngModel)]="delivery_address"
-          [placeholder]="
-            this.clientStore.client().address
-              ? this.clientStore.client().address!
-              : ''
-          "
+          [placeholder]="clientStore.client().address ? clientStore.client().address! : ''"
           type="text"
         />
       </mat-form-field>
@@ -249,9 +226,7 @@
         class="mt-2 w-100"
         appearance="outline"
       >
-        <mat-label>
-          {{ "OVERVIEW_PAGE.POPUP.DELIVERY_FEE" | translate }}
-        </mat-label>
+        <mat-label>{{ "OVERVIEW_PAGE.POPUP.DELIVERY_FEE" | translate }}</mat-label>
         <input matInput [(ngModel)]="deliveryFee" type="number" />
       </mat-form-field>
     </div>

@@ -1,4 +1,4 @@
-<div class="d-flex flex-column justify-content-evenly h-100 w-100">
+<div class="d-flex flex-column w-100" [class.justify-content-evenly]="!isInOverview" [class.h-100]="!isInOverview">
   <div class="d-flex align-items-center w-100">
     <mat-accordion
       class="w-100"
@@ -318,7 +318,7 @@
       @enterAnimation
       class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 px-3 py-2 mt-2 bg-extra-total text-black fw-normal"
     >
-      {{ "WORDS.TOTAL" | translate }} B: {{ totalPriceInB | number: "1.0-2" }}
+      {{ "WORDS.TOTAL" | translate }} B: {{ totalPriceInB() | number: "1.0-2" }}
       {{ "LANGUAGE.CURRENCY" | translate }}
       <div class="d-flex justify-content-end">
         <button
@@ -334,7 +334,7 @@
       @enterAnimation
       class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 px-3 py-2 mt-2 bg-extra-total text-black fw-normal"
     >
-      {{ "WORDS.TOTAL" | translate }} A: {{ totalPriceInA | number: "1.0-2" }}
+      {{ "WORDS.TOTAL" | translate }} A: {{ totalPriceInA() | number: "1.0-2" }}
       {{ "LANGUAGE.CURRENCY" | translate }}
       <div class="d-flex justify-content-end">
         <button

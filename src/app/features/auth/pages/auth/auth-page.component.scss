@@ -1,16 +1,81 @@
+@use 'breakpoints' as *;
+
 :host {
-  height: 100%;
-  width: 100%;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-
   background-color: rgb(57, 72, 60);
+  color: white;
+  padding: var(--space-4);
+  overflow-y: auto;
+}
+
+.auth-wrapper {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+
+  @include md {
+    max-width: 440px;
+  }
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.brand-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.brand-name {
+  font-weight: 700;
+  letter-spacing: 0.05em;
   color: white;
 }
 
-.auth-container {
-  height: 80vh;
-  overflow: auto;
+.auth-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: var(--space-4) var(--space-3);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.4);
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  transition: color 0.2s, box-shadow 0.2s;
+
+  &.active {
+    color: rgb(57, 72, 60);
+    box-shadow: inset 0 -2px 0 rgb(57, 72, 60);
+  }
+
+  &:hover:not(.active) {
+    color: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.02);
+  }
 }

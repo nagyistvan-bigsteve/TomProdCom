@@ -1,9 +1,8 @@
-﻿import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { useAuthStore, UserRole } from '@core/store/auth-store';
 import { CommonModule } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
-import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { ENTER_ANIMATION } from '@core/models/animations';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { TranslateModule } from '@ngx-translate/core';
@@ -11,8 +10,6 @@ import { TranslateModule } from '@ngx-translate/core';
 @Component({
   selector: 'app-users-list',
   imports: [
-    MatAccordion,
-    MatExpansionModule,
     CommonModule,
     MatButtonModule,
     MatIconModule,
