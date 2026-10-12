@@ -9,6 +9,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from '@core/models/models';
 import { SupabaseService } from '@core/services/supabase.service';
+import { resolveDisplayName } from './display-name.util';
 
 export type UserRole = 'user' | 'admin' | null;
 
@@ -45,6 +46,7 @@ export const useAuthStore = signalStore(
         email: store.email(),
         role: store.role(),
         approved: store.approved(),
+        name: store.name(),
         id: store.id(),
         unapprovedUsersNumber: store.unapprovedUsersNumber(),
       };
@@ -109,7 +111,11 @@ export const useAuthStore = signalStore(
             email: userData.email,
             role: userData.role,
             approved: userData.approved,
-            name: userData.name,
+            name: resolveDisplayName(
+              userData.name,
+              data.user.user_metadata?.['name'],
+              userData.email,
+            ),
             id: userId,
           });
 
@@ -161,7 +167,7 @@ export const useAuthStore = signalStore(
             email: data.email,
             role: data.role,
             approved: data.approved,
-            name: data.name,
+            name: resolveDisplayName(data.name, store.name(), data.email),
           });
 
           persistState();
@@ -314,7 +320,11 @@ export const useAuthStore = signalStore(
               email: userData.email,
               role: userData.role,
               approved: userData.approved,
-              name: userData.name,
+              name: resolveDisplayName(
+                userData.name,
+                data.session.user.user_metadata?.['name'],
+                userData.email,
+              ),
               id: userId,
             });
 
