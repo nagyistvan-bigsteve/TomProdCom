@@ -21,6 +21,7 @@ Import via alias: `@core/models/models`, `@core/models/enums`, `@core/models/ani
 ## services/
 Singleton app-level services (not feature-specific):
 - `supabase.service.ts` — Supabase client wrapper; only place that constructs the client
+- `supabase-result.util.ts` — `unwrapResult()`: returns `data`, throws `error` from a supabase-js response
 - `install.service.ts` — PWA install prompt handler
 - `app-version.service.ts` — checks deployed version on startup and force-reloads when a new version is detected
 

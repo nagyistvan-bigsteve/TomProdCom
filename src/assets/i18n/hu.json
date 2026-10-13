@@ -342,7 +342,9 @@
       "UPDATE_SUCCESS": "Sikeresen frissítve!"
     },
     "GENERAL": {
-      "UPDATE_ERROR": "Hiba szerkesztéskor"
+      "UPDATE_ERROR": "Hiba szerkesztéskor",
+      "LOAD_ERROR": "NEM sikerült betölteni az adatokat!",
+      "SAVE_ERROR": "NEM sikerült a mentés!"
     },
     "PRODUCT": {
       "STOCK": "Készlet: ",

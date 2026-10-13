@@ -9,7 +9,8 @@
   withProps,
 } from '@ngrx/signals';
 import { initialClientSlice } from './client.slice';
-import { computed, inject } from '@angular/core';
+import { computed, effect, inject, untracked } from '@angular/core';
+import { useAuthStore } from '@core/store/auth-store';
 import { tapResponse } from '@ngrx/operators';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { withBusy } from '@core/store/custom-features/with-busy/with-busy.feature';
@@ -75,7 +76,10 @@ export const ClientStore = signalStore(
               tapResponse({
                 next: (clients) =>
                   patchState(store, setAllEntities(clients, clientConfig)),
-                error: (error) => console.error(error),
+                error: (error) => {
+                  console.error(error);
+                  store._notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
+                },
                 finalize: () => patchState(store, setIdle()),
               }),
             ),
@@ -139,6 +143,16 @@ export const ClientStore = signalStore(
     };
   }),
   withHooks((store) => ({
-    onInit: () => store.fetchClients(),
+    onInit: () => {
+      const authStore = inject(useAuthStore);
+
+      // Data is readable only by an approved, signed-in user, so (re)load it
+      // whenever one signs in instead of once at startup
+      effect(() => {
+        if (authStore.id() && authStore.approved()) {
+          untracked(() => store.fetchClients());
+        }
+      });
+    },
   })),
 );

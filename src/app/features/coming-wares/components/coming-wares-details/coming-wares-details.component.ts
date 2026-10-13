@@ -30,6 +30,7 @@ import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
 import { ProductsService } from '@features/products/services/products.service';
 import { Category } from '@core/models/enums';
 import { ProductStore } from '@features/products/store/product.store';
+import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-coming-wares-details',
@@ -69,6 +70,7 @@ export class ComingWaresDetailsComponent {
   readonly #destroyRef = inject(DestroyRef);
   readonly #dialog = inject(MatDialog);
   readonly #productStore = inject(ProductStore);
+  readonly #notify = inject(NotificationService);
 
   itemsForOrder = computed(() =>
     this.comingWaresItems()
@@ -92,9 +94,16 @@ export class ComingWaresDetailsComponent {
     this.#comingWaresService
       .getComingWaresItemsById(this.id())
       .pipe(takeUntilDestroyed(this.#destroyRef))
-      .subscribe((items) => {
-        this.isLoading.set(false);
-        this.comingWaresItems.set(items);
+      .subscribe({
+        next: (items) => {
+          this.isLoading.set(false);
+          this.comingWaresItems.set(items);
+        },
+        error: (error) => {
+          console.error('Error fetching coming wares items:', error);
+          this.isLoading.set(false);
+          this.#notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
+        },
       });
   }
 
@@ -108,18 +117,18 @@ export class ComingWaresDetailsComponent {
       .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          this.#comingWaresService.verifyComingWares(this.id()).then(() => {
-            this.comingWaresItems().forEach((item) => {
-              if (!item.for_order && item.is_correct) {
-                this.#productStore.addToProductStock(
-                  item.product.id,
-                  item.quantity,
-                );
+          this.#comingWaresService
+            .verifyComingWares(this.id())
+            .then((verified) => {
+              if (!verified) {
+                this.#notify.error('SNACKBAR.GENERAL.SAVE_ERROR');
+                return;
               }
-            });
 
-            this.#location.back();
-          });
+              // The database added the verified items to stock
+              this.#productStore.fetchStocks();
+              this.#location.back();
+            });
         }
       });
   }
@@ -134,9 +143,16 @@ export class ComingWaresDetailsComponent {
       .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          this.#comingWaresService.deleteComingWares(this.id()).then(() => {
-            this.#location.back();
-          });
+          this.#comingWaresService
+            .deleteComingWares(this.id())
+            .then((deleted) => {
+              if (!deleted) {
+                this.#notify.error('SNACKBAR.GENERAL.SAVE_ERROR');
+                return;
+              }
+
+              this.#location.back();
+            });
         }
       });
   }

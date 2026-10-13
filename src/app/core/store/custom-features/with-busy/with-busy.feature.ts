@@ -1,23 +1,13 @@
-import { signalStoreFeature, SignalStoreFeature, withComputed, withState } from "@ngrx/signals";
-import { BusySlice, initialBusySlice } from "./with-busy.slice";
-import { computed, Signal } from "@angular/core";
+import { signalStoreFeature, withComputed, withState } from "@ngrx/signals";
+import { initialBusySlice } from "./with-busy.slice";
+import { computed } from "@angular/core";
 
-export function withBusy(): SignalStoreFeature<{
-    state: {}, 
-    props: {}, 
-    methods: {}
-}, {
-    state: BusySlice, 
-    props: {
-        isIdle: Signal<boolean>,     
-    }, 
-    methods: {}
-}>;
-export function withBusy(): SignalStoreFeature {
+export function withBusy() {
     return signalStoreFeature(
-        withState(initialBusySlice), 
+        withState(initialBusySlice),
         withComputed(store => ({
-            isIdle: computed(() => !store.isBusy)
+            isBusy: computed(() => store.pendingCount() > 0),
+            isIdle: computed(() => store.pendingCount() === 0)
         }))
     )
 }

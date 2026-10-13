@@ -54,9 +54,8 @@ Shows the full item list split into two groups:
 2. If cycled to `false` (defective), a comment dialog opens immediately; comment is required before saving.
 3. The **Submit/Verify button is disabled** until every item has a non-null `is_correct` verdict.
 4. On submit (verify):
-   - The shipment is marked `verified = true` via `ComingWaresService.verifyComingWares()`.
-   - For each item where `for_order = false AND is_correct = true`: `productStore.addToProductStock(product.id, quantity)` is called directly from the component (not from the service).
-   - Navigates back to the list.
+   - `ComingWaresService.verifyComingWares()` calls the `verify_coming_wares` database function, which in one transaction marks the shipment `verified = true` and adds every item with `for_order = false AND is_correct = true` to `stocks.stock`. It refuses a shipment that is already verified, so stock cannot be added twice.
+   - On success the component calls `productStore.fetchStocks()` and navigates back to the list; on failure it shows an error and stays.
 
 **Verified shipments are fully read-only.** All interaction buttons are hidden/disabled.
 
@@ -72,7 +71,8 @@ Shows the full item list split into two groups:
 ## services/
 
 - `coming-wares.service.ts` — Supabase CRUD for `coming_wares` and `coming_wares_items`.
-- `verifyComingWares(id)` — sets `verified = true` in the DB; does NOT touch stock (stock is updated by the component, not the service).
+- `placeOrder(...)` — `place_coming_wares` database function: shipment and items saved in one transaction.
+- `verifyComingWares(id)` — `verify_coming_wares` database function: sets `verified = true` and increments stock (see above).
 - `itemIsCorrect(id, isCorrect)` — persists the per-item verdict.
 - `addCommentOnItem(id, comment)` — persists the defect comment.
-- `deleteComingWares(id)` — deletes items first, then the parent shipment.
+- `deleteComingWares(id)` — `delete_coming_wares` database function: items and parent shipment deleted together.
