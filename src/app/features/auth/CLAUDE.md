@@ -16,7 +16,7 @@ Both components own **only their form content** — no card or container styling
 
 ### `auth/` — container page
 
-**Layout:** brand header (forest icon + "TomProdCom" name) above a white card. The card has two native `<button class="auth-tab">` tabs at the top that call `setMode(bool)` — the active tab gets an underline via `box-shadow: inset 0 -2px 0 rgb(57, 72, 60)`. Below the tabs, `@if (isSignup())` renders either `<app-signup>` or `<app-login>`.
+**Layout:** brand header (forest icon + "TOM ProdCom" name) above a white card. The card has two native `<button class="auth-tab">` tabs at the top that call `setMode(bool)` — the active tab gets an underline via `box-shadow: inset 0 -2px 0 rgb(57, 72, 60)`. Below the tabs, `@if (isSignup())` renders either `<app-signup>` or `<app-login>`.
 
 - `:host` is a flex column, centered both axes, dark-green background, `overflow-y: auto`
 - `.auth-wrapper` is `max-width: 420px` (440px on `@include md`), contains brand + card stacked with `gap: var(--space-6)`
