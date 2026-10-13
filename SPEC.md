@@ -1149,6 +1149,13 @@ In the offer overview page, an employee can manually set a different unit price 
 
 **Order of adjustments:** Category B board discount → TVA discount → manual discount.
 
+### Base price shown in the offer overview panel
+
+The overview panel lists the price rows in use, each with a base price (`calculateActualPrice`). This is a display value; what an item is charged is always computed per item as described above.
+
+- A **general row** (not tied to one product) shows its list price, minus the TVA discount where it applies. It does **not** show the −50 board discount, even if a 2.5 cm board in the cart is priced from it — that board still gets its −50 per item.
+- A **product-specific row** shows the −50 when that product is a 2.5 cm board and is in the cart at category B.
+
 ---
 
 ## 10.4 Total price and voucher
@@ -1192,7 +1199,7 @@ If the pricing hierarchy or a formula changes:
 
 1. Update `ProductUtil` (`@shared/utils/product.util`).
 2. Update `getExactPrice` in `selected-product-list.component.ts` if the lookup logic changes.
-3. Update `calculateActualPrice` in `offer-overview-page.component.ts` if the adjustment logic changes.
+3. Update `calculateActualPrice` in `@shared/utils/product.util` (used by `offer-overview-page.component.ts`) if the adjustment logic changes.
 4. Update any relevant tests.
 5. Update this section of SPEC.md.
 
@@ -1225,7 +1232,7 @@ The `total_amount` and `total_amount_final` fields on the order record also pers
 Pure business-logic functions — price formulas, discount adjustments, quantity calculations — must have Vitest unit tests.
 
 - **File naming**: `<module>.vitest.spec.ts` alongside the source file.
-- **Run**: `npm run test:unit` (single pass) or `npm run test:unit:watch` (watch mode).
+- **Run**: `npm run test:unit` (single pass) or `npm run test:unit:watch` (watch mode). The single pass type-checks the spec files first (`tsconfig.vitest.json`); Vitest alone does not, so a spec calling a function with the wrong arguments would otherwise run and fail for the wrong reason.
 - **Config**: `vitest.config.mjs` at the project root. Path aliases (`@core`, `@shared`, `@features`) are resolved automatically.
 - **Scope**: Test exported pure functions. Do not use Angular `TestBed` or DI in Vitest tests — use plain `new ClassName()` for classes without constructor dependencies.
 

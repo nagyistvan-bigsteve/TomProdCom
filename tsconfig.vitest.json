@@ -1,0 +1,10 @@
+/* Type-checks the Vitest specs; they are excluded from the app's tsconfig. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["vitest/globals"]
+  },
+  "include": ["src/**/*.vitest.spec.ts"],
+  "exclude": []
+}
