@@ -1596,6 +1596,21 @@ Admin-only database operations must be protected server-side/database-side.
 
 Users must not be able to manipulate another user's data merely by modifying frontend requests.
 
+### Policy model
+
+The SQL lives in `supabase/migrations/` (`rls_require_approved_user.sql`, `rls_admin_only_writes.sql`). Two helper functions in the non-exposed `private` schema answer "who is calling": `private.is_approved()` and `private.is_admin()` (approved **and** listed in `admin_users`).
+
+| Who                    | Can do                                                                                                          |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Not signed in          | Nothing: no table access, no function calls                                                                     |
+| Signed in, unapproved  | Read their own profile only                                                                                     |
+| Approved user          | Read everything; create and edit clients, orders, offers, order items, stock; inspect, verify and delete shipments; hard-delete offers |
+| Admin                  | Additionally: edit prices and products, create shipments, hard-delete orders, approve / deny users, change roles |
+
+`admin_users` can be changed only by an admin. `stocks` is writable by every approved user because the `order_items` booking triggers update it on the user's behalf. Soft-deleting an order (`deleted_at`) is an ordinary update and is not restricted in the database.
+
+The app loads products, prices, stock and clients only once a user is signed in and approved, and reloads them after every sign-in.
+
 ### Sensitive operations
 
 Pay particular attention to:

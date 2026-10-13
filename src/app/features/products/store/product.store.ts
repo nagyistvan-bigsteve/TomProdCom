@@ -15,7 +15,8 @@ import {
   withState,
 } from '@ngrx/signals';
 import { withBusy } from '@core/store/custom-features/with-busy/with-busy.feature';
-import { computed, inject } from '@angular/core';
+import { computed, effect, inject, untracked } from '@angular/core';
+import { useAuthStore } from '@core/store/auth-store';
 import { ProductsService } from '@features/products/services/products.service';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { Observable, pipe, switchMap, tap } from 'rxjs';
@@ -258,9 +259,19 @@ export const ProductStore = signalStore(
   })),
   withHooks((store) => ({
     onInit: () => {
-      store.fetchProducts();
-      store.fetchPrices();
-      store.fetchStocks();
+      const authStore = inject(useAuthStore);
+
+      // Data is readable only by an approved, signed-in user, so (re)load it
+      // whenever one signs in instead of once at startup
+      effect(() => {
+        if (authStore.id() && authStore.approved()) {
+          untracked(() => {
+            store.fetchProducts();
+            store.fetchPrices();
+            store.fetchStocks();
+          });
+        }
+      });
     },
   })),
 );
