@@ -275,6 +275,8 @@ Admin-only operations additionally require:
 
 Route guards should reflect these requirements.
 
+Auth state cached in the browser (localStorage) is only a startup hint. On startup the app verifies the Supabase session; if Supabase reports that there is no session, the cached state is cleared and the user is sent to `/auth`. If the check itself fails (for example offline), the cached state is kept so the app stays usable.
+
 The frontend must never be considered the final authorization layer.
 
 ---

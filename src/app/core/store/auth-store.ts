@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { User } from '@core/models/models';
 import { SupabaseService } from '@core/services/supabase.service';
 import { resolveDisplayName } from './display-name.util';
+import { shouldResetCachedAuth } from './auth-session.util';
 
 export type UserRole = 'user' | 'admin' | null;
 
@@ -53,7 +54,29 @@ export const useAuthStore = signalStore(
       localStorage.setItem('auth', JSON.stringify(state));
     };
 
+    const resetState = () => {
+      patchState(store, {
+        isAuthenticated: false,
+        email: null,
+        role: null,
+        approved: false,
+        name: null,
+        id: null,
+      });
+
+      localStorage.removeItem('auth');
+    };
+
     return {
+      // Drops the cached login when Supabase has no session behind it
+      clearStaleSession() {
+        resetState();
+        // The reset-password page is public and must stay reachable from the email link
+        if (!window.location.pathname.startsWith('/reset-password')) {
+          router.navigate(['/auth']);
+        }
+      },
+
       async signup(email: string, password: string, userName: string) {
         try {
           const { data: authData, error: authError } =
@@ -133,16 +156,7 @@ export const useAuthStore = signalStore(
             router.navigate(['/auth']);
           });
 
-          patchState(store, {
-            isAuthenticated: false,
-            email: null,
-            role: null,
-            approved: false,
-            name: null,
-            id: null,
-          });
-
-          localStorage.removeItem('auth');
+          resetState();
           return { success: true };
         } catch (error) {
           console.error('Logout error:', error);
@@ -351,9 +365,9 @@ export const useAuthStore = signalStore(
             patchState(store, parsed);
 
             // Verify the session is still valid
-            const { isAuthenticated } = await store.checkSession();
-            if (!isAuthenticated) {
-              localStorage.removeItem('auth');
+            const result = await store.checkSession();
+            if (shouldResetCachedAuth(result)) {
+              store.clearStaleSession();
             }
           } catch (e) {
             console.error('Failed to parse stored auth data', e);
