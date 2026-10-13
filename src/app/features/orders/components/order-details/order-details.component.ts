@@ -50,7 +50,6 @@ import { ClientStore } from '@features/clients/store/client.store';
 import { ProductStore } from '@features/products/store/product.store';
 import { computePricesForProduct } from '@features/products/store/product.computed';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
-import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-order-details',
@@ -153,7 +152,6 @@ export class OrderDetailsComponent implements OnInit {
   readonly clientStore = inject(ClientStore);
   private filterUtil = inject(FilterUtil);
   private snackBar = inject(MatSnackBar);
-  private notify = inject(NotificationService);
   private translateService = inject(TranslateService);
   private _dialog = inject(MatDialog);
 
@@ -177,7 +175,6 @@ export class OrderDetailsComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error fetching order items:', error);
-          this.notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
         },
       });
   }
@@ -579,18 +576,9 @@ export class OrderDetailsComponent implements OnInit {
 
   updateItemStatus(id: number, status: boolean, index: number) {
     this.orderService.orderItemStatusUpdate(id, status).then((status) => {
-      if (!status) {
-        this.translateService
-          .get(['SNACKBAR.GENERAL.UPDATE_ERROR', 'SNACKBAR.BUTTONS.CLOSE'])
-          .subscribe((translations) => {
-            this.snackBar.open(
-              translations['SNACKBAR.GENERAL.UPDATE_ERROR'],
-              translations['SNACKBAR.BUTTONS.CLOSE'],
-              { duration: 3000 },
-            );
-          });
-        return;
-      }
+      // A failure is reported by the app-wide API error toast
+      if (!status) return;
+
       this.orderItems![index].itemStatus = status;
     });
   }
@@ -673,16 +661,6 @@ export class OrderDetailsComponent implements OnInit {
             );
           });
         this.closeDetails.emit();
-      } else {
-        this.translateService
-          .get(['SNACKBAR.GENERAL.UPDATE_ERROR', 'SNACKBAR.BUTTONS.CLOSE'])
-          .subscribe((translations) => {
-            this.snackBar.open(
-              translations['SNACKBAR.GENERAL.UPDATE_ERROR'],
-              translations['SNACKBAR.BUTTONS.CLOSE'],
-              { duration: 3000 },
-            );
-          });
       }
     });
   }

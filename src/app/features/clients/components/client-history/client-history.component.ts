@@ -7,7 +7,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-client-history',
@@ -20,7 +19,6 @@ export class ClientHistoryComponent {
   readonly clientStore = inject(ClientStore);
   private readonly orderService = inject(OrdersService);
   private readonly router = inject(Router);
-  private readonly notify = inject(NotificationService);
 
   orders = signal<OrderResponse[]>([]);
   openOrderIndex = signal<number>(-1);
@@ -36,7 +34,6 @@ export class ClientHistoryComponent {
         next: (orders) => this.orders.set(orders),
         error: (error) => {
           console.error('Error fetching client orders:', error);
-          this.notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
         },
       });
     });

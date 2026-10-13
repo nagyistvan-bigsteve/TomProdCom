@@ -37,7 +37,6 @@ import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
 import { calculateActualPrice, ProductUtil } from '@shared/utils/product.util';
 import { ClientStore } from '@features/clients/store/client.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
-import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-offer-overview',
@@ -81,7 +80,6 @@ export class OfferOverviewPageComponent {
   private _dialog = inject(MatDialog);
   private destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
-  private readonly notify = inject(NotificationService);
 
   isLoaded: boolean = false;
 
@@ -310,7 +308,6 @@ export class OfferOverviewPageComponent {
             .then((saved) => {
               if (!saved) {
                 // Keep the cart, the client and the comment so the user can retry
-                this.notify.error('SNACKBAR.GENERAL.SAVE_ERROR');
                 return;
               }
 

@@ -346,6 +346,12 @@
       "LOAD_ERROR": "PROBLEMĂ la încărcarea datelor!",
       "SAVE_ERROR": "PROBLEMĂ la salvare!"
     },
+    "API": {
+      "NO_PERMISSION": "Nu ai drepturi pentru această operațiune!",
+      "DUPLICATE": "Această înregistrare există deja!",
+      "IN_USE": "Operațiune imposibilă: înregistrarea este folosită în altă parte!",
+      "NETWORK": "Fără conexiune la server. Verifică internetul!"
+    },
     "PRODUCT": {
       "STOCK": "Stoc: ",
       "OUT_OF_STOCK": "Produsul nu mai e pe stoc!",

@@ -30,7 +30,6 @@ import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
 import { ProductsService } from '@features/products/services/products.service';
 import { Category } from '@core/models/enums';
 import { ProductStore } from '@features/products/store/product.store';
-import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-coming-wares-details',
@@ -70,7 +69,6 @@ export class ComingWaresDetailsComponent {
   readonly #destroyRef = inject(DestroyRef);
   readonly #dialog = inject(MatDialog);
   readonly #productStore = inject(ProductStore);
-  readonly #notify = inject(NotificationService);
 
   itemsForOrder = computed(() =>
     this.comingWaresItems()
@@ -102,7 +100,6 @@ export class ComingWaresDetailsComponent {
         error: (error) => {
           console.error('Error fetching coming wares items:', error);
           this.isLoading.set(false);
-          this.#notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
         },
       });
   }
@@ -121,7 +118,6 @@ export class ComingWaresDetailsComponent {
             .verifyComingWares(this.id())
             .then((verified) => {
               if (!verified) {
-                this.#notify.error('SNACKBAR.GENERAL.SAVE_ERROR');
                 return;
               }
 
@@ -147,7 +143,6 @@ export class ComingWaresDetailsComponent {
             .deleteComingWares(this.id())
             .then((deleted) => {
               if (!deleted) {
-                this.#notify.error('SNACKBAR.GENERAL.SAVE_ERROR');
                 return;
               }
 
