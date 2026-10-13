@@ -47,6 +47,7 @@ import {
 } from '@angular/cdk/drag-drop';
 import { ClientStore } from '@features/clients/store/client.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
+import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-order-table',
@@ -88,6 +89,7 @@ export class OrderTableComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private _dialog = inject(MatDialog);
   private ordersService = inject(OrdersService);
+  private notify = inject(NotificationService);
   readonly dateRange = new FormGroup({
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
@@ -136,11 +138,18 @@ export class OrderTableComponent implements OnInit {
     this.ordersService
       .getOrders(this.justOffers)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((orders) => {
-        this.isLoading.emit(false);
-        this.orders = orders;
-        this.sortItems();
-        this.filterItems(false);
+      .subscribe({
+        next: (orders) => {
+          this.isLoading.emit(false);
+          this.orders = orders;
+          this.sortItems();
+          this.filterItems(false);
+        },
+        error: (error) => {
+          console.error('Error fetching orders:', error);
+          this.isLoading.emit(false);
+          this.notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
+        },
       });
   }
 

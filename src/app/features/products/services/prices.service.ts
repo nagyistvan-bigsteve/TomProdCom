@@ -2,7 +2,8 @@
 import { SupabaseService } from '@core/services/supabase.service';
 import { Price2, PriceResponse2, Products } from '@core/models/models';
 import { Category, Size_id, Unit_id } from '@core/models/enums';
-import { catchError, from, map, Observable, of } from 'rxjs';
+import { unwrapResult } from '@core/services/supabase-result.util';
+import { from, map, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -14,11 +15,7 @@ export class PricesService {
     return from(
       this.supabaseService.client.from('prices_new').select('*'),
     ).pipe(
-      map(({ data }) => data ?? []),
-      catchError((error) => {
-        console.error('Error fetching prices', error);
-        return of([]);
-      }),
+      map((result) => unwrapResult(result) ?? []),
     );
   }
 

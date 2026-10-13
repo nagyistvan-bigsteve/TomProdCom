@@ -279,29 +279,13 @@ export const useAuthStore = signalStore(
         const newRole = oldRole === 'user' ? 'admin' : 'user';
 
         try {
-          const { data, error } = await supabaseService.client
-            .from('profiles')
-            .update({ role: newRole })
-            .eq('id', id)
-            .select()
-            .single();
+          // profiles.role and the admin_users membership change together
+          const { data, error } = await supabaseService.client.rpc(
+            'set_user_role',
+            { p_user_id: id, p_role: newRole },
+          );
 
           if (error) throw error;
-
-          if (newRole === 'admin') {
-            const { error } = await supabaseService.client
-              .from('admin_users')
-              .insert({ id: id });
-
-            if (error) throw error;
-          } else {
-            const { error } = await supabaseService.client
-              .from('admin_users')
-              .delete()
-              .eq('id', id);
-
-            if (error) throw error;
-          }
 
           return data;
         } catch (error) {

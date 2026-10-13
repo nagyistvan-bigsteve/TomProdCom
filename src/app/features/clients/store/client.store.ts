@@ -75,7 +75,10 @@ export const ClientStore = signalStore(
               tapResponse({
                 next: (clients) =>
                   patchState(store, setAllEntities(clients, clientConfig)),
-                error: (error) => console.error(error),
+                error: (error) => {
+                  console.error(error);
+                  store._notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
+                },
                 finalize: () => patchState(store, setIdle()),
               }),
             ),

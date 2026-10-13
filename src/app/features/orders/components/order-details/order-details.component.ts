@@ -50,6 +50,7 @@ import { ClientStore } from '@features/clients/store/client.store';
 import { ProductStore } from '@features/products/store/product.store';
 import { computePricesForProduct } from '@features/products/store/product.computed';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
+import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-order-details',
@@ -152,6 +153,7 @@ export class OrderDetailsComponent implements OnInit {
   readonly clientStore = inject(ClientStore);
   private filterUtil = inject(FilterUtil);
   private snackBar = inject(MatSnackBar);
+  private notify = inject(NotificationService);
   private translateService = inject(TranslateService);
   private _dialog = inject(MatDialog);
 
@@ -169,8 +171,14 @@ export class OrderDetailsComponent implements OnInit {
     this.orderService
       .getOrderItemsById(this.order?.id as number)
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((orderItems) => {
-        this.orderItems = orderItems.sort((a, b) => a.id - b.id);
+      .subscribe({
+        next: (orderItems) => {
+          this.orderItems = orderItems.sort((a, b) => a.id - b.id);
+        },
+        error: (error) => {
+          console.error('Error fetching order items:', error);
+          this.notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
+        },
       });
   }
 

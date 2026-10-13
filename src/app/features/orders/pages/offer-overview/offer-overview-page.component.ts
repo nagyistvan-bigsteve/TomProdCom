@@ -37,6 +37,7 @@ import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
 import { calculateActualPrice, ProductUtil } from '@shared/utils/product.util';
 import { ClientStore } from '@features/clients/store/client.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
+import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-offer-overview',
@@ -80,6 +81,7 @@ export class OfferOverviewPageComponent {
   private _dialog = inject(MatDialog);
   private destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
+  private readonly notify = inject(NotificationService);
 
   isLoaded: boolean = false;
 
@@ -269,12 +271,15 @@ export class OfferOverviewPageComponent {
       .afterClosed()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
+        // Built separately so a failed save leaves the typed comment untouched
+        let orderComment = this.comment;
+
         if (this.deliveryFee) {
-          this.comment += 'Transport: ' + this.deliveryFee + 'RON' + '\n';
+          orderComment += 'Transport: ' + this.deliveryFee + 'RON' + '\n';
         }
 
         if (this.transferPayment) {
-          this.comment +=
+          orderComment +=
             this.translate.instant('OVERVIEW_PAGE.POPUP.TRANSFER_PAYMENT') +
             '\n';
         }
@@ -289,7 +294,7 @@ export class OfferOverviewPageComponent {
               this.voucher,
               this.clientStore.client()!,
               this.authStore.id()!,
-              this.comment,
+              orderComment,
               this.expectedDeliveryDate!,
               this.untilDeliveryDate,
               this.forFirstHour,
@@ -302,7 +307,13 @@ export class OfferOverviewPageComponent {
                   : '',
               this.deliveryFee,
             )
-            .then(() => {
+            .then((saved) => {
+              if (!saved) {
+                // Keep the cart, the client and the comment so the user can retry
+                this.notify.error('SNACKBAR.GENERAL.SAVE_ERROR');
+                return;
+              }
+
               this.productStore.deleteProductItems();
               this.clientStore.setClientId(-1);
               this.voucher = '';

@@ -342,7 +342,9 @@
       "UPDATE_SUCCESS": "Update cu succes!"
     },
     "GENERAL": {
-      "UPDATE_ERROR": "Problemă la updatare"
+      "UPDATE_ERROR": "Problemă la updatare",
+      "LOAD_ERROR": "PROBLEMĂ la încărcarea datelor!",
+      "SAVE_ERROR": "PROBLEMĂ la salvare!"
     },
     "PRODUCT": {
       "STOCK": "Stoc: ",

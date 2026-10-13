@@ -82,7 +82,10 @@ export const ProductStore = signalStore(
             tapResponse({
               next: (products) =>
                 patchState(store, setAllEntities(products, productConfig)),
-              error: (error) => console.error(error),
+              error: (error) => {
+                console.error(error);
+                store._notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
+              },
               finalize: () => patchState(store, setIdle()),
             }),
           ),
@@ -98,7 +101,10 @@ export const ProductStore = signalStore(
             tapResponse({
               next: (prices) =>
                 patchState(store, setAllEntities(prices, priceConfig)),
-              error: (error) => console.error(error),
+              error: (error) => {
+                console.error(error);
+                store._notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
+              },
               finalize: () => patchState(store, setIdle()),
             }),
           ),
@@ -114,7 +120,10 @@ export const ProductStore = signalStore(
             tapResponse({
               next: (stocks) =>
                 patchState(store, setAllEntities(stocks, stockConfig)),
-              error: (error) => console.error(error),
+              error: (error) => {
+                console.error(error);
+                store._notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
+              },
               finalize: () => patchState(store, setIdle()),
             }),
           ),
@@ -245,20 +254,6 @@ export const ProductStore = signalStore(
           error: (error) => console.error(error),
         }),
       );
-    },
-
-    addToProductStock(product_id: number, amount: number): void {
-      store._stockService.addToProductStock(product_id, amount);
-      const current = store.stocksEntityMap()[product_id];
-      if (current) {
-        patchState(
-          store,
-          updateEntity(
-            { id: product_id, changes: { stock: current.stock + amount } },
-            stockConfig,
-          ),
-        );
-      }
     },
   })),
   withHooks((store) => ({
