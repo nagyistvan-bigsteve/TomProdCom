@@ -238,18 +238,35 @@ Key methods:
 - `cartTotal()` — computed signal; sums all `item.price`.
 - All mutations call `persistState()` to write to localStorage.
 
-### `order/order.slice.ts` — order list UI state
+### `order/` — order / offer list (`OrderStore`)
+
+Root store used by `OrderTableComponent`. It owns the loaded rows and everything that decides what the table shows.
+
+- `order.slice.ts` — state shape:
 
 ```typescript
 {
-  currentOrderId: number;          // -1 = nothing selected
+  currentOrderId: number;          // -1 = nothing selected (not used yet)
   tableSortType: 'delivery' | 'creation' | 'admin';
   tableFilterType: 'all' | 'open' | 'closed' | 'expectedToday';
   justOffers: boolean;
+  searchText: string;
+  dateRangeStart: Date | null;
+  dateRangeEnd: Date | null;
 }
 ```
 
-Default: `tableSortType='delivery'`, `tableFilterType='open'`, `justOffers=false`.
+Default: `tableSortType='delivery'`, `tableFilterType='open'`, `justOffers=false`, no search, no date range.
+
+- `order.computed.ts` — pure, unit-tested functions: `filterByStatus`, `filterBySearch`, `filterByDateRange`, `sortOrders`, `selectVisibleOrders` (all of them combined), `orderListStats`, `moveOrder`. **Change filtering or sorting here**, not in the component, and extend `order.computed.vitest.spec.ts`.
+- `order.store.ts` — `OrderStore`:
+  - `init(justOffers)` — called by the table on creation: resets filter/sort/search/date range to the defaults and loads the rows. The table is recreated every time the user returns from order details, so the list is always fresh.
+  - `visibleOrders()` / `stats()` — the filtered and sorted rows and the footer numbers. Status filter, search and date range always apply together.
+  - `setFilter`, `setSort`, `setSearchText`, `setDateRange`.
+  - `pay(orderId, paidAmount)` and `delete(orderId)` update the row in place on success (no reload, no delay). `delete` hard-deletes offers and soft-deletes orders.
+  - `reorder(previousIndex, currentIndex)` — drag-and-drop: shows the new order immediately, saves it through `update_order_sort_orders`, then refreshes the rows in the background.
+
+Not in the store yet: order details (line items, comment, voucher, delivered, offer → order), client history and the deleted-orders page still call `OrdersService` directly, and the selected order is still handed over through `localStorage` (see below).
 
 ## fromHistory navigation
 

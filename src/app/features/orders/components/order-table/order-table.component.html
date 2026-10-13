@@ -2,8 +2,8 @@
   @if (!justOffers) {
     <div class="filter-sort-row">
       <mat-button-toggle-group
-        [(ngModel)]="tableFilter"
-        (ngModelChange)="filterItems(false)"
+        [ngModel]="store.tableFilterType()"
+        (ngModelChange)="store.setFilter($event)"
         [hideSingleSelectionIndicator]="true"
         class="status-toggles"
       >
@@ -30,20 +30,20 @@
         <mat-icon>sort</mat-icon>
       </button>
       <mat-menu #sortMenu="matMenu">
-        <button mat-menu-item (click)="tableSort = 'delivery'; sortItems()">
-          <mat-icon [class.active-sort]="tableSort === 'delivery'"
+        <button mat-menu-item (click)="store.setSort('delivery')">
+          <mat-icon [class.active-sort]="store.tableSortType() === 'delivery'"
             >local_shipping</mat-icon
           >
           {{ "ORDER.TABLE.FILTER.DELIVERY" | translate }}
         </button>
-        <button mat-menu-item (click)="tableSort = 'creation'; sortItems()">
-          <mat-icon [class.active-sort]="tableSort === 'creation'"
+        <button mat-menu-item (click)="store.setSort('creation')">
+          <mat-icon [class.active-sort]="store.tableSortType() === 'creation'"
             >calendar_today</mat-icon
           >
           {{ "ORDER.TABLE.FILTER.CREATION" | translate }}
         </button>
-        <button mat-menu-item (click)="tableSort = 'admin'; sortItems()">
-          <mat-icon [class.active-sort]="tableSort === 'admin'"
+        <button mat-menu-item (click)="store.setSort('admin')">
+          <mat-icon [class.active-sort]="store.tableSortType() === 'admin'"
             >low_priority</mat-icon
           >
           {{ "ORDER.TABLE.FILTER.ADMIN" | translate }}
@@ -103,11 +103,12 @@
   <table
     #table
     mat-table
-    [dataSource]="dataSource"
+    [dataSource]="store.visibleOrders()"
+    [trackBy]="trackById"
     multiTemplateDataRows
     cdkDropList
     (cdkDropListDropped)="drop($event)"
-    [cdkDropListData]="dataSource"
+    [cdkDropListData]="store.visibleOrders()"
     [cdkDropListAutoScrollDisabled]="false"
     [cdkDropListAutoScrollStep]="5"
     [cdkDropListDisabled]="!isDragDropEnabled()"
@@ -342,17 +343,17 @@
   </table>
 </div>
 
-@if (displayedOrdersStat.numberOfOrders && !justOffers) {
+@if (store.stats().numberOfOrders && !justOffers) {
   <div class="stats-bar">
     <span>
       {{ "ORDER.TABLE.CONTENT.NUMBER_OF_ORDERS" | translate }}
-      {{ displayedOrdersStat.numberOfOrders }}
+      {{ store.stats().numberOfOrders }}
     </span>
     <span>
       {{
         "ORDER.TABLE.CONTENT.TOTAL_PRICE"
           | translate
-            : { price: displayedOrdersStat.totalPrice | number: "1.0-2" }
+            : { price: store.stats().totalPrice | number: "1.0-2" }
       }}
     </span>
   </div>
