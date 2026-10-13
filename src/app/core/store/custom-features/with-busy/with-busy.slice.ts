@@ -1,7 +1,8 @@
 export interface BusySlice {
-    readonly isBusy: boolean;
+    // Number of calls in flight; several can overlap (e.g. parallel fetches on init)
+    readonly pendingCount: number;
 }
 
 export const initialBusySlice: BusySlice = {
-    isBusy: false,
+    pendingCount: 0,
 };

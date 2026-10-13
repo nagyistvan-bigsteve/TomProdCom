@@ -1,6 +1,7 @@
 ﻿import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '@core/services/supabase.service';
-import { catchError, from, map, Observable, of } from 'rxjs';
+import { unwrapResult } from '@core/services/supabase-result.util';
+import { from, map, Observable } from 'rxjs';
 import { Product, Products } from '@core/models/models';
 import { Size_id, Unit_id } from '@core/models/enums';
 import { StocksService } from './stocks.service';
@@ -14,11 +15,7 @@ export class ProductsService {
 
   getProducts(): Observable<Products> {
     return from(this.supabaseService.client.from('products').select('*')).pipe(
-      map(({ data }) => data ?? []), // Ensure an empty array if null
-      catchError((error) => {
-        console.error('Error fetching products:', error);
-        return of([]); // Return an empty array on error
-      }),
+      map((result) => unwrapResult(result) ?? []),
     );
   }
 
