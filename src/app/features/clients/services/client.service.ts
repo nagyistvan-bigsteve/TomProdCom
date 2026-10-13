@@ -1,6 +1,7 @@
-﻿import { inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '@core/services/supabase.service';
-import { catchError, from, map, Observable, of, switchMap } from 'rxjs';
+import { unwrapResult } from '@core/services/supabase-result.util';
+import { from, map, Observable } from 'rxjs';
 import { Client } from '@core/models/models';
 
 @Injectable({
@@ -16,119 +17,36 @@ export class ClientsService {
     client_phones (*)
   `),
     ).pipe(
-      map(({ data }) => {
-        return data ?? [];
-      }),
-      catchError((error) => {
-        console.error('Error fetching products:', error);
-        return of([]);
-      }),
+      map((result) => unwrapResult(result) ?? []),
     );
   }
 
+  // The client row and its phones are saved in one transaction; the phone
+  // list is replaced as a whole.
   updateClient(client: Client): Observable<Client> {
-    const supabase = this.supabaseService.client;
     const { id, client_phones, ...clientData } = client;
 
     return from(
-      supabase
-        .from('clients')
-        .update({ ...client, client_phones: undefined, id: undefined })
-        .eq('id', id)
-        .select()
-        .single(),
-    ).pipe(
-      switchMap(({ data: updatedClient, error }) => {
-        if (error) {
-          throw error;
-        }
-
-        // 1️⃣ delete existing phones
-        return from(
-          supabase.from('client_phones').delete().eq('client_id', id),
-        ).pipe(
-          map(({ error }) => {
-            if (error) {
-              throw error;
-            }
-            return updatedClient;
-          }),
-        );
+      this.supabaseService.client.rpc('update_client_with_phones', {
+        p_client_id: id,
+        p_client: clientData,
+        p_phones: this.toPhoneRows(client_phones),
       }),
-      switchMap((updatedClient) => {
-        // 2️⃣ no phones → return client
-        if (!client_phones || client_phones.length === 0) {
-          return of({
-            ...updatedClient,
-            client_phones: [],
-          } as Client);
-        }
-
-        // 3️⃣ insert new phones
-        const phonesToInsert = client_phones.map((p) => ({
-          client_id: id,
-          phone: p.phone,
-          label: p.label,
-        }));
-
-        return from(
-          supabase.from('client_phones').insert(phonesToInsert).select(),
-        ).pipe(
-          map(({ data: phones, error }) => {
-            if (error) {
-              throw error;
-            }
-
-            return {
-              ...updatedClient,
-              client_phones: phones ?? [],
-            } as Client;
-          }),
-        );
-      }),
-    );
+    ).pipe(map((result) => unwrapResult(result) as Client));
   }
 
   addClient(client: Client): Observable<Client> {
-    const supabase = this.supabaseService.client;
+    const { id, client_phones, ...clientData } = client;
 
     return from(
-      supabase
-        .from('clients')
-        .insert({ ...client, client_phones: undefined, id: undefined })
-        .select()
-        .single(),
-    ).pipe(
-      switchMap(({ data: newClinet, error }) => {
-        if (error) {
-          throw error;
-        }
-
-        if (!client.client_phones?.length) {
-          return of(newClinet);
-        }
-
-        const phones = client.client_phones.map((p) => ({
-          client_id: newClinet.id,
-          phone: p.phone,
-          label: p.label,
-        }));
-
-        return from(
-          supabase.from('client_phones').insert(phones).select(),
-        ).pipe(
-          map(({ data: phones, error }) => {
-            if (error) {
-              throw error;
-            }
-
-            return {
-              ...newClinet,
-              client_phones: phones,
-            } as Client;
-          }),
-        );
+      this.supabaseService.client.rpc('add_client_with_phones', {
+        p_client: clientData,
+        p_phones: this.toPhoneRows(client_phones),
       }),
-    );
+    ).pipe(map((result) => unwrapResult(result) as Client));
+  }
+
+  private toPhoneRows(phones: Client['client_phones']) {
+    return (phones ?? []).map((p) => ({ phone: p.phone, label: p.label }));
   }
 }

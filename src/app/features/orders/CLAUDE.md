@@ -209,6 +209,11 @@ Admin-only view of soft-deleted orders.
 ## services/
 
 - `orders.service.ts` — Supabase queries for `orders` and `order_items`.
+- `order.mapper.ts` — `ORDER_SELECT` (the one column list used by every order query) and the pure `mapOrderRow()` row → `OrderResponse` mapper. Add new order columns here, not in the service.
+
+Read methods (`getOrders`, `getDeletedOrders`, `getClientOrders`, `getOrderItemsById`) **error** when Supabase reports a failure — subscribers must pass an `error` handler. `placeOrder()` returns `false` when the order could not be saved; the caller must keep the cart in that case.
+
+**Multi-row writes go through database functions** (one transaction each, SQL in `supabase/migrations/`): `placeOrder()` → `place_order` (order + items), `orderIsDelivered()` → `mark_order_delivered` (all items + delivery date), `permanentlyDeleteOrder()` → `delete_order_permanently` (items + order). Do not replace them with separate `.from(...)` calls. Line-item add/edit/delete inside order details still updates the item and the order totals in separate requests.
 
 Key methods: `placeOrder()`, `transformOfferToOrder()`, `orderIsDelivered()`, `orderItemStatusUpdate()`, `setDeletionForOrder()`, `restoreDeletedOrder()`, `permanentlyDeleteOrder()`, `saveAdminSortOrder()` (via RPC), `updateOrderComment()`, `updateOrderVoucherAndTotal()`.
 

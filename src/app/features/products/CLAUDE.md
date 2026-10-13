@@ -70,7 +70,7 @@ Product cards use `background: rgba(0,0,0,0.15)` with `border-radius: 8px`. Hove
 
 NgRX Signals entity store. Loaded once on app start; shared by offer workflow, admin settings, and order-details.
 
-- `product.store.ts` — main store; merges `products`, `prices_new`, and `stocks` data into `ProductWithStock` entities; exposes `addToProductStock()` (called by coming-wares on verification)
+- `product.store.ts` — main store; merges `products`, `prices_new`, and `stocks` data into `ProductWithStock` entities; coming-wares calls `fetchStocks()` after a shipment is verified (the stock increment itself happens in the database)
 - `product.slice.ts` — state shape
 - `product.computed.ts` — derived signals including filtered product lists and category-level price totals
 

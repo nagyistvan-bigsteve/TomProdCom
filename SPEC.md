@@ -1254,19 +1254,26 @@ Current functionality:
 
 The `stocks` table (and the TypeScript `Stock` type) contains a `booked_stock` column.
 
-**Current state — partially active via a Postgres trigger:**
+**Current state — maintained by three Postgres triggers on `order_items`** (real orders only, `just_offer = false`; M2 products are ignored):
 
-A database trigger (`trg_order_item_book_stock`) fires automatically on every INSERT into `order_items`. For real orders (`just_offer = false`) and non-M2 products, the trigger increments `booked_stock` by the ordered quantity. Offers (`just_offer = true`) are excluded.
+| Trigger function               | Fires on | Effect                                                                                           |
+| ------------------------------ | -------- | ------------------------------------------------------------------------------------------------ |
+| `trg_order_item_book_stock`    | INSERT   | `booked_stock += quantity`                                                                       |
+| `trg_order_item_status_change` | UPDATE   | `item_status` false → true: `booked_stock -= quantity` and `stock -= quantity`; true → false reverses both |
+| `trg_order_item_delete_unbook` | DELETE   | if the item was not delivered: `booked_stock -= quantity`                                        |
 
-The release side is **incomplete**: the Supabase RPC `product_booked_stock_sold` (which decrements both `stock` and `booked_stock` on delivery) exists but is never called from the frontend. Consequently, `booked_stock` accumulates but is never decremented — the booking lifecycle does not close.
+Known gaps (not yet decided how to handle — do not "fix" silently):
 
-Frontend service methods `addToBookedStock()`, `bookedStockSold()`, and `updateBookedStock()` in `stocks.service.ts` are **dead code** — they are defined but never called. They exist for a future wiring-up of the delivery decrement.
+- Transforming an offer into an order only flips `just_offer`; its items were inserted as offer items and were never booked, but delivering them later still decrements `booked_stock` and `stock`.
+- Changing an item's quantity or category does not adjust `booked_stock`.
+
+Frontend service methods `addToBookedStock()`, `bookedStockSold()`, and `updateBookedStock()` in `stocks.service.ts` are **dead code** — they are defined but never called; the triggers do this work.
 
 ### Incoming stock (`coming_wares`)
 
 The `coming_wares` feature tracks incoming shipments. When a shipment is inspected and verified, stock IS updated:
 
-- Items with `for_order = false`: delivered to the **warehouse** → `stock` is incremented via `addToProductStock()` when the item is verified as correct.
+- Items with `for_order = false`: delivered to the **warehouse** → `stock` is incremented when the shipment is verified and the item is marked correct. Verification and the stock increment happen in one database transaction (`verify_coming_wares`); a shipment can be verified only once.
 - Items with `for_order = true`: delivered **directly to a customer's order** → stock is NOT incremented (the goods bypass the warehouse).
 - The `all_for_order` convenience flag forces all items in a shipment to `for_order = true`.
 
@@ -1274,13 +1281,13 @@ The `coming_wares` feature tracks incoming shipments. When a shipment is inspect
 
 ```text
 available stock      ← currently active (stocks.stock field)
-reserved stock       ← partially active (booked_stock incremented by trigger, never decremented)
+reserved stock       ← active (booked_stock maintained by order_items triggers; see known gaps above)
 incoming/ordered     ← active (coming_wares feature — stock incremented on verification for warehouse items)
 ```
 
 Future functionality:
 
-- completing the `booked_stock` lifecycle (wire up delivery decrement);
+- closing the `booked_stock` gaps listed above (offer → order transformation, quantity edits);
 - stock per warehouse;
 - warehouse-specific inventory.
 

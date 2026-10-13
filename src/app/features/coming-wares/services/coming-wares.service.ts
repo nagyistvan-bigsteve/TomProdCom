@@ -4,11 +4,11 @@ import {
   ComingWares,
   ComingWaresItem,
   ComingWaresItemResponse,
-  ComingWaresItems,
   Product,
 } from '@core/models/models';
 import { Category } from '@core/models/enums';
-import { catchError, from, map, Observable, of } from 'rxjs';
+import { unwrapResult } from '@core/services/supabase-result.util';
+import { from, map, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -49,8 +49,8 @@ export class ComingWaresService {
         )
         .eq('order_id', id)
     ).pipe(
-      map(({ data }) => {
-        return (data ?? []).map(
+      map((result) => {
+        return (unwrapResult(result) ?? []).map(
           (item): ComingWaresItemResponse => ({
             id: item.id,
             order_id: item.order_id,
@@ -66,29 +66,24 @@ export class ComingWaresService {
             comment: item.comment,
           })
         );
-      }),
-      catchError((error) => {
-        console.error('Error fetching coming wares items:', error);
-        return of([]);
       })
     );
   }
 
+  // Marks the shipment verified and adds its correct warehouse items to stock
+  // in one transaction. Fails for a shipment that is already verified.
   async verifyComingWares(id: number): Promise<boolean> {
-    try {
-      const { error } = await this.supabaseService.client
-        .from('coming_wares')
-        .update({ verified: true })
-        .eq('id', id)
-        .single();
+    const { error } = await this.supabaseService.client.rpc(
+      'verify_coming_wares',
+      { p_wares_id: id },
+    );
 
-      if (error) throw error;
-
-      return true;
-    } catch (error) {
-      console.error('Fail to set verified in the coming wares', error);
+    if (error) {
+      console.error('Fail to verify the coming wares', error);
       return false;
     }
+
+    return true;
   }
 
   async addCommentOnItem(id: number, comment: string): Promise<boolean> {
@@ -137,57 +132,46 @@ export class ComingWaresService {
       quantity: number;
       for_order: boolean;
     }[]
-  ) {
-    const { data } = await this.supabaseService.client
-      .from('coming_wares')
-      .insert({
-        expected_delivery,
-        name,
-        total_quantity,
-        all_for_order,
-        comment,
-      })
-      .select()
-      .single();
+  ): Promise<boolean> {
+    // One transaction: the shipment and its items are saved together
+    const { error } = await this.supabaseService.client.rpc(
+      'place_coming_wares',
+      {
+        p_wares: {
+          expected_delivery,
+          name,
+          total_quantity,
+          all_for_order,
+          comment,
+        },
+        p_items: products.map((item) => ({
+          product_id: item.product.id,
+          quantity: item.quantity,
+          category: item.category,
+          for_order: item.for_order,
+        })),
+      },
+    );
 
-    if (data) {
-      const exactOrderItems: ComingWaresItems = products.map((item) => ({
-        order_id: data.id,
-        product_id: item.product.id,
-        quantity: item.quantity,
-        category: item.category,
-        for_order: item.for_order,
-        comment: '',
-      }));
-
-      await this.supabaseService.client
-        .from('coming_wares_items')
-        .insert(exactOrderItems);
+    if (error) {
+      console.error('Fail to save the coming wares', error);
+      return false;
     }
+
+    return true;
   }
 
   async deleteComingWares(order_id: number): Promise<boolean> {
-    try {
-      const { error } = await this.supabaseService.client
-        .from('coming_wares_items')
-        .delete()
-        .eq('order_id', order_id);
+    const { error } = await this.supabaseService.client.rpc(
+      'delete_coming_wares',
+      { p_wares_id: order_id },
+    );
 
-      if (error) throw error;
-
-      if (!error) {
-        const { error } = await this.supabaseService.client
-          .from('coming_wares')
-          .delete()
-          .eq('id', order_id);
-
-        if (error) throw error;
-      }
-
-      return true;
-    } catch (error) {
+    if (error) {
       console.error('Fail to delete the coming wares', error);
       return false;
     }
+
+    return true;
   }
 }

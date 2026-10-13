@@ -51,7 +51,7 @@ Fetches and displays past orders for the currently selected client via `OrdersSe
 
 - `client.service.ts` — Supabase CRUD for `clients` + `client_phones` tables; returns RxJS Observables.
 
-**Phone update strategy:** full-replace — when updating a client, the service **deletes all existing phone rows** and re-inserts the new array. There are no partial updates.
+**Phone update strategy:** full-replace — when updating a client, **all existing phone rows are deleted** and the new array is inserted. There are no partial updates. Client and phones are written in one transaction by the `add_client_with_phones` / `update_client_with_phones` database functions, so a failure cannot leave a client without its phones. A duplicate `code` still surfaces as Postgres error `23505`, which `ClientStore.addClient` maps to the "duplicate" message.
 
 ## store/
 
