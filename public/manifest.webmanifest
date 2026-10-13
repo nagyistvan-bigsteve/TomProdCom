@@ -1,8 +1,8 @@
 {
-  "name": "tom-prod-com",
-  "short_name": "tom-prod-com",
+  "name": "TOM ProdCom",
+  "short_name": "TOM ProdCom",
   "theme_color": "#1976d2",
-  "background_color": "#fafafa",
+  "background_color": "#ffffff",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
