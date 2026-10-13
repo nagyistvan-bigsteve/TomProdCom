@@ -346,6 +346,12 @@
       "LOAD_ERROR": "NEM sikerült betölteni az adatokat!",
       "SAVE_ERROR": "NEM sikerült a mentés!"
     },
+    "API": {
+      "NO_PERMISSION": "Nincs jogosultságod ehhez a művelethez!",
+      "DUPLICATE": "Ez a bejegyzés már létezik!",
+      "IN_USE": "A művelet nem lehetséges: a bejegyzést máshol használják!",
+      "NETWORK": "Nincs kapcsolat a szerverrel. Ellenőrizd az internetet!"
+    },
     "PRODUCT": {
       "STOCK": "Készlet: ",
       "OUT_OF_STOCK": "A termék már nincs készleten!",

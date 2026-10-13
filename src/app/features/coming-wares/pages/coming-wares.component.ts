@@ -12,7 +12,6 @@ import { TranslateModule } from '@ngx-translate/core';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ReactiveFormsModule } from '@angular/forms';
-import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-coming-wares',
@@ -33,7 +32,6 @@ export class ComingWaresComponent implements OnInit {
   readonly #waresService = inject(ComingWaresService);
   readonly #dialog = inject(MatDialog);
   readonly #router = inject(Router);
-  readonly #notify = inject(NotificationService);
   comingWares = signal<ComingWares[] | null>(null);
   isLoading = signal(true);
   showVerifieds = signal(false);
@@ -76,10 +74,7 @@ export class ComingWaresComponent implements OnInit {
               result.comment,
               result.items
             )
-            .then((saved) => {
-              if (!saved) {
-                this.#notify.error('SNACKBAR.GENERAL.SAVE_ERROR');
-              }
+            .then(() => {
               this.ngOnInit();
             });
         }

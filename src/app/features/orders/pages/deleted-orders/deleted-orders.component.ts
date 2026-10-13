@@ -9,7 +9,6 @@ import { OrdersService } from '@features/orders/services/orders.service';
 import { OrderResponse } from '@core/models/models';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { ConfirmDeleteDialogComponent } from '@shared/components/dialogs/confirm-delete-dialog.component';
-import { NotificationService } from '@shared/utils/notification.service';
 
 interface DeletedOrderWithDays extends OrderResponse {
   daysUntilDelete: number;
@@ -34,7 +33,6 @@ interface DeletedOrderWithDays extends OrderResponse {
 export class DeletedOrdersComponent {
   private readonly orderService = inject(OrdersService);
   private readonly dialog = inject(MatDialog);
-  private readonly notify = inject(NotificationService);
 
   private readonly DAYS_UNTIL_PERMANENT_DELETE = 10;
 
@@ -91,7 +89,6 @@ export class DeletedOrdersComponent {
       error: (error) => {
         console.error('Error loading deleted orders:', error);
         this.isLoading.set(false);
-        this.notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
       },
     });
   }

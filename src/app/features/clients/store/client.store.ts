@@ -11,6 +11,7 @@
 import { initialClientSlice } from './client.slice';
 import { computed, effect, inject, untracked } from '@angular/core';
 import { useAuthStore } from '@core/store/auth-store';
+import { hasSpecificApiMessage } from '@core/services/api-error.util';
 import { tapResponse } from '@ngrx/operators';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { withBusy } from '@core/store/custom-features/with-busy/with-busy.feature';
@@ -78,7 +79,6 @@ export const ClientStore = signalStore(
                   patchState(store, setAllEntities(clients, clientConfig)),
                 error: (error) => {
                   console.error(error);
-                  store._notify.error('SNACKBAR.GENERAL.LOAD_ERROR');
                 },
                 finalize: () => patchState(store, setIdle()),
               }),
@@ -105,7 +105,9 @@ export const ClientStore = signalStore(
                 },
                 error: (error) => {
                   console.error(error);
-                  store._notify.error('SNACKBAR.CLIENT.ERROR.UPDATE');
+                  if (!hasSpecificApiMessage(error)) {
+                    store._notify.error('SNACKBAR.CLIENT.ERROR.UPDATE');
+                  }
                 },
                 finalize: () => patchState(store, setIdle()),
               }),
@@ -130,7 +132,7 @@ export const ClientStore = signalStore(
                   console.error(error);
                   if (error?.code === '23505') {
                     store._notify.error('SNACKBAR.CLIENT.ERROR.DUPLICATE');
-                  } else {
+                  } else if (!hasSpecificApiMessage(error)) {
                     store._notify.error('SNACKBAR.CLIENT.ERROR.ADD');
                   }
                 },
