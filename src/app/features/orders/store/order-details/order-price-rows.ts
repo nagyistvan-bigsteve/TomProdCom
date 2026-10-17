@@ -6,7 +6,11 @@ import {
   UsedPricesInOrder,
 } from '@core/models/models';
 import { computePricesForProduct } from '@features/products/store/product.computed';
-import { applyBDiscount, applyTvaDiscount } from '@shared/utils/product.util';
+import {
+  applyBDiscount,
+  applyTvaDiscount,
+  effectiveUnitPrice,
+} from '@shared/utils/product.util';
 
 /**
  * One row of the price panel: base (list) price plus the adjustment that gives
@@ -70,8 +74,7 @@ export function itemListPrice(
   const entry = priceEntryFor(product, category, ctx);
   if (!entry) return null;
 
-  const price = applyBDiscount(entry.price, product.unit_id, category, product.thickness);
-  return applyTvaDiscount(price, product.unit_id, ctx.isTva);
+  return effectiveUnitPrice(entry.price, product, category, ctx.isTva);
 }
 
 function sameRow(a: PriceRow, b: PriceRow): boolean {

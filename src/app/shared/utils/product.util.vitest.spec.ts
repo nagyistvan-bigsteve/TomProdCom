@@ -4,6 +4,7 @@ import type { Price2, Product, ProductItem, ProductItems } from '@core/models/mo
 import {
   applyBDiscount,
   applyTvaDiscount,
+  effectiveUnitPrice,
   calculateActualPrice,
   ProductUtil,
   unitPriceForTypedRow,
@@ -112,6 +113,44 @@ describe('applyTvaDiscount', () => {
 
   it('leaves BUNDLE price unchanged when TVA is false', () => {
     expect(applyTvaDiscount(200, Unit_id.BOUNDLE, false)).toBe(200);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// effectiveUnitPrice — single source for list price → charged unit price
+// ---------------------------------------------------------------------------
+
+describe('effectiveUnitPrice', () => {
+  const board = (thickness: number) => ({ unit_id: Unit_id.M3, thickness });
+
+  it('applies the B board discount to a 2.5 cm M3 board', () => {
+    expect(effectiveUnitPrice(1200, board(2.5), Category.B, false)).toBe(1150);
+  });
+
+  it('applies the B board discount, then TVA, for a TVA client', () => {
+    expect(effectiveUnitPrice(1200, board(2.5), Category.B, true)).toBe(1050);
+  });
+
+  it('applies only TVA to a board of another thickness', () => {
+    expect(effectiveUnitPrice(1300, board(5), Category.B, true)).toBe(1200);
+  });
+
+  it('applies only TVA to a 2.5 cm board in another category', () => {
+    expect(effectiveUnitPrice(1300, board(2.5), Category.A, true)).toBe(1200);
+  });
+
+  it('applies the bundle TVA discount', () => {
+    const bundle = { unit_id: Unit_id.BOUNDLE, thickness: 2.5 };
+    expect(effectiveUnitPrice(200, bundle, Category.B, true)).toBe(195);
+  });
+
+  it('leaves M2 and BUC prices unchanged', () => {
+    expect(
+      effectiveUnitPrice(50, { unit_id: Unit_id.M2, thickness: 2.5 }, Category.B, true),
+    ).toBe(50);
+    expect(
+      effectiveUnitPrice(30, { unit_id: Unit_id.BUC, thickness: 2.5 }, Category.B, true),
+    ).toBe(30);
   });
 });
 

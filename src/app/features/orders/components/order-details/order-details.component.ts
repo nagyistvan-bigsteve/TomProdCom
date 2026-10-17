@@ -43,7 +43,7 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { ProductUtil } from '@shared/utils/product.util';
+import { effectiveUnitPrice, ProductUtil } from '@shared/utils/product.util';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -449,18 +449,12 @@ export class OrderDetailsComponent implements OnInit {
       // have been set by hand (price dialog, custom price)
       unitPrice = unitPriceFromLine(item);
     } else if (priceEntry) {
-      unitPrice = priceEntry.price;
-      if (
-        priceEntry.unit_id === Unit_id.M3 &&
-        newCategory === Category.B &&
-        item.product.thickness === 2.5
-      ) {
-        unitPrice -= 50;
-      }
-      if (isTva) {
-        if (priceEntry.unit_id === Unit_id.M3) unitPrice -= 100;
-        if (priceEntry.unit_id === Unit_id.BOUNDLE) unitPrice -= 5;
-      }
+      unitPrice = effectiveUnitPrice(
+        priceEntry.price,
+        { unit_id: priceEntry.unit_id, thickness: item.product.thickness },
+        newCategory,
+        isTva,
+      );
     } else {
       unitPrice = unitPriceFromLine(item);
     }
@@ -528,25 +522,12 @@ export class OrderDetailsComponent implements OnInit {
     );
 
     if (price) {
-      let unitPrice = price.price;
-
-      if (
-        price.unit_id === Unit_id.M3 &&
-        this.selectedCategory === Category.B &&
-        this.selectedProduct.thickness === 2.5
-      ) {
-        unitPrice -= 50;
-      }
-
-      if (isTva) {
-        if (price.unit_id === Unit_id.M3) {
-          unitPrice -= 100;
-        }
-        if (price.unit_id === Unit_id.BOUNDLE) {
-          unitPrice -= 5;
-        }
-      }
-
+      const unitPrice = effectiveUnitPrice(
+        price.price,
+        { unit_id: price.unit_id, thickness: this.selectedProduct.thickness },
+        this.selectedCategory,
+        isTva,
+      );
       return unitPrice || undefined;
     }
     return undefined;

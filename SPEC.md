@@ -1154,6 +1154,8 @@ A price typed for a **general row** keeps the Category B board discount: a 2.5 c
 
 **Order of adjustments:** Category B board discount → TVA discount → manual discount.
 
+**Single source in code:** the first two steps (list price → charged unit price) are `effectiveUnitPrice()` in `src/app/shared/utils/product.util.ts`, and the amounts are the named constants next to it (`B_BOARD_DISCOUNT`, `B_DISCOUNT_THICKNESS`, `TVA_M3_DISCOUNT`, `TVA_BUNDLE_DISCOUNT`). Every screen that prices an item from its list price calls that function. Do not write these rules out again at a call site.
+
 ### Changing prices of a saved offer or order
 
 Offers and orders can be re-priced in place from the details screen (price icon in the top bar), without creating a new record. The dialog shows the same price panel as the offer overview:

@@ -24,11 +24,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CartStore } from '@features/orders/store/cart/cart.store';
 import { Price2, ProductItem, UsedPricesInOrder } from '@core/models/models';
 import { Category, Unit_id } from '@core/models/enums';
-import {
-  applyBDiscount,
-  applyTvaDiscount,
-  ProductUtil,
-} from '@shared/utils/product.util';
+import { effectiveUnitPrice, ProductUtil } from '@shared/utils/product.util';
 import { FormsModule } from '@angular/forms';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { ClientStore } from '@features/clients/store/client.store';
@@ -350,13 +346,7 @@ export class SelectedProductListComponent implements OnChanges {
         )?.price;
 
     if (exactPrice) {
-      exactPrice = applyBDiscount(
-        exactPrice,
-        item.product.unit_id,
-        newCategory,
-        item.product.thickness,
-      );
-      exactPrice = applyTvaDiscount(exactPrice, item.product.unit_id, isTva);
+      exactPrice = effectiveUnitPrice(exactPrice, item.product, newCategory, isTva);
     }
 
     if (this.discounts.length) {
