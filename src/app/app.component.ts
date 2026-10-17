@@ -1,4 +1,9 @@
-﻿import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+﻿import {
+  Component,
+  inject,
+  OnInit,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { LanguageService } from '@core/services/language.service';
 import { RouterModule } from '@angular/router';
