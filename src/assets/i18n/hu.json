@@ -121,7 +121,8 @@
       "ADJUSTMENT": "Módosítás",
       "FINAL": "Végső",
       "SET_PRICE": "Ár Beállítása",
-      "DIFFERENT_PRICE": "Mindennek külön ár"
+      "DIFFERENT_PRICE": "Mindennek külön ár",
+      "MIXED": "Eltérő árak – adj meg egy új árat"
     }
   },
   "SELECT_CLIENT": {
@@ -270,6 +271,14 @@
         "SAVE_BUTTON": "Mentés",
         "DISCOUNT_INPUT": "Kedvezmény (pl: 10%, 500 RON)",
         "ADD_PRODUCT_BUTTON": "Termék hozzáadása"
+      },
+      "PRICE_DIALOG": {
+        "TITLE": "Árak módosítása",
+        "TOOLTIP": "Árak módosítása",
+        "M2_NOTE": "A m² termékek árát a szerkesztésben lehet módosítani.",
+        "EMPTY": "Nincs olyan tétel, aminek az árát itt módosítani lehet.",
+        "CANCEL_BUTTON": "Mégse",
+        "SAVE_BUTTON": "Mentés"
       }
     },
     "TABLE": {

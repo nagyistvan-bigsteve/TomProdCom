@@ -182,6 +182,29 @@ export class OrdersService {
     return true;
   }
 
+  /** New line totals for several items of one order (the price dialog). */
+  async updateOrderItemPrices(
+    orderId: number,
+    items: { id: number; price: number }[],
+    totals: OrderTotals,
+  ): Promise<boolean> {
+    const { error } = await this.supabaseService.client.rpc(
+      'update_order_item_prices',
+      {
+        p_order_id: orderId,
+        p_items: items,
+        p_totals: this.toTotalsRow(totals),
+      },
+    );
+
+    if (error) {
+      console.error('Failed to update the order item prices', error);
+      return false;
+    }
+
+    return true;
+  }
+
   async deleteOrderItem(itemId: number, totals: OrderTotals): Promise<boolean> {
     const { error } = await this.supabaseService.client.rpc(
       'delete_order_item',

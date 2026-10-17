@@ -817,8 +817,11 @@ A user can:
 - add a product;
 - edit a product;
 - delete a product;
+- change the prices of the saved items (see 10.3, "Changing prices of a saved offer or order");
 - print order details;
 - mark the order as delivered.
+
+Editing a product keeps its current unit price when only the quantity changes (except M2 products), so a price set by hand is not lost. Changing the category re-prices the item from the price list.
 
 ### Delivery
 
@@ -1147,7 +1150,18 @@ Applies when `client.tva = true` (PJ customers with reverse-charge VAT):
 
 In the offer overview page, an employee can manually set a different unit price for any price row. The difference is stored as a `discount` value and applied when recalculating cart item prices.
 
+A price typed for a **general row** keeps the Category B board discount: a 2.5 cm B board in that row costs `typed − 50`, every other item exactly the typed price. A price typed for a **product row** is taken as is (that row's base already includes the −50). The order-details price dialog follows the same rule, so an offer priced in the overview opens there as one row with one final price.
+
 **Order of adjustments:** Category B board discount → TVA discount → manual discount.
+
+### Changing prices of a saved offer or order
+
+Offers and orders can be re-priced in place from the details screen (price icon in the top bar), without creating a new record. The dialog shows the same price panel as the offer overview:
+
+- One row per unit / category / size used in the order, or per product when the product has its own list price or "different price for everything" is on. A product row wins over the general row for that product.
+- Base price: the list price, as in the overview panel (below). The adjustment is how far the items are from their own list price; the item's unit price is worked back from the saved line total (per m³ for M3 boards with a width, otherwise per unit of quantity). A 2.5 cm B board charged its 50 less is therefore not an adjustment. When the items of a row carry different adjustments, the row shows "different prices" and no final price until a new one is typed.
+- Typing a final price sets the row's adjustment (`final − base`). Each item of the row is re-priced at its own list price (B board discount → TVA) plus that adjustment, with the formula in 10.2; an item without a list price gets the final price. Typed prices are kept when "different price for everything" is switched. Nothing is saved until Save; the changed items and the new order totals (10.4, voucher applied) are saved in one transaction (`update_order_item_prices`).
+- M2 items are not listed: their price depends on the pack breakdown. Their price is changed through the product edit (custom price).
 
 ### Base price shown in the offer overview panel
 

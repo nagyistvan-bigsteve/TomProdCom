@@ -121,7 +121,8 @@
       "ADJUSTMENT": "Ajustare",
       "FINAL": "Final",
       "SET_PRICE": "Setează Prețul",
-      "DIFFERENT_PRICE": "Preț diferit la tot"
+      "DIFFERENT_PRICE": "Preț diferit la tot",
+      "MIXED": "Prețuri diferite – introdu un preț nou"
     }
   },
   "SELECT_CLIENT": {
@@ -270,6 +271,14 @@
         "SAVE_BUTTON": "Salvează",
         "DISCOUNT_INPUT": "Reducere (ex: 10%, 500 RON)",
         "ADD_PRODUCT_BUTTON": "Adaugă produs"
+      },
+      "PRICE_DIALOG": {
+        "TITLE": "Modificare prețuri",
+        "TOOLTIP": "Modificare prețuri",
+        "M2_NOTE": "Prețul produselor la m² se modifică din editare.",
+        "EMPTY": "Nu există produse cu preț modificabil aici.",
+        "CANCEL_BUTTON": "Înapoi",
+        "SAVE_BUTTON": "Salvează"
       }
     },
     "TABLE": {

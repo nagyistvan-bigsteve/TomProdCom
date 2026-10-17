@@ -137,7 +137,9 @@
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "polyfills": ["zone.js", "zone.js/testing"],
+            "main": "src/test.ts",
             "tsConfig": "tsconfig.spec.json",
+            "exclude": ["**/*.vitest.spec.ts"],
             "inlineStyleLanguage": "scss",
             "assets": [
               {
@@ -167,7 +169,10 @@
             ],
             "scripts": [
               "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
-            ]
+            ],
+            "stylePreprocessorOptions": {
+              "includePaths": ["src"]
+            }
           }
         },
         "deploy": {

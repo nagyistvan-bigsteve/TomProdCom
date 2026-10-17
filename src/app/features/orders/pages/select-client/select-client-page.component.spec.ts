@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AddClientComponent } from './select-client-page.component';
+import { SelectClientPageComponent } from './select-client-page.component';
 
-describe('AddClientComponent', () => {
-  let component: AddClientComponent;
-  let fixture: ComponentFixture<AddClientComponent>;
+describe('SelectClientPageComponent', () => {
+  let component: SelectClientPageComponent;
+  let fixture: ComponentFixture<SelectClientPageComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddClientComponent],
+      imports: [SelectClientPageComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AddClientComponent);
+    fixture = TestBed.createComponent(SelectClientPageComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

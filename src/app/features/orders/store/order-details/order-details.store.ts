@@ -147,6 +147,33 @@ export const OrderDetailsStore = signalStore(
         return updated;
       },
 
+      /** Saves new line totals for several items (the price dialog). */
+      async updatePrices(changes: { id: number; price: number }[]): Promise<boolean> {
+        const order = store.order();
+        if (!order) return false;
+        if (!changes.length) return true;
+
+        const newPrices = new Map(changes.map((c) => [c.id, c.price]));
+        const totals = totalsAfter(
+          store.items().map((item) => ({
+            ...item,
+            price: newPrices.get(item.id) ?? item.price,
+          })),
+        );
+
+        const updated = await store._ordersService.updateOrderItemPrices(
+          order.id,
+          changes,
+          totals,
+        );
+        if (updated) {
+          applyTotals(totals);
+          await reloadItems();
+        }
+
+        return updated;
+      },
+
       async deleteItem(itemId: number): Promise<boolean> {
         const totals = totalsAfter(store.items().filter((item) => item.id !== itemId));
 

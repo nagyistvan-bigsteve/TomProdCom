@@ -6,6 +6,7 @@ import {
   applyTvaDiscount,
   calculateActualPrice,
   ProductUtil,
+  unitPriceForTypedRow,
 } from './product.util';
 
 // ---------------------------------------------------------------------------
@@ -63,6 +64,30 @@ describe('applyBDiscount', () => {
 // ---------------------------------------------------------------------------
 // applyTvaDiscount
 // ---------------------------------------------------------------------------
+
+describe('unitPriceForTypedRow', () => {
+  const board25 = makeProduct({ unit_id: Unit_id.M3, thickness: 2.5 });
+  const board5 = makeProduct({ unit_id: Unit_id.M3, thickness: 5 });
+
+  it('keeps the 2.5 cm B board discount on a general row', () => {
+    expect(unitPriceForTypedRow(1100, false, board25, Category.B)).toBe(1050);
+  });
+
+  it('gives other boards and categories exactly the typed price', () => {
+    expect(unitPriceForTypedRow(1100, false, board5, Category.B)).toBe(1100);
+    expect(unitPriceForTypedRow(1100, false, board25, Category.A)).toBe(1100);
+    expect(
+      unitPriceForTypedRow(30, false, makeProduct({ unit_id: Unit_id.BUC, thickness: 2.5 }), Category.B),
+    ).toBe(30);
+    expect(
+      unitPriceForTypedRow(30, false, makeProduct({ unit_id: Unit_id.BOUNDLE, thickness: 2.5 }), Category.B),
+    ).toBe(30);
+  });
+
+  it('takes a product row price as is (it already includes the discount)', () => {
+    expect(unitPriceForTypedRow(1050, true, board25, Category.B)).toBe(1050);
+  });
+});
 
 describe('applyTvaDiscount', () => {
   it('subtracts 100 from M3 price when TVA is true', () => {

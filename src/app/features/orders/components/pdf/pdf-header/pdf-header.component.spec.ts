@@ -13,6 +13,10 @@ describe('HeaderComponent', () => {
 
     fixture = TestBed.createComponent(PDFHeaderComponent);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('justOffer', false);
+    fixture.componentRef.setInput('id', 1);
+    fixture.componentRef.setInput('deliveryDate', null);
+    fixture.componentRef.setInput('orderDate', new Date());
     fixture.detectChanges();
   });
 

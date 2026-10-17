@@ -299,6 +299,13 @@
   color: rgb(134, 2, 2);
 }
 
+// ─── Price dialog ──────────────────────────────────────────────────────────────
+
+.price-dialog-note {
+  margin: var(--space-3) 0 0;
+  color: rgba(0, 0, 0, 0.6);
+}
+
 // ─── Edit dialog internals ─────────────────────────────────────────────────────
 
 .multiline-text {

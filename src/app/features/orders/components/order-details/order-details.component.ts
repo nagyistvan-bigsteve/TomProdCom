@@ -30,9 +30,14 @@ import { MatDividerModule } from '@angular/material/divider';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import {
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { CartStore } from '@features/orders/store/cart/cart.store';
-import { Category, Unit_id } from '@core/models/enums';
+import { Category, ClientType, Unit_id } from '@core/models/enums';
 import { Router } from '@angular/router';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -51,6 +56,14 @@ import { computePricesForProduct } from '@features/products/store/product.comput
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 import { OrderDetailsStore } from '@features/orders/store/order-details/order-details.store';
 import { itemVolumeM3 } from '@features/orders/store/order-details/order-details.computed';
+import {
+  buildOrderPriceRows,
+  PriceRow,
+  PricingContext,
+  repriceItems,
+  unitPriceFromLine,
+} from '@features/orders/store/order-details/order-price-rows';
+import { PriceAdjustPanelComponent } from '@features/orders/components/price-adjust-panel/price-adjust-panel.component';
 
 @Component({
   selector: 'app-order-details',
@@ -73,6 +86,8 @@ import { itemVolumeM3 } from '@features/orders/store/order-details/order-details
     MatChipsModule,
     MatAutocompleteModule,
     OrderPdfComponent,
+    MatTooltipModule,
+    PriceAdjustPanelComponent,
   ],
   providers: [OrderDetailsStore],
   templateUrl: './order-details.component.html',
@@ -88,6 +103,8 @@ export class OrderDetailsComponent implements OnInit {
   confirmTransformExactOfferDialog!: TemplateRef<any>;
   @ViewChild('editOfferDialog')
   editOfferDialog!: TemplateRef<any>;
+  @ViewChild('priceDialog')
+  priceDialog!: TemplateRef<any>;
 
   @Output() closeDetails = new EventEmitter<void>();
 
@@ -152,6 +169,23 @@ export class OrderDetailsComponent implements OnInit {
   orderComment: string = '';
   orderVoucher: string = '';
 
+  // Price dialog: typed prices go into a draft of the line totals, which is
+  // saved only on Save; the rows are rebuilt from it when "per product" flips
+  priceRows = signal<PriceRow[]>([]);
+  pricePerProduct = signal(false);
+  isSavingPrices = signal(false);
+  private draftItems: OrderItemsResponse[] = [];
+  private priceDialogRef: MatDialogRef<unknown> | null = null;
+
+  readonly productNames = computed(() =>
+    Object.fromEntries(
+      this.detailsStore.items().map((item) => [item.product.id, item.product.name]),
+    ),
+  );
+  readonly hasM2Items = computed(() =>
+    this.detailsStore.items().some((item) => item.product.unit_id === Unit_id.M2),
+  );
+
   private readonly cartStore = inject(CartStore);
   readonly catalogStore = inject(ProductStore);
   private readonly destroyRef = inject(DestroyRef);
@@ -168,6 +202,8 @@ export class OrderDetailsComponent implements OnInit {
   client = computed(
     () => this.clientStore.clientsEntityMap()[this.order?.clientId!],
   );
+
+  isClientPJ = computed(() => this.client()?.type === ClientType.PJ);
 
   ngOnInit(): void {
     this.detailsStore.load(this.orderId);
@@ -219,6 +255,88 @@ export class OrderDetailsComponent implements OnInit {
           );
         }
       });
+  }
+
+  openPriceDialog(): void {
+    this.pricePerProduct.set(false);
+    this.draftItems = [...this.orderItems];
+    this.priceRows.set(this.buildPriceRows());
+
+    this.priceDialogRef = this._dialog.open(this.priceDialog, {
+      width: '90%',
+      maxWidth: '640px',
+      maxHeight: '95vh',
+    });
+  }
+
+  togglePricePerProduct(): void {
+    this.pricePerProduct.update((v) => !v);
+    this.priceRows.set(this.buildPriceRows());
+  }
+
+  setDraftPrice(index: number, price: number | null): void {
+    if (price === null || isNaN(price)) return;
+
+    const rows = this.priceRows().map((row, i) =>
+      i === index ? { ...row, mixed: false, discount: price - row.price } : row,
+    );
+    // Rows are not rebuilt here, so the field being typed in keeps its value
+    this.priceRows.set(rows);
+
+    const newPrices = new Map(
+      repriceItems(
+        this.draftItems,
+        rows,
+        [index],
+        this.pricingContext(),
+        this.linePrice,
+      ).map((c) => [c.id, c.price]),
+    );
+    this.draftItems = this.draftItems.map((item) =>
+      newPrices.has(item.id) ? { ...item, price: newPrices.get(item.id)! } : item,
+    );
+  }
+
+  savePrices(): void {
+    const saved = new Map(this.orderItems.map((item) => [item.id, item.price]));
+    const changes = this.draftItems
+      .filter((item) => saved.get(item.id) !== item.price)
+      .map(({ id, price }) => ({ id, price }));
+
+    if (!changes.length) {
+      this.priceDialogRef?.close();
+      return;
+    }
+
+    const dialogRef = this.priceDialogRef;
+    this.isSavingPrices.set(true);
+    if (dialogRef) dialogRef.disableClose = true;
+
+    this.detailsStore.updatePrices(changes).then((ok) => {
+      this.isSavingPrices.set(false);
+      if (dialogRef) dialogRef.disableClose = false;
+      // On failure the dialog stays open with the typed prices
+      if (ok) dialogRef?.close();
+    });
+  }
+
+  private readonly linePrice = (product: Product, unitPrice: number, quantity: number) =>
+    this.productUtil.calculatePrice(product, unitPrice, quantity).price;
+
+  private pricingContext(): PricingContext {
+    return {
+      productsMap: this.catalogStore.productsEntityMap(),
+      prices: this.catalogStore.pricesEntities(),
+      isTva: this.client()?.tva ?? false,
+    };
+  }
+
+  private buildPriceRows(): PriceRow[] {
+    return buildOrderPriceRows(
+      this.draftItems,
+      this.pricingContext(),
+      this.pricePerProduct(),
+    );
   }
 
   addOrderItem(): void {
@@ -283,17 +401,7 @@ export class OrderDetailsComponent implements OnInit {
       )
         return false;
 
-      const existingUnitPrice =
-        item.product.unit_id === Unit_id.M3 && item.product.width
-          ? item.price /
-            (item.quantity *
-              ((item.product.width *
-                item.product.thickness *
-                item.product.length) /
-                1_000_000))
-          : item.price / item.quantity;
-
-      return Math.abs(existingUnitPrice - newUnitPrice) < 0.01;
+      return Math.abs(unitPriceFromLine(item) - newUnitPrice) < 0.01;
     });
   }
 
@@ -332,8 +440,15 @@ export class OrderDetailsComponent implements OnInit {
     const priceEntry = prices.find((p) => p.category_id === newCategory);
     const isTva = this.client()?.tva ?? false;
 
+    const sameCategory =
+      newCategory === Category[item.category.name as keyof typeof Category];
+
     let unitPrice: number;
-    if (priceEntry) {
+    if (sameCategory && item.product.unit_id !== Unit_id.M2) {
+      // Only the quantity changed: keep the line's unit price, which may
+      // have been set by hand (price dialog, custom price)
+      unitPrice = unitPriceFromLine(item);
+    } else if (priceEntry) {
       unitPrice = priceEntry.price;
       if (
         priceEntry.unit_id === Unit_id.M3 &&
@@ -347,15 +462,7 @@ export class OrderDetailsComponent implements OnInit {
         if (priceEntry.unit_id === Unit_id.BOUNDLE) unitPrice -= 5;
       }
     } else {
-      unitPrice =
-        item.product.unit_id === Unit_id.M3 && item.product.width
-          ? item.price /
-            (item.quantity *
-              ((item.product.width *
-                item.product.thickness *
-                item.product.length) /
-                1_000_000))
-          : item.price / item.quantity;
+      unitPrice = unitPriceFromLine(item);
     }
 
     const fullProduct =
