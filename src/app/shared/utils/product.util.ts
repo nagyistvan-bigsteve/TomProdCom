@@ -15,6 +15,22 @@ export function applyBDiscount(
   return unitPrice;
 }
 
+/**
+ * Unit price of an item when a final price is typed for its price row. A
+ * general row keeps the 2.5 cm category B board discount (the board costs
+ * typed − 50); a product row's price already includes it
+ * (calculateActualPrice), so it is taken as is.
+ */
+export function unitPriceForTypedRow(
+  finalPrice: number,
+  isProductRow: boolean,
+  product: Pick<Product, 'unit_id' | 'thickness'>,
+  category: Category,
+): number {
+  if (isProductRow) return finalPrice;
+  return applyBDiscount(finalPrice, product.unit_id, category, product.thickness);
+}
+
 /** Applies the TVA reverse-charge discount: −100 RON/m³ for M3, −5 RON/bundle for BUNDLE. */
 export function applyTvaDiscount(
   unitPrice: number,

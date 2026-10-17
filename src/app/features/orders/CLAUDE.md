@@ -179,6 +179,7 @@ Key features:
 - `isAllPriceDifferent` toggle: when on, expands aggregate category prices into per-product price rows so individual products can have different prices.
 - Base price per row comes from `calculateActualPrice` (`@shared/utils/product.util`): general rows show the list price (minus TVA); only product-specific rows show the −50 for a 2.5 cm category-B board. Display only — items are priced per item in `getExactPrice()`.
 - The price rows are rendered by `PriceAdjustPanelComponent` (`components/price-adjust-panel/`).
+- A typed general-row price keeps the 2.5 cm B −50 per item (`unitPriceForTypedRow` in `@shared/utils/product.util`); a product-row price is used as is — the same rule as the order-details price dialog.
 - Manual discount: `setFinalPrice(index, finalPrice)` stores the difference as `discount` on the price row; this discount is applied back in `SelectedProductListComponent.getExactPrice()`.
 - TVA auto-comment: if `client.tva = true`, prepends `"Taxare inversa - fără TVA\n"` to the comment.
 - Delivery fee appended to comment as `"Transport: N RON\n"`.

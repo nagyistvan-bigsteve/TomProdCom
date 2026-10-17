@@ -1150,6 +1150,8 @@ Applies when `client.tva = true` (PJ customers with reverse-charge VAT):
 
 In the offer overview page, an employee can manually set a different unit price for any price row. The difference is stored as a `discount` value and applied when recalculating cart item prices.
 
+A price typed for a **general row** keeps the Category B board discount: a 2.5 cm B board in that row costs `typed − 50`, every other item exactly the typed price. A price typed for a **product row** is taken as is (that row's base already includes the −50). The order-details price dialog follows the same rule, so an offer priced in the overview opens there as one row with one final price.
+
 **Order of adjustments:** Category B board discount → TVA discount → manual discount.
 
 ### Changing prices of a saved offer or order

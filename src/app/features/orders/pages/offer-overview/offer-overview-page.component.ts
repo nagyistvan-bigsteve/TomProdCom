@@ -35,7 +35,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { Price2, ProductItem, UsedPricesInOrder } from '@core/models/models';
 import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
-import { calculateActualPrice, ProductUtil } from '@shared/utils/product.util';
+import {
+  calculateActualPrice,
+  ProductUtil,
+  unitPriceForTypedRow,
+} from '@shared/utils/product.util';
 import { ClientStore } from '@features/clients/store/client.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 import { PriceAdjustPanelComponent } from '@features/orders/components/price-adjust-panel/price-adjust-panel.component';
@@ -198,7 +202,12 @@ export class OfferOverviewPageComponent {
 
         const newPrice = this.productUtil.calculatePrice(
           item.product,
-          finalPrice,
+          unitPriceForTypedRow(
+            finalPrice,
+            !!row.productId,
+            item.product,
+            item.category,
+          ),
           item.quantity,
           'BRUT',
         ).price;

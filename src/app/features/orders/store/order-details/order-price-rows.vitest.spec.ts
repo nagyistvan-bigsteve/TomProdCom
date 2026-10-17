@@ -180,6 +180,15 @@ describe('2.5 cm category B boards in a general row', () => {
     expect(changes.find((c) => c.id === 2)?.price).toBeCloseTo(165, 6);
   });
 
+  it('form one row when the B price was typed in the offer overview', () => {
+    // Overview, typed 1100 for the general B row: 2.5 cm at 1050, 5 cm at 1100
+    const fromOverview = [makeItem(1, board, 'B', 10, 1050), makeItem(2, board2, 'B', 5, 1100)];
+    const rows = buildOrderPriceRows(fromOverview, ctx(prices), false);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ price: 1200, mixed: false });
+    expect(rows[0].price + rows[0].discount).toBeCloseTo(1100, 6);
+  });
+
   it('show the common adjustment after a re-price', () => {
     const repriced = [makeItem(1, board, 'B', 10, 1050), makeItem(2, board2, 'B', 5, 1100)];
     const rows = buildOrderPriceRows(repriced, ctx(prices), false);
