@@ -6,7 +6,7 @@
         mat-icon-button
         aria-label="Menu"
         (click)="toggleSidebar()"
-      >
+        >
         <mat-icon>menu</mat-icon>
       </button>
       <button
@@ -14,18 +14,19 @@
         mat-icon-button
         aria-label="Back"
         (click)="goBack()"
-      >
+        >
         <mat-icon>arrow_back</mat-icon>
       </button>
     }
-    <button
-      mat-icon-button
-      *ngIf="installService.installPromptAvailable | async"
-      aria-label="Install app"
-      (click)="installApp()"
-    >
-      <mat-icon>download</mat-icon>
-    </button>
+    @if (installService.installPromptAvailable | async) {
+      <button
+        mat-icon-button
+        aria-label="Install app"
+        (click)="installApp()"
+        >
+        <mat-icon>download</mat-icon>
+      </button>
+    }
   </div>
 
   <span class="topbar-spacer"></span>
@@ -35,18 +36,18 @@
       class="topbar-logo"
       src="assets/images/logo-outline.png"
       alt="Logo"
-    />
-    @if (
-      authStore.isAuthenticated() &&
-      authStore.role() === "admin" &&
-      usersStore.unapprovedCount()
-    ) {
-      <button mat-icon-button (click)="goToUserPage()">
-        <mat-icon
-          [matBadge]="usersStore.unapprovedCount() ? usersStore.unapprovedCount() : ''"
-        >account_circle</mat-icon>
-      </button>
-    }
-    <app-language-switcher></app-language-switcher>
-  </div>
-</mat-toolbar>
+      />
+      @if (
+        authStore.isAuthenticated() &&
+        authStore.role() === "admin" &&
+        usersStore.unapprovedCount()
+        ) {
+        <button mat-icon-button (click)="goToUserPage()">
+          <mat-icon
+            [matBadge]="usersStore.unapprovedCount() ? usersStore.unapprovedCount() : ''"
+          >account_circle</mat-icon>
+        </button>
+      }
+      <app-language-switcher></app-language-switcher>
+    </div>
+  </mat-toolbar>

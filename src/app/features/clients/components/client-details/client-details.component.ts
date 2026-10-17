@@ -1,4 +1,4 @@
-﻿import { CommonModule } from '@angular/common';
+﻿
 import { Component, inject } from '@angular/core';
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { TranslateModule } from '@ngx-translate/core';
@@ -16,7 +16,6 @@ import { ClientStore } from '@features/clients/store/client.store';
 @Component({
   selector: 'app-client-details',
   imports: [
-    CommonModule,
     TranslateModule,
     MatAccordion,
     MatExpansionModule,
@@ -28,8 +27,8 @@ import { ClientStore } from '@features/clients/store/client.store';
     MatInputModule,
     MatOptionModule,
     MatButtonModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './client-details.component.html',
   styleUrl: './client-details.component.scss',
 })

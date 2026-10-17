@@ -14,7 +14,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
+
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ProductStore } from '@features/products/store/product.store';
@@ -32,11 +32,10 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    CommonModule,
     MatAutocompleteModule,
     ReactiveFormsModule,
-    MatButtonToggleModule,
-  ],
+    MatButtonToggleModule
+],
   templateUrl: './change-prices.component.html',
   styleUrl: './change-prices.component.scss',
   animations: [ENTER_AND_LEAVE_ANIMATION, ENTER_ANIMATION, LEAVE_ANIMATION],

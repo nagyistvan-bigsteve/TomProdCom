@@ -211,16 +211,16 @@
 
 .restore-btn {
   flex: 1;
-  --mdc-outlined-button-outline-color: rgba(0, 0, 0, 0.2);
-  --mdc-outlined-button-label-text-color: rgba(0, 0, 0, 0.7);
+  --mat-button-outlined-outline-color: rgba(0, 0, 0, 0.2);
+  --mat-button-outlined-label-text-color: rgba(0, 0, 0, 0.7);
   --mat-icon-color: rgba(0, 0, 0, 0.55);
   min-height: 35px;
 }
 
 .delete-btn {
   flex: 1;
-  --mdc-filled-button-container-color: rgba(198, 40, 40, 0.1);
-  --mdc-filled-button-label-text-color: #c62828;
+  --mat-button-filled-container-color: rgba(198, 40, 40, 0.1);
+  --mat-button-filled-label-text-color: #c62828;
   --mat-icon-color: #c62828;
   min-height: 35px;
 }

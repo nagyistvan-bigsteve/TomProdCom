@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -10,12 +10,11 @@ import { UsersStore } from '@core/store/users.store';
 @Component({
   selector: 'app-approve-user',
   imports: [
-    CommonModule,
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
-    TranslateModule,
-  ],
+    TranslateModule
+],
   templateUrl: './approve-user.component.html',
   styleUrl: './approve-user.component.scss',
   animations: [ENTER_ANIMATION],

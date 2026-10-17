@@ -21,8 +21,8 @@
   margin-top: var(--space-2);
   margin-bottom: var(--space-3);
   border-radius: 8px;
-  --mdc-filled-button-container-color: rgb(134, 2, 2);
-  --mdc-filled-button-label-text-color: white;
+  --mat-button-filled-container-color: rgb(134, 2, 2);
+  --mat-button-filled-label-text-color: white;
 }
 
 ::ng-deep {
