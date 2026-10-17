@@ -208,9 +208,10 @@ export const OrderDetailsStore = signalStore(
         return order ? store._ordersService.transformOfferToOrder(order.id) : false;
       },
 
-      async deletePermanently(): Promise<boolean> {
+      /** Moves the order or offer to the deleted list (restorable for 10 days). */
+      async moveToDeleted(): Promise<boolean> {
         const order = store.order();
-        return order ? store._ordersService.permanentlyDeleteOrder(order.id) : false;
+        return order ? store._ordersService.setDeletionForOrder(order.id) : false;
       },
     };
   }),

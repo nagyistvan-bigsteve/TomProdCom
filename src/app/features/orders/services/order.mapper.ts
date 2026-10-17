@@ -17,7 +17,8 @@ export const ORDER_SELECT = `id,
     voucher,
     operator:operator_id ( id, name ),
     delivery_address,
-    deleted_at
+    deleted_at,
+    just_offer
     `;
 
 type Operator = OrderResponse['operator'];
@@ -41,6 +42,7 @@ export interface OrderRow {
   operator: Operator | Operator[] | null;
   delivery_address: string;
   deleted_at: Date | null;
+  just_offer: boolean | null;
 }
 
 export function mapOrderRow(order: OrderRow): OrderResponse {
@@ -64,6 +66,7 @@ export function mapOrderRow(order: OrderRow): OrderResponse {
     comment: order.comment,
     voucher: order.voucher,
     delivery_address: order.delivery_address,
+    justOffer: order.just_offer === true,
     ...(order.deleted_at ? { deletedAt: order.deleted_at } : {}),
   };
 }

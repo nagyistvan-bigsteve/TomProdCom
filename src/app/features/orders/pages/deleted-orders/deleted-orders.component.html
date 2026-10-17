@@ -25,7 +25,7 @@
           <div class="card-header">
             <div class="card-title-row">
               <span class="order-id mat-title-small">
-                {{ "DELETED_ORDERS.ORDER_ID" | translate }} #{{ order.id }}
+                {{ (order.justOffer ? "DELETED_ORDERS.OFFER_ID" : "DELETED_ORDERS.ORDER_ID") | translate }} #{{ order.id }}
               </span>
               <span class="days-chip" [class]="getDaysClass(order.daysUntilDelete)">
                 {{ order.daysUntilDelete }} {{ "DELETED_ORDERS.DAYS_LEFT" | translate }}
