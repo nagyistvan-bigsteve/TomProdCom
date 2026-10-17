@@ -6,11 +6,11 @@ Order listing, the multi-step offer creation workflow, and PDF generation.
 
 ### `order-details/` — single order/offer detail view
 
-Inputs: `@Input() order: OrderResponse`, `@Input() justOffers: boolean`  
+Inputs: `@Input({ required: true }) orderId: number`, `@Input() justOffers: boolean`  
 Output: `@Output() closeDetails: EventEmitter<void>`
 
 Key capabilities:
-- Fetches order line items on init (`OrdersService.getOrderItemsById()`).
+- Loads the order and its line items itself (`OrderDetailsStore.load(orderId)`, store provided by the component). All changes go through `OrderDetailsStore` (see store/ below); the component keeps only UI state (add form, inline edit, dialogs).
 - Add / edit / delete line items; recalculates totals after each change.
 - `item_status` per line item: `false` = pending, `true` = delivered. Can be toggled individually.
 - Print PDF via `OrderPdfGeneratorUtil`.
@@ -43,10 +43,10 @@ The global `mat.icon-overrides(color: white)` in `styles.scss` makes all icons w
 - Edits `orderComment` (comment) and `orderVoucher` (discount code/amount, e.g. `10%` or `500`).
 - **Item list** (`.edit-order-popup-list`): each row shows `[name–category] [qty] [edit] [delete(red)]`. Edit and delete save immediately to the DB — they do not wait for the dialog's Save button.
 - **Inline item editing:** clicking the pencil button opens `.item-inline-edit` (dark panel, same background as add form) replacing that row. Shows category chips (populated from `computePricesForProduct` — does NOT mutate `selectedProductId` in the store) and a quantity input. ✓ saves via `saveEditItem()`, ✗ cancels. Opening inline edit closes the add form if it was open.
-  - `saveEditItem()`: looks up the unit price for the new category from the price table (applying TVA and B-2.5cm adjustments), calls `productUtil.calculatePrice()` using the full product from `catalogStore.productsEntityMap()` (because `OrderItemsResponse.product` is a partial type missing `m2_brut` etc.), then calls `editOrderItem()` and recalculates totals via `getUpdateOrderTotals()` after a 250 ms settle.
+  - `saveEditItem()`: looks up the unit price for the new category from the price table (applying TVA and B-2.5cm adjustments), calls `productUtil.calculatePrice()` using the full product from `catalogStore.productsEntityMap()` (because `OrderItemsResponse.product` is a partial type missing `m2_brut` etc.), then calls `detailsStore.updateItem()`, which saves the item and the new order totals in one transaction.
 - **Add product form**: hidden by default, revealed by the "Termék hozzáadása" / "Adaugă produs" toggle button (`showAddForm` signal). Same chip + autocomplete + quantity form as before.
 - Dialog has explicit **Save** (`[mat-dialog-close]="true"`) and **Cancel** (`[mat-dialog-close]="false"`) buttons. Comment and voucher are only persisted on Save. Item mutations (add / inline-edit / delete) persist immediately regardless.
-- On Save: calls `OrdersService.updateOrderVoucherAndTotal()` which recalculates `total_amount_final` from `totalAmount` using the new voucher and clamps to `Math.max(0, result)` (never negative). Updates the in-memory `order` object immediately.
+- On Save: `detailsStore.saveCommentAndVoucher()` saves comment, voucher and the new `total_amount_final` (`applyVoucher(totalAmount, voucher)`: percentage or fixed amount, never below 0, rounded to 2 decimals) in one request.
 
 ### `order-table/` — reusable table for orders and offers
 
@@ -85,8 +85,7 @@ Sort is chosen via a `mat-menu` dropdown triggered by a sort icon button.
 **Drag-and-drop sort:** Enabled only when the current user is `admin` AND `tableSort === 'admin'`. Uses Angular CDK Drag-Drop. New order is persisted via the Supabase RPC `update_order_sort_orders`.
 
 **Delete behavior:**
-- Offers (`justOffers=true`) → **permanent hard-delete**.
-- Orders (`justOffers=false`) → **soft-delete** (sets `deleted_at`).
+- Orders and offers alike → **soft-delete** (sets `deleted_at`); they appear on the Deleted page and can be restored for 10 days.
 
 **Text search:** Single `searchFilter` FormControl. Matches client name **or** delivery address (case- and diacritic-insensitive). Previously there were two separate fields (name / address); merged into one unified search.
 
@@ -168,6 +167,7 @@ Final review before saving.
 Key features:
 - Receives price rows from `SelectedProductListComponent` via `@Output() pricesOutput`.
 - `isAllPriceDifferent` toggle: when on, expands aggregate category prices into per-product price rows so individual products can have different prices.
+- Base price per row comes from `calculateActualPrice` (`@shared/utils/product.util`): general rows show the list price (minus TVA); only product-specific rows show the −50 for a 2.5 cm category-B board. Display only — items are priced per item in `getExactPrice()`.
 - Manual discount: `setFinalPrice(index, finalPrice)` stores the difference as `discount` on the price row; this discount is applied back in `SelectedProductListComponent.getExactPrice()`.
 - TVA auto-comment: if `client.tva = true`, prepends `"Taxare inversa - fără TVA\n"` to the comment.
 - Delivery fee appended to comment as `"Transport: N RON\n"`.
@@ -181,8 +181,8 @@ Both use `OrderTableComponent` with `justOffers` set accordingly.
 
 ### `deleted-orders/`
 
-Admin-only view of soft-deleted orders.
-- On load, auto-purges orders where `deleted_at` is more than **10 days** ago (`DAYS_UNTIL_PERMANENT_DELETE = 10`) via `OrdersService.permanentlyDeleteOrder()`.
+Admin-only view of soft-deleted orders **and offers** (each card is titled "Comanda #…" or "Oferta #…"; the restore and permanent-delete dialogs use the matching wording).
+- On load, auto-purges orders and offers where `deleted_at` is more than **10 days** ago (`DAYS_UNTIL_PERMANENT_DELETE = 10`) via `OrdersService.permanentlyDeleteOrder()`.
 - Shows a countdown (`daysUntilDelete`) for each order.
 - Restore: `restoreDeletedOrder()` sets `deleted_at = null`.
 - Permanent delete: `permanentlyDeleteOrder()` hard-deletes the order and its items.
@@ -209,10 +209,14 @@ Admin-only view of soft-deleted orders.
 ## services/
 
 - `orders.service.ts` — Supabase queries for `orders` and `order_items`.
+- `order.mapper.ts` — `ORDER_SELECT` (the one column list used by every order query) and the pure `mapOrderRow()` row → `OrderResponse` mapper. Add new order columns here, not in the service.
 
-Key methods: `placeOrder()`, `transformOfferToOrder()`, `orderIsDelivered()`, `orderItemStatusUpdate()`, `setDeletionForOrder()`, `restoreDeletedOrder()`, `permanentlyDeleteOrder()`, `saveAdminSortOrder()` (via RPC), `updateOrderComment()`, `updateOrderVoucherAndTotal()`.
+Read methods (`getOrders`, `getDeletedOrders`, `getClientOrders`, `getOrderItemsById`) **error** when Supabase reports a failure — subscribers must pass an `error` handler. `placeOrder()` returns `false` when the order could not be saved; the caller must keep the cart in that case.
 
-**`updateOrderVoucherAndTotal(id, voucher, totalAmountFinal)`** — saves `voucher` and `total_amount_final` together in one update. Always call this when editing a voucher (not just `updateOrderComment`) so the displayed price stays in sync. The caller (`order-details`) computes `totalAmountFinal` via `calculateFinalPriceWithVoucher(totalAmount, voucher)` which applies percentage or fixed-amount discount and clamps to `Math.max(0, result)`.
+**Multi-row writes go through database functions** (one transaction each, SQL in `supabase/migrations/`): `placeOrder()` → `place_order` (order + items), `orderIsDelivered()` → `mark_order_delivered` (all items + delivery date), `permanentlyDeleteOrder()` → `delete_order_permanently` (items + order). Do not replace them with separate `.from(...)` calls. Line-item add / edit / delete in order details → `add_order_item` / `update_order_item` / `delete_order_item` (item + order totals; the totals are computed in the app by `orderTotals()` and passed in).
+
+Key methods: `placeOrder()`, `getOrderById()`, `addOrderItem()` / `updateOrderItem()` / `deleteOrderItem()` (take the new totals), `updateOrderCommentAndVoucher()`, `transformOfferToOrder()`, `orderIsDelivered()`, `orderItemStatusUpdate()`, `setDeletionForOrder()`, `restoreDeletedOrder()`, `permanentlyDeleteOrder()`, `saveAdminSortOrder()` (via RPC).
+
 
 ## store/
 
@@ -220,38 +224,61 @@ Key methods: `placeOrder()`, `transformOfferToOrder()`, `orderIsDelivered()`, `o
 
 Persists to `localStorage` with key `product_items_data`.
 
-**Stale data handling (10-minute TTL):**
-- On init, if saved data is older than `STALE_THRESHOLD_MS` (10 min):
-  - If current route is an offer-creation page → shows `ConfirmRestoreDialogComponent` asking whether to restore or discard.
-  - If on the offers listing page → auto-clears the stale data silently.
+**Saved cart (`cart.persistence.ts`, unit-tested):**
+- Saved to localStorage by `syncToLocalStorage` (from `@core/store/local-storage-sync`) whenever the cart changes — mutations do not save explicitly.
+- On init `decideStoredCart()` decides: changed in the last 10 minutes → restored silently; older → kept as `pendingRestore`; empty → dropped.
+- `staleCartGuard` (on `/offer/create`, `/offer/client`, `/offer/overview`) opens `ConfirmRestoreDialogComponent` when a `pendingRestore` is waiting, then calls `restorePendingCart()` or `discardPendingCart()`. The prompt never appears on other pages; any cart change elsewhere (e.g. loading an offer into the cart) replaces the pending cart.
 
 Key methods:
 - `addProductItem()` — **prepends** new items (newest first in the list).
 - `updateProductItem(productId, category, updates)` — finds by `(productId + category)` pair.
 - `checkForDuplicatedItems()` — merges exact duplicates by summing quantity and price.
 - `cartTotal()` — computed signal; sums all `item.price`.
-- All mutations call `persistState()` to write to localStorage.
 
-### `order/order.slice.ts` — order list UI state
+### `order/` — order / offer list (`OrderStore`)
+
+Root store used by `OrderTableComponent`. It owns the loaded rows and everything that decides what the table shows.
+
+- `order.slice.ts` — state shape:
 
 ```typescript
 {
-  currentOrderId: number;          // -1 = nothing selected
   tableSortType: 'delivery' | 'creation' | 'admin';
   tableFilterType: 'all' | 'open' | 'closed' | 'expectedToday';
   justOffers: boolean;
+  searchText: string;
+  dateRangeStart: Date | null;
+  dateRangeEnd: Date | null;
 }
 ```
 
-Default: `tableSortType='delivery'`, `tableFilterType='open'`, `justOffers=false`.
+Default: `tableSortType='delivery'`, `tableFilterType='open'`, `justOffers=false`, no search, no date range.
 
-## fromHistory navigation
+- `order.computed.ts` — pure, unit-tested functions: `filterByStatus`, `filterBySearch`, `filterByDateRange`, `sortOrders`, `selectVisibleOrders` (all of them combined), `orderListStats`, `moveOrder`. **Change filtering or sorting here**, not in the component, and extend `order.computed.vitest.spec.ts`.
+- `order.store.ts` — `OrderStore`:
+  - `init(justOffers)` — called by the table on creation: resets filter/sort/search/date range to the defaults and loads the rows. The table is recreated every time the user returns from order details, so the list is always fresh.
+  - `visibleOrders()` / `stats()` — the filtered and sorted rows and the footer numbers. Status filter, search and date range always apply together.
+  - `setFilter`, `setSort`, `setSearchText`, `setDateRange`.
+  - `pay(orderId, paidAmount)` and `delete(orderId)` update the row in place on success (no reload, no delay). `delete` soft-deletes (orders and offers alike).
+  - `reorder(previousIndex, currentIndex)` — drag-and-drop: shows the new order immediately, saves it through `update_order_sort_orders`, then refreshes the rows in the background.
 
-When a user clicks an order in `client-history`, the component:
-1. Saves the order to `localStorage` under key `on-order-details-page`.
-2. Navigates to `/orders?fromHistory=true`.
+### `order-details/` — one open order (`OrderDetailsStore`)
 
-The orders page reads the localStorage key, skips the table view, and opens order details for that order directly. When the user presses back/close in the detail view, `location.back()` takes them to `/clients` (not the orders table).
+Provided by `OrderDetailsComponent` (not root): each opened order gets its own instance.
+
+- `order-details.computed.ts` — pure, unit-tested: `applyVoucher(amount, voucher)`, `itemVolumeM3(item)` (how order details counts an item's m³: M2 items with a pack breakdown 0, items without width their quantity, bundles ×10, rounded to 3 decimals per item), `orderTotals(items, voucher)`.
+- `order-details.store.ts` — state `{ order, items }`:
+  - `load(orderId)` — order and items together.
+  - `addItem` / `updateItem` / `deleteItem` — compute the totals for the item list **after** the change, save item + totals in one database call, then update the order and reload the items. No timers.
+  - `setItemStatus`, `saveCommentAndVoucher`, `markDelivered`, `transformToOrder`, `moveToDeleted` (used when an offer is loaded into the cart with "delete the offer" ticked: the offer goes to the Deleted page).
+
+Client history and the deleted-orders page keep their state in the component; they are single-screen lists and do not need a store.
+
+## Selected order in the URL
+
+The open order is the `?orderId=` query parameter of `/orders` and `/offers` (read by the page through router input binding; `parseOrderId()` in `pages/order-id.util.ts`). Selecting a row navigates to `?orderId=…`; closing removes it. A reload keeps the order open and the browser Back button closes it.
+
+From client history the link is `/orders?orderId=…&fromHistory=true`; closing the details then calls `location.back()` and returns to `/clients`.
 
 ## Pricing
 

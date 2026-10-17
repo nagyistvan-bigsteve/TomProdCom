@@ -238,44 +238,30 @@ function makeCartItem(
 }
 
 describe('calculateActualPrice — generic row (product_id = null)', () => {
-  it('does NOT apply −50 when every 2.5 cm cart item already has a dedicated row in expandedPrices', () => {
+  it('shows the list price even when a 2.5 cm board in the cart uses the row', () => {
+    // The −50 for that board is applied per item (getExactPrice), not on the row
     const genericRow = makePrice2({ product_id: null as any, price: 1300 });
-    // Both 2.5 cm items have their own product-specific rows
-    const expandedPrices: Price2[] = [
-      makePrice2({ product_id: 10, price: 1200 }),
-      makePrice2({ product_id: 20, price: 1200 }),
-    ];
     const cartItems: ProductItem[] = [
       makeCartItem(10, 2.5),
-      makeCartItem(20, 2.5),
+      makeCartItem(99, 5),
     ];
-    // PJ+TVA: 1300 − 0 (no B discount for generic) − 100 (TVA) = 1200
-    expect(calculateActualPrice(genericRow, true, expandedPrices, cartItems)).toBe(1200);
-  });
-
-  it('applies −50 when at least one 2.5 cm cart item has no dedicated row', () => {
-    const genericRow = makePrice2({ product_id: null as any, price: 1300 });
-    // Only product 10 has a dedicated row; product 99 uses the generic row
-    const expandedPrices: Price2[] = [makePrice2({ product_id: 10, price: 1200 })];
-    const cartItems: ProductItem[] = [
-      makeCartItem(10, 2.5),
-      makeCartItem(99, 2.5), // uses generic row
-    ];
-    // PJ+TVA: 1300 − 50 − 100 = 1150
-    expect(calculateActualPrice(genericRow, true, expandedPrices, cartItems)).toBe(1150);
+    // PJ+TVA: 1300 − 100 (TVA) = 1200
+    expect(calculateActualPrice(genericRow, true, cartItems)).toBe(1200);
+    // PF: list price unchanged
+    expect(calculateActualPrice(genericRow, false, cartItems)).toBe(1300);
   });
 
   it('does NOT apply −50 when all M3 B cart items have thickness != 2.5', () => {
     const genericRow = makePrice2({ product_id: null as any, price: 1300 });
     const cartItems: ProductItem[] = [makeCartItem(99, 5)]; // 5 cm board
     // PJ+TVA: 1300 − 0 (no B discount, wrong thickness) − 100 = 1200
-    expect(calculateActualPrice(genericRow, true, [], cartItems)).toBe(1200);
+    expect(calculateActualPrice(genericRow, true, cartItems)).toBe(1200);
   });
 
   it('returns base price without TVA for PF client', () => {
     const genericRow = makePrice2({ product_id: null as any, price: 1300 });
     const cartItems: ProductItem[] = [makeCartItem(99, 5)];
-    expect(calculateActualPrice(genericRow, false, [], cartItems)).toBe(1300);
+    expect(calculateActualPrice(genericRow, false, cartItems)).toBe(1300);
   });
 });
 
@@ -284,27 +270,36 @@ describe('calculateActualPrice — product-specific row (product_id set)', () =>
     const specificRow = makePrice2({ product_id: 242, price: 1200 });
     const cartItems: ProductItem[] = [makeCartItem(242, 2.5, false)]; // nedimensionat
     // PJ+TVA: 1200 − 50 − 100 = 1050
-    expect(calculateActualPrice(specificRow, true, [specificRow], cartItems)).toBe(1050);
+    expect(calculateActualPrice(specificRow, true, cartItems)).toBe(1050);
   });
 
   it('PF client: only B discount, no TVA', () => {
     const specificRow = makePrice2({ product_id: 242, price: 1200 });
     const cartItems: ProductItem[] = [makeCartItem(242, 2.5, false)];
     // PF: 1200 − 50 = 1150
-    expect(calculateActualPrice(specificRow, false, [specificRow], cartItems)).toBe(1150);
+    expect(calculateActualPrice(specificRow, false, cartItems)).toBe(1150);
   });
 
   it('does NOT apply −50 for a product with thickness != 2.5', () => {
     const specificRow = makePrice2({ product_id: 77, price: 2100 });
     const cartItems: ProductItem[] = [makeCartItem(77, 5, true)]; // 5 cm board
     // PJ+TVA: 2100 − 0 (thickness != 2.5) − 100 = 2000
-    expect(calculateActualPrice(specificRow, true, [specificRow], cartItems)).toBe(2000);
+    expect(calculateActualPrice(specificRow, true, cartItems)).toBe(2000);
   });
 
   it('does NOT apply −50 when no cart items match the product_id', () => {
     const specificRow = makePrice2({ product_id: 999, price: 1200 });
     const cartItems: ProductItem[] = [makeCartItem(1, 2.5)]; // different product
     // PJ+TVA: 1200 − 0 (no matching item) − 100 = 1100
-    expect(calculateActualPrice(specificRow, true, [specificRow], cartItems)).toBe(1100);
+    expect(calculateActualPrice(specificRow, true, cartItems)).toBe(1100);
+  });
+
+  it('does NOT apply −50 when the 2.5 cm board is in the cart at another category', () => {
+    const specificRow = makePrice2({ product_id: 242, price: 1200 });
+    const cartItems: ProductItem[] = [
+      makeCartItem(242, 2.5, true, Category.A),
+    ];
+    // PJ+TVA: 1200 − 0 (cart item is not category B) − 100 = 1100
+    expect(calculateActualPrice(specificRow, true, cartItems)).toBe(1100);
   });
 });

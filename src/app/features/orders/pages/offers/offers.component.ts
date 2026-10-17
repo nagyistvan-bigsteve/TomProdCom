@@ -1,10 +1,12 @@
-﻿import { Component, DestroyRef, inject, signal, Signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { OrderTableComponent } from '@features/orders/components/order-table/order-table.component';
 import { OrderResponse } from '@core/models/models';
 import { OrderDetailsComponent } from '@features/orders/components/order-details/order-details.component';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { parseOrderId } from '@features/orders/pages/order-id.util';
 
 @Component({
   selector: 'app-offers',
@@ -19,27 +21,25 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   animations: [ENTER_ANIMATION],
 })
 export class OffersComponent {
-  order: OrderResponse | null = null;
+  /** `?orderId=` — the open offer; survives a reload and works with Back. */
+  readonly orderId = input<string>();
+
+  readonly selectedOrderId = computed(() => parseOrderId(this.orderId()));
   isLoading = signal(true);
 
-  ngOnInit(): void {
-    if (localStorage.getItem('on-offer-details-page')) {
-      this.order = JSON.parse(localStorage.getItem('on-offer-details-page')!);
-
-      if (!this.order?.clientId) {
-        this.deselectOrder();
-      }
-    }
-    this.isLoading.set(false);
-  }
+  private readonly router = inject(Router);
 
   selectedOrder(order: OrderResponse): void {
-    this.order = order;
-    localStorage.setItem('on-offer-details-page', JSON.stringify(order));
+    this.router.navigate([], {
+      queryParams: { orderId: order.id },
+      queryParamsHandling: 'merge',
+    });
   }
 
   deselectOrder(): void {
-    this.order = null;
-    localStorage.removeItem('on-offer-details-page');
+    this.router.navigate([], {
+      queryParams: { orderId: null },
+      queryParamsHandling: 'merge',
+    });
   }
 }

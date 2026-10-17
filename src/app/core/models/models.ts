@@ -158,6 +158,8 @@ export type OrderResponse = {
   operator: { id: string; name: string };
   delivery_address: string;
   deletedAt?: Date;
+  /** true for an offer, false for an order */
+  justOffer?: boolean;
 };
 
 export type Price2 = {

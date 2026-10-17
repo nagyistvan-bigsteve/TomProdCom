@@ -31,10 +31,9 @@ Used as an inline sidebar in the offer workflow (`/offer/overview`). Has a "Chan
 Fetches and displays past orders for the currently selected client via `OrdersService.getClientOrders(clientId)` on each `clientStore.client()` change.
 
 **Navigation when an order is clicked:**
-1. Saves the order ID to `localStorage` under the key `on-order-details-page`.
-2. Navigates to `/orders?fromHistory=true`.
-3. The orders page reads the localStorage key, skips the table view, and opens order details for that order directly.
-4. When the user dismisses the detail view, `location.back()` returns them to `/clients` (instead of showing the orders table, which is the default back behavior).
+1. Navigates to `/orders?orderId=<id>&fromHistory=true`.
+2. The orders page sees `orderId`, skips the table view, and opens order details for that order directly.
+3. When the user dismisses the detail view, `location.back()` returns them to `/clients` (instead of showing the orders table, which is the default back behavior).
 
 ## pages/
 
@@ -51,7 +50,7 @@ Fetches and displays past orders for the currently selected client via `OrdersSe
 
 - `client.service.ts` — Supabase CRUD for `clients` + `client_phones` tables; returns RxJS Observables.
 
-**Phone update strategy:** full-replace — when updating a client, the service **deletes all existing phone rows** and re-inserts the new array. There are no partial updates.
+**Phone update strategy:** full-replace — when updating a client, **all existing phone rows are deleted** and the new array is inserted. There are no partial updates. Client and phones are written in one transaction by the `add_client_with_phones` / `update_client_with_phones` database functions, so a failure cannot leave a client without its phones. A duplicate `code` still surfaces as Postgres error `23505`, which `ClientStore.addClient` maps to the "duplicate" message.
 
 ## store/
 
@@ -65,7 +64,7 @@ NgRX Signals store. Persists the selected client across the offer workflow.
 
 | Signal | Returns |
 |--------|---------|
-| `client()` | Full `Client` object for the current selection, or undefined |
+| `client()` | Full `Client` object for the current selection; typed `Client | undefined` — handle "nothing selected" |
 | `isClientSelected()` | `true` if `currentClientId !== -1` |
 | `isClientPJ()` | `true` if selected client type is PJ (2) |
 

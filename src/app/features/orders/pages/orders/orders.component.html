@@ -1,20 +1,19 @@
-@if (!order) {
+@if (selectedOrderId(); as orderId) {
+  <app-order-details
+    @enterAnimation
+    (closeDetails)="deselectOrder()"
+    [orderId]="orderId"
+  ></app-order-details>
+} @else {
   <app-order-table
     @enterAnimation
     [ngClass]="{ 'd-none': isLoading() }"
     (orderOutput)="selectedOrder($event)"
     (isLoading)="isLoading.set($event)"
   ></app-order-table>
-} @else {
-  <app-order-details
-    @enterAnimation
-    [ngClass]="{ 'd-none': isLoading() }"
-    (closeDetails)="deselectOrder()"
-    [order]="order"
-  ></app-order-details>
-}
-@if (isLoading()) {
-  <div class="d-flex justify-content-center align-items-center h-100">
-    <mat-spinner />
-  </div>
+  @if (isLoading()) {
+    <div class="d-flex justify-content-center align-items-center h-100">
+      <mat-spinner />
+    </div>
+  }
 }

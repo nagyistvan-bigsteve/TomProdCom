@@ -45,7 +45,7 @@ Accessible to **all authenticated and approved users**, but content is condition
 - **All users** see their own profile information (name, email, role).
 - **Admins additionally** see `ApproveUserComponent` (pending users) and `UsersListComponent` (all approved users with role management).
 
-This page fetches unapproved users on init via `authStore.fetchUnapprovedUsers()`. The count badge on the user-page navigation link reflects pending approvals.
+For admins this page loads both user lists on init (`UsersStore.loadUnapprovedUsers()` / `loadUsers()`). The topbar badge shows `UsersStore.unapprovedCount()`; the topbar reloads it whenever an admin signs in.
 
 **Layout:**
 - Standard `.page-header` strip (matches settings/clients) with the `NAVBAR.ACCOUNT` title.

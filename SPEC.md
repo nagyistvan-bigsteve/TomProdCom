@@ -498,7 +498,7 @@ An order can be marked as delivered, which sets `date_order_delivered` to today 
 
 Deleted records may be soft-deleted where appropriate.
 
-Deleted orders should be recoverable from the Deleted page.
+Deleted orders and offers should be recoverable from the Deleted page. Deleting an offer (from the offers table, or by ticking "delete the offer" when loading it into the cart) is a soft delete, the same as for orders.
 
 Deleted users follow a separate lifecycle and are permanently erased after 10 days.
 
@@ -983,12 +983,12 @@ Route:
 
 ### Features
 
-- view deleted orders;
-- restore deleted orders.
+- view deleted orders and offers (each labelled as order or offer);
+- restore deleted orders and offers.
 
 ### Auto-purge
 
-Soft-deleted **orders** are automatically and permanently purged **10 days** after their `deleted_at` timestamp. A countdown is shown in the Deleted page so employees know how long before an order is unrecoverable. The constant `DAYS_UNTIL_PERMANENT_DELETE = 10` controls this threshold.
+Soft-deleted **orders and offers** are automatically and permanently purged **10 days** after their `deleted_at` timestamp. A countdown is shown in the Deleted page so employees know how long before an order is unrecoverable. The constant `DAYS_UNTIL_PERMANENT_DELETE = 10` controls this threshold.
 
 ### Deleted users
 
@@ -1037,7 +1037,7 @@ An offer may also be used as the starting point for creating an order while allo
 
 ### Cart persistence
 
-The product selection (cart) is persisted to `localStorage` throughout the offer creation workflow. If the user returns to the offer creation flow after more than **10 minutes** of inactivity, they are prompted to either restore the saved cart or discard it and start fresh. If the stale cart is detected outside the offer creation routes, it is silently discarded.
+The product selection (cart) is persisted to `localStorage` throughout the offer creation workflow. If the user returns to the offer creation flow after more than **10 minutes** of inactivity, they are prompted to either restore the saved cart or discard it and start fresh. The prompt only appears when one of the offer creation pages is opened; until then the saved cart is left as it is, and it is replaced if the cart is filled from elsewhere (e.g. an offer loaded into the cart). A saved cart with no products is dropped without asking.
 
 ---
 
@@ -1149,6 +1149,13 @@ In the offer overview page, an employee can manually set a different unit price 
 
 **Order of adjustments:** Category B board discount → TVA discount → manual discount.
 
+### Base price shown in the offer overview panel
+
+The overview panel lists the price rows in use, each with a base price (`calculateActualPrice`). This is a display value; what an item is charged is always computed per item as described above.
+
+- A **general row** (not tied to one product) shows its list price, minus the TVA discount where it applies. It does **not** show the −50 board discount, even if a 2.5 cm board in the cart is priced from it — that board still gets its −50 per item.
+- A **product-specific row** shows the −50 when that product is a 2.5 cm board and is in the cart at category B.
+
 ---
 
 ## 10.4 Total price and voucher
@@ -1164,6 +1171,7 @@ A voucher can be applied in the offer overview:
 - **Absolute discount:** voucher string is a number (e.g. `"200"`) →
   `finalTotal = totalPrice − 200`
 - A leading `-` character is stripped before parsing.
+- When the voucher or the items of a saved order are changed in order details, the final total is never below 0 and is rounded to 2 decimals (`applyVoucher` in `@features/orders/store/order-details/order-details.computed`).
 
 The `total_amount` field on the order stores the pre-voucher total; `total_amount_final` stores the post-voucher total.
 
@@ -1192,7 +1200,7 @@ If the pricing hierarchy or a formula changes:
 
 1. Update `ProductUtil` (`@shared/utils/product.util`).
 2. Update `getExactPrice` in `selected-product-list.component.ts` if the lookup logic changes.
-3. Update `calculateActualPrice` in `offer-overview-page.component.ts` if the adjustment logic changes.
+3. Update `calculateActualPrice` in `@shared/utils/product.util` (used by `offer-overview-page.component.ts`) if the adjustment logic changes.
 4. Update any relevant tests.
 5. Update this section of SPEC.md.
 
@@ -1225,7 +1233,7 @@ The `total_amount` and `total_amount_final` fields on the order record also pers
 Pure business-logic functions — price formulas, discount adjustments, quantity calculations — must have Vitest unit tests.
 
 - **File naming**: `<module>.vitest.spec.ts` alongside the source file.
-- **Run**: `npm run test:unit` (single pass) or `npm run test:unit:watch` (watch mode).
+- **Run**: `npm run test:unit` (single pass) or `npm run test:unit:watch` (watch mode). The single pass type-checks the spec files first (`tsconfig.vitest.json`); Vitest alone does not, so a spec calling a function with the wrong arguments would otherwise run and fail for the wrong reason.
 - **Config**: `vitest.config.mjs` at the project root. Path aliases (`@core`, `@shared`, `@features`) are resolved automatically.
 - **Scope**: Test exported pure functions. Do not use Angular `TestBed` or DI in Vitest tests — use plain `new ClassName()` for classes without constructor dependencies.
 
@@ -1254,19 +1262,26 @@ Current functionality:
 
 The `stocks` table (and the TypeScript `Stock` type) contains a `booked_stock` column.
 
-**Current state — partially active via a Postgres trigger:**
+**Current state — maintained by three Postgres triggers on `order_items`** (real orders only, `just_offer = false`; M2 products are ignored):
 
-A database trigger (`trg_order_item_book_stock`) fires automatically on every INSERT into `order_items`. For real orders (`just_offer = false`) and non-M2 products, the trigger increments `booked_stock` by the ordered quantity. Offers (`just_offer = true`) are excluded.
+| Trigger function               | Fires on | Effect                                                                                           |
+| ------------------------------ | -------- | ------------------------------------------------------------------------------------------------ |
+| `trg_order_item_book_stock`    | INSERT   | `booked_stock += quantity`                                                                       |
+| `trg_order_item_status_change` | UPDATE   | `item_status` false → true: `booked_stock -= quantity` and `stock -= quantity`; true → false reverses both |
+| `trg_order_item_delete_unbook` | DELETE   | if the item was not delivered: `booked_stock -= quantity`                                        |
 
-The release side is **incomplete**: the Supabase RPC `product_booked_stock_sold` (which decrements both `stock` and `booked_stock` on delivery) exists but is never called from the frontend. Consequently, `booked_stock` accumulates but is never decremented — the booking lifecycle does not close.
+Known gaps (not yet decided how to handle — do not "fix" silently):
 
-Frontend service methods `addToBookedStock()`, `bookedStockSold()`, and `updateBookedStock()` in `stocks.service.ts` are **dead code** — they are defined but never called. They exist for a future wiring-up of the delivery decrement.
+- Transforming an offer into an order only flips `just_offer`; its items were inserted as offer items and were never booked, but delivering them later still decrements `booked_stock` and `stock`.
+- Changing an item's quantity or category does not adjust `booked_stock`.
+
+Frontend service methods `addToBookedStock()`, `bookedStockSold()`, and `updateBookedStock()` in `stocks.service.ts` are **dead code** — they are defined but never called; the triggers do this work.
 
 ### Incoming stock (`coming_wares`)
 
 The `coming_wares` feature tracks incoming shipments. When a shipment is inspected and verified, stock IS updated:
 
-- Items with `for_order = false`: delivered to the **warehouse** → `stock` is incremented via `addToProductStock()` when the item is verified as correct.
+- Items with `for_order = false`: delivered to the **warehouse** → `stock` is incremented when the shipment is verified and the item is marked correct. Verification and the stock increment happen in one database transaction (`verify_coming_wares`); a shipment can be verified only once.
 - Items with `for_order = true`: delivered **directly to a customer's order** → stock is NOT incremented (the goods bypass the warehouse).
 - The `all_for_order` convenience flag forces all items in a shipment to `for_order = true`.
 
@@ -1274,13 +1289,13 @@ The `coming_wares` feature tracks incoming shipments. When a shipment is inspect
 
 ```text
 available stock      ← currently active (stocks.stock field)
-reserved stock       ← partially active (booked_stock incremented by trigger, never decremented)
+reserved stock       ← active (booked_stock maintained by order_items triggers; see known gaps above)
 incoming/ordered     ← active (coming_wares feature — stock incremented on verification for warehouse items)
 ```
 
 Future functionality:
 
-- completing the `booked_stock` lifecycle (wire up delivery decrement);
+- closing the `booked_stock` gaps listed above (offer → order transformation, quantity edits);
 - stock per warehouse;
 - warehouse-specific inventory.
 
@@ -1588,6 +1603,21 @@ RLS policies must enforce access to protected data.
 Admin-only database operations must be protected server-side/database-side.
 
 Users must not be able to manipulate another user's data merely by modifying frontend requests.
+
+### Policy model
+
+The SQL lives in `supabase/migrations/` (`rls_require_approved_user.sql`, `rls_admin_only_writes.sql`). Two helper functions in the non-exposed `private` schema answer "who is calling": `private.is_approved()` and `private.is_admin()` (approved **and** listed in `admin_users`).
+
+| Who                    | Can do                                                                                                          |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Not signed in          | Nothing: no table access, no function calls                                                                     |
+| Signed in, unapproved  | Read their own profile only                                                                                     |
+| Approved user          | Read everything; create and edit clients, orders, offers, order items, stock; inspect, verify and delete shipments; hard-delete offers |
+| Admin                  | Additionally: edit prices and products, create shipments, hard-delete orders, approve / deny users, change roles |
+
+`admin_users` can be changed only by an admin. `stocks` is writable by every approved user because the `order_items` booking triggers update it on the user's behalf. Soft-deleting an order (`deleted_at`) is an ordinary update and is not restricted in the database.
+
+The app loads products, prices, stock and clients only once a user is signed in and approved, and reloads them after every sign-in.
 
 ### Sensitive operations
 

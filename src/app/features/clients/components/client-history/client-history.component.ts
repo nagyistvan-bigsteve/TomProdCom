@@ -24,23 +24,22 @@ export class ClientHistoryComponent {
   openOrderIndex = signal<number>(-1);
 
   constructor() {
-    localStorage.removeItem('on-order-details-page');
-
     effect(() => {
       const client = this.clientStore.client();
       if (!client?.id) return;
 
-      this.orderService.getClientOrders(client.id).subscribe((orders) => {
-        this.orders.set(orders);
+      this.orderService.getClientOrders(client.id).subscribe({
+        next: (orders) => this.orders.set(orders),
+        error: (error) => {
+          console.error('Error fetching client orders:', error);
+        },
       });
     });
   }
 
   goToDetailsPage(order: OrderResponse) {
-    localStorage.setItem('on-order-details-page', JSON.stringify(order));
-
     this.router.navigate(['/orders'], {
-      queryParams: { fromHistory: true },
+      queryParams: { orderId: order.id, fromHistory: true },
     });
   }
 }

@@ -15,7 +15,9 @@ import {
   withState,
 } from '@ngrx/signals';
 import { withBusy } from '@core/store/custom-features/with-busy/with-busy.feature';
-import { computed, inject } from '@angular/core';
+import { computed, effect, inject, untracked } from '@angular/core';
+import { useAuthStore } from '@core/store/auth-store';
+import { hasSpecificApiMessage } from '@core/services/api-error.util';
 import { ProductsService } from '@features/products/services/products.service';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
 import { Observable, pipe, switchMap, tap } from 'rxjs';
@@ -82,7 +84,9 @@ export const ProductStore = signalStore(
             tapResponse({
               next: (products) =>
                 patchState(store, setAllEntities(products, productConfig)),
-              error: (error) => console.error(error),
+              error: (error) => {
+                console.error(error);
+              },
               finalize: () => patchState(store, setIdle()),
             }),
           ),
@@ -98,7 +102,9 @@ export const ProductStore = signalStore(
             tapResponse({
               next: (prices) =>
                 patchState(store, setAllEntities(prices, priceConfig)),
-              error: (error) => console.error(error),
+              error: (error) => {
+                console.error(error);
+              },
               finalize: () => patchState(store, setIdle()),
             }),
           ),
@@ -114,7 +120,9 @@ export const ProductStore = signalStore(
             tapResponse({
               next: (stocks) =>
                 patchState(store, setAllEntities(stocks, stockConfig)),
-              error: (error) => console.error(error),
+              error: (error) => {
+                console.error(error);
+              },
               finalize: () => patchState(store, setIdle()),
             }),
           ),
@@ -131,7 +139,9 @@ export const ProductStore = signalStore(
           },
           error: (error) => {
             console.error(error);
-            store._notify.error('SNACKBAR.PRODUCT.ERROR.ADD');
+            if (!hasSpecificApiMessage(error)) {
+              store._notify.error('SNACKBAR.PRODUCT.ERROR.ADD');
+            }
           },
         }),
       );
@@ -155,7 +165,9 @@ export const ProductStore = signalStore(
               },
               error: (error) => {
                 console.error(error);
-                store._notify.error('SNACKBAR.PRODUCT.ERROR.UPDATE');
+                if (!hasSpecificApiMessage(error)) {
+                  store._notify.error('SNACKBAR.PRODUCT.ERROR.UPDATE');
+                }
               },
               finalize: () => patchState(store, setIdle()),
             }),
@@ -182,7 +194,9 @@ export const ProductStore = signalStore(
               },
               error: (error) => {
                 console.error(error);
-                store._notify.error('SNACKBAR.PRICE.ERROR.UPDATE');
+                if (!hasSpecificApiMessage(error)) {
+                  store._notify.error('SNACKBAR.PRICE.ERROR.UPDATE');
+                }
               },
               finalize: () => patchState(store, setIdle()),
             }),
@@ -203,7 +217,9 @@ export const ProductStore = signalStore(
               },
               error: (error) => {
                 console.error(error);
-                store._notify.error('SNACKBAR.PRICE.ERROR.ADD');
+                if (!hasSpecificApiMessage(error)) {
+                  store._notify.error('SNACKBAR.PRICE.ERROR.ADD');
+                }
               },
               finalize: () => patchState(store, setIdle()),
             }),
@@ -227,7 +243,9 @@ export const ProductStore = signalStore(
               },
               error: (error) => {
                 console.error(error);
-                store._notify.error('SNACKBAR.STOCK.ERROR.UPDATE');
+                if (!hasSpecificApiMessage(error)) {
+                  store._notify.error('SNACKBAR.STOCK.ERROR.UPDATE');
+                }
               },
               finalize: () => patchState(store, setIdle()),
             }),
@@ -246,26 +264,22 @@ export const ProductStore = signalStore(
         }),
       );
     },
-
-    addToProductStock(product_id: number, amount: number): void {
-      store._stockService.addToProductStock(product_id, amount);
-      const current = store.stocksEntityMap()[product_id];
-      if (current) {
-        patchState(
-          store,
-          updateEntity(
-            { id: product_id, changes: { stock: current.stock + amount } },
-            stockConfig,
-          ),
-        );
-      }
-    },
   })),
   withHooks((store) => ({
     onInit: () => {
-      store.fetchProducts();
-      store.fetchPrices();
-      store.fetchStocks();
+      const authStore = inject(useAuthStore);
+
+      // Data is readable only by an approved, signed-in user, so (re)load it
+      // whenever one signs in instead of once at startup
+      effect(() => {
+        if (authStore.id() && authStore.approved()) {
+          untracked(() => {
+            store.fetchProducts();
+            store.fetchPrices();
+            store.fetchStocks();
+          });
+        }
+      });
     },
   })),
 );

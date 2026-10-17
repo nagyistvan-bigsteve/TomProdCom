@@ -1,5 +1,6 @@
-﻿import { inject, Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '@core/services/supabase.service';
+import { unwrapResult } from '@core/services/supabase-result.util';
 import {
   Client,
   ExactOrderItem,
@@ -7,7 +8,20 @@ import {
   OrderResponse,
   ProductItems,
 } from '@core/models/models';
-import { catchError, from, map, Observable, of, switchMap, take } from 'rxjs';
+import { from, map, Observable } from 'rxjs';
+import { mapOrderRow, ORDER_SELECT, OrderRow } from './order.mapper';
+import { OrderTotals } from '@features/orders/store/order-details/order-details.computed';
+
+/** A new line item as the add_order_item database function expects it. */
+export interface NewOrderItem {
+  product_id: number;
+  quantity: number;
+  category_id: number;
+  price: number;
+  packs_pieces: string;
+}
+
+export type OrderItemChanges = Partial<Omit<NewOrderItem, 'product_id'>>;
 
 @Injectable({
   providedIn: 'root',
@@ -19,179 +33,45 @@ export class OrdersService {
     return from(
       this.supabaseService.client
         .from('orders')
-        .select(
-          `id,
-    client_id,
-    date_order_placed,
-    sort_order,
-    expected_delivery,
-    date_order_delivered,
-    until_delivery_date,
-    total_quantity,
-    for_first_hour,
-    total_amount,
-    total_amount_final,
-    paid_amount,
-    delivery_fee,
-    comment,
-    voucher,
-    operator:operator_id ( id, name ),
-    delivery_address
-    `,
-        )
+        .select(ORDER_SELECT)
         .eq('just_offer', justOffers)
         .is('deleted_at', null),
-    ).pipe(
-      map(({ data }) =>
-        (data ?? []).map(
-          (order): OrderResponse => ({
-            id: order.id,
-            sortOrder: order.sort_order,
-            clientId: order.client_id,
-            operator: Array.isArray(order.operator)
-              ? order.operator[0]
-              : order.operator || { id: 0, name: '' },
-            dateOrderPlaced: order.date_order_placed,
-            untilDeliveryDate: order.until_delivery_date,
-            forFirstHour: order.for_first_hour,
-            expectedDelivery: order.expected_delivery,
-            dateOrderDelivered: order.date_order_delivered,
-            totalAmount: order.total_amount,
-            totalAmountFinal: order.total_amount_final,
-            totalQuantity: order.total_quantity,
-            paidAmount: order.paid_amount,
-            deliveryFee: order.delivery_fee,
-            comment: order.comment,
-            voucher: order.voucher,
-            delivery_address: order.delivery_address,
-          }),
-        ),
-      ),
-      catchError((error) => {
-        console.error('Error fetching orders:', error);
-        return of([]);
-      }),
-    );
+    ).pipe(map(this.toOrders));
   }
 
   getDeletedOrders(): Observable<OrderResponse[]> {
     return from(
       this.supabaseService.client
         .from('orders')
-        .select(
-          `id,
-    client_id,
-    date_order_placed,
-    sort_order,
-    expected_delivery,
-    date_order_delivered,
-    until_delivery_date,
-    total_quantity,
-    for_first_hour,
-    total_amount,
-    total_amount_final,
-    paid_amount,
-    delivery_fee,
-    comment,
-    voucher,
-    operator:operator_id ( id, name ),
-    delivery_address,
-    deleted_at
-    `,
-        )
+        .select(ORDER_SELECT)
         .not('deleted_at', 'is', null),
-    ).pipe(
-      map(({ data }) =>
-        (data ?? []).map(
-          (order): OrderResponse => ({
-            id: order.id,
-            sortOrder: order.sort_order,
-            clientId: order.client_id,
-            operator: Array.isArray(order.operator)
-              ? order.operator[0]
-              : order.operator || { id: 0, name: '' },
-            dateOrderPlaced: order.date_order_placed,
-            untilDeliveryDate: order.until_delivery_date,
-            forFirstHour: order.for_first_hour,
-            expectedDelivery: order.expected_delivery,
-            dateOrderDelivered: order.date_order_delivered,
-            totalAmount: order.total_amount,
-            totalAmountFinal: order.total_amount_final,
-            totalQuantity: order.total_quantity,
-            paidAmount: order.paid_amount,
-            deliveryFee: order.delivery_fee,
-            comment: order.comment,
-            voucher: order.voucher,
-            delivery_address: order.delivery_address,
-            deletedAt: order.deleted_at,
-          }),
-        ),
-      ),
-      catchError((error) => {
-        console.error('Error fetching deleted orders:', error);
-        return of([]);
-      }),
-    );
+    ).pipe(map(this.toOrders));
   }
 
   getClientOrders(clientId: number): Observable<OrderResponse[]> {
     return from(
       this.supabaseService.client
         .from('orders')
-        .select(
-          `id,
-    client_id,
-    date_order_placed,
-    sort_order,
-    expected_delivery,
-    date_order_delivered,
-    until_delivery_date,
-    total_quantity,
-    for_first_hour,
-    total_amount,
-    total_amount_final,
-    paid_amount,
-    delivery_fee,
-    comment,
-    voucher,
-    operator:operator_id ( id, name ),
-    delivery_address
-    `,
-        )
+        .select(ORDER_SELECT)
         .eq('just_offer', false)
         .eq('client_id', clientId)
         .is('deleted_at', null),
-    ).pipe(
-      map(({ data }) =>
-        (data ?? []).map(
-          (order): OrderResponse => ({
-            id: order.id,
-            sortOrder: order.sort_order,
-            clientId: order.client_id,
-            operator: Array.isArray(order.operator)
-              ? order.operator[0]
-              : order.operator || { id: 0, name: '' },
-            dateOrderPlaced: order.date_order_placed,
-            untilDeliveryDate: order.until_delivery_date,
-            forFirstHour: order.for_first_hour,
-            expectedDelivery: order.expected_delivery,
-            dateOrderDelivered: order.date_order_delivered,
-            totalAmount: order.total_amount,
-            totalAmountFinal: order.total_amount_final,
-            totalQuantity: order.total_quantity,
-            paidAmount: order.paid_amount,
-            deliveryFee: order.delivery_fee,
-            comment: order.comment,
-            voucher: order.voucher,
-            delivery_address: order.delivery_address,
-          }),
-        ),
-      ),
-      catchError((error) => {
-        console.error('Error fetching orders:', error);
-        return of([]);
-      }),
-    );
+    ).pipe(map(this.toOrders));
+  }
+
+  getOrderById(id: number): Observable<OrderResponse> {
+    return from(
+      this.supabaseService.client
+        .from('orders')
+        .select(ORDER_SELECT)
+        .eq('id', id)
+        .single(),
+    ).pipe(map((result) => mapOrderRow(unwrapResult(result) as OrderRow)));
+  }
+
+  private toOrders(result: { data: unknown; error: unknown }): OrderResponse[] {
+    const rows = (unwrapResult(result) ?? []) as OrderRow[];
+    return rows.map(mapOrderRow);
   }
 
   async saveAdminSortOrder(orders: OrderResponse[]): Promise<boolean> {
@@ -229,8 +109,8 @@ export class OrdersService {
         )
         .eq('order_id', id),
     ).pipe(
-      map(({ data }) => {
-        return (data ?? []).map(
+      map((result) => {
+        return (unwrapResult(result) ?? []).map(
           (orderItem): OrderItemsResponse => ({
             id: orderItem.id,
             product: Array.isArray(orderItem.product)
@@ -254,141 +134,90 @@ export class OrdersService {
           }),
         );
       }),
-      catchError((error) => {
-        console.error('Error fetching order items:', error);
-        return of([]);
-      }),
     );
   }
 
-  async editOrderItem(
-    id: number,
-    order_id: number,
-    item: Partial<{
-      category_id: number;
-      quantity: number;
-      packs_pieces: string;
-      price: number;
-    }>,
-    order: Partial<{
-      total_amount: number;
-      total_amount_final: number;
-      total_quantity: number;
-    }>,
-  ): Promise<boolean> {
-    const { error: itemError } = await this.supabaseService.client
-      .from('order_items')
-      .update(item)
-      .eq('id', id);
-
-    if (itemError) {
-      console.error('Failed to update  order item', itemError);
-      return false;
-    }
-
-    const { error: orderError } = await this.supabaseService.client
-      .from('orders')
-      .update(order)
-      .eq('id', order_id);
-
-    if (orderError) {
-      console.error('Failed to update order', orderError);
-      return false;
-    }
-
-    return true;
-  }
+  // Line-item changes save the item and the order totals in one transaction.
+  // The caller computes the totals for the item list after the change
+  // (orderTotals in @features/orders/store/order-details).
 
   async addOrderItem(
-    order: OrderResponse,
-    item: Partial<OrderItemsResponse>,
+    orderId: number,
+    item: NewOrderItem,
+    totals: OrderTotals,
   ): Promise<boolean> {
-    const { error: insertError } = await this.supabaseService.client
-      .from('order_items')
-      .insert({
-        product_id: item.product?.id,
-        order_id: order.id,
-        quantity: +item.quantity!,
-        category_id: item.category?.name,
-        price: item.price,
-        item_status: false,
-        packs_pieces: item.packsPieces,
-      });
-
-    if (insertError) {
-      console.error('Failed to insert order item', insertError);
-      return false;
-    }
-
-    return true;
-  }
-
-  async deleteOrderItem(item: OrderItemsResponse): Promise<boolean> {
-    const { error: deleteError } = await this.supabaseService.client
-      .from('order_items')
-      .delete()
-      .eq('id', item.id);
-
-    if (deleteError) {
-      console.error('Failed to delete order item', deleteError);
-      return false;
-    }
-
-    return true;
-  }
-
-  async updateOrderTotals(
-    id: number,
-    totalAmount: number,
-    totalFinalAmount: number,
-    totalQuantity: number,
-  ): Promise<boolean> {
-    const { error: updateError } = await this.supabaseService.client
-      .from('orders')
-      .update({
-        total_amount: totalAmount,
-        total_amount_final: totalFinalAmount,
-        total_quantity: totalQuantity,
-      })
-      .eq('id', id);
-
-    if (updateError) {
-      console.error(
-        'Failed to update the order after item deletion',
-        updateError,
-      );
-      return false;
-    }
-
-    return true;
-  }
-
-  async updateOrderComment(id: number, newComment: string): Promise<boolean> {
-    const { error } = await this.supabaseService.client
-      .from('orders')
-      .update({ comment: newComment })
-      .eq('id', id);
+    const { error } = await this.supabaseService.client.rpc('add_order_item', {
+      p_order_id: orderId,
+      p_item: item,
+      p_totals: this.toTotalsRow(totals),
+    });
 
     if (error) {
-      console.error('Failed to update the comment, ', error);
+      console.error('Failed to add the order item', error);
       return false;
     }
 
     return true;
   }
 
-  async updateOrderVoucherAndTotal(
+  async updateOrderItem(
+    itemId: number,
+    changes: OrderItemChanges,
+    totals: OrderTotals,
+  ): Promise<boolean> {
+    const { error } = await this.supabaseService.client.rpc(
+      'update_order_item',
+      {
+        p_item_id: itemId,
+        p_changes: changes,
+        p_totals: this.toTotalsRow(totals),
+      },
+    );
+
+    if (error) {
+      console.error('Failed to update the order item', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  async deleteOrderItem(itemId: number, totals: OrderTotals): Promise<boolean> {
+    const { error } = await this.supabaseService.client.rpc(
+      'delete_order_item',
+      { p_item_id: itemId, p_totals: this.toTotalsRow(totals) },
+    );
+
+    if (error) {
+      console.error('Failed to delete the order item', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  private toTotalsRow(totals: OrderTotals) {
+    return {
+      total_amount: totals.totalAmount,
+      total_amount_final: totals.totalAmountFinal,
+      total_quantity: totals.totalQuantity,
+    };
+  }
+
+  /** Saves the comment, the voucher and the final amount in one request. */
+  async updateOrderCommentAndVoucher(
     id: number,
+    comment: string,
     voucher: string,
     totalAmountFinal: number,
   ): Promise<boolean> {
     const { error } = await this.supabaseService.client
       .from('orders')
-      .update({ voucher, total_amount_final: totalAmountFinal })
+      .update({ comment, voucher, total_amount_final: totalAmountFinal })
       .eq('id', id);
 
     if (error) {
-      console.error('Failed to update the voucher, ', error);
+      console.error('Failed to update the comment and voucher, ', error);
       return false;
     }
 
@@ -424,17 +253,10 @@ export class OrdersService {
   }
 
   async orderIsDelivered(id: number): Promise<boolean> {
-    const currentDate = new Date();
-
-    const { error } = await this.supabaseService.client
-      .from('orders')
-      .update({ date_order_delivered: currentDate })
-      .eq('id', id);
-
-    await this.supabaseService.client
-      .from('order_items')
-      .update({ item_status: true })
-      .eq('order_id', id);
+    const { error } = await this.supabaseService.client.rpc(
+      'mark_order_delivered',
+      { p_order_id: id },
+    );
 
     if (error) {
       console.error('Failed to finish the order, ', error);
@@ -487,23 +309,13 @@ export class OrdersService {
   }
 
   async permanentlyDeleteOrder(id: number): Promise<boolean> {
-    const { error: itemsError } = await this.supabaseService.client
-      .from('order_items')
-      .delete()
-      .eq('order_id', id);
+    const { error } = await this.supabaseService.client.rpc(
+      'delete_order_permanently',
+      { p_order_id: id },
+    );
 
-    if (itemsError) {
-      console.error('Failed to delete order items:', itemsError);
-      return false;
-    }
-
-    const { error: orderError } = await this.supabaseService.client
-      .from('orders')
-      .delete()
-      .eq('id', id);
-
-    if (orderError) {
-      console.error('Failed to permanently delete order:', orderError);
+    if (error) {
+      console.error('Failed to permanently delete order:', error);
       return false;
     }
 
@@ -525,34 +337,10 @@ export class OrdersService {
     just_offer: boolean,
     delivery_address: string,
     delivery_fee: number,
-  ) {
-    const currentDate = new Date();
-
-    const { data } = await this.supabaseService.client
-      .from('orders')
-      .insert({
-        client_id: client.id,
-        date_order_placed: currentDate,
-        expected_delivery,
-        until_delivery_date,
-        for_first_hour,
-        total_amount: totalPrice,
-        total_amount_final: finalPrice,
-        voucher,
-        comment,
-        operator_id,
-        total_quantity,
-        just_offer,
-        delivery_address,
-        delivery_fee,
-      })
-      .select()
-      .single();
-
-    if (data) {
-      const exactOrderItems: ExactOrderItem[] = productItems.map((item) => ({
+  ): Promise<boolean> {
+    const items: Omit<ExactOrderItem, 'order_id'>[] = productItems.map(
+      (item) => ({
         product_id: item.product.id,
-        order_id: data.id,
         quantity: +item.quantity,
         category_id: item.category,
         price: item.price,
@@ -563,11 +351,34 @@ export class OrdersService {
                 ? ' + ' + item.extraPiecesNeeded + 'b'
                 : '')
             : '',
-      }));
+      }),
+    );
 
-      await this.supabaseService.client
-        .from('order_items')
-        .insert(exactOrderItems);
+    // One transaction: the order and its items are saved together or not at all
+    const { error } = await this.supabaseService.client.rpc('place_order', {
+      p_order: {
+        client_id: client.id,
+        operator_id,
+        expected_delivery,
+        until_delivery_date,
+        for_first_hour,
+        total_amount: totalPrice,
+        total_amount_final: finalPrice,
+        voucher,
+        comment,
+        total_quantity,
+        just_offer,
+        delivery_address,
+        delivery_fee,
+      },
+      p_items: items,
+    });
+
+    if (error) {
+      console.error('Failed to save the order', error);
+      return false;
     }
+
+    return true;
   }
 }

@@ -342,7 +342,15 @@
       "UPDATE_SUCCESS": "Sikeresen frissítve!"
     },
     "GENERAL": {
-      "UPDATE_ERROR": "Hiba szerkesztéskor"
+      "UPDATE_ERROR": "Hiba szerkesztéskor",
+      "LOAD_ERROR": "NEM sikerült betölteni az adatokat!",
+      "SAVE_ERROR": "NEM sikerült a mentés!"
+    },
+    "API": {
+      "NO_PERMISSION": "Nincs jogosultságod ehhez a művelethez!",
+      "DUPLICATE": "Ez a bejegyzés már létezik!",
+      "IN_USE": "A művelet nem lehetséges: a bejegyzést máshol használják!",
+      "NETWORK": "Nincs kapcsolat a szerverrel. Ellenőrizd az internetet!"
     },
     "PRODUCT": {
       "STOCK": "Készlet: ",
@@ -496,12 +504,13 @@
     "KEEP": "Adatok megtartása"
   },
   "DELETED_ORDERS": {
-    "TITLE": "Törölt Rendelések",
-    "SUBTITLE": "A rendelések 10 nap után véglegesen törlődnek",
-    "LOADING": "Törölt rendelések betöltése...",
-    "NO_ORDERS": "Nincsenek Törölt Rendelések",
-    "NO_ORDERS_MESSAGE": "Jelenleg nincsenek törölt rendelések",
+    "TITLE": "Törölt Rendelések és Ajánlatok",
+    "SUBTITLE": "A rendelések és ajánlatok 10 nap után véglegesen törlődnek",
+    "LOADING": "Törölt rendelések és ajánlatok betöltése...",
+    "NO_ORDERS": "Nincsenek Törölt Rendelések vagy Ajánlatok",
+    "NO_ORDERS_MESSAGE": "Jelenleg nincsenek törölt rendelések vagy ajánlatok",
     "ORDER_ID": "Rendelés",
+    "OFFER_ID": "Ajánlat",
     "DAYS_LEFT": "nap van hátra",
     "DAYS_AGO": "napja",
     "DELETED": "Törölve",
@@ -513,8 +522,12 @@
     "DELETE_BUTTON": "Végleges Törlés",
     "RESTORE_TITLE": "Rendelés Visszaállítása?",
     "RESTORE_MESSAGE": "Biztosan vissza szeretné állítani a #{{orderId}} rendelést?",
+    "RESTORE_TITLE_OFFER": "Ajánlat Visszaállítása?",
+    "RESTORE_MESSAGE_OFFER": "Biztosan vissza szeretné állítani a #{{orderId}} ajánlatot?",
     "PERMANENT_DELETE_TITLE": "Rendelés Végleges Törlése?",
     "PERMANENT_DELETE_MESSAGE": "Biztosan véglegesen törölni szeretné a #{{orderId}} rendelést?",
+    "PERMANENT_DELETE_TITLE_OFFER": "Ajánlat Végleges Törlése?",
+    "PERMANENT_DELETE_MESSAGE_OFFER": "Biztosan véglegesen törölni szeretné a #{{orderId}} ajánlatot?",
     "WARNING_PERMANENT": "Ez a művelet nem vonható vissza!",
     "CANCEL": "Mégse",
     "CONFIRM": "Megerősítés"

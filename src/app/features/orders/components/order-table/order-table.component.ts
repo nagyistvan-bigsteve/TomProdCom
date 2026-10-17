@@ -1,6 +1,7 @@
 ﻿import {
   Component,
   DestroyRef,
+  effect,
   EventEmitter,
   inject,
   Input,
@@ -9,13 +10,10 @@
   TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { OrdersService } from '@features/orders/services/orders.service';
 import { OrderResponse } from '@core/models/models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
-  MatTableDataSource,
   MatTableModule,
-  MatTable,
 } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -43,9 +41,9 @@ import {
   CdkDragDrop,
   CdkDropList,
   CdkDrag,
-  moveItemInArray,
 } from '@angular/cdk/drag-drop';
 import { ClientStore } from '@features/clients/store/client.store';
+import { OrderStore } from '@features/orders/store/order/order.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 
 @Component({
@@ -77,7 +75,6 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
   animations: [LEAVE_ANIMATION],
 })
 export class OrderTableComponent implements OnInit {
-  @ViewChild('table') table!: MatTable<OrderResponse>;
   @ViewChild('confirmDeleteDialog') confirmDeleteDialog!: TemplateRef<any>;
   @ViewChild('paidAmountDialog') paidAmountDialog!: TemplateRef<any>;
   @Output() orderOutput = new EventEmitter<OrderResponse>();
@@ -85,25 +82,19 @@ export class OrderTableComponent implements OnInit {
   @Input() justOffers: boolean = false;
 
   readonly authStore = inject(useAuthStore);
+  readonly clientStore = inject(ClientStore);
+  readonly store = inject(OrderStore);
   private readonly destroyRef = inject(DestroyRef);
   private _dialog = inject(MatDialog);
-  private ordersService = inject(OrdersService);
+
   readonly dateRange = new FormGroup({
     start: new FormControl<Date | null>(null),
     end: new FormControl<Date | null>(null),
   });
-  readonly clientStore = inject(ClientStore);
-
-  orders: OrderResponse[] = [];
-  dataSource = new MatTableDataSource<OrderResponse>([]);
-  paidAmount: number | null = null;
-
-  columnsToDisplay: { name: string; value: string }[] = [];
-  columnsToDisplayStrings: string[] = [];
-  tableFilter: 'all' | 'open' | 'closed' | 'expectedToday' = 'open';
-  tableSort: 'delivery' | 'creation' | 'admin' = 'delivery';
   searchFilter = new FormControl<string>('');
-  expandedElement: OrderResponse | null = null;
+  paidAmount: number | null = null;
+  expandedOrderId: number | null = null;
+
   displayedColumns: string[] = [
     'CLIENT',
     'DELIVERY_PLACE',
@@ -112,36 +103,22 @@ export class OrderTableComponent implements OnInit {
     'TOTAL_AMOUND_FINAL',
   ];
 
-  displayedOrdersStat: {
-    numberOfOrders: number;
-    totalPrice: number;
-  } = { numberOfOrders: 0, totalPrice: 0 };
+  constructor() {
+    effect(() => this.isLoading.emit(this.store.isBusy()));
+  }
 
   ngOnInit(): void {
-    this.isLoading.emit(true);
-    this.fetchOrders();
+    this.store.init(this.justOffers);
 
     this.dateRange.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((range) => {
-        this.filterByDate(range.start, range.end, this.orders);
+        this.store.setDateRange(range.start ?? null, range.end ?? null);
       });
 
     this.searchFilter.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.filterItems(false));
-  }
-
-  fetchOrders(): void {
-    this.ordersService
-      .getOrders(this.justOffers)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((orders) => {
-        this.isLoading.emit(false);
-        this.orders = orders;
-        this.sortItems();
-        this.filterItems(false);
-      });
+      .subscribe((search) => this.store.setSearchText(search ?? ''));
   }
 
   payOrder(
@@ -165,120 +142,21 @@ export class OrderTableComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result === true && this.paidAmount) {
-          this.ordersService
-            .orderIsPaid(orderId, this.paidAmount + alreadyPaidAmount)
-            .then(() => {
-              this.fetchOrders();
-            });
+          this.store.pay(orderId, this.paidAmount + alreadyPaidAmount);
         }
       });
   }
 
-  filterByDate(
-    start: Date | null | undefined,
-    end: Date | null | undefined,
-    data: OrderResponse[],
-  ) {
-    if (start && end) {
-      end.setHours(23, 59, 59, 999);
-      this.dataSource.data = this.applyTextFilters(
-        data.filter((item) => {
-          return (
-            Date.parse(item.expectedDelivery.toString()) >=
-              Date.parse(start.toString()) &&
-            Date.parse(item.expectedDelivery.toString()) <=
-              Date.parse(end.toString())
-          );
-        }),
-      );
-      this.setDisplayedOrdersStats(this.dataSource.data);
-    } else {
-      this.dataSource.data = data;
-      this.filterItems(true);
-    }
-    this.sortItems();
-  }
-
-  sortItems() {
-    switch (this.tableSort) {
-      case 'delivery': {
-        this.dataSource.data = this.sortByDelivery(this.dataSource.data);
-        break;
-      }
-      case 'creation': {
-        this.dataSource.data = this.sortByCreation(this.dataSource.data);
-        break;
-      }
-      case 'admin': {
-        this.dataSource.data = this.sortByAdmin(this.dataSource.data);
-        break;
-      }
-    }
-  }
-
-  filterItems(restore: boolean) {
-    switch (this.tableFilter) {
-      case 'all': {
-        this.dataSource.data = this.applyTextFilters(this.orders);
-        this.setDisplayedOrdersStats(this.dataSource.data);
-        break;
-      }
-      case 'open': {
-        this.dataSource.data = this.applyTextFilters(
-          this.orders.filter((item) => item.dateOrderDelivered == null),
-        );
-        this.setDisplayedOrdersStats(this.dataSource.data);
-        break;
-      }
-      case 'closed': {
-        this.dataSource.data = this.applyTextFilters(
-          this.orders.filter((item) => item.dateOrderDelivered != null),
-        );
-        this.setDisplayedOrdersStats(this.dataSource.data);
-        break;
-      }
-      case 'expectedToday': {
-        const currentDate = new Date();
-        this.dataSource.data = this.applyTextFilters(
-          this.orders.filter(
-            (item) =>
-              new Date(item.expectedDelivery).getDate() ===
-                currentDate.getDate() &&
-              new Date(item.expectedDelivery).getMonth() ===
-                currentDate.getMonth() &&
-              new Date(item.expectedDelivery).getFullYear() ===
-                currentDate.getFullYear() &&
-              !item.dateOrderDelivered,
-          ),
-        );
-        this.setDisplayedOrdersStats(this.dataSource.data);
-        break;
-      }
-    }
-    if (!restore) {
-      this.filterByDate(
-        this.dateRange.value.start,
-        this.dateRange.value.end,
-        this.dataSource.data,
-      );
-    }
-  }
-
-  setDisplayedOrdersStats(data: OrderResponse[]): void {
-    this.displayedOrdersStat.numberOfOrders = data.length;
-    if (data.length) {
-      this.displayedOrdersStat.totalPrice = data
-        .map((item) => item.totalAmountFinal + item.deliveryFee)
-        .reduce((prev, next) => prev + next);
-    }
+  trackById(_index: number, order: OrderResponse): number {
+    return order.id;
   }
 
   isExpanded(element: OrderResponse) {
-    return this.expandedElement === element;
+    return this.expandedOrderId === element.id;
   }
 
   toggle(element: OrderResponse) {
-    this.expandedElement = this.isExpanded(element) ? null : element;
+    this.expandedOrderId = this.isExpanded(element) ? null : element.id;
   }
 
   showOrderDetails(order: OrderResponse): void {
@@ -295,19 +173,7 @@ export class OrderTableComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          if (this.justOffers) {
-            this.ordersService.permanentlyDeleteOrder(order.id).then(() => {
-              setTimeout(() => {
-                this.fetchOrders();
-              }, 500);
-            });
-          } else {
-            this.ordersService.setDeletionForOrder(order.id).then(() => {
-              setTimeout(() => {
-                this.fetchOrders();
-              }, 500);
-            });
-          }
+          this.store.delete(order.id);
         }
       });
   }
@@ -329,7 +195,10 @@ export class OrderTableComponent implements OnInit {
 
   // Check if drag and drop should be enabled
   isDragDropEnabled(): boolean {
-    return this.authStore.role() === 'admin' && this.tableSort === 'admin';
+    return (
+      this.authStore.role() === 'admin' &&
+      this.store.tableSortType() === 'admin'
+    );
   }
 
   // Handle drag and drop event
@@ -338,74 +207,6 @@ export class OrderTableComponent implements OnInit {
       return;
     }
 
-    moveItemInArray(
-      this.dataSource.data,
-      event.previousIndex,
-      event.currentIndex,
-    );
-    this.table.renderRows();
-
-    // TODO: Save the new order to the backend
-    this.ordersService
-      .saveAdminSortOrder(this.dataSource.data)
-      .then((response) => {
-        if (response) {
-          this.fetchOrders();
-        }
-      });
-  }
-
-  private applyTextFilters(orders: OrderResponse[]): OrderResponse[] {
-    const search = this.searchFilter.value?.toLowerCase().trim() ?? '';
-    if (!search) return orders;
-    return orders.filter((order) => {
-      const clientName =
-        this.clientStore.clientsEntityMap()[order.clientId]?.name?.toLowerCase() ?? '';
-      const deliveryAddress = order.delivery_address?.toLowerCase() ?? '';
-      return clientName.includes(search) || deliveryAddress.includes(search);
-    });
-  }
-
-  private sortByDelivery(orders: OrderResponse[]): OrderResponse[] {
-    return orders.sort((a, b) => {
-      const dateA = new Date(a.expectedDelivery).getTime();
-      const dateB = new Date(b.expectedDelivery).getTime();
-
-      return this.sortOrder(a, b, dateA, dateB);
-    });
-  }
-
-  private sortByCreation(orders: OrderResponse[]): OrderResponse[] {
-    return orders.sort((a, b) => {
-      const dateA = new Date(a.dateOrderPlaced).getTime();
-      const dateB = new Date(b.dateOrderPlaced).getTime();
-
-      return this.sortOrder(a, b, dateA, dateB);
-    });
-  }
-
-  private sortByAdmin(orders: OrderResponse[]): OrderResponse[] {
-    return orders.sort((a, b) => {
-      return this.sortOrder(a, b, a.sortOrder, b.sortOrder);
-    });
-  }
-
-  private sortOrder(
-    orderA: OrderResponse,
-    orderB: OrderResponse,
-    sortA: number,
-    sortB: number,
-  ) {
-    if (sortA !== sortB) {
-      return sortA - sortB;
-    }
-
-    const firstHourDiff =
-      Number(orderB.forFirstHour) - Number(orderA.forFirstHour);
-    if (firstHourDiff !== 0) {
-      return firstHourDiff;
-    }
-
-    return Number(orderA.untilDeliveryDate) - Number(orderB.untilDeliveryDate);
+    this.store.reorder(event.previousIndex, event.currentIndex);
   }
 }

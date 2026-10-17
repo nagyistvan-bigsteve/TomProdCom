@@ -46,7 +46,7 @@ export class CreateOfferPageComponent {
   private destroyRef = inject(DestroyRef);
   private _snackBar = inject(MatSnackBar);
   private _dialog = inject(MatDialog);
-  readonly productStore = inject(CartStore);
+  readonly cartStore = inject(CartStore);
 
   readonly isDesktop = toSignal(
     inject(BreakpointObserver)
@@ -60,7 +60,7 @@ export class CreateOfferPageComponent {
   }
 
   addProductToList(item: ProductItem): void {
-    const existingProduct = this.productStore
+    const existingProduct = this.cartStore
       .productItems()
       .find(
         (product) =>
@@ -69,7 +69,7 @@ export class CreateOfferPageComponent {
       );
 
     if (existingProduct) {
-      const productList = this.productStore.productItems();
+      const productList = this.cartStore.productItems();
 
       const dialogRef = this._dialog.open(OverwriteDialogComponent, {
         data: { productName: item.product.name },
@@ -80,12 +80,12 @@ export class CreateOfferPageComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((result: any) => {
           if (result === 'overwrite') {
-            const index = this.productStore
+            const index = this.cartStore
               .productItems()
               .indexOf(existingProduct);
             productList[index] = item;
 
-            this.productStore.setProductItems(productList);
+            this.cartStore.setProductItems(productList);
             this.openSnackBar(
               this.translateService.instant(
                 'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.OVERWRITE',
@@ -120,7 +120,7 @@ export class CreateOfferPageComponent {
                 : (existingProduct.packsNeeded = item.packsNeeded);
             }
 
-            this.productStore.updateProductItem(
+            this.cartStore.updateProductItem(
               existingProduct.product.id,
               existingProduct.category,
               existingProduct,
@@ -134,7 +134,7 @@ export class CreateOfferPageComponent {
           }
         });
     } else {
-      this.productStore.addProductItem(item);
+      this.cartStore.addProductItem(item);
 
       this.openSnackBar(
         this.translateService.instant(

@@ -1,9 +1,11 @@
 import {
   Component,
+  effect,
   EventEmitter,
   inject,
   OnInit,
   Output,
+  untracked,
 } from '@angular/core';
 import { LanguageSwitcherComponent } from '../language-swicher/language-switcher.component';
 import { TranslateModule } from '@ngx-translate/core';
@@ -13,6 +15,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
 import { useAuthStore } from '@core/store/auth-store';
+import { UsersStore } from '@core/store/users.store';
 import { Router } from '@angular/router';
 import { MatBadgeModule } from '@angular/material/badge';
 import { InstallService } from '@core/services/install.service';
@@ -40,9 +43,18 @@ export class TopbarComponent implements OnInit {
   public authStore = inject(useAuthStore);
   public installService = inject(InstallService);
 
-  ngOnInit(): void {
-    this.authStore.fetchUnapprovedUsers();
+  readonly usersStore = inject(UsersStore);
+
+  constructor() {
+    // Badge with users waiting for approval: admins only, refreshed on sign-in
+    effect(() => {
+      if (this.authStore.role() === 'admin') {
+        untracked(() => this.usersStore.loadUnapprovedUsers());
+      }
+    });
   }
+
+  ngOnInit(): void {}
 
   installApp(): void {
     this.installService.promptInstall();

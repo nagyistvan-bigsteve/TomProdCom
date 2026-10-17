@@ -7,6 +7,10 @@ import { TopbarComponent } from '@shared/components/layout/topbar/topbar.compone
 import { useAuthStore } from '@core/store/auth-store';
 import { AppVersionService } from '@core/services/app-version.service';
 import { SidebarComponent } from '@shared/components/layout/sidebar/sidebar.component';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SupabaseService } from '@core/services/supabase.service';
+import { apiErrorKey } from '@core/services/api-error.util';
+import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   standalone: true,
@@ -19,8 +23,17 @@ export class AppComponent implements OnInit {
   private translateService = inject(TranslateService);
   readonly authStore = inject(useAuthStore);
   private appVersion = inject(AppVersionService);
+  private supabaseService = inject(SupabaseService);
+  private notify = inject(NotificationService);
 
   isSidebarOpen = false;
+
+  constructor() {
+    // One place that tells the user about any failed data request
+    this.supabaseService.apiFailures$
+      .pipe(takeUntilDestroyed())
+      .subscribe((failure) => this.notify.error(apiErrorKey(failure)));
+  }
 
   toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
@@ -36,6 +49,7 @@ export class AppComponent implements OnInit {
     this.translateService.setDefaultLang(savedLang);
     this.translateService.use(savedLang);
 
+    // Keys used by older versions to remember the open order; now in the URL
     localStorage.removeItem('on-offer-details-page');
     localStorage.removeItem('on-order-details-page');
   }

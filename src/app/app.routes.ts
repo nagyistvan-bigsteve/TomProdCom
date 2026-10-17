@@ -5,6 +5,7 @@ import { SelectClientPageComponent } from '@features/orders/pages/select-client/
 import { OfferOverviewPageComponent } from '@features/orders/pages/offer-overview/offer-overview-page.component';
 import { ResetPasswordComponent } from '@features/auth/pages/reset-password/reset-password.component';
 import { authGuard } from '@core/guards/auth-guard.service';
+import { staleCartGuard } from '@features/orders/store/cart/stale-cart.guard';
 import { AuthPageComponent } from '@features/auth/pages/auth/auth-page.component';
 import { WaitToApproveComponent } from '@features/auth/pages/wait-to-approve/wait-to-approve.component';
 import { UserComponent } from '@features/auth/pages/user/user.component';
@@ -29,7 +30,7 @@ export const routes: Routes = [
   {
     path: 'offer/create',
     component: CreateOfferPageComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, staleCartGuard],
     data: {
       requiresApproval: true,
     },
@@ -37,7 +38,7 @@ export const routes: Routes = [
   {
     path: 'offer/client',
     component: SelectClientPageComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, staleCartGuard],
     data: {
       requiresApproval: true,
     },
@@ -45,7 +46,7 @@ export const routes: Routes = [
   {
     path: 'offer/overview',
     component: OfferOverviewPageComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, staleCartGuard],
     data: {
       requiresApproval: true,
     },

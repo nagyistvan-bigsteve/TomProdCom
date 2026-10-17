@@ -92,9 +92,15 @@ export class ComingWaresDetailsComponent {
     this.#comingWaresService
       .getComingWaresItemsById(this.id())
       .pipe(takeUntilDestroyed(this.#destroyRef))
-      .subscribe((items) => {
-        this.isLoading.set(false);
-        this.comingWaresItems.set(items);
+      .subscribe({
+        next: (items) => {
+          this.isLoading.set(false);
+          this.comingWaresItems.set(items);
+        },
+        error: (error) => {
+          console.error('Error fetching coming wares items:', error);
+          this.isLoading.set(false);
+        },
       });
   }
 
@@ -108,18 +114,17 @@ export class ComingWaresDetailsComponent {
       .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          this.#comingWaresService.verifyComingWares(this.id()).then(() => {
-            this.comingWaresItems().forEach((item) => {
-              if (!item.for_order && item.is_correct) {
-                this.#productStore.addToProductStock(
-                  item.product.id,
-                  item.quantity,
-                );
+          this.#comingWaresService
+            .verifyComingWares(this.id())
+            .then((verified) => {
+              if (!verified) {
+                return;
               }
-            });
 
-            this.#location.back();
-          });
+              // The database added the verified items to stock
+              this.#productStore.fetchStocks();
+              this.#location.back();
+            });
         }
       });
   }
@@ -134,9 +139,15 @@ export class ComingWaresDetailsComponent {
       .pipe(takeUntilDestroyed(this.#destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          this.#comingWaresService.deleteComingWares(this.id()).then(() => {
-            this.#location.back();
-          });
+          this.#comingWaresService
+            .deleteComingWares(this.id())
+            .then((deleted) => {
+              if (!deleted) {
+                return;
+              }
+
+              this.#location.back();
+            });
         }
       });
   }

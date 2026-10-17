@@ -342,7 +342,15 @@
       "UPDATE_SUCCESS": "Update cu succes!"
     },
     "GENERAL": {
-      "UPDATE_ERROR": "Problemă la updatare"
+      "UPDATE_ERROR": "Problemă la updatare",
+      "LOAD_ERROR": "PROBLEMĂ la încărcarea datelor!",
+      "SAVE_ERROR": "PROBLEMĂ la salvare!"
+    },
+    "API": {
+      "NO_PERMISSION": "Nu ai drepturi pentru această operațiune!",
+      "DUPLICATE": "Această înregistrare există deja!",
+      "IN_USE": "Operațiune imposibilă: înregistrarea este folosită în altă parte!",
+      "NETWORK": "Fără conexiune la server. Verifică internetul!"
     },
     "PRODUCT": {
       "STOCK": "Stoc: ",
@@ -496,12 +504,13 @@
     "KEEP": "Păstrează datele"
   },
   "DELETED_ORDERS": {
-    "TITLE": "Comenzi Șterse",
-    "SUBTITLE": "Comenzile vor fi șterse permanent după 10 zile",
-    "LOADING": "Se încarcă comenzile șterse...",
-    "NO_ORDERS": "Nu Există Comenzi Șterse",
-    "NO_ORDERS_MESSAGE": "În prezent nu există comenzi șterse",
+    "TITLE": "Comenzi și Oferte Șterse",
+    "SUBTITLE": "Comenzile și ofertele vor fi șterse permanent după 10 zile",
+    "LOADING": "Se încarcă comenzile și ofertele șterse...",
+    "NO_ORDERS": "Nu Există Comenzi sau Oferte Șterse",
+    "NO_ORDERS_MESSAGE": "În prezent nu există comenzi sau oferte șterse",
     "ORDER_ID": "Comanda",
+    "OFFER_ID": "Oferta",
     "DAYS_LEFT": "zile rămase",
     "DAYS_AGO": "zile în urmă",
     "DELETED": "Șters",
@@ -513,8 +522,12 @@
     "DELETE_BUTTON": "Șterge Permanent",
     "RESTORE_TITLE": "Restaurați Comanda?",
     "RESTORE_MESSAGE": "Sigur doriți să restaurați comanda #{{orderId}}?",
+    "RESTORE_TITLE_OFFER": "Restaurați Oferta?",
+    "RESTORE_MESSAGE_OFFER": "Sigur doriți să restaurați oferta #{{orderId}}?",
     "PERMANENT_DELETE_TITLE": "Ștergeți Permanent Comanda?",
     "PERMANENT_DELETE_MESSAGE": "Sigur doriți să ștergeți permanent comanda #{{orderId}}?",
+    "PERMANENT_DELETE_TITLE_OFFER": "Ștergeți Permanent Oferta?",
+    "PERMANENT_DELETE_MESSAGE_OFFER": "Sigur doriți să ștergeți permanent oferta #{{orderId}}?",
     "WARNING_PERMANENT": "Această acțiune nu poate fi anulată!",
     "CANCEL": "Anulează",
     "CONFIRM": "Confirmă"
