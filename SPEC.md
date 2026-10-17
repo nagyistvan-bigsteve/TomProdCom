@@ -498,7 +498,7 @@ An order can be marked as delivered, which sets `date_order_delivered` to today 
 
 Deleted records may be soft-deleted where appropriate.
 
-Deleted orders should be recoverable from the Deleted page.
+Deleted orders and offers should be recoverable from the Deleted page. Deleting an offer (from the offers table, or by ticking "delete the offer" when loading it into the cart) is a soft delete, the same as for orders.
 
 Deleted users follow a separate lifecycle and are permanently erased after 10 days.
 
@@ -983,12 +983,12 @@ Route:
 
 ### Features
 
-- view deleted orders;
-- restore deleted orders.
+- view deleted orders and offers (each labelled as order or offer);
+- restore deleted orders and offers.
 
 ### Auto-purge
 
-Soft-deleted **orders** are automatically and permanently purged **10 days** after their `deleted_at` timestamp. A countdown is shown in the Deleted page so employees know how long before an order is unrecoverable. The constant `DAYS_UNTIL_PERMANENT_DELETE = 10` controls this threshold.
+Soft-deleted **orders and offers** are automatically and permanently purged **10 days** after their `deleted_at` timestamp. A countdown is shown in the Deleted page so employees know how long before an order is unrecoverable. The constant `DAYS_UNTIL_PERMANENT_DELETE = 10` controls this threshold.
 
 ### Deleted users
 

@@ -501,7 +501,7 @@ export class OrderDetailsComponent implements OnInit {
           this.cartStore.setProductItems(productItems);
           this.cartStore.setPricingClientId(order.clientId);
           if (this.deleteOffer) {
-            this.detailsStore.deletePermanently();
+            this.detailsStore.moveToDeleted();
           }
           this.router.navigate(['offer/overview']);
         }

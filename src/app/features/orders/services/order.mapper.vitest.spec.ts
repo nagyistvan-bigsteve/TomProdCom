@@ -20,6 +20,7 @@ const row: OrderRow = {
   operator: { id: 'u1', name: 'Ana' },
   delivery_address: 'Str. Lunga 1',
   deleted_at: null,
+  just_offer: false,
 };
 
 describe('mapOrderRow', () => {
@@ -42,6 +43,7 @@ describe('mapOrderRow', () => {
       voucher: '10%',
       operator: { id: 'u1', name: 'Ana' },
       delivery_address: 'Str. Lunga 1',
+      justOffer: false,
     });
   });
 
@@ -59,6 +61,11 @@ describe('mapOrderRow', () => {
       id: 0,
       name: '',
     });
+  });
+
+  it('marks offers', () => {
+    expect(mapOrderRow({ ...row, just_offer: true }).justOffer).toBe(true);
+    expect(mapOrderRow({ ...row, just_offer: null }).justOffer).toBe(false);
   });
 
   it('exposes deletedAt only for soft-deleted orders', () => {

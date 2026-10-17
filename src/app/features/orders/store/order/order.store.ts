@@ -143,11 +143,12 @@ export const OrderStore = signalStore(
         return paid;
       },
 
-      /** Offers are removed for good; orders are soft-deleted (restorable). */
+      /**
+       * Moves an order or offer to the deleted list (restorable for 10 days,
+       * then purged).
+       */
       async delete(orderId: number): Promise<boolean> {
-        const deleted = store.justOffers()
-          ? await store._ordersService.permanentlyDeleteOrder(orderId)
-          : await store._ordersService.setDeletionForOrder(orderId);
+        const deleted = await store._ordersService.setDeletionForOrder(orderId);
 
         if (deleted) {
           patchState(store, removeEntity(orderId, orderConfig));

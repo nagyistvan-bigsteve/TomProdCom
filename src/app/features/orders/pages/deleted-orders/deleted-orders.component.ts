@@ -96,8 +96,12 @@ export class DeletedOrdersComponent {
   restoreOrder(order: DeletedOrderWithDays): void {
     const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
       data: {
-        title: 'DELETED_ORDERS.RESTORE_TITLE',
-        message: 'DELETED_ORDERS.RESTORE_MESSAGE',
+        title: order.justOffer
+          ? 'DELETED_ORDERS.RESTORE_TITLE_OFFER'
+          : 'DELETED_ORDERS.RESTORE_TITLE',
+        message: order.justOffer
+          ? 'DELETED_ORDERS.RESTORE_MESSAGE_OFFER'
+          : 'DELETED_ORDERS.RESTORE_MESSAGE',
         orderId: order.id,
       },
     });
@@ -120,8 +124,12 @@ export class DeletedOrdersComponent {
   permanentlyDelete(order: DeletedOrderWithDays): void {
     const dialogRef = this.dialog.open(ConfirmDeleteDialogComponent, {
       data: {
-        title: 'DELETED_ORDERS.PERMANENT_DELETE_TITLE',
-        message: 'DELETED_ORDERS.PERMANENT_DELETE_MESSAGE',
+        title: order.justOffer
+          ? 'DELETED_ORDERS.PERMANENT_DELETE_TITLE_OFFER'
+          : 'DELETED_ORDERS.PERMANENT_DELETE_TITLE',
+        message: order.justOffer
+          ? 'DELETED_ORDERS.PERMANENT_DELETE_MESSAGE_OFFER'
+          : 'DELETED_ORDERS.PERMANENT_DELETE_MESSAGE',
         orderId: order.id,
         isDangerous: true,
       },
