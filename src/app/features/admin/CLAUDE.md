@@ -80,9 +80,9 @@ Three editing modes, selected by `selectedPriceType`:
 
 ### `approve-user/` — new user approval
 
-Lists all users where `approved = false` (fetched via `AuthStore.fetchUnapprovedUsers()`).
+Lists all users where `approved = false` (`UsersStore.unapprovedUsers()`, loaded by the user page).
 
-- **Approve:** calls `AuthStore.approveUser(id)` → sets `profiles.approved = true`.
+- **Approve:** calls `UsersStore.approve(id)` → sets `profiles.approved = true`, then reloads both lists.
 - **Deny:** calls `AuthStore.denyUser(id)` → **permanently hard-deletes the user** from Supabase (not soft-delete). The user record is gone.
 
 **Layout:** Frosted card (`.section-card`, `rgba(255,255,255,0.08)` on the dark-green background). Section header shows an orange `pending` icon and a count badge. Each pending user gets a row with a small avatar circle, name + email (truncated), and green check / red cancel icon buttons. The component renders nothing when the unapproved list is empty — the parent (`user.component`) guards the `@if(users.length)` check before mounting it.
@@ -91,9 +91,9 @@ Lists all users where `approved = false` (fetched via `AuthStore.fetchUnapproved
 
 ### `users-list/` — approved users and role management
 
-Lists all approved users (fetched via `AuthStore.fetchUsers()`).
+Lists all approved users (`UsersStore.users()`, loaded by the user page).
 
-- **Toggle role:** calls `AuthStore.changeRoleForUser(id, oldRole)` which toggles `user` ↔ `admin`.
+- **Toggle role:** calls `UsersStore.toggleRole(id, oldRole)`, which toggles `user` ↔ `admin` through the `set_user_role` database function (role and `admin_users` together; refused for non-admins).
   - Promoting to admin: also inserts a row into the `admin_users` table.
   - Demoting to user: also deletes the row from `admin_users`.
 - An admin cannot accidentally demote themselves without a safeguard (enforced in `AuthStore`).

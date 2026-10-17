@@ -1,5 +1,5 @@
-@if (unapprovedUsers | async; as users) {
-  @if (users.length) {
+@let users = usersStore.unapprovedUsers();
+@if (users.length) {
     <div class="section-card" @enterAnimation>
       <div class="section-header">
         <mat-icon class="section-icon pending-icon">pending</mat-icon>
@@ -31,5 +31,4 @@
         }
       </div>
     </div>
-  }
 }

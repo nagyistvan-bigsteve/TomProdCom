@@ -26,10 +26,8 @@
 
   @if (authStore.role() === 'admin') {
     <div class="admin-section">
-      @if (unaprovedUsers | async; as users) {
-        @if (users.length) {
-          <app-approve-user @enterAnimation />
-        }
+      @if (usersStore.unapprovedCount()) {
+        <app-approve-user @enterAnimation />
       }
       <app-users-list @enterAnimation />
     </div>
