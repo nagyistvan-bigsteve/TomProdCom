@@ -31,10 +31,9 @@ Used as an inline sidebar in the offer workflow (`/offer/overview`). Has a "Chan
 Fetches and displays past orders for the currently selected client via `OrdersService.getClientOrders(clientId)` on each `clientStore.client()` change.
 
 **Navigation when an order is clicked:**
-1. Saves the order ID to `localStorage` under the key `on-order-details-page`.
-2. Navigates to `/orders?fromHistory=true`.
-3. The orders page reads the localStorage key, skips the table view, and opens order details for that order directly.
-4. When the user dismisses the detail view, `location.back()` returns them to `/clients` (instead of showing the orders table, which is the default back behavior).
+1. Navigates to `/orders?orderId=<id>&fromHistory=true`.
+2. The orders page sees `orderId`, skips the table view, and opens order details for that order directly.
+3. When the user dismisses the detail view, `location.back()` returns them to `/clients` (instead of showing the orders table, which is the default back behavior).
 
 ## pages/
 

@@ -1,12 +1,12 @@
-﻿import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { OrderTableComponent } from '@features/orders/components/order-table/order-table.component';
 import { OrderResponse } from '@core/models/models';
 import { OrderDetailsComponent } from '@features/orders/components/order-details/order-details.component';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule, Location } from '@angular/common';
-import { ClientStore } from '@features/clients/store/client.store';
-import { ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
+import { parseOrderId } from '@features/orders/pages/order-id.util';
 
 @Component({
   selector: 'app-orders',
@@ -20,39 +20,34 @@ import { ActivatedRoute } from '@angular/router';
   styleUrl: './orders.component.scss',
   animations: [ENTER_ANIMATION],
 })
-export class OrdersComponent implements OnInit {
-  order: OrderResponse | null = null;
+export class OrdersComponent {
+  /** `?orderId=` — the open order; survives a reload and works with Back. */
+  readonly orderId = input<string>();
+  /** `?fromHistory=true` — opened from client history; closing goes back there. */
+  readonly fromHistory = input<string>();
+
+  readonly selectedOrderId = computed(() => parseOrderId(this.orderId()));
   isLoading = signal(true);
-  fromHistory = signal(false);
-  readonly clientStore = inject(ClientStore);
-  private readonly route = inject(ActivatedRoute);
+
+  private readonly router = inject(Router);
   private readonly location = inject(Location);
 
-  ngOnInit(): void {
-    this.route.queryParams.subscribe((params) => {
-      this.fromHistory.set(params['fromHistory']);
-    });
-
-    if (localStorage.getItem('on-order-details-page')) {
-      this.order = JSON.parse(localStorage.getItem('on-order-details-page')!);
-    }
-
-    if (!this.order?.clientId) {
-      this.deselectOrder();
-    }
-    this.isLoading.set(false);
-  }
-
   selectedOrder(order: OrderResponse): void {
-    this.order = order;
-    localStorage.setItem('on-order-details-page', JSON.stringify(order));
+    this.router.navigate([], {
+      queryParams: { orderId: order.id },
+      queryParamsHandling: 'merge',
+    });
   }
 
   deselectOrder(): void {
-    this.order = null;
-    localStorage.removeItem('on-order-details-page');
     if (this.fromHistory()) {
       this.location.back();
+      return;
     }
+
+    this.router.navigate([], {
+      queryParams: { orderId: null },
+      queryParamsHandling: 'merge',
+    });
   }
 }

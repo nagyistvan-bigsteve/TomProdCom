@@ -24,7 +24,6 @@ import {
 } from '@core/models/models';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { OrdersService } from '@features/orders/services/orders.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { MatDividerModule } from '@angular/material/divider';
@@ -50,6 +49,8 @@ import { ClientStore } from '@features/clients/store/client.store';
 import { ProductStore } from '@features/products/store/product.store';
 import { computePricesForProduct } from '@features/products/store/product.computed';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
+import { OrderDetailsStore } from '@features/orders/store/order-details/order-details.store';
+import { itemVolumeM3 } from '@features/orders/store/order-details/order-details.computed';
 
 @Component({
   selector: 'app-order-details',
@@ -73,6 +74,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
     MatAutocompleteModule,
     OrderPdfComponent,
   ],
+  providers: [OrderDetailsStore],
   templateUrl: './order-details.component.html',
   styleUrl: './order-details.component.scss',
 })
@@ -89,10 +91,19 @@ export class OrderDetailsComponent implements OnInit {
 
   @Output() closeDetails = new EventEmitter<void>();
 
-  @Input() order: OrderResponse | undefined;
+  @Input({ required: true }) orderId!: number;
   @Input() justOffers: boolean = false;
 
-  orderItems: OrderItemsResponse[] | undefined;
+  readonly detailsStore = inject(OrderDetailsStore);
+
+  get order(): OrderResponse | undefined {
+    return this.detailsStore.order() ?? undefined;
+  }
+
+  get orderItems(): OrderItemsResponse[] {
+    return this.detailsStore.items();
+  }
+
   deleteOffer: boolean = false;
   selectedOffer: OrderItemsResponse | null = null;
 
@@ -144,7 +155,6 @@ export class OrderDetailsComponent implements OnInit {
   private readonly productStore = inject(CartStore);
   readonly catalogStore = inject(ProductStore);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly orderService = inject(OrdersService);
   private readonly productUtil = inject(ProductUtil);
   private readonly router = inject(Router);
   private readonly changeDetection = inject(ChangeDetectorRef);
@@ -160,23 +170,7 @@ export class OrderDetailsComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    this.fetchOrderItems();
-    this.orderComment = this.order!.comment;
-    this.orderVoucher = this.order!.voucher ?? '';
-  }
-
-  fetchOrderItems(): void {
-    this.orderService
-      .getOrderItemsById(this.order?.id as number)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (orderItems) => {
-          this.orderItems = orderItems.sort((a, b) => a.id - b.id);
-        },
-        error: (error) => {
-          console.error('Error fetching order items:', error);
-        },
-      });
+    this.detailsStore.load(this.orderId);
   }
 
   callNumber(phone: string) {
@@ -206,6 +200,9 @@ export class OrderDetailsComponent implements OnInit {
   }
 
   openEditDialog(): void {
+    this.orderComment = this.order?.comment ?? '';
+    this.orderVoucher = this.order?.voucher ?? '';
+
     const dialogRef = this._dialog.open(this.editOfferDialog, {
       width: '90%',
       maxHeight: '95vh',
@@ -216,40 +213,12 @@ export class OrderDetailsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result) {
-          const newFinalPrice = this.calculateFinalPriceWithVoucher(
-            this.order!.totalAmount ?? 0,
+          this.detailsStore.saveCommentAndVoucher(
+            this.orderComment,
             this.orderVoucher,
           );
-          this.updateOrderComment(this.orderComment);
-          this.orderService.updateOrderVoucherAndTotal(
-            this.order!.id,
-            this.orderVoucher,
-            newFinalPrice,
-          );
-          if (this.order) {
-            this.order.comment = this.orderComment;
-            this.order.voucher = this.orderVoucher;
-            this.order.totalAmountFinal = newFinalPrice;
-          }
         }
       });
-  }
-
-  private calculateFinalPriceWithVoucher(
-    baseAmount: number,
-    voucher: string,
-  ): number {
-    if (!voucher.trim()) return baseAmount;
-    const clean = voucher.replace('-', '').trim();
-    let total = baseAmount;
-    if (clean.includes('%')) {
-      const pct = parseFloat(clean.replace('%', '')) / 100;
-      if (!isNaN(pct)) total -= total * pct;
-    } else {
-      const val = parseFloat(clean);
-      if (!isNaN(val)) total -= val;
-    }
-    return Math.max(0, Math.round(total * 100) / 100);
   }
 
   addOrderItem(): void {
@@ -280,66 +249,24 @@ export class OrderDetailsComponent implements OnInit {
       newUnitPrice != null ? this.findMergableItem(newUnitPrice) : undefined;
 
     if (existingItem) {
-      const combinedQuantity =
-        existingItem.quantity + this.selectedProductQuantity;
-      const combinedPrice = existingItem.price + price;
-
-      this.orderService
-        .editOrderItem(
-          existingItem.id,
-          this.order!.id,
-          { quantity: combinedQuantity, price: combinedPrice },
-          {
-            total_amount: (this.order!.totalAmount ?? 0) + price,
-            total_amount_final: (this.order!.totalAmountFinal ?? 0) + price,
-          },
-        )
-        .then((result) => {
-          if (result) {
-            this.fetchOrderItems();
-            setTimeout(() => {
-              const total = this.getUpdateOrderTotals();
-              this.orderService.updateOrderTotals(
-                this.order!.id,
-                total.totalAmount,
-                total.totalAmountFinal,
-                total.totalQuantity,
-              );
-              this.order!.totalAmount = total.totalAmount;
-              this.order!.totalAmountFinal = total.totalAmountFinal;
-              this.order!.totalQuantity = total.totalQuantity;
-            }, 250);
-          }
-        });
+      // Same product, category and unit price: merge into the existing line
+      this.detailsStore.updateItem(existingItem.id, {
+        quantity: existingItem.quantity + this.selectedProductQuantity,
+        price: existingItem.price + price,
+      });
       return;
     }
 
-    this.orderService
-      .addOrderItem(this.order!, {
-        product: this.selectedProduct,
-        orderId: this.order!.id,
-        quantity: this.selectedProductQuantity,
-        category: { name: this.selectedCategory.toString() },
+    this.detailsStore.addItem(
+      {
+        product_id: this.selectedProduct.id,
+        quantity: +this.selectedProductQuantity,
+        category_id: this.selectedCategory,
         price,
-        packsPieces,
-      })
-      .then((result) => {
-        if (result) {
-          this.fetchOrderItems();
-          setTimeout(() => {
-            const total = this.getUpdateOrderTotals();
-            this.orderService.updateOrderTotals(
-              this.order!.id,
-              total.totalAmount,
-              total.totalAmountFinal,
-              total.totalQuantity,
-            );
-            this.order!.totalAmount = total.totalAmount;
-            this.order!.totalAmountFinal = total.totalAmountFinal;
-            this.order!.totalQuantity = total.totalQuantity;
-          }, 250);
-        }
-      });
+        packs_pieces: packsPieces,
+      },
+      this.selectedProduct,
+    );
   }
 
   private findMergableItem(
@@ -441,56 +368,15 @@ export class OrderDetailsComponent implements OnInit {
       item.product.unit_id === Unit_id.M2 ? 'BRUT' : undefined,
     );
 
-    const priceDiff = price - item.price;
-
-    this.orderService
-      .editOrderItem(
-        item.id,
-        this.order!.id,
-        { category_id: newCategory as any, quantity: newQuantity, price },
-        {
-          total_amount: (this.order!.totalAmount ?? 0) + priceDiff,
-          total_amount_final: (this.order!.totalAmountFinal ?? 0) + priceDiff,
-        },
-      )
-      .then((result) => {
-        if (result) {
-          this.editingItemId.set(null);
-          this.fetchOrderItems();
-          setTimeout(() => {
-            const total = this.getUpdateOrderTotals();
-            this.orderService.updateOrderTotals(
-              this.order!.id,
-              total.totalAmount,
-              total.totalAmountFinal,
-              total.totalQuantity,
-            );
-            this.order!.totalAmount = total.totalAmount;
-            this.order!.totalAmountFinal = total.totalAmountFinal;
-            this.order!.totalQuantity = total.totalQuantity;
-          }, 250);
-        }
+    this.detailsStore
+      .updateItem(item.id, { category_id: newCategory, quantity: newQuantity, price })
+      .then((saved) => {
+        if (saved) this.editingItemId.set(null);
       });
   }
 
   deleteOrderItem(item: OrderItemsResponse): void {
-    this.orderService.deleteOrderItem(item).then((result) => {
-      if (result) {
-        this.fetchOrderItems();
-        setTimeout(() => {
-          const total = this.getUpdateOrderTotals();
-          this.orderService.updateOrderTotals(
-            this.order!.id,
-            total.totalAmount,
-            total.totalAmountFinal,
-            total.totalQuantity,
-          );
-          this.order!.totalAmount = total.totalAmount;
-          this.order!.totalAmountFinal = total.totalAmountFinal;
-          this.order!.totalQuantity = total.totalQuantity;
-        }, 250);
-      }
-    });
+    this.detailsStore.deleteItem(item.id);
   }
 
   optionSelected(product: Product): void {
@@ -570,17 +456,8 @@ export class OrderDetailsComponent implements OnInit {
     return product ? product.name : '';
   }
 
-  private updateOrderComment(newComment: string) {
-    this.orderService.updateOrderComment(this.order!.id, newComment);
-  }
-
-  updateItemStatus(id: number, status: boolean, index: number) {
-    this.orderService.orderItemStatusUpdate(id, status).then((status) => {
-      // A failure is reported by the app-wide API error toast
-      if (!status) return;
-
-      this.orderItems![index].itemStatus = status;
-    });
+  updateItemStatus(id: number, status: boolean, _index: number) {
+    this.detailsStore.setItemStatus(id, status);
   }
 
   transformExactOfferToOrder(order: OrderResponse): void {
@@ -593,9 +470,8 @@ export class OrderDetailsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          this.orderService.transformOfferToOrder(order.id).then(() => {
-            localStorage.removeItem('on-order-details-page');
-            this.router.navigate(['orders']);
+          this.detailsStore.transformToOrder().then((transformed) => {
+            if (transformed) this.router.navigate(['orders']);
           });
         }
       });
@@ -612,7 +488,7 @@ export class OrderDetailsComponent implements OnInit {
       .subscribe((result) => {
         if (result === true) {
           const entityMap = this.catalogStore.productsEntityMap();
-          const productItems: ProductItems = this.orderItems!.map((item) => ({
+          const productItems: ProductItems = this.orderItems.map((item) => ({
             product: entityMap[item.product.id]!,
             quantity: item.quantity,
             price: item.price,
@@ -625,9 +501,8 @@ export class OrderDetailsComponent implements OnInit {
           this.productStore.setProductItems(productItems);
           this.productStore.setPricingClientId(order.clientId);
           if (this.deleteOffer) {
-            this.orderService.permanentlyDeleteOrder(order.id);
+            this.detailsStore.deletePermanently();
           }
-          localStorage.removeItem('on-order-details-page');
           this.router.navigate(['offer/overview']);
         }
       });
@@ -648,8 +523,8 @@ export class OrderDetailsComponent implements OnInit {
       });
   }
 
-  orderIsDelivered(id: number) {
-    this.orderService.orderIsDelivered(id).then((status) => {
+  orderIsDelivered(_id: number) {
+    this.detailsStore.markDelivered().then((status) => {
       if (status) {
         this.translateService
           .get(['SNACKBAR.ORDER.UPDATE_SUCCESS', 'SNACKBAR.BUTTONS.CLOSE'])
@@ -669,75 +544,11 @@ export class OrderDetailsComponent implements OnInit {
     return voucher.includes('%');
   }
 
-  private getUpdateOrderTotals(): {
-    totalAmount: number;
-    totalAmountFinal: number;
-    totalQuantity: number;
-  } {
-    let totalQuantity = 0;
-    let totalAmount = 0;
-
-    this.orderItems?.forEach((item) => {
-      totalAmount += item.price;
-      totalQuantity +=
-        item.product.unit_id !== Unit_id.M2 ? this.getTotalMQ(item) : 0;
-    });
-
-    let totalAmountFinal = totalAmount;
-
-    if (this.order?.voucher) {
-      totalAmountFinal = this.getVoucher(totalAmount);
-    }
-
-    return { totalAmount, totalAmountFinal, totalQuantity };
-  }
-
-  getVoucher(totalAmount: number): number {
-    let total = totalAmount;
-    if (this.order?.voucher.includes('-')) {
-      this.order.voucher = this.order?.voucher.replace('-', '');
-    }
-    if (this.order?.voucher.includes('%')) {
-      const discountPercent =
-        parseFloat(this.order.voucher.replace('%', '')) / 100;
-      total -= total * discountPercent;
-    } else {
-      const discountValue = parseFloat(this.order!.voucher);
-      if (!isNaN(discountValue)) {
-        total -= discountValue;
-      }
-    }
-
-    return total;
-  }
-
   getCategoryId(name: string): number {
     return Category[name as keyof typeof Category];
   }
 
   getTotalMQ(item: OrderItemsResponse): number {
-    if (item.packsPieces) {
-      return 0;
-    }
-
-    if (item.product.width) {
-      let quntity = +new Intl.NumberFormat('en-US', {
-        minimumIntegerDigits: 1,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 3,
-      }).format(
-        ((item.product.width * item.product.thickness * item.product.length) /
-          1000000) *
-          item.quantity,
-      );
-
-      if (item.product.unit_id === Unit_id.BOUNDLE) {
-        quntity = quntity * 10;
-      }
-
-      return quntity;
-    } else {
-      return item.quantity;
-    }
+    return itemVolumeM3(item);
   }
 }

@@ -24,8 +24,6 @@ export class ClientHistoryComponent {
   openOrderIndex = signal<number>(-1);
 
   constructor() {
-    localStorage.removeItem('on-order-details-page');
-
     effect(() => {
       const client = this.clientStore.client();
       if (!client?.id) return;
@@ -40,10 +38,8 @@ export class ClientHistoryComponent {
   }
 
   goToDetailsPage(order: OrderResponse) {
-    localStorage.setItem('on-order-details-page', JSON.stringify(order));
-
     this.router.navigate(['/orders'], {
-      queryParams: { fromHistory: true },
+      queryParams: { orderId: order.id, fromHistory: true },
     });
   }
 }

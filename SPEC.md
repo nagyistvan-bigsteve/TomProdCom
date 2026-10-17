@@ -1171,6 +1171,7 @@ A voucher can be applied in the offer overview:
 - **Absolute discount:** voucher string is a number (e.g. `"200"`) →
   `finalTotal = totalPrice − 200`
 - A leading `-` character is stripped before parsing.
+- When the voucher or the items of a saved order are changed in order details, the final total is never below 0 and is rounded to 2 decimals (`applyVoucher` in `@features/orders/store/order-details/order-details.computed`).
 
 The `total_amount` field on the order stores the pre-voucher total; `total_amount_final` stores the post-voucher total.
 
