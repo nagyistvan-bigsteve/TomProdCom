@@ -6,6 +6,7 @@
   OnChanges,
   Output,
   signal,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   M2_QUANTITIES,
@@ -42,6 +43,7 @@ import { ProductStore } from '@features/products/store/product.store';
   ],
   templateUrl: './selected-product.component.html',
   styleUrl: './selected-product.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class SelectedProductComponent implements OnChanges {

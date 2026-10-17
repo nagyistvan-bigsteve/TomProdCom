@@ -1,4 +1,4 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -28,6 +28,7 @@ import { ENTER_ANIMATION } from '@core/models/animations';
   ],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class ResetPasswordComponent implements OnInit, OnDestroy {

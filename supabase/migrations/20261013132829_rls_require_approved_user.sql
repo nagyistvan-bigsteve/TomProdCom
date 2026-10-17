@@ -2,7 +2,7 @@
 --
 -- Replaces the "everyone, including anonymous callers" policies. Nothing
 -- changes for an approved user; anonymous and unapproved callers lose access.
--- Run after atomic_write_functions.sql. Undo with rls_rollback.sql.
+-- Run after atomic_write_functions.sql. Undo with supabase/rollbacks/rls_rollback.sql.
 
 -- Helpers -------------------------------------------------------------------
 -- Kept in a schema the API does not expose. SECURITY DEFINER so that policies

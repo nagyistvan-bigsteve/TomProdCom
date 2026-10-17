@@ -122,24 +122,24 @@ body {
   );
 
   .snackbar-success {
-    --mdc-snackbar-container-color: #216e25 !important;
-    --mdc-snackbar-supporting-text-color: white !important;
-    --mdc-snackbar-supporting-text-weight: 500;
-    --mdc-snackbar-button-color: white;
+    --mat-snackbar-container-color: #216e25 !important;
+    --mat-snackbar-supporting-text-color: white !important;
+    --mat-snackbar-supporting-text-weight: 500;
+    --mat-snackbar-button-color: white;
   }
 
   .snackbar-error {
-    --mdc-snackbar-container-color: #b11111 !important;
-    --mdc-snackbar-supporting-text-color: white !important;
-    --mdc-snackbar-supporting-text-weight: 500;
-    --mdc-snackbar-button-color: white;
+    --mat-snackbar-container-color: #b11111 !important;
+    --mat-snackbar-supporting-text-color: white !important;
+    --mat-snackbar-supporting-text-weight: 500;
+    --mat-snackbar-button-color: white;
   }
 
   .snackbar-info {
-    --mdc-snackbar-container-color: #0c56ac !important;
-    --mdc-snackbar-supporting-text-color: white !important;
-    --mdc-snackbar-supporting-text-weight: 500;
-    --mdc-snackbar-button-color: white;
+    --mat-snackbar-container-color: #0c56ac !important;
+    --mat-snackbar-supporting-text-color: white !important;
+    --mat-snackbar-supporting-text-weight: 500;
+    --mat-snackbar-button-color: white;
   }
 }
 

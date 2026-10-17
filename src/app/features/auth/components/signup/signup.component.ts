@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormControl,
   FormGroup,
@@ -27,6 +27,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
     TranslateModule,
   ],
   templateUrl: './signup.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./signup.component.scss'],
 })
 export class SignupComponent {

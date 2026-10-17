@@ -10,12 +10,10 @@ import localeRo from '@angular/common/locales/ro';
 
 registerLocaleData(localeRo);
 import { provideRouter, withComponentInputBinding } from '@angular/router';
-import { ModalModule } from 'ngx-bootstrap/modal';
-import { TooltipModule } from 'ngx-bootstrap/tooltip';
 import { routes } from './app.routes';
 import { provideServiceWorker } from '@angular/service-worker';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withXhr } from '@angular/common/http';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -30,13 +28,8 @@ export const appConfig: ApplicationConfig = {
       registrationStrategy: 'registerWhenStable:30000',
     }),
     provideAnimationsAsync(),
-    importProvidersFrom(
-      FormsModule,
-      ReactiveFormsModule,
-      ModalModule.forRoot(),
-      TooltipModule.forRoot(),
-    ),
-    provideHttpClient(),
+    importProvidersFrom(FormsModule, ReactiveFormsModule),
+    provideHttpClient(withXhr()),
     provideTranslateService(),
     {
       provide: TranslateLoader,

@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import {
   MAT_DIALOG_DATA,
@@ -11,6 +11,7 @@ import { TranslateModule } from '@ngx-translate/core';
   selector: 'app-overwrite-dialog',
   imports: [MatDialogModule, MatButtonModule, TranslateModule],
   templateUrl: './overwrite-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './overwrite-dialog.component.scss',
 })
 export class OverwriteDialogComponent {

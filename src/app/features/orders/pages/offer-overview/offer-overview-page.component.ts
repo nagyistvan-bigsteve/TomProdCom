@@ -7,6 +7,7 @@
   signal,
   TemplateRef,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -72,6 +73,7 @@ import { PriceAdjustPanelComponent } from '@features/orders/components/price-adj
   ],
   templateUrl: './offer-overview-page.component.html',
   styleUrls: ['./offer-overview-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class OfferOverviewPageComponent {

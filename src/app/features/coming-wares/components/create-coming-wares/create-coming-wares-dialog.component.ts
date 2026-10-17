@@ -1,5 +1,5 @@
-﻿import { Component, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+﻿import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+
 import {
   FormArray,
   FormBuilder,
@@ -35,7 +35,6 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
   standalone: true,
   imports: [
     DecimalInputDirective,
-    CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -48,10 +47,11 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
     MatNativeDateModule,
     MatSelectModule,
     TranslateModule,
-    MatAutocompleteModule,
-  ],
+    MatAutocompleteModule
+],
   providers: [provideNativeDateAdapter()],
   templateUrl: './create-coming-wares-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./create-coming-wares-dialog.component.scss'],
 })
 export class CreateComingWaresDialogComponent implements OnInit {

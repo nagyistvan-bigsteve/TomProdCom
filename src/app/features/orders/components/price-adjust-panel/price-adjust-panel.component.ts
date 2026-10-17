@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -26,6 +26,7 @@ import { PriceRow } from '@features/orders/store/order-details/order-price-rows'
     TranslateModule,
   ],
   templateUrl: './price-adjust-panel.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './price-adjust-panel.component.scss',
 })
 export class PriceAdjustPanelComponent {

@@ -1,7 +1,6 @@
-﻿import { Component, inject, OnInit } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+﻿import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { Language } from '@core/models/enums';
+import { LanguageService } from '@core/services/language.service';
 import { RouterModule } from '@angular/router';
 import { TopbarComponent } from '@shared/components/layout/topbar/topbar.component';
 import { useAuthStore } from '@core/store/auth-store';
@@ -17,10 +16,11 @@ import { NotificationService } from '@shared/utils/notification.service';
   selector: 'app-root',
   imports: [MatButtonModule, RouterModule, TopbarComponent, SidebarComponent],
   templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit {
-  private translateService = inject(TranslateService);
+  private language = inject(LanguageService);
   readonly authStore = inject(useAuthStore);
   private appVersion = inject(AppVersionService);
   private supabaseService = inject(SupabaseService);
@@ -45,9 +45,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.appVersion.checkAndReloadIfNeeded();
-    const savedLang = localStorage.getItem('selectedLanguage') || Language.RO;
-    this.translateService.setDefaultLang(savedLang);
-    this.translateService.use(savedLang);
+    this.language.init();
 
     // Keys used by older versions to remember the open order; now in the URL
     localStorage.removeItem('on-offer-details-page');

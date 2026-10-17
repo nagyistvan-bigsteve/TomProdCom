@@ -7,19 +7,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 npm start          # dev server at http://localhost:4200 with live reload
 npm run build      # production build → dist/tom-prod-com/browser/
-npm test           # Karma + Jasmine test suite (watch mode)
-npx ng test --watch=false --browsers=ChromeHeadless   # Karma once, headless
+npm test           # component specs, Angular unit-test builder + Vitest/jsdom (watch mode)
+npx ng test --watch=false   # component specs once
 npm run test:unit  # Vitest (pure business logic, *.vitest.spec.ts)
 npm run watch      # development build in watch mode
 ```
 
-Deployment is handled automatically by GitHub Actions on push to `main` (Firebase Hosting).
+Deployment is handled automatically by GitHub Actions (Firebase Hosting): push to `develop` → staging channel, push to `main` → live. Both workflows run on Node 24 and run `test:unit` and the component specs before building; a failing test stops the deploy. Angular 22 needs Node `^22.22` or `^24.15`.
+
+**npm:** the global npm 11.2 crashes on this dependency tree (`Cannot read properties of null (reading 'edgesOut')`). Install with a newer npm, e.g. `npx npm@12 install`.
 
 ## Architecture Overview
 
-Angular 19 PWA for lumber depot order management. Mobile-first, supports Romanian and Hungarian.
+Angular 22 PWA for lumber depot order management. Mobile-first, supports Romanian and Hungarian.
 
-**Stack:** Angular 19 (standalone components) · NgRX Signals · Angular Material + Bootstrap 5 · Supabase (PostgreSQL + Auth + RLS) · Firebase Hosting
+**Stack:** Angular 22 (standalone components, `@angular/build`; routes lazy-loaded with `loadComponent`) · NgRX Signals · Angular Material + Bootstrap 5 · Supabase (PostgreSQL + Auth + RLS) · Firebase Hosting
 
 **Layered flow:**
 
@@ -54,7 +56,7 @@ Use these aliases for all cross-folder imports. Relative imports are only accept
 
 - **`guards/`** — `authGuard` (3-level access control), `cuiValidator` (Romanian CUI)
 - **`models/`** — all domain interfaces, enums, animations
-- **`services/`** — `SupabaseService` (client), `AppVersionService` (force-reload on deploy), `InstallService` (PWA prompt)
+- **`services/`** — `SupabaseService` (client), `AppVersionService` (force-reload on deploy), `InstallService` (PWA prompt), `LanguageService` (RO/HU, owns the `selectedLanguage` localStorage key)
 - **`store/auth-store.ts`** — global auth state (role, approved flag); persists to localStorage
 - **`store/custom-features/with-busy/`** — reusable NgRX Signals async-loading pattern
 
@@ -308,8 +310,8 @@ See `auth/components/login/login.component.scss` for the live example.
 - Prefer **Signals** over RxJS for new state; use RxJS only for async data fetching
 - **Supabase errors:** supabase-js resolves with `{ data, error }` and never rejects. Services must not turn a failed query into an empty result — unwrap with `unwrapResult()` from `@core/services/supabase-result.util` (Observables) or check `error` and return `false`/`null` (Promises). The caller ends its loading state and keeps user input (cart, form) on failure.
 - **Error toasts are central:** `SupabaseService` reports every failed data request (`apiFailures$`), and `AppComponent` shows one translated toast for it via `apiErrorKey()` in `@core/services/api-error.util` (no permission, duplicate, still in use, no connection, otherwise load/save error). Do not add generic "load failed / save failed" toasts at call sites — they would replace the more specific central message. A call site may still show a domain-specific message (e.g. duplicate client code); guard a general one with `hasSpecificApiMessage(error)` so it does not replace a more precise central message. A new error category needs a key under `SNACKBAR.API` in both `ro.json` and `hu.json`.
-- **Writes that touch more than one row or table** (order + items, client + phones, role + `admin_users`, shipment verify + stock) are Postgres functions called with `.rpc(...)`, so they succeed or fail as a whole. Their SQL lives in `supabase/migrations/` and must be applied to both the staging and the production project before the app code that calls them is deployed. Pin `search_path = public` in new functions — the existing `order_items` triggers use unqualified table names.
+- **Writes that touch more than one row or table** (order + items, client + phones, role + `admin_users`, shipment verify + stock) are Postgres functions called with `.rpc(...)`, so they succeed or fail as a whole. Their SQL lives in `supabase/migrations/` and must be applied to both the staging and the production project before the app code that calls them is deployed. Migration files are named `YYYYMMDDHHMMSS_name.sql` (UTC; when applied through the Supabase MCP, use the version it records), so their order is the filename order. Emergency undo scripts live in `supabase/rollbacks/`, never in `migrations/`. Pin `search_path = public` in new functions — the existing `order_items` triggers use unqualified table names.
 - **RLS:** no table is readable or writable without a signed-in, approved user (`private.is_approved()`); admin-only operations check `private.is_admin()`. See `SPEC.md` §24 "Policy model". A new table needs explicit policies using these helpers — never `using (true)`. Root stores that load data on init must do it in an `effect` on `useAuthStore().id()` / `approved()` (see `ProductStore`), not unconditionally, or they stay empty after a sign-in.
 - `withBusy()` counts calls in flight (`setBusy()` / `setIdle()` must be paired); `isBusy()` stays true until every overlapping call has finished.
 - `SPEC.md` in the repo root is the authoritative business requirements document — consult it for domain rules (pricing logic, stock semantics, approval flow, etc.)
-- **Unit tests**: Every bug fix or new feature that touches pricing, cart, or core business logic must include a matching Vitest test in a `<module>.vitest.spec.ts` file. Run with `npm run test:unit`. Angular component behaviour is covered by the Karma+Jasmine suite (`npm test`); most component specs are still only "should create". `src/test.ts` (Karma `main`) gives every spec the app-wide providers (translate, router, animations, HTTP testing, a dummy `MatDialogRef` / `MAT_DIALOG_DATA`, and an offline `SupabaseService` whose every request succeeds with no rows), so a spec only adds what is specific to its component. Specs never reach a real Supabase project; a spec that needs data or an error provides its own `SupabaseService`. Karma excludes `*.vitest.spec.ts`; Vitest runs those. The `Window.__APP_VERSION__` typing lives in `src/globals.d.ts` so both builds see it. When you work on a new feature in a component or a new business logic or a bigger bug fix, you should extend the existing test files with new testcases. Pure helper functions must be exported so they can be tested without Angular DI.
+- **Unit tests**: Every bug fix or new feature that touches pricing, cart, or core business logic must include a matching Vitest test in a `<module>.vitest.spec.ts` file. Run with `npm run test:unit`. Angular component behaviour is covered by the component specs (`npm test`: Angular unit-test builder running Vitest in jsdom; use `vi.fn()`, not Jasmine spies); most are still only "should create". `src/test.ts` (the builder's `setupFiles` entry) gives every spec the app-wide providers (translate, router, animations, HTTP testing, a dummy `MatDialogRef` / `MAT_DIALOG_DATA`, and an offline `SupabaseService` whose every request succeeds with no rows), so a spec only adds what is specific to its component. Specs never reach a real Supabase project; a spec that needs data or an error provides its own `SupabaseService`. The component run excludes `*.vitest.spec.ts`; `npm run test:unit` runs those. A spec file must contain at least one test (Vitest fails an empty file). The `Window.__APP_VERSION__` typing lives in `src/globals.d.ts` so both builds see it. When you work on a new feature in a component or a new business logic or a bigger bug fix, you should extend the existing test files with new testcases. Pure helper functions must be exported so they can be tested without Angular DI.

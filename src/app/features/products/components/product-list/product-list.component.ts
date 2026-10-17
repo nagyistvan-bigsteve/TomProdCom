@@ -6,8 +6,9 @@
   inject,
   Output,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Observable } from 'rxjs';
 import { Product, Products } from '@core/models/models';
 import { Size_id, Unit_id } from '@core/models/enums';
@@ -26,7 +27,6 @@ import { ProductStore } from '@features/products/store/product.store';
   selector: 'app-product-list',
   templateUrl: './product-list.component.html',
   imports: [
-    CommonModule,
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
@@ -35,8 +35,9 @@ import { ProductStore } from '@features/products/store/product.store';
     FormsModule,
     TranslateModule,
     MatChipsModule,
-    MatDividerModule,
-  ],
+    MatDividerModule
+],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./product-list.component.scss'],
 })
 export class ProductSelectComponent {

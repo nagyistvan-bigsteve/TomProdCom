@@ -5,6 +5,7 @@
   signal,
   TemplateRef,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   FormBuilder,
@@ -13,7 +14,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
-import { CommonModule } from '@angular/common';
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -34,7 +35,6 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
   selector: 'app-add-product',
   imports: [
     DecimalInputDirective,
-    CommonModule,
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
@@ -43,10 +43,11 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
     FormsModule,
     TranslateModule,
     MatButtonModule,
-    MatDialogModule,
-  ],
+    MatDialogModule
+],
   templateUrl: './add-product.component.html',
   styleUrl: './add-product.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class AddProductComponent {

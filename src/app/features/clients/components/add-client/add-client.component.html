@@ -134,7 +134,7 @@
           mat-flat-button
           (click)="
             clientStore.setClientId(
-              clientForm.get('code')?.getError('duplicateCode')?.clientId
+              clientForm.get('code')?.getError('duplicateCode')?.clientId ?? null
             );
             this.clientForm.get('code')?.updateValueAndValidity()
           "

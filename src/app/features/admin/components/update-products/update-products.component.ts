@@ -4,9 +4,10 @@
   inject,
   OnInit,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { Product, Products, Stock } from '@core/models/models';
-import { CommonModule } from '@angular/common';
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
@@ -31,7 +32,6 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
   selector: 'app-update-products',
   imports: [
     DecimalInputDirective,
-    CommonModule,
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
@@ -41,10 +41,11 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
     TranslateModule,
     MatButtonModule,
     MatChipsModule,
-    MatButtonToggleModule,
-  ],
+    MatButtonToggleModule
+],
   templateUrl: './update-products.component.html',
   styleUrl: './update-products.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class UpdateProductsComponent implements OnInit {

@@ -1,4 +1,4 @@
-﻿import { Component, inject, OnInit, signal } from '@angular/core';
+﻿import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CreateComingWaresDialogComponent } from '@features/coming-wares/components/create-coming-wares/create-coming-wares-dialog.component';
 import { useAuthStore } from '@core/store/auth-store';
 import { ComingWares, ComingWaresItems } from '@core/models/models';
@@ -25,6 +25,7 @@ import { ReactiveFormsModule } from '@angular/forms';
     ReactiveFormsModule,
   ],
   templateUrl: './coming-wares.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './coming-wares.component.scss',
 })
 export class ComingWaresComponent implements OnInit {

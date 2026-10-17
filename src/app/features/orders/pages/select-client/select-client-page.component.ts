@@ -1,7 +1,7 @@
-import { Component, computed, effect, inject, ViewChild } from '@angular/core';
+import { Component, computed, effect, inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Client } from '@core/models/models';
-import { CommonModule } from '@angular/common';
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -22,7 +22,6 @@ import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
 @Component({
   selector: 'select-client-page',
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -33,10 +32,11 @@ import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
     TranslateModule,
     MatIconModule,
     FormsModule,
-    MatButtonModule,
-  ],
+    MatButtonModule
+],
   templateUrl: './select-client-page.component.html',
   styleUrl: './select-client-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class SelectClientPageComponent {

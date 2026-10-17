@@ -1,4 +1,4 @@
-﻿import { Component, effect, inject, signal } from '@angular/core';
+﻿import { Component, effect, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ClientStore } from '@features/clients/store/client.store';
 import { OrdersService } from '@features/orders/services/orders.service';
 import { OrderResponse } from '@core/models/models';
@@ -13,6 +13,7 @@ import { TranslateModule } from '@ngx-translate/core';
   imports: [CommonModule, MatButtonModule, TranslateModule],
   templateUrl: './client-history.component.html',
   styleUrl: './client-history.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class ClientHistoryComponent {
