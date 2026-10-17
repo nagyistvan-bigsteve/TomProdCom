@@ -64,7 +64,7 @@ NgRX Signals store. Persists the selected client across the offer workflow.
 
 | Signal | Returns |
 |--------|---------|
-| `client()` | Full `Client` object for the current selection, or undefined |
+| `client()` | Full `Client` object for the current selection; typed `Client | undefined` — handle "nothing selected" |
 | `isClientSelected()` | `true` if `currentClientId !== -1` |
 | `isClientPJ()` | `true` if selected client type is PJ (2) |
 

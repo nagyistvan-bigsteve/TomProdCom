@@ -40,6 +40,7 @@ const clientConfig = entityConfig({
 });
 
 export const ClientStore = signalStore(
+  { providedIn: 'root' },
   withState(initialClientSlice),
   withBusy(),
   withProps((_) => {
@@ -49,19 +50,15 @@ export const ClientStore = signalStore(
   }),
   withEntities(clientConfig),
   withComputed((store) => {
-    let isClientPj = computed(() => {
-      if (store.currentClientId() !== -1) {
-        return (
-          store.clientsEntityMap()[store.currentClientId()].type ===
-          ClientType.PJ
-        );
-      } else return false;
-    });
+    // undefined while nothing is selected (currentClientId = -1)
+    const client = computed(
+      (): Client | undefined => store.clientsEntityMap()[store.currentClientId()],
+    );
 
     return {
-      client: computed(() => store.clientsEntityMap()[store.currentClientId()]),
+      client,
       isClientSelected: computed(() => store.currentClientId() !== -1),
-      isClientPJ: isClientPj,
+      isClientPJ: computed(() => client()?.type === ClientType.PJ),
     };
   }),
   withMethods((store) => {

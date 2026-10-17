@@ -20,7 +20,6 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
-import { ClientStore } from '@features/clients/store/client.store';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -52,7 +51,6 @@ export const appConfig: ApplicationConfig = {
         verticalPosition: 'bottom',
       },
     },
-    ClientStore,
     { provide: LOCALE_ID, useValue: 'ro' },
   ],
 };

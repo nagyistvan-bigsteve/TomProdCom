@@ -20,20 +20,20 @@
     }
 
     <!-- Mini cart summary: mobile only, shows while on product panel -->
-    @if (!isDesktop() && productStore.productItems().length > 0) {
+    @if (!isDesktop() && cartStore.productItems().length > 0) {
       <div class="mini-cart-bar" (click)="selectProductOn = false">
         <div class="mini-cart-header">
           <div class="d-flex align-items-center gap-2">
             <mat-icon class="mini-cart-icon">shopping_cart</mat-icon>
             <span class="mini-cart-total">
-              {{ productStore.cartTotal() | number: "1.0-0" }} RON
+              {{ cartStore.cartTotal() | number: "1.0-0" }} RON
             </span>
           </div>
           <mat-icon class="mini-cart-chevron">chevron_right</mat-icon>
         </div>
         <div class="mini-cart-list">
           @for (
-            item of productStore.productItems();
+            item of cartStore.productItems();
             track $index;
             let last = $last
           ) {
@@ -71,8 +71,8 @@
       (click)="selectProductOn = !selectProductOn"
       [attr.aria-label]="selectProductOn ? 'Show cart' : 'Back to products'"
       [matBadge]="
-        selectProductOn && productStore.productItems().length
-          ? productStore.productItems().length
+        selectProductOn && cartStore.productItems().length
+          ? cartStore.productItems().length
           : null
       "
       matBadgeColor="warn"

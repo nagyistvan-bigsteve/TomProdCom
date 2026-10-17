@@ -64,7 +64,7 @@ Product cards use `background: rgba(0,0,0,0.15)` with `border-radius: 8px`. Hove
 
 - `products.service.ts` — Supabase queries for the `products` table.
 - `prices.service.ts` — Supabase queries for the **`prices_new`** table (not `prices`). The price matrix is keyed by `unit_id + size_id + category_id`, or by `product_id + unit_id + category_id` for product-specific overrides. There is no PF/PJ column in this table.
-- `stocks.service.ts` — Supabase queries for the `stocks` table. Uses a **real-time Supabase subscription** so stock values update live across all connected clients without requiring a page reload.
+- `stocks.service.ts` — Supabase queries for the `stocks` table. There is **no real-time subscription**: stock is loaded when a user signs in (and after a shipment is verified), so changes made on another device appear after a reload or the next sign-in.
 
 ## store/
 
