@@ -189,6 +189,10 @@
       </div>
     }
   </div>
+} @else if (detailsStore.isBusy() || clientStore.isBusy()) {
+  <div class="d-flex justify-content-center align-items-center h-100">
+    <mat-spinner />
+  </div>
 }
 
 <!-- Edit dialog template -->

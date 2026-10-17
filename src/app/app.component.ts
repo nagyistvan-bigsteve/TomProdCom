@@ -49,6 +49,7 @@ export class AppComponent implements OnInit {
     this.translateService.setDefaultLang(savedLang);
     this.translateService.use(savedLang);
 
+    // Keys used by older versions to remember the open order; now in the URL
     localStorage.removeItem('on-offer-details-page');
     localStorage.removeItem('on-order-details-page');
   }

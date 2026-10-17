@@ -2,7 +2,6 @@ export type OrderTableSort = 'delivery' | 'creation' | 'admin';
 export type OrderTableFilter = 'all' | 'open' | 'closed' | 'expectedToday';
 
 export interface OrderSlice {
-  readonly currentOrderId: number;
   readonly tableSortType: OrderTableSort;
   readonly tableFilterType: OrderTableFilter;
   readonly justOffers: boolean;
@@ -12,7 +11,6 @@ export interface OrderSlice {
 }
 
 export const initialOrderSlice: OrderSlice = {
-  currentOrderId: -1,
   tableSortType: 'delivery',
   tableFilterType: 'open',
   justOffers: false,
