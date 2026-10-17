@@ -39,11 +39,11 @@
     @if (
       authStore.isAuthenticated() &&
       authStore.role() === "admin" &&
-      authStore.unapprovedUsersNumber()
+      usersStore.unapprovedCount()
     ) {
       <button mat-icon-button (click)="goToUserPage()">
         <mat-icon
-          [matBadge]="authStore.unapprovedUsersNumber() ? authStore.unapprovedUsersNumber() : ''"
+          [matBadge]="usersStore.unapprovedCount() ? usersStore.unapprovedCount() : ''"
         >account_circle</mat-icon>
       </button>
     }

@@ -21,11 +21,15 @@ Import via alias: `@core/models/models`, `@core/models/enums`, `@core/models/ani
 ## services/
 Singleton app-level services (not feature-specific):
 - `supabase.service.ts` — Supabase client wrapper; only place that constructs the client
+- `auth.service.ts` — sign-up, sign-in, sign-out, session, own profile (throws on error)
+- `users.service.ts` — user lists, approve, deny, `set_user_role` (throws on error)
 - `supabase-result.util.ts` — `unwrapResult()`: returns `data`, throws `error` from a supabase-js response
 - `install.service.ts` — PWA install prompt handler
 - `app-version.service.ts` — checks deployed version on startup and force-reloads when a new version is detected
 
 ## store/
 Global state not owned by any single feature:
-- `auth-store.ts` — user session, role (`user`/`admin`), approval status; persists to localStorage
+- `auth-store.ts` — user session, role (`user`/`admin`), approval status; cached in localStorage (`auth`) as a startup hint. Talks to Supabase only through `services/auth.service.ts`.
+- `users.store.ts` — admin user management: approved users, users waiting for approval (topbar badge), approve / deny / toggle role, through `services/users.service.ts`. In memory only; cleared on logout.
+- `local-storage-sync.ts` — `syncToLocalStorage(key, select)` keeps a key in step with store state (`null` removes it, `undefined` leaves it alone); `readFromLocalStorage(key)`. Used by the auth and cart stores.
 - `custom-features/with-busy/` — reusable NgRX Signals async-loading pattern used across all feature stores

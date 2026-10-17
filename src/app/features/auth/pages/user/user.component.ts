@@ -1,5 +1,6 @@
 ﻿import { Component, inject, OnInit } from '@angular/core';
 import { useAuthStore } from '@core/store/auth-store';
+import { UsersStore } from '@core/store/users.store';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
@@ -22,7 +23,14 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrl: './user.component.scss',
   animations: [ENTER_ANIMATION],
 })
-export class UserComponent {
+export class UserComponent implements OnInit {
   public readonly authStore = inject(useAuthStore);
-  unaprovedUsers = this.authStore.fetchUnapprovedUsers();
+  readonly usersStore = inject(UsersStore);
+
+  ngOnInit(): void {
+    if (this.authStore.role() === 'admin') {
+      this.usersStore.loadUnapprovedUsers();
+      this.usersStore.loadUsers();
+    }
+  }
 }

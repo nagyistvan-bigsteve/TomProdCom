@@ -152,7 +152,7 @@ export class OrderDetailsComponent implements OnInit {
   orderComment: string = '';
   orderVoucher: string = '';
 
-  private readonly productStore = inject(CartStore);
+  private readonly cartStore = inject(CartStore);
   readonly catalogStore = inject(ProductStore);
   private readonly destroyRef = inject(DestroyRef);
   private readonly productUtil = inject(ProductUtil);
@@ -498,8 +498,8 @@ export class OrderDetailsComponent implements OnInit {
           this.clientStore.setClientId(
             this.clientStore.clientsEntityMap()[order.clientId].id,
           );
-          this.productStore.setProductItems(productItems);
-          this.productStore.setPricingClientId(order.clientId);
+          this.cartStore.setProductItems(productItems);
+          this.cartStore.setPricingClientId(order.clientId);
           if (this.deleteOffer) {
             this.detailsStore.deletePermanently();
           }

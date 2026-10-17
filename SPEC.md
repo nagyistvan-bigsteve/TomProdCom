@@ -1037,7 +1037,7 @@ An offer may also be used as the starting point for creating an order while allo
 
 ### Cart persistence
 
-The product selection (cart) is persisted to `localStorage` throughout the offer creation workflow. If the user returns to the offer creation flow after more than **10 minutes** of inactivity, they are prompted to either restore the saved cart or discard it and start fresh. If the stale cart is detected outside the offer creation routes, it is silently discarded.
+The product selection (cart) is persisted to `localStorage` throughout the offer creation workflow. If the user returns to the offer creation flow after more than **10 minutes** of inactivity, they are prompted to either restore the saved cart or discard it and start fresh. The prompt only appears when one of the offer creation pages is opened; until then the saved cart is left as it is, and it is replaced if the cart is filled from elsewhere (e.g. an offer loaded into the cart). A saved cart with no products is dropped without asking.
 
 ---
 

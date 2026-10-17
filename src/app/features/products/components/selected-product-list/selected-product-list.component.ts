@@ -328,9 +328,7 @@ export class SelectedProductListComponent implements OnChanges {
 
   private getExactPrice(newCategory: Category, item: ProductItem): number {
     const prices = this.productStore.pricesEntities();
-    const isTva: boolean = this.clientStore.client()
-      ? this.clientStore.client().tva
-      : false;
+    const isTva: boolean = this.clientStore.client()?.tva ?? false;
 
     const unicPrice = prices.find(
       (price) => price.product_id === item.product.id,

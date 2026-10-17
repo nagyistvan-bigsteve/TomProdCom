@@ -166,7 +166,7 @@
     <mat-form-field class="w-100" appearance="outline">
       <mat-label>{{ "OVERVIEW_PAGE.POPUP.COMMENT" | translate }}</mat-label>
       <textarea
-        [rows]="clientStore.client().tva ? 4 : 3"
+        [rows]="clientStore.client()?.tva ? 4 : 3"
         matInput
         [(ngModel)]="comment"
       ></textarea>
@@ -214,7 +214,7 @@
         <input
           matInput
           [(ngModel)]="delivery_address"
-          [placeholder]="clientStore.client().address ? clientStore.client().address! : ''"
+          [placeholder]="clientStore.client()?.address ?? ''"
           type="text"
         />
       </mat-form-field>

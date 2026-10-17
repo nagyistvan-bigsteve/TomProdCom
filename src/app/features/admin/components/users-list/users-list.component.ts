@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { useAuthStore, UserRole } from '@core/store/auth-store';
+import { UsersStore } from '@core/store/users.store';
 import { CommonModule } from '@angular/common';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { MatButtonModule } from '@angular/material/button';
@@ -22,11 +23,9 @@ import { TranslateModule } from '@ngx-translate/core';
 })
 export class UsersListComponent {
   public readonly authStore = inject(useAuthStore);
-  usersList = this.authStore.fetchUsers();
+  readonly usersStore = inject(UsersStore);
 
   changeUserRole(id: string, oldRole: UserRole) {
-    this.authStore.changeRoleForUser(id, oldRole).then(() => {
-      this.usersList = this.authStore.fetchUsers();
-    });
+    this.usersStore.toggleRole(id, oldRole);
   }
 }

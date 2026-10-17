@@ -21,10 +21,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import {
-  cuiValidator,
-  uniqueClientCodeValidator,
-} from '@core/guards/cuiValidator';
+import { cuiValidator } from '@core/guards/cuiValidator';
+import { uniqueClientCodeValidator } from '@features/clients/validators/unique-client-code.validator';
 import { ClientStore } from '@features/clients/store/client.store';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 

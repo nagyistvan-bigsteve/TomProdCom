@@ -1,4 +1,5 @@
-@if (usersList | async; as users) {
+@let users = usersStore.users();
+@if (users.length) {
   <div class="section-card">
     <div class="section-header">
       <mat-icon class="section-icon">people</mat-icon>

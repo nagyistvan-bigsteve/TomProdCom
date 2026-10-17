@@ -1,11 +1,11 @@
 import { Component, inject } from '@angular/core';
-import { useAuthStore } from '@core/store/auth-store';
 import { CommonModule } from '@angular/common';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { TranslateModule } from '@ngx-translate/core';
+import { UsersStore } from '@core/store/users.store';
 
 @Component({
   selector: 'app-approve-user',
@@ -21,18 +21,13 @@ import { TranslateModule } from '@ngx-translate/core';
   animations: [ENTER_ANIMATION],
 })
 export class ApproveUserComponent {
-  public readonly authStore = inject(useAuthStore);
-  unapprovedUsers = this.authStore.fetchUnapprovedUsers();
+  readonly usersStore = inject(UsersStore);
 
   approveUser(id: string) {
-    this.authStore.approveUser(id).then(() => {
-      this.unapprovedUsers = this.authStore.fetchUnapprovedUsers();
-    });
+    this.usersStore.approve(id);
   }
 
   denieUser(id: string) {
-    this.authStore.denieUser(id).then(() => {
-      this.unapprovedUsers = this.authStore.fetchUnapprovedUsers();
-    });
+    this.usersStore.deny(id);
   }
 }

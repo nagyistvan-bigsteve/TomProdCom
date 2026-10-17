@@ -1,5 +1,4 @@
 ﻿import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { ClientStore } from '@features/clients/store/client.store';
 
 export function cuiValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
@@ -16,32 +15,5 @@ export function cuiValidator(): ValidatorFn {
     }
 
     return null;
-  };
-}
-
-type ClientStoreType = InstanceType<typeof ClientStore>;
-
-export function uniqueClientCodeValidator(
-  clientStore: ClientStoreType,
-): ValidatorFn {
-  return (control: AbstractControl): ValidationErrors | null => {
-    const value = control.value?.toString().trim();
-    if (!value) return null;
-
-    const clients = Object.values(clientStore.clientsEntityMap());
-    const currentId = clientStore.currentClientId();
-
-    const existing = clients.find(
-      (c) => c.code === value && c.id !== currentId,
-    );
-
-    if (!existing) return null;
-
-    return {
-      duplicateCode: {
-        clientName: existing.name,
-        clientId: existing.id,
-      },
-    };
   };
 }

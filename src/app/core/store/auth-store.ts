@@ -1,4 +1,4 @@
-﻿import {
+import {
   signalStore,
   withHooks,
   withState,
@@ -7,10 +7,11 @@
 } from '@ngrx/signals';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { User } from '@core/models/models';
-import { SupabaseService } from '@core/services/supabase.service';
+import { AuthService } from '@core/services/auth.service';
 import { resolveDisplayName } from './display-name.util';
 import { shouldResetCachedAuth } from './auth-session.util';
+import { readFromLocalStorage, syncToLocalStorage } from './local-storage-sync';
+import { UsersStore } from './users.store';
 
 export type UserRole = 'user' | 'admin' | null;
 
@@ -21,50 +22,30 @@ interface AuthState {
   approved: boolean;
   name: string | null;
   id: string | null;
-  unapprovedUsersNumber: number | null;
 }
+
+const STORAGE_KEY = 'auth';
+
+const signedOut: AuthState = {
+  isAuthenticated: false,
+  email: null,
+  role: null,
+  approved: false,
+  name: null,
+  id: null,
+};
 
 export const useAuthStore = signalStore(
   { providedIn: 'root' },
-  withState<AuthState>({
-    isAuthenticated: false,
-    email: null,
-    role: null,
-    approved: false,
-    name: null,
-    id: null,
-    unapprovedUsersNumber: null,
-  }),
+  withState<AuthState>(signedOut),
   withMethods((store) => {
     const router = inject(Router);
-    const supabaseService = inject(SupabaseService);
-
-    // Helper function to persist state to localStorage
-    const persistState = () => {
-      // Access current state values individually
-      const state = {
-        isAuthenticated: store.isAuthenticated(),
-        email: store.email(),
-        role: store.role(),
-        approved: store.approved(),
-        name: store.name(),
-        id: store.id(),
-        unapprovedUsersNumber: store.unapprovedUsersNumber(),
-      };
-      localStorage.setItem('auth', JSON.stringify(state));
-    };
+    const authService = inject(AuthService);
+    const usersStore = inject(UsersStore);
 
     const resetState = () => {
-      patchState(store, {
-        isAuthenticated: false,
-        email: null,
-        role: null,
-        approved: false,
-        name: null,
-        id: null,
-      });
-
-      localStorage.removeItem('auth');
+      patchState(store, signedOut);
+      usersStore.clear();
     };
 
     return {
@@ -79,16 +60,9 @@ export const useAuthStore = signalStore(
 
       async signup(email: string, password: string, userName: string) {
         try {
-          const { data: authData, error: authError } =
-            await supabaseService.client.auth.signUp({
-              email,
-              password,
-              options: { data: { name: userName } },
-            });
+          const user = await authService.signUp(email, password, userName);
 
-          if (authError) throw authError;
-
-          const userId = authData.user?.id;
+          const userId = user?.id;
           if (!userId) throw new Error('User ID not found after signup');
 
           patchState(store, {
@@ -100,7 +74,6 @@ export const useAuthStore = signalStore(
             id: userId,
           });
 
-          persistState();
           return { success: true, userId };
         } catch (error) {
           console.error('Signup error:', error);
@@ -110,39 +83,22 @@ export const useAuthStore = signalStore(
 
       async login(email: string, password: string) {
         try {
-          const { data, error } =
-            await supabaseService.client.auth.signInWithPassword({
-              email,
-              password,
-            });
-
-          if (error) throw error;
-
-          const userId = data.user.id;
-
-          const { data: userData, error: userError } =
-            await supabaseService.client
-              .from('profiles')
-              .select('role, approved, email, name')
-              .eq('id', userId)
-              .single();
-
-          if (userError) throw userError;
+          const user = await authService.signIn(email, password);
+          const profile = await authService.getProfile(user.id);
 
           patchState(store, {
             isAuthenticated: true,
-            email: userData.email,
-            role: userData.role,
-            approved: userData.approved,
+            email: profile.email,
+            role: profile.role,
+            approved: profile.approved,
             name: resolveDisplayName(
-              userData.name,
-              data.user.user_metadata?.['name'],
-              userData.email,
+              profile.name,
+              user.user_metadata?.['name'],
+              profile.email,
             ),
-            id: userId,
+            id: user.id,
           });
 
-          persistState();
           return { success: true };
         } catch (error) {
           console.error('Login error:', error);
@@ -152,9 +108,8 @@ export const useAuthStore = signalStore(
 
       async logout() {
         try {
-          await supabaseService.client.auth.signOut().then(() => {
-            router.navigate(['/auth']);
-          });
+          await authService.signOut();
+          router.navigate(['/auth']);
 
           resetState();
           return { success: true };
@@ -169,22 +124,15 @@ export const useAuthStore = signalStore(
           const id = store.id();
           if (!id) return { success: false, error: 'Not authenticated' };
 
-          const { data, error } = await supabaseService.client
-            .from('profiles')
-            .select('role, approved, email, name')
-            .eq('id', id)
-            .single();
-
-          if (error) throw error;
+          const profile = await authService.getProfile(id);
 
           patchState(store, {
-            email: data.email,
-            role: data.role,
-            approved: data.approved,
-            name: resolveDisplayName(data.name, store.name(), data.email),
+            email: profile.email,
+            role: profile.role,
+            approved: profile.approved,
+            name: resolveDisplayName(profile.name, store.name(), profile.email),
           });
 
-          persistState();
           return { success: true };
         } catch (error) {
           console.error('Refresh user data error:', error);
@@ -192,141 +140,27 @@ export const useAuthStore = signalStore(
         }
       },
 
-      async fetchUsers() {
-        try {
-          const { data, error } = await supabaseService.client
-            .from('profiles')
-            .select('*')
-            .eq('approved', true);
-          if (error) throw error;
-          return data as User[];
-        } catch (error) {
-          console.error('Fail to fetch users', error);
-          return;
-        }
-      },
-
-      async fetchUnapprovedUsers() {
-        try {
-          const { data, error } = await supabaseService.client
-            .from('profiles')
-            .select('*')
-            .eq('approved', false);
-
-          if (error) throw error;
-
-          patchState(store, {
-            unapprovedUsersNumber: data.length,
-          });
-
-          persistState();
-          return data as User[];
-        } catch (error) {
-          console.error('Fail to fetch unapproved users', error);
-          return;
-        }
-      },
-
-      async approveUser(id: string) {
-        try {
-          const { data, error } = await supabaseService.client
-            .from('profiles')
-            .update({ approved: true })
-            .eq('id', id)
-            .select()
-            .single();
-
-          if (error) throw error;
-
-          patchState(store, {
-            unapprovedUsersNumber: store.unapprovedUsersNumber()! - 1,
-          });
-
-          persistState();
-
-          return data;
-        } catch (error) {
-          console.error('Failed to approve user: ', error);
-          return;
-        }
-      },
-
-      async denieUser(id: string) {
-        try {
-          const { data, error } = await supabaseService.client
-            .from('profiles')
-            .delete()
-            .eq('id', id)
-            .select()
-            .single();
-
-          if (error) throw error;
-
-          patchState(store, {
-            unapprovedUsersNumber: store.unapprovedUsersNumber()! - 1,
-          });
-
-          persistState();
-
-          return data;
-        } catch (error) {
-          console.error('Failed to denie user: ', error);
-          return;
-        }
-      },
-
-      async changeRoleForUser(id: string, oldRole: UserRole) {
-        const newRole = oldRole === 'user' ? 'admin' : 'user';
-
-        try {
-          // profiles.role and the admin_users membership change together
-          const { data, error } = await supabaseService.client.rpc(
-            'set_user_role',
-            { p_user_id: id, p_role: newRole },
-          );
-
-          if (error) throw error;
-
-          return data;
-        } catch (error) {
-          console.error('Failed to update user: ', error);
-          return;
-        }
-      },
-
       async checkSession() {
         try {
-          const { data, error } =
-            await supabaseService.client.auth.getSession();
+          const session = await authService.getSession();
 
-          if (error) throw error;
-
-          if (data.session) {
-            const userId = data.session.user.id;
-
-            const { data: userData, error: userError } =
-              await supabaseService.client
-                .from('profiles')
-                .select('role, approved, email, name')
-                .eq('id', userId)
-                .single();
-
-            if (userError) throw userError;
+          if (session) {
+            const userId = session.user.id;
+            const profile = await authService.getProfile(userId);
 
             patchState(store, {
               isAuthenticated: true,
-              email: userData.email,
-              role: userData.role,
-              approved: userData.approved,
+              email: profile.email,
+              role: profile.role,
+              approved: profile.approved,
               name: resolveDisplayName(
-                userData.name,
-                data.session.user.user_metadata?.['name'],
-                userData.email,
+                profile.name,
+                session.user.user_metadata?.['name'],
+                profile.email,
               ),
               id: userId,
             });
 
-            persistState();
             return { success: true, isAuthenticated: true };
           }
 
@@ -341,29 +175,42 @@ export const useAuthStore = signalStore(
   withHooks((store) => {
     return {
       async onInit() {
-        // Restore auth state from localStorage
-        const stored = localStorage.getItem('auth');
-        if (stored) {
-          try {
-            const parsed = JSON.parse(stored);
-            patchState(store, parsed);
+        // Cached login: a startup hint only, verified against Supabase below.
+        // Must be set up before the first await (needs the injection context).
+        syncToLocalStorage(STORAGE_KEY, () =>
+          store.isAuthenticated()
+            ? {
+                isAuthenticated: true,
+                email: store.email(),
+                role: store.role(),
+                approved: store.approved(),
+                name: store.name(),
+                id: store.id(),
+              }
+            : null,
+        );
 
-            // Verify the session is still valid
-            const result = await store.checkSession();
-            if (shouldResetCachedAuth(result)) {
-              store.clearStaleSession();
-            }
-          } catch (e) {
-            console.error('Failed to parse stored auth data', e);
-            localStorage.removeItem('auth');
+        const stored = readFromLocalStorage<Partial<AuthState>>(STORAGE_KEY);
+
+        if (stored) {
+          patchState(store, {
+            isAuthenticated: stored.isAuthenticated ?? false,
+            email: stored.email ?? null,
+            role: stored.role ?? null,
+            approved: stored.approved ?? false,
+            name: stored.name ?? null,
+            id: stored.id ?? null,
+          });
+
+          // Verify the session is still valid
+          const result = await store.checkSession();
+          if (shouldResetCachedAuth(result)) {
+            store.clearStaleSession();
           }
         } else {
           // Check if there's an active session even if no local storage
           store.checkSession();
         }
-      },
-      onDestroy() {
-        // Optional cleanup if needed
       },
     };
   }),

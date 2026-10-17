@@ -71,7 +71,7 @@ export class OfferOverviewPageComponent {
   @ViewChild('confirmOfferDialog') confirmOfferDialog!: TemplateRef<any>;
 
   readonly currentDate = new Date();
-  readonly productStore = inject(CartStore);
+  readonly cartStore = inject(CartStore);
   readonly clientStore = inject(ClientStore);
   readonly authStore = inject(useAuthStore);
   private readonly productUtil = inject(ProductUtil);
@@ -109,7 +109,7 @@ export class OfferOverviewPageComponent {
       if (previous !== null && previous !== currentId) {
         this.resetForClientChange();
       } else if (previous === null && currentId !== null) {
-        const storedClientId = this.productStore.pricingClientId();
+        const storedClientId = this.cartStore.pricingClientId();
         if (storedClientId !== null && storedClientId !== currentId) {
           this.resetForClientChange();
         }
@@ -121,10 +121,10 @@ export class OfferOverviewPageComponent {
 
   private resetForClientChange(): void {
     this.usedPriceCategories = [];
-    this.productStore.setUsedPriceCategories([]);
-    this.productStore.productItems().forEach((item) => {
+    this.cartStore.setUsedPriceCategories([]);
+    this.cartStore.productItems().forEach((item) => {
       if (item.manualPrice) {
-        this.productStore.updateProductItem(item.product.id, item.category, {
+        this.cartStore.updateProductItem(item.product.id, item.category, {
           manualPrice: false,
         });
       }
@@ -149,7 +149,7 @@ export class OfferOverviewPageComponent {
   }
 
   get price(): number {
-    return this.productStore.cartTotal();
+    return this.cartStore.cartTotal();
   }
 
   toggleDifferentPrices(): void {
@@ -172,9 +172,9 @@ export class OfferOverviewPageComponent {
     newArray[index] = updated;
 
     this.usedPriceCategories = newArray;
-    this.productStore.setUsedPriceCategories(this.usedPriceCategories);
+    this.cartStore.setUsedPriceCategories(this.usedPriceCategories);
 
-    this.productStore.productItems().forEach((item: ProductItem) => {
+    this.cartStore.productItems().forEach((item: ProductItem) => {
       const matchesRow =
         item.category === row.category &&
         item.product.unit_id === row.unit &&
@@ -199,7 +199,7 @@ export class OfferOverviewPageComponent {
           item.quantity,
           'BRUT',
         ).price;
-        this.productStore.updateProductItem(item.product.id, item.category, {
+        this.cartStore.updateProductItem(item.product.id, item.category, {
           price: newPrice,
           manualPrice: true,
         });
@@ -208,7 +208,7 @@ export class OfferOverviewPageComponent {
   }
 
   getProductName(productId: number): string | undefined {
-    return this.productStore
+    return this.cartStore
       .productItems()
       .find((p) => p.product.id === productId)?.product.name;
   }
@@ -220,7 +220,7 @@ export class OfferOverviewPageComponent {
 
     const previousDiscounts = this.usedPriceCategories.length
       ? [...this.usedPriceCategories]
-      : [...this.productStore.usedPriceCategories()];
+      : [...this.cartStore.usedPriceCategories()];
 
     const expandedPrices = this.expandPrices(prices);
 
@@ -246,8 +246,8 @@ export class OfferOverviewPageComponent {
     });
 
     this.usedPriceCategories = usedPrices.sort((a, b) => a.unit - b.unit);
-    this.productStore.setUsedPriceCategories(this.usedPriceCategories);
-    this.productStore.setPricingClientId(this.clientStore.client()?.id ?? null);
+    this.cartStore.setUsedPriceCategories(this.usedPriceCategories);
+    this.cartStore.setPricingClientId(this.clientStore.client()?.id ?? null);
   }
 
   loaded(): void {
@@ -261,7 +261,7 @@ export class OfferOverviewPageComponent {
 
     let totalOrderQuantity = this.getTotalQuantity();
 
-    if (this.clientStore.client().tva) {
+    if (this.clientStore.client()?.tva) {
       this.comment = 'Taxare inversa - fără TVA\n';
     }
 
@@ -286,7 +286,7 @@ export class OfferOverviewPageComponent {
           this.expectedDeliveryDate.setHours(6);
           this.ordersService
             .placeOrder(
-              this.productStore.productItems(),
+              this.cartStore.productItems(),
               this.price,
               this.totalPrice,
               this.voucher,
@@ -298,11 +298,9 @@ export class OfferOverviewPageComponent {
               this.forFirstHour,
               totalOrderQuantity,
               this.justOffer,
-              this.delivery_address()
-                ? this.delivery_address()
-                : this.clientStore.client().address
-                  ? this.clientStore.client().address!
-                  : '',
+              this.delivery_address() ||
+                this.clientStore.client()?.address ||
+                '',
               this.deliveryFee,
             )
             .then((saved) => {
@@ -311,7 +309,7 @@ export class OfferOverviewPageComponent {
                 return;
               }
 
-              this.productStore.deleteProductItems();
+              this.cartStore.deleteProductItems();
               this.clientStore.setClientId(-1);
               this.voucher = '';
               this.comment = '';
@@ -331,12 +329,12 @@ export class OfferOverviewPageComponent {
 
   getTotalQuantity(): number {
     return this.productUtil.calculateTotalQuantity(
-      this.productStore.productItems(),
+      this.cartStore.productItems(),
     );
   }
 
   private calculateActualPrice(price: Price2, isTva: boolean): number {
-    return calculateActualPrice(price, isTva, this.productStore.productItems());
+    return calculateActualPrice(price, isTva, this.cartStore.productItems());
   }
 
   private expandPrices(prices: Price2[]): Price2[] {
@@ -345,7 +343,7 @@ export class OfferOverviewPageComponent {
     const expanded: Price2[] = [];
 
     prices.forEach((price) => {
-      const filteredProducts = this.productStore
+      const filteredProducts = this.cartStore
         .productItems()
         .filter(
           (product) =>
