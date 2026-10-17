@@ -1,5 +1,6 @@
 ﻿import {
   Component,
+  computed,
   DestroyRef,
   effect,
   inject,
@@ -37,6 +38,7 @@ import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
 import { calculateActualPrice, ProductUtil } from '@shared/utils/product.util';
 import { ClientStore } from '@features/clients/store/client.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
+import { PriceAdjustPanelComponent } from '@features/orders/components/price-adjust-panel/price-adjust-panel.component';
 
 @Component({
   selector: 'app-offer-overview',
@@ -58,6 +60,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
     MatDialogModule,
     MatDatepickerModule,
     MatCheckboxModule,
+    PriceAdjustPanelComponent,
     MatTooltipModule,
     MatProgressSpinnerModule,
     MatIconModule,
@@ -207,11 +210,14 @@ export class OfferOverviewPageComponent {
     });
   }
 
-  getProductName(productId: number): string | undefined {
-    return this.cartStore
-      .productItems()
-      .find((p) => p.product.id === productId)?.product.name;
-  }
+  /** Names of the cart products, for the product rows of the price panel. */
+  readonly productNames = computed(() =>
+    Object.fromEntries(
+      this.cartStore
+        .productItems()
+        .map((item) => [item.product.id, item.product.name]),
+    ),
+  );
 
   getPriceList(prices: Price2[]): void {
     this.pricesCache = prices;

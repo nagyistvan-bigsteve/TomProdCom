@@ -14,6 +14,15 @@
       <button mat-icon-button (click)="print()" [disabled]="isLoading()">
         <mat-icon>print</mat-icon>
       </button>
+      <button
+        mat-icon-button
+        (click)="openPriceDialog()"
+        [disabled]="isLoading() || detailsStore.isBusy()"
+        [matTooltip]="'ORDER.DETAILS.PRICE_DIALOG.TOOLTIP' | translate"
+        [attr.aria-label]="'ORDER.DETAILS.PRICE_DIALOG.TOOLTIP' | translate"
+      >
+        <mat-icon>price_change</mat-icon>
+      </button>
       <button mat-icon-button (click)="openEditDialog()">
         <mat-icon>edit_note</mat-icon>
       </button>
@@ -477,6 +486,54 @@
     </button>
     <button mat-flat-button color="primary" [mat-dialog-close]="true">
       {{ "ORDER.DETAILS.EDIT_DIALOG.SAVE_BUTTON" | translate }}
+    </button>
+  </mat-dialog-actions>
+</ng-template>
+
+<!-- Price dialog template -->
+<ng-template #priceDialog>
+  <div class="d-flex justify-content-between align-items-center pe-2">
+    <h2 mat-dialog-title>
+      {{ "ORDER.DETAILS.PRICE_DIALOG.TITLE" | translate }} -
+      {{ isClientPJ() ? "PJ" : "PF" }}
+    </h2>
+    <button mat-icon-button mat-dialog-close>
+      <mat-icon class="dialog-icon-dark">close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content>
+    @if (priceRows().length) {
+      <app-price-adjust-panel
+        [rows]="priceRows()"
+        [perProduct]="pricePerProduct()"
+        [productNames]="productNames()"
+        (perProductChange)="togglePricePerProduct()"
+        (finalPriceChange)="setDraftPrice($event.index, $event.price)"
+      />
+    } @else {
+      <p class="mat-body-medium">
+        {{ "ORDER.DETAILS.PRICE_DIALOG.EMPTY" | translate }}
+      </p>
+    }
+    @if (hasM2Items()) {
+      <p class="mat-body-small price-dialog-note">
+        {{ "ORDER.DETAILS.PRICE_DIALOG.M2_NOTE" | translate }}
+      </p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close [disabled]="isSavingPrices()">
+      {{ "ORDER.DETAILS.PRICE_DIALOG.CANCEL_BUTTON" | translate }}
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      (click)="savePrices()"
+      [disabled]="isSavingPrices() || !priceRows().length"
+    >
+      {{ "ORDER.DETAILS.PRICE_DIALOG.SAVE_BUTTON" | translate }}
     </button>
   </mat-dialog-actions>
 </ng-template>

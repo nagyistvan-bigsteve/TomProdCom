@@ -47,6 +47,16 @@ The global `mat.icon-overrides(color: white)` in `styles.scss` makes all icons w
 - **Add product form**: hidden by default, revealed by the "Termék hozzáadása" / "Adaugă produs" toggle button (`showAddForm` signal). Same chip + autocomplete + quantity form as before.
 - Dialog has explicit **Save** (`[mat-dialog-close]="true"`) and **Cancel** (`[mat-dialog-close]="false"`) buttons. Comment and voucher are only persisted on Save. Item mutations (add / inline-edit / delete) persist immediately regardless.
 - On Save: `detailsStore.saveCommentAndVoucher()` saves comment, voucher and the new `total_amount_final` (`applyVoucher(totalAmount, voucher)`: percentage or fixed amount, never below 0, rounded to 2 decimals) in one request.
+- `saveEditItem()` keeps the line's current unit price (`unitPriceFromLine`) when only the quantity changes (non-M2), so a hand-set price survives; a category change re-prices from the price list.
+
+**Price dialog** (`#priceDialog`, `price_change` icon in the header, offers and orders):
+- Re-prices saved lines in place, like the overview price panel. Rows come from `buildOrderPriceRows()` (`store/order-details/order-price-rows.ts`, unit-tested): grouped by unit/category/size, or per product. M2 lines are left out. A row's `discount` is the lines' offset from their **own** list price (`itemListPrice`: B board −50 → TVA), so 2.5 cm B boards in a general row are neither an adjustment nor "mixed"; `mixed` means the lines carry different offsets.
+- Typed prices are applied with `repriceItems()` (own list price + row adjustment) to a draft copy of the lines (`draftItems`); the rows are rebuilt from that draft when "per product" flips, so nothing typed is lost. **Save** sends the lines whose price differs → `detailsStore.updatePrices()` → RPC `update_order_item_prices` (items + totals in one transaction). The dialog cannot be closed while saving and stays open if the save fails.
+
+### `price-adjust-panel/` — price rows with a final-price input
+
+Presentational (no store access), used by the offer overview and the order-details price dialog.
+Inputs: `rows: PriceRow[]`, `perProduct`, `productNames` (by product id). Outputs: `perProductChange`, `finalPriceChange({ index, price })` (`price` is null when the field is cleared). The parent decides what a new price changes (cart vs. saved lines). In per-product mode only rows with a `productId` are shown.
 
 ### `order-table/` — reusable table for orders and offers
 
@@ -168,6 +178,7 @@ Key features:
 - Receives price rows from `SelectedProductListComponent` via `@Output() pricesOutput`.
 - `isAllPriceDifferent` toggle: when on, expands aggregate category prices into per-product price rows so individual products can have different prices.
 - Base price per row comes from `calculateActualPrice` (`@shared/utils/product.util`): general rows show the list price (minus TVA); only product-specific rows show the −50 for a 2.5 cm category-B board. Display only — items are priced per item in `getExactPrice()`.
+- The price rows are rendered by `PriceAdjustPanelComponent` (`components/price-adjust-panel/`).
 - Manual discount: `setFinalPrice(index, finalPrice)` stores the difference as `discount` on the price row; this discount is applied back in `SelectedProductListComponent.getExactPrice()`.
 - TVA auto-comment: if `client.tva = true`, prepends `"Taxare inversa - fără TVA\n"` to the comment.
 - Delivery fee appended to comment as `"Transport: N RON\n"`.
@@ -213,9 +224,9 @@ Admin-only view of soft-deleted orders **and offers** (each card is titled "Coma
 
 Read methods (`getOrders`, `getDeletedOrders`, `getClientOrders`, `getOrderItemsById`) **error** when Supabase reports a failure — subscribers must pass an `error` handler. `placeOrder()` returns `false` when the order could not be saved; the caller must keep the cart in that case.
 
-**Multi-row writes go through database functions** (one transaction each, SQL in `supabase/migrations/`): `placeOrder()` → `place_order` (order + items), `orderIsDelivered()` → `mark_order_delivered` (all items + delivery date), `permanentlyDeleteOrder()` → `delete_order_permanently` (items + order). Do not replace them with separate `.from(...)` calls. Line-item add / edit / delete in order details → `add_order_item` / `update_order_item` / `delete_order_item` (item + order totals; the totals are computed in the app by `orderTotals()` and passed in).
+**Multi-row writes go through database functions** (one transaction each, SQL in `supabase/migrations/`): `placeOrder()` → `place_order` (order + items), `orderIsDelivered()` → `mark_order_delivered` (all items + delivery date), `permanentlyDeleteOrder()` → `delete_order_permanently` (items + order). Do not replace them with separate `.from(...)` calls. Line-item add / edit / delete in order details → `add_order_item` / `update_order_item` / `delete_order_item`, re-pricing several lines → `update_order_item_prices` (items + order totals; the totals are computed in the app by `orderTotals()` and passed in).
 
-Key methods: `placeOrder()`, `getOrderById()`, `addOrderItem()` / `updateOrderItem()` / `deleteOrderItem()` (take the new totals), `updateOrderCommentAndVoucher()`, `transformOfferToOrder()`, `orderIsDelivered()`, `orderItemStatusUpdate()`, `setDeletionForOrder()`, `restoreDeletedOrder()`, `permanentlyDeleteOrder()`, `saveAdminSortOrder()` (via RPC).
+Key methods: `placeOrder()`, `getOrderById()`, `addOrderItem()` / `updateOrderItem()` / `updateOrderItemPrices()` / `deleteOrderItem()` (take the new totals), `updateOrderCommentAndVoucher()`, `transformOfferToOrder()`, `orderIsDelivered()`, `orderItemStatusUpdate()`, `setDeletionForOrder()`, `restoreDeletedOrder()`, `permanentlyDeleteOrder()`, `saveAdminSortOrder()` (via RPC).
 
 
 ## store/
@@ -269,7 +280,7 @@ Provided by `OrderDetailsComponent` (not root): each opened order gets its own i
 - `order-details.computed.ts` — pure, unit-tested: `applyVoucher(amount, voucher)`, `itemVolumeM3(item)` (how order details counts an item's m³: M2 items with a pack breakdown 0, items without width their quantity, bundles ×10, rounded to 3 decimals per item), `orderTotals(items, voucher)`.
 - `order-details.store.ts` — state `{ order, items }`:
   - `load(orderId)` — order and items together.
-  - `addItem` / `updateItem` / `deleteItem` — compute the totals for the item list **after** the change, save item + totals in one database call, then update the order and reload the items. No timers.
+  - `addItem` / `updateItem` / `updatePrices` / `deleteItem` — compute the totals for the item list **after** the change, save item + totals in one database call, then update the order and reload the items. No timers.
   - `setItemStatus`, `saveCommentAndVoucher`, `markDelivered`, `transformToOrder`, `moveToDeleted` (used when an offer is loaded into the cart with "delete the offer" ticked: the offer goes to the Deleted page).
 
 Client history and the deleted-orders page keep their state in the component; they are single-screen lists and do not need a store.
