@@ -8,14 +8,21 @@
 } from '@ngrx/signals';
 import { ProductItem, ProductItems, UsedPricesInOrder } from '@core/models/models';
 import { Category } from '@core/models/enums';
-import { MatDialog } from '@angular/material/dialog';
-import { computed, inject } from '@angular/core';
-import { ConfirmRestoreDialogComponent } from '@shared/components/dialogs/confirm-restore-dialog.component';
-import { Location } from '@angular/common';
+
+import { computed } from '@angular/core';
+
+import {
+  readFromLocalStorage,
+  syncToLocalStorage,
+} from '@core/store/local-storage-sync';
+import {
+  CART_STORAGE_KEY,
+  decideStoredCart,
+  StoredCart,
+  toStoredCart,
+} from './cart.persistence';
 import { CartSlice, initialCartSlice } from './cart.slice';
 
-const STORAGE_KEY = 'product_items_data';
-const STALE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 
 export const CartStore = signalStore(
   { providedIn: 'root' },
@@ -26,25 +33,14 @@ export const CartStore = signalStore(
     ),
   })),
   withMethods((store) => {
-    const persistState = () => {
-      const state = {
-        productItems: store.productItems(),
-        lastUpdated: store.lastUpdated(),
-        usedPriceCategories: store.usedPriceCategories(),
-        pricingClientId: store.pricingClientId(),
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    };
-
     return {
       setProductItems(productItems: ProductItems) {
         patchState(store, {
           productItems,
           lastUpdated: new Date().toLocaleString('sv-SE'),
+          pendingRestore: null,
         });
 
-        persistState();
       },
 
       addProductItem(productItem: ProductItem) {
@@ -56,9 +52,9 @@ export const CartStore = signalStore(
         patchState(store, {
           productItems: updatedItems,
           lastUpdated: new Date().toLocaleString('sv-SE'),
+          pendingRestore: null,
         });
 
-        persistState();
       },
 
       updateProductItem(
@@ -80,9 +76,9 @@ export const CartStore = signalStore(
         patchState(store, {
           productItems: updatedItems,
           lastUpdated: new Date().toLocaleString('sv-SE'),
+          pendingRestore: null,
         });
 
-        persistState();
 
         this.checkForDuplicatedItems(productId, updates.category);
       },
@@ -128,31 +124,29 @@ export const CartStore = signalStore(
           patchState(store, {
             productItems: updatedItems,
             lastUpdated: new Date().toLocaleString('sv-SE'),
+            pendingRestore: null,
           });
 
-          persistState();
         }
       },
 
       setUsedPriceCategories(categories: UsedPricesInOrder) {
         patchState(store, { usedPriceCategories: categories });
-        persistState();
       },
 
       setPricingClientId(id: number | null) {
         patchState(store, { pricingClientId: id });
-        persistState();
       },
 
       deleteProductItems() {
         patchState(store, {
           productItems: [],
           lastUpdated: new Date().toLocaleString('sv-SE'),
+          pendingRestore: null,
           usedPriceCategories: [],
           pricingClientId: null,
         });
 
-        persistState();
       },
 
       deleteProductById(productId: string | number, category: Category) {
@@ -167,9 +161,9 @@ export const CartStore = signalStore(
         patchState(store, {
           productItems: updatedItems,
           lastUpdated: new Date().toLocaleString('sv-SE'),
+          pendingRestore: null,
         });
 
-        persistState();
       },
 
       updateQuantity(
@@ -195,69 +189,62 @@ export const CartStore = signalStore(
         patchState(store, {
           productItems: updatedItems,
           lastUpdated: new Date().toLocaleString('sv-SE'),
+          pendingRestore: null,
         });
 
-        persistState();
       },
     };
   }),
 
-  withHooks((store) => {
-    return {
-      onInit() {
-        const dialog = inject(MatDialog);
-        const location = inject(Location);
-        const storedData = localStorage.getItem(STORAGE_KEY);
+  withMethods((store) => ({
+    /** Loads the saved cart the user chose to keep, as if just changed. */
+    restorePendingCart(): void {
+      const pending = store.pendingRestore();
+      if (!pending) return;
 
-        if (!storedData) return;
+      patchState(store, {
+        ...toStoredCart(pending),
+        lastUpdated: new Date().toLocaleString('sv-SE'),
+        pendingRestore: null,
+      });
+    },
 
-        const OFFER_CREATION_PATHS = ['/offer/create', '/offer/client', '/offer/overview'];
+    discardPendingCart(): void {
+      patchState(store, { pendingRestore: null });
+    },
+  })),
 
-        try {
-          const parsedData = JSON.parse(storedData);
-          const lastUpdated = parsedData.lastUpdated
-            ? new Date(parsedData.lastUpdated)
-            : null;
-          const now = new Date();
-          const ageMs = lastUpdated
-            ? now.getTime() - lastUpdated.getTime()
-            : Infinity;
+  withHooks((store) => ({
+    onInit() {
+      const stored = readFromLocalStorage<StoredCart>(CART_STORAGE_KEY);
 
-          if (ageMs > STALE_THRESHOLD_MS) {
-            const isOnOfferCreationPage = OFFER_CREATION_PATHS.some((p) =>
-              location.path().startsWith(p),
-            );
-
-            if (!isOnOfferCreationPage) {
-              localStorage.removeItem(STORAGE_KEY);
-              return;
-            }
-
-            dialog
-              .open(ConfirmRestoreDialogComponent, {
-                data: { lastUpdated },
-                disableClose: true,
-              })
-              .afterClosed()
-              .subscribe((keepData: boolean) => {
-                if (keepData) {
-                  const freshTimestamp = new Date().toLocaleString('sv-SE');
-                  const restoredData = { ...parsedData, lastUpdated: freshTimestamp };
-                  patchState(store, restoredData);
-                  localStorage.setItem(STORAGE_KEY, JSON.stringify(restoredData));
-                } else {
-                  localStorage.removeItem(STORAGE_KEY);
-                }
-              });
-          } else {
-            patchState(store, parsedData);
-          }
-        } catch (e) {
-          console.error('Failed to parse stored product data', e);
-          localStorage.removeItem(STORAGE_KEY);
+      if (stored) {
+        switch (decideStoredCart(stored, new Date())) {
+          case 'restore':
+            patchState(store, toStoredCart(stored));
+            break;
+          case 'ask':
+            // staleCartGuard asks when an offer creation page is opened
+            patchState(store, { pendingRestore: toStoredCart(stored) });
+            break;
+          case 'discard':
+            break;
         }
-      },
-      onDestroy() {},
-    };
-  }),
+      }
+
+      // While a decision is pending the saved cart is left untouched; a cart
+      // that was never changed (or was discarded) is removed
+      syncToLocalStorage(CART_STORAGE_KEY, () => {
+        if (store.pendingRestore()) return undefined;
+        if (store.lastUpdated() === null) return null;
+
+        return toStoredCart({
+          productItems: store.productItems(),
+          lastUpdated: store.lastUpdated(),
+          usedPriceCategories: store.usedPriceCategories(),
+          pricingClientId: store.pricingClientId(),
+        });
+      });
+    },
+  })),
 );

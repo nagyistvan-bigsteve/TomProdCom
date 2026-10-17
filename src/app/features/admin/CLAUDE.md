@@ -83,7 +83,7 @@ Three editing modes, selected by `selectedPriceType`:
 Lists all users where `approved = false` (`UsersStore.unapprovedUsers()`, loaded by the user page).
 
 - **Approve:** calls `UsersStore.approve(id)` → sets `profiles.approved = true`, then reloads both lists.
-- **Deny:** calls `AuthStore.denyUser(id)` → **permanently hard-deletes the user** from Supabase (not soft-delete). The user record is gone.
+- **Deny:** calls `UsersStore.deny(id)` → **permanently hard-deletes the user** from Supabase (not soft-delete). The user record is gone.
 
 **Layout:** Frosted card (`.section-card`, `rgba(255,255,255,0.08)` on the dark-green background). Section header shows an orange `pending` icon and a count badge. Each pending user gets a row with a small avatar circle, name + email (truncated), and green check / red cancel icon buttons. The component renders nothing when the unapproved list is empty — the parent (`user.component`) guards the `@if(users.length)` check before mounting it.
 
