@@ -52,7 +52,7 @@ describe('PriceAdjustPanelComponent', () => {
 
   it('shows the final price and leaves the input empty for a mixed row', () => {
     render([general, mixed]);
-    const inputs = fixture.nativeElement.querySelectorAll('input');
+    const inputs = fixture.nativeElement.querySelectorAll('input[type=number]');
 
     expect(priceRows()[0].querySelector('.final')?.textContent).toContain('1,400.00');
     expect(priceRows()[1].querySelector('.mixed-info')).not.toBeNull();
@@ -68,7 +68,7 @@ describe('PriceAdjustPanelComponent', () => {
     const emitted: { index: number; price: number | null }[] = [];
     component.finalPriceChange.subscribe((e) => emitted.push(e));
 
-    const input = fixture.nativeElement.querySelectorAll('input')[1] as HTMLInputElement;
+    const input = fixture.nativeElement.querySelectorAll('input[type=number]')[1] as HTMLInputElement;
     input.value = '1250';
     input.dispatchEvent(new Event('input'));
 
