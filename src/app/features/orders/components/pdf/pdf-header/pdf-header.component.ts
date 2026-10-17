@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, input, Input } from '@angular/core';
+import { Component, input, Input, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-pdf-header',
   imports: [TranslateModule, CommonModule],
   templateUrl: './pdf-header.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './pdf-header.component.scss',
 })
 export class PDFHeaderComponent {

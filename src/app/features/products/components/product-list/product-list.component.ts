@@ -6,6 +6,7 @@
   inject,
   Output,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
 import { Observable } from 'rxjs';
@@ -36,6 +37,7 @@ import { ProductStore } from '@features/products/store/product.store';
     MatChipsModule,
     MatDividerModule
 ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./product-list.component.scss'],
 })
 export class ProductSelectComponent {

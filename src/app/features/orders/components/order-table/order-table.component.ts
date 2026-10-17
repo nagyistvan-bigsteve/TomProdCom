@@ -9,6 +9,7 @@
   Output,
   TemplateRef,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { OrderResponse } from '@core/models/models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -72,6 +73,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
   providers: [provideNativeDateAdapter()],
   templateUrl: './order-table.component.html',
   styleUrl: './order-table.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [LEAVE_ANIMATION],
 })
 export class OrderTableComponent implements OnInit {

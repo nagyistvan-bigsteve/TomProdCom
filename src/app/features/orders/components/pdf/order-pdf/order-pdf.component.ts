@@ -1,4 +1,4 @@
-﻿import { Component, computed, inject, input } from '@angular/core';
+﻿import { Component, computed, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { PDFFooterComponent } from '../pdf-footer/pdf-footer.component';
 import { PDFHeaderComponent } from '../pdf-header/pdf-header.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -18,6 +18,7 @@ import { ClientStore } from '@features/clients/store/client.store';
     MatDivider,
   ],
   templateUrl: './order-pdf.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './order-pdf.component.scss',
 })
 export class OrderPdfComponent {

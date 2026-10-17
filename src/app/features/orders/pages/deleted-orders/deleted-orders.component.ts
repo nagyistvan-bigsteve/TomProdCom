@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -28,6 +28,7 @@ interface DeletedOrderWithDays extends OrderResponse {
   ],
   templateUrl: './deleted-orders.component.html',
   styleUrl: './deleted-orders.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class DeletedOrdersComponent {

@@ -438,7 +438,7 @@
               />
             </mat-form-field>
 
-            @if (isProductSelectet && selectedProduct.unit_id === 2) {
+            @if (selectedProduct?.unit_id === 2) {
               <div (click)="m2SetUnit()" class="m2-unit-badge">
                 @if (
                   selectedM2Quantity() === "BRUT" ||

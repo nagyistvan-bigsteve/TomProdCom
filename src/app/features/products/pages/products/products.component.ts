@@ -1,4 +1,4 @@
-﻿import { Component, computed, effect, inject, signal } from '@angular/core';
+﻿import { Component, computed, effect, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Product, ProductWithStock } from '@core/models/models';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
@@ -30,6 +30,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
   ],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: ENTER_AND_LEAVE_ANIMATION,
 })
 export class ProductsComponent {

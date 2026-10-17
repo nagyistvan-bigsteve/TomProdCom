@@ -1,4 +1,4 @@
-﻿import { Component, inject, OnInit } from '@angular/core';
+﻿import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 
 import {
   FormArray,
@@ -51,6 +51,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
 ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './create-coming-wares-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./create-coming-wares-dialog.component.scss'],
 })
 export class CreateComingWaresDialogComponent implements OnInit {

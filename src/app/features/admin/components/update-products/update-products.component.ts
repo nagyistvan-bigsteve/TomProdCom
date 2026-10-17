@@ -4,6 +4,7 @@
   inject,
   OnInit,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { Product, Products, Stock } from '@core/models/models';
 
@@ -44,6 +45,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
 ],
   templateUrl: './update-products.component.html',
   styleUrl: './update-products.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class UpdateProductsComponent implements OnInit {

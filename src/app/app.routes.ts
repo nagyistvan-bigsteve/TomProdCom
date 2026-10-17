@@ -1,27 +1,12 @@
 ﻿import { Routes } from '@angular/router';
-import { StartPageComponent } from '@features/orders/pages/start-page/start-page.component';
-import { CreateOfferPageComponent } from '@features/orders/pages/create-offer/create-offer-page.component';
-import { SelectClientPageComponent } from '@features/orders/pages/select-client/select-client-page.component';
-import { OfferOverviewPageComponent } from '@features/orders/pages/offer-overview/offer-overview-page.component';
-import { ResetPasswordComponent } from '@features/auth/pages/reset-password/reset-password.component';
 import { authGuard } from '@core/guards/auth-guard.service';
 import { staleCartGuard } from '@features/orders/store/cart/stale-cart.guard';
-import { AuthPageComponent } from '@features/auth/pages/auth/auth-page.component';
-import { WaitToApproveComponent } from '@features/auth/pages/wait-to-approve/wait-to-approve.component';
-import { UserComponent } from '@features/auth/pages/user/user.component';
-import { OrdersComponent } from '@features/orders/pages/orders/orders.component';
-import { SettingsComponent } from '@features/admin/pages/settings/settings.component';
-import { OffersComponent } from '@features/orders/pages/offers/offers.component';
-import { ComingWaresComponent } from '@features/coming-wares/pages/coming-wares.component';
-import { ComingWaresDetailsComponent } from '@features/coming-wares/components/coming-wares-details/coming-wares-details.component';
-import { ClientsComponent } from '@features/clients/pages/clients/clients.component';
-import { ProductsComponent } from '@features/products/pages/products/products.component';
-import { DeletedOrdersComponent } from '@features/orders/pages/deleted-orders/deleted-orders.component';
 
 export const routes: Routes = [
   {
     path: 'offer',
-    component: StartPageComponent,
+    loadComponent: () =>
+      import('@features/orders/pages/start-page/start-page.component').then((m) => m.StartPageComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
@@ -29,7 +14,8 @@ export const routes: Routes = [
   },
   {
     path: 'offer/create',
-    component: CreateOfferPageComponent,
+    loadComponent: () =>
+      import('@features/orders/pages/create-offer/create-offer-page.component').then((m) => m.CreateOfferPageComponent),
     canActivate: [authGuard, staleCartGuard],
     data: {
       requiresApproval: true,
@@ -37,7 +23,8 @@ export const routes: Routes = [
   },
   {
     path: 'offer/client',
-    component: SelectClientPageComponent,
+    loadComponent: () =>
+      import('@features/orders/pages/select-client/select-client-page.component').then((m) => m.SelectClientPageComponent),
     canActivate: [authGuard, staleCartGuard],
     data: {
       requiresApproval: true,
@@ -45,7 +32,8 @@ export const routes: Routes = [
   },
   {
     path: 'offer/overview',
-    component: OfferOverviewPageComponent,
+    loadComponent: () =>
+      import('@features/orders/pages/offer-overview/offer-overview-page.component').then((m) => m.OfferOverviewPageComponent),
     canActivate: [authGuard, staleCartGuard],
     data: {
       requiresApproval: true,
@@ -53,7 +41,8 @@ export const routes: Routes = [
   },
   {
     path: 'user',
-    component: UserComponent,
+    loadComponent: () =>
+      import('@features/auth/pages/user/user.component').then((m) => m.UserComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
@@ -61,7 +50,8 @@ export const routes: Routes = [
   },
   {
     path: 'orders',
-    component: OrdersComponent,
+    loadComponent: () =>
+      import('@features/orders/pages/orders/orders.component').then((m) => m.OrdersComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
@@ -69,7 +59,8 @@ export const routes: Routes = [
   },
   {
     path: 'offers',
-    component: OffersComponent,
+    loadComponent: () =>
+      import('@features/orders/pages/offers/offers.component').then((m) => m.OffersComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
@@ -77,7 +68,8 @@ export const routes: Routes = [
   },
   {
     path: 'clients',
-    component: ClientsComponent,
+    loadComponent: () =>
+      import('@features/clients/pages/clients/clients.component').then((m) => m.ClientsComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
@@ -85,7 +77,8 @@ export const routes: Routes = [
   },
   {
     path: 'products',
-    component: ProductsComponent,
+    loadComponent: () =>
+      import('@features/products/pages/products/products.component').then((m) => m.ProductsComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
@@ -93,7 +86,8 @@ export const routes: Routes = [
   },
   {
     path: 'settings',
-    component: SettingsComponent,
+    loadComponent: () =>
+      import('@features/admin/pages/settings/settings.component').then((m) => m.SettingsComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
@@ -102,7 +96,8 @@ export const routes: Routes = [
   },
   {
     path: 'deleted',
-    component: DeletedOrdersComponent,
+    loadComponent: () =>
+      import('@features/orders/pages/deleted-orders/deleted-orders.component').then((m) => m.DeletedOrdersComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
@@ -111,7 +106,8 @@ export const routes: Routes = [
   },
   {
     path: 'coming-wares',
-    component: ComingWaresComponent,
+    loadComponent: () =>
+      import('@features/coming-wares/pages/coming-wares.component').then((m) => m.ComingWaresComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
@@ -119,7 +115,8 @@ export const routes: Routes = [
   },
   {
     path: 'coming-wares/:id/:verified',
-    component: ComingWaresDetailsComponent,
+    loadComponent: () =>
+      import('@features/coming-wares/components/coming-wares-details/coming-wares-details.component').then((m) => m.ComingWaresDetailsComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
@@ -131,7 +128,8 @@ export const routes: Routes = [
     data: {
       requiresApproval: false,
     },
-    component: AuthPageComponent,
+    loadComponent: () =>
+      import('@features/auth/pages/auth/auth-page.component').then((m) => m.AuthPageComponent),
   },
   {
     path: 'reset-password',
@@ -139,7 +137,8 @@ export const routes: Routes = [
     data: {
       requiresApproval: false,
     },
-    component: ResetPasswordComponent,
+    loadComponent: () =>
+      import('@features/auth/pages/reset-password/reset-password.component').then((m) => m.ResetPasswordComponent),
   },
   {
     path: 'wait-to-approve',
@@ -147,7 +146,8 @@ export const routes: Routes = [
     data: {
       requiresApproval: false,
     },
-    component: WaitToApproveComponent,
+    loadComponent: () =>
+      import('@features/auth/pages/wait-to-approve/wait-to-approve.component').then((m) => m.WaitToApproveComponent),
   },
   { path: '', redirectTo: 'auth', pathMatch: 'full' },
   { path: '**', redirectTo: 'auth' },

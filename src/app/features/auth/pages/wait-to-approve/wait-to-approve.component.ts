@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
@@ -11,6 +11,7 @@ import { TranslateModule } from '@ngx-translate/core';
   imports: [MatButtonModule, MatIconModule, TranslateModule],
   templateUrl: './wait-to-approve.component.html',
   styleUrl: './wait-to-approve.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class WaitToApproveComponent {

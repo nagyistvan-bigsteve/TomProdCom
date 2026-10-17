@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ProductSelectComponent } from '@features/products/components/product-list/product-list.component';
 import { Product, ProductItem } from '@core/models/models';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -37,6 +37,7 @@ import { map } from 'rxjs';
   standalone: true,
   templateUrl: './create-offer-page.component.html',
   styleUrl: './create-offer-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION, LEAVE_ANIMATION],
 })
 export class CreateOfferPageComponent {

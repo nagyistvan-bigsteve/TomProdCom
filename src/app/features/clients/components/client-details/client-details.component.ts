@@ -1,5 +1,5 @@
 ﻿
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatListModule } from '@angular/material/list';
@@ -30,6 +30,7 @@ import { ClientStore } from '@features/clients/store/client.store';
     TranslateModule
 ],
   templateUrl: './client-details.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './client-details.component.scss',
 })
 export class ClientDetailsComponent {

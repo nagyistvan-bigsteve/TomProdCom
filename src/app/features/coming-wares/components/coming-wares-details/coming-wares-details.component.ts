@@ -6,6 +6,7 @@
   signal,
   TemplateRef,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ComingWaresService } from '@features/coming-wares/services/coming-wares.service';
@@ -49,6 +50,7 @@ import { ProductStore } from '@features/products/store/product.store';
   ],
   templateUrl: './coming-wares-details.component.html',
   styleUrl: './coming-wares-details.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: ENTER_AND_LEAVE_ANIMATION,
 })
 export class ComingWaresDetailsComponent {

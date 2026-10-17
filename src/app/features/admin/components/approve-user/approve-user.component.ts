@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +17,7 @@ import { UsersStore } from '@core/store/users.store';
 ],
   templateUrl: './approve-user.component.html',
   styleUrl: './approve-user.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class ApproveUserComponent {

@@ -12,6 +12,7 @@
   signal,
   TemplateRef,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   M2_QUANTITIES,
@@ -91,20 +92,21 @@ import { PriceAdjustPanelComponent } from '@features/orders/components/price-adj
   ],
   providers: [OrderDetailsStore],
   templateUrl: './order-details.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './order-details.component.scss',
 })
 export class OrderDetailsComponent implements OnInit {
   @ViewChild('input') input: ElementRef<HTMLInputElement> | null = null;
   @ViewChild('confirmDeliveredDialog')
-  confirmDeliveredDialog!: TemplateRef<any>;
+  confirmDeliveredDialog!: TemplateRef<unknown>;
   @ViewChild('confirmTransformOfferDialog')
-  confirmTransformOfferDialog!: TemplateRef<any>;
+  confirmTransformOfferDialog!: TemplateRef<unknown>;
   @ViewChild('confirmTransformExactOfferDialog')
-  confirmTransformExactOfferDialog!: TemplateRef<any>;
+  confirmTransformExactOfferDialog!: TemplateRef<unknown>;
   @ViewChild('editOfferDialog')
-  editOfferDialog!: TemplateRef<any>;
+  editOfferDialog!: TemplateRef<unknown>;
   @ViewChild('priceDialog')
-  priceDialog!: TemplateRef<any>;
+  priceDialog!: TemplateRef<unknown>;
 
   @Output() closeDetails = new EventEmitter<void>();
 
@@ -128,19 +130,7 @@ export class OrderDetailsComponent implements OnInit {
   categoryEnum = Category;
   myControl = new FormControl('');
 
-  selectedProduct: any = {
-    id: null,
-    name: '',
-    unit_id: null,
-    size_id: null,
-    length: null,
-    thickness: null,
-    width: null,
-    m2_brut: null,
-    m2_util: null,
-    piece_per_pack: null,
-  };
-  isProductSelectet: boolean = false;
+  selectedProduct: Product | null = null;
   customUnitPrice: number | null = null;
   filteredOptions: Product[] = [];
   selectedProductQuantity: number = 1;
@@ -340,11 +330,14 @@ export class OrderDetailsComponent implements OnInit {
   }
 
   addOrderItem(): void {
+    const product = this.selectedProduct;
+    if (!product) return;
+
     const newUnitPrice = this.customUnitPrice ?? this.findExistingCategories();
 
     const { price, packsNeeded, extraPiecesNeeded, totalPiecesNeeded } =
       this.productUtil.calculatePrice(
-        this.selectedProduct,
+        product,
         newUnitPrice!,
         this.selectedProductQuantity,
         this.selectedM2Quantity(),
@@ -360,11 +353,11 @@ export class OrderDetailsComponent implements OnInit {
           : '';
 
       this.selectedProductQuantity =
-        totalPiecesNeeded * this.selectedProduct.m2_brut;
+        totalPiecesNeeded * product.m2_brut;
     }
 
     const existingItem =
-      newUnitPrice != null ? this.findMergableItem(newUnitPrice) : undefined;
+      newUnitPrice != null ? this.findMergableItem(product, newUnitPrice) : undefined;
 
     if (existingItem) {
       // Same product, category and unit price: merge into the existing line
@@ -377,24 +370,25 @@ export class OrderDetailsComponent implements OnInit {
 
     this.detailsStore.addItem(
       {
-        product_id: this.selectedProduct.id,
+        product_id: product.id,
         quantity: +this.selectedProductQuantity,
         category_id: this.selectedCategory,
         price,
         packs_pieces: packsPieces,
       },
-      this.selectedProduct,
+      product,
     );
   }
 
   private findMergableItem(
+    product: Product,
     newUnitPrice: number,
   ): OrderItemsResponse | undefined {
-    if (!this.orderItems || this.selectedProduct.unit_id === Unit_id.M2) {
+    if (!this.orderItems || product.unit_id === Unit_id.M2) {
       return undefined;
     }
     return this.orderItems.find((item) => {
-      if (item.product.id !== this.selectedProduct.id) return false;
+      if (item.product.id !== product.id) return false;
       if (
         Category[item.category.name as keyof typeof Category] !==
         this.selectedCategory
@@ -481,7 +475,6 @@ export class OrderDetailsComponent implements OnInit {
   }
 
   optionSelected(product: Product): void {
-    this.isProductSelectet = true;
     this.selectedProduct = product;
     this.selectedM2Quantity.set('BRUT');
     this.customUnitPrice = null;
@@ -524,7 +517,7 @@ export class OrderDetailsComponent implements OnInit {
     if (price) {
       const unitPrice = effectiveUnitPrice(
         price.price,
-        { unit_id: price.unit_id, thickness: this.selectedProduct.thickness },
+        { unit_id: price.unit_id, thickness: this.selectedProduct?.thickness ?? 0 },
         this.selectedCategory,
         isTva,
       );

@@ -5,6 +5,7 @@
   signal,
   TemplateRef,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   FormBuilder,
@@ -46,6 +47,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
 ],
   templateUrl: './add-product.component.html',
   styleUrl: './add-product.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class AddProductComponent {

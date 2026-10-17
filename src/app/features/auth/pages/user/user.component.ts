@@ -1,4 +1,4 @@
-﻿import { Component, inject, OnInit } from '@angular/core';
+﻿import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { useAuthStore } from '@core/store/auth-store';
 import { UsersStore } from '@core/store/users.store';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,6 +20,7 @@ import { TranslateModule } from '@ngx-translate/core';
 ],
   templateUrl: './user.component.html',
   styleUrl: './user.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class UserComponent implements OnInit {

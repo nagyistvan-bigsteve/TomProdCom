@@ -6,6 +6,7 @@ import {
   signal,
   untracked,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { AddClientComponent } from '@features/clients/components/add-client/add-client.component';
 import { TranslateModule } from '@ngx-translate/core';
@@ -44,6 +45,7 @@ import { ClientHistoryComponent } from '@features/clients/components/client-hist
 ],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: ENTER_ANIMATION,
 })
 export class ClientsComponent {

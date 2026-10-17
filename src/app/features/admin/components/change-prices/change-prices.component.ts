@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnInit, untracked } from '@angular/core';
+import { Component, effect, inject, OnInit, untracked, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatOptionModule } from '@angular/material/core';
@@ -38,6 +38,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
 ],
   templateUrl: './change-prices.component.html',
   styleUrl: './change-prices.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_AND_LEAVE_ANIMATION, ENTER_ANIMATION, LEAVE_ANIMATION],
 })
 export class ChangePricesComponent implements OnInit {

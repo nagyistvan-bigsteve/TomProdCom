@@ -11,6 +11,7 @@
   TemplateRef,
   untracked,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
@@ -47,6 +48,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
   ],
   templateUrl: './selected-product-list.component.html',
   styleUrl: './selected-product-list.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class SelectedProductListComponent implements OnChanges {

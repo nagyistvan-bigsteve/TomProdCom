@@ -1253,13 +1253,14 @@ Pure business-logic functions — price formulas, discount adjustments, quantity
 - **Config**: `vitest.config.mjs` at the project root. Path aliases (`@core`, `@shared`, `@features`) are resolved automatically.
 - **Scope**: Test exported pure functions. Do not use Angular `TestBed` or DI in Vitest tests — use plain `new ClassName()` for classes without constructor dependencies.
 
-Current test file: `src/app/shared/utils/product.util.vitest.spec.ts` covers `calculatePrice`, `applyBDiscount`, `applyTvaDiscount`, and adjustment ordering.
+Current test file: `src/app/shared/utils/product.util.vitest.spec.ts` covers `calculatePrice`, `applyBDiscount`, `applyTvaDiscount`, `effectiveUnitPrice`, and adjustment ordering.
 
-## 12.2 Component tests (Karma + Jasmine)
+## 12.2 Component tests (Angular unit-test builder + Vitest)
 
-Angular component behaviour (routing, template rendering, DI interactions) is covered by the existing Karma+Jasmine setup.
+Angular component behaviour (routing, template rendering, DI interactions, guards) is covered by `*.spec.ts` files run by the Angular `unit-test` builder with Vitest in jsdom. `src/test.ts` is its setup file and provides the app-wide test providers.
 
-- **Run**: `npm test`
+- **Run**: `npm test` (watch) or `npx ng test --watch=false` (single pass, as in CI)
+- **Deploy gate**: both GitHub workflows run `npm run test:unit` and the component specs before building; a failing test stops the deploy.
 
 ## 12.3 Rule
 
@@ -1622,7 +1623,7 @@ Users must not be able to manipulate another user's data merely by modifying fro
 
 ### Policy model
 
-The SQL lives in `supabase/migrations/` (`rls_require_approved_user.sql`, `rls_admin_only_writes.sql`). Two helper functions in the non-exposed `private` schema answer "who is calling": `private.is_approved()` and `private.is_admin()` (approved **and** listed in `admin_users`).
+The SQL lives in `supabase/migrations/` (`*_rls_require_approved_user.sql`, `*_rls_admin_only_writes.sql`; the emergency undo is `supabase/rollbacks/rls_rollback.sql`, kept out of `migrations/` so it is never applied by accident). Two helper functions in the non-exposed `private` schema answer "who is calling": `private.is_approved()` and `private.is_admin()` (approved **and** listed in `admin_users`).
 
 | Who                    | Can do                                                                                                          |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------- |

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { useAuthStore, UserRole } from '@core/store/auth-store';
 import { UsersStore } from '@core/store/users.store';
 
@@ -18,6 +18,7 @@ import { TranslateModule } from '@ngx-translate/core';
 ],
   templateUrl: './users-list.component.html',
   styleUrl: './users-list.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class UsersListComponent {
