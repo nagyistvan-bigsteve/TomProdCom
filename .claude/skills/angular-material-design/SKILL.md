@@ -62,7 +62,7 @@ Do these in order.
    | Where the field is | Appearance | Styling |
    |---|---|---|
    | On the dark green page (default) | `appearance="outline"` | add the 8 `--mat-form-field-outlined-*` tokens from the example below to the field's class |
-   | A field that should look like a white box on the dark page (existing examples: client search, product picker, quantity inputs) | `appearance="fill"` | nothing; the global `mat.form-field-overrides` in `styles.scss` makes it white with green text |
+   | A field that should look like a white box (existing examples: client search, product picker, quantity inputs, the pay amount in the order-table dialog) | `appearance="fill"` | nothing; the global `mat.form-field-overrides` in `styles.scss` makes it white with green text |
    | Dialog or white card | `appearance="outline"` | nothing; Material's default dark text is correct on white |
 
    When you add a field next to existing ones, use the same appearance as its neighbours in that file.
@@ -81,7 +81,7 @@ Do these in order.
    Only these two kinds of 48px action button may set `height`, `font-size` or `font-weight`. Do not size any other button.
    *Why: Material sizes buttons from the density setting, and manual sizes drift from the rest of the app.*
 
-9. **Set icon colour only on white surfaces.** Icons are white everywhere through the global `mat.icon-overrides`. On a white surface, put a class directly on `<mat-icon>`: `color: rgba(0, 0, 0, 0.54)` for neutral, `color: rgb(134, 2, 2)` for delete. For a `mat-icon-button`, set `--mat-icon-button-icon-color: rgba(0, 0, 0, 0.45)` on the button instead.
+9. **Set icon colour only on white surfaces.** Icons are white everywhere through the global `mat.icon-overrides`. White surfaces include dialogs, white cards **and the inside of every `appearance="fill"` field** (prefix and suffix icons, e.g. `.search-icon-prefix` in `order-table.component.scss`). On a white surface, put a class directly on `<mat-icon>`: `color: rgba(0, 0, 0, 0.54)` for neutral, `color: rgb(134, 2, 2)` for delete. For a `mat-icon-button`, set `--mat-icon-button-icon-color: rgba(0, 0, 0, 0.45)` on the button instead.
    *Why: a white icon on a white dialog is invisible, and an icon colour on the green page overrides the theme for no reason.*
 
 10. **Use Material type classes for text:** `mat-headline-small` for the brand name on auth pages, `mat-title-large` for a page title (as in `start-page.component.html`), `mat-title-medium` for card, dialog and section headers, `mat-title-small` for subsections, `mat-body-medium` for normal text, `mat-body-small` for captions. Never use Bootstrap `fs-*` or `fw-*` in new code.
@@ -96,7 +96,7 @@ Do these in order.
     | `white`, `rgba(255,255,255,0.65)`, `rgba(255,255,255,0.35)` | text, secondary text, borders on the dark page |
     | `rgba(255, 255, 255, 0.12)` | divider lines on the dark page |
     | `rgba(95, 1, 1, 1)` | selected chip and selected button toggle |
-    | `rgba(95, 1, 1, 0.75)`, hover `rgba(95, 1, 1, 0.9)` | dark-red step action button (step 8) |
+    | `rgba(95, 1, 1, 0.75)` to `0.85`, hover `0.9` to `1` | dark-red action button (step 8); match the value in the file you are in |
     | `#216e25` / `#b11111` / `#0c56ac` | success / error / info snackbars (already global) |
     | `rgb(141, 216, 27)` / `rgb(251, 255, 17)` | stock OK / stock warning |
 
@@ -113,7 +113,7 @@ Do these in order.
 - **For Material table rows, use `::ng-deep tr.detail-row { height: 0 }`**, not a component-scoped selector. *Why: rows rendered by Material's own view container do not get the component's scoping attribute.*
 - **Prefer `d-flex flex-wrap` with `flex: 1 1 <min-width>` over Bootstrap `row`/`col-*`** around Material fields. *Why: `col-*` padding fights Material field widths.*
 - **Use Bootstrap for layout utilities only:** `d-flex`, `flex-*`, `align-items-*`, `justify-content-*`, `gap-*`, `p-*`, `m-*`, `w-100`, `d-none`/`d-md-block`. Never Bootstrap `btn`, `form-control`, `fs-*`, `fw-*`, `text-primary` or `bg-*`. *Why: those duplicate Material components and theme colours and look different from them.*
-- **A `mat-card`:** full width with `mx-2` on mobile; from `sm`, `max-width: 640px; margin: 0 auto`; content padding `p-4`. *Why: an unbounded card on desktop makes lines too long to read.*
+- **Cards:** the only `mat-card` (`add-client.component.scss`) is `width: 100%` with text colour `rgb(57, 72, 60)`; its parent decides the width. Newer pages use a plain white `<div>` card instead (`order-details`, `deleted-orders`; see `features/orders/CLAUDE.md`). Match the page you are in. *Why: the orders feature removed `mat-card` on purpose; re-adding it there undoes that decision.*
 - **All interactive elements are at least 44×44px.** Do not lower density below 0 without checking. *Why: the app is mobile-first and used on phones; smaller targets cause mis-taps.*
 
 ## Example of a finished output
@@ -194,7 +194,7 @@ Noticed:     nothing
 - [ ] Every breakpoint block changes the layout, not only the padding
 - [ ] Each form field follows the step 7 table, and none has a fixed height
 - [ ] Token names are `--mat-*`, not `--mdc-*`
-- [ ] Icons on white surfaces have a dark colour; icons on the green page have none
+- [ ] Icons on white surfaces (dialogs, cards, inside `fill` fields) have a dark colour; icons on the green page have none
 - [ ] No `!important`, `fs-*` or new colours in the lines I wrote
 - [ ] I checked 375px, 600px and 960px, or said plainly that I could not
 - [ ] Existing violations I saw are listed under "noticed", not fixed
