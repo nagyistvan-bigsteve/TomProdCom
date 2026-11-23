@@ -3,7 +3,9 @@ import { Category, Unit_id } from '@core/models/enums';
 import type { Product, Stock } from '@core/models/models';
 import {
   availableStock,
+  bookedAbShortfall,
   groupStocksByProduct,
+  hasVolume,
   isGradable,
   shipmentTotalM3,
   sortingLimit,
@@ -185,5 +187,44 @@ describe('shipmentTotalM3', () => {
     const products = { 1: makeProduct({ id: 1, width: 0 }) };
     expect(shipmentTotalM3([{ product_id: 1, quantity: 5 }, { product_id: 9, quantity: 5 }], products)).toBe(0);
     expect(shipmentTotalM3([], products)).toBe(0);
+  });
+
+  it('counts only M3 and bundle products, like the products page', () => {
+    // a piece-priced (BUC) product with dimensions adds no m³
+    const products = { 1: makeProduct({ id: 1, unit_id: Unit_id.BUC }) };
+    expect(shipmentTotalM3([{ product_id: 1, quantity: 49 }], products)).toBe(0);
+  });
+});
+
+describe('hasVolume', () => {
+  it('is true for M3 and bundles only', () => {
+    expect(hasVolume({ unit_id: Unit_id.M3 })).toBe(true);
+    expect(hasVolume({ unit_id: Unit_id.BOUNDLE })).toBe(true);
+    expect(hasVolume({ unit_id: Unit_id.BUC })).toBe(false);
+    expect(hasVolume({ unit_id: Unit_id.M2 })).toBe(false);
+  });
+});
+
+describe('bookedAbShortfall', () => {
+  const ab = (stock: number, booked_stock: number) => ({ stock, booked_stock });
+
+  it('is 0 while the sorting fits in AB free', () => {
+    expect(bookedAbShortfall(ab(49, 40), 9)).toBe(0);
+    expect(bookedAbShortfall(ab(49, 0), 49)).toBe(0);
+  });
+
+  it('counts the booked pieces the sorting takes beyond AB free', () => {
+    expect(bookedAbShortfall(ab(49, 40), 12)).toBe(3);
+    expect(bookedAbShortfall(ab(49, 40), 49)).toBe(40);
+  });
+
+  it('treats an already negative AB free as 0 free', () => {
+    // 10 in stock, 15 ordered: every sorted piece is one an order counts on
+    expect(bookedAbShortfall(ab(10, 15), 4)).toBe(4);
+  });
+
+  it('is 0 without an AB row or for an empty sorting', () => {
+    expect(bookedAbShortfall(undefined, 5)).toBe(0);
+    expect(bookedAbShortfall(ab(10, 5), 0)).toBe(0);
   });
 });

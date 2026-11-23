@@ -28,6 +28,19 @@
   color: rgb(134, 2, 2);
 }
 
+// orange-brown readable on the white dialog; a warning, not an error
+.warning-text {
+  color: rgb(138, 76, 0);
+}
+
+.truck-field {
+  margin-bottom: var(--space-2);
+}
+
+.tall-btn {
+  --mat-button-outlined-container-height: 44px;
+}
+
 .submit-btn {
   --mat-button-filled-container-color: rgb(57, 72, 60);
   --mat-button-filled-label-text-color: white;

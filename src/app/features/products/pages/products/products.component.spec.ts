@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { Category, Unit_id } from '@core/models/enums';
 import { GradedStock, Product, Stock } from '@core/models/models';
 import { ProductStore } from '@features/products/store/product.store';
-import { ProductsComponent } from './products.component';
+import { ProductsComponent, stockChanges } from './products.component';
 
 function product(id: number, length: number, unit_id = Unit_id.M3): Product {
   return {
@@ -28,7 +28,7 @@ function stock(id: number, product_id: number, category_id: Stock['category_id']
 describe('ProductsComponent', () => {
   let component: ProductsComponent;
   let fixture: ComponentFixture<ProductsComponent>;
-  const updateStock = vi.fn();
+  const setStocks = vi.fn();
 
   const products = [product(1, 400), product(2, 800), product(3, 400, Unit_id.M2)];
   const stocksByProduct: Record<number, GradedStock> = {
@@ -42,7 +42,7 @@ describe('ProductsComponent', () => {
   };
 
   beforeEach(async () => {
-    updateStock.mockClear();
+    setStocks.mockReset().mockResolvedValue('saved');
     await TestBed.configureTestingModule({
       imports: [ProductsComponent],
       providers: [
@@ -51,8 +51,11 @@ describe('ProductsComponent', () => {
           useValue: {
             productsEntities: signal(products),
             stocksByProduct: signal(stocksByProduct),
+            isBusy: signal(false),
+            loadFailed: signal(false),
             fetchStocks: vi.fn(),
-            updateStock,
+            fetchProducts: vi.fn(),
+            setStocks,
           },
         },
       ],
@@ -86,25 +89,86 @@ describe('ProductsComponent', () => {
     expect(component.visibleCards().map((c) => c.id)).toEqual([1]);
   });
 
-  it('saves only the grades that changed', () => {
+  it('saves only the grades that changed, with the value the edit started from', async () => {
     const card = component.cards()[0];
     component.toggleEdit(card);
     component.setDraft(12, '7');
     component.setDraft(13, '49');
-    component.saveEdit(card);
+    await component.saveEdit(card);
 
-    expect(updateStock).toHaveBeenCalledTimes(1);
-    expect(updateStock).toHaveBeenCalledWith({ id: 12, stock: 7 });
+    expect(setStocks).toHaveBeenCalledTimes(1);
+    expect(setStocks).toHaveBeenCalledWith([{ id: 12, expected: 9, stock: 7 }]);
     expect(component.editingId()).toBeNull();
   });
 
-  it('does not write 0 for an emptied field', () => {
+  it('does not write 0 for an emptied field', async () => {
     const card = component.cards()[0];
     component.toggleEdit(card);
     component.setDraft(12, '7');
     component.setDraft(12, '');
-    component.saveEdit(card);
+    await component.saveEdit(card);
 
-    expect(updateStock).not.toHaveBeenCalled();
+    expect(setStocks).not.toHaveBeenCalled();
+    expect(component.editingId()).toBeNull();
+  });
+
+  it('keeps the edit open and drops the typed values when someone changed the stock meanwhile', async () => {
+    setStocks.mockResolvedValue('conflict');
+    const card = component.cards()[0];
+    component.toggleEdit(card);
+    component.setDraft(12, '7');
+    await component.saveEdit(card);
+
+    expect(component.editingId()).toBe(card.id);
+    expect(component.draft()).toEqual({});
+  });
+});
+
+describe('stockChanges', () => {
+  const grades = [{ stock: stock(1, 1, Category.A, 40) }, { stock: stock(2, 1, Category.B, 9) }];
+
+  it('sends the starting value as expected, not the current one', () => {
+    // A was 38 when the edit opened, has been reloaded to 40 since
+    expect(stockChanges(grades, { 1: 50 }, { 1: 38, 2: 9 })).toEqual([
+      { id: 1, expected: 38, stock: 50 },
+    ]);
+  });
+
+  it('skips unchanged, negative and non-numeric values', () => {
+    expect(stockChanges(grades, { 1: 40, 2: -1 }, {})).toEqual([]);
+    expect(stockChanges(grades, { 2: Number.NaN }, {})).toEqual([]);
+  });
+});
+
+describe('ProductsComponent without products', () => {
+  it('offers a retry after a failed load instead of spinning forever', async () => {
+    const fetchProducts = vi.fn();
+    const fetchStocks = vi.fn();
+    await TestBed.configureTestingModule({
+      imports: [ProductsComponent],
+      providers: [
+        {
+          provide: ProductStore,
+          useValue: {
+            productsEntities: signal([]),
+            stocksByProduct: signal({}),
+            isBusy: signal(false),
+            loadFailed: signal(true),
+            fetchStocks,
+            fetchProducts,
+            setStocks: vi.fn(),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    const fixture = TestBed.createComponent(ProductsComponent);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('mat-spinner')).toBeNull();
+
+    el.querySelector<HTMLButtonElement>('.loading-state button')!.click();
+    expect(fetchProducts).toHaveBeenCalled();
+    expect(fetchStocks).toHaveBeenCalledTimes(2); // on open, and the retry
   });
 });

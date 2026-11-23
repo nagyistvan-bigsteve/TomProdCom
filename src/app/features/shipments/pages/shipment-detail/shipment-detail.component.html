@@ -1,5 +1,5 @@
-<div class="page-header">
-  <span class="header-title">
+<div class="dark-page-header">
+  <span class="dark-page-title">
     {{ (isNew() ? "SHIPMENTS.NEW" : "SHIPMENTS.TRUCK") | translate }}
   </span>
   @if (shipment(); as s) {
@@ -9,19 +9,19 @@
   }
 </div>
 
-<div class="page-content">
+<div class="dark-page-content">
   @if (!isNew() && !shipment()) {
     <div class="loading-state">
       @if (store.isBusy()) {
         <mat-spinner diameter="40" />
       } @else {
-        <p class="mat-body-medium secondary">{{ "SHIPMENTS.NOT_FOUND" | translate }}</p>
+        <p class="mat-body-medium on-dark-secondary">{{ "SHIPMENTS.NOT_FOUND" | translate }}</p>
       }
     </div>
   } @else if (isDraft()) {
     <!-- Draft: header and lines are editable -->
     <div class="header-fields">
-      <mat-form-field appearance="outline" class="dark-field">
+      <mat-form-field appearance="outline" class="on-dark-field">
         <mat-label>{{ "SHIPMENTS.ARRIVED_ON" | translate }}</mat-label>
         <input
           matInput
@@ -31,7 +31,7 @@
           (input)="arrivedOn.set($any($event.target).value)"
         />
       </mat-form-field>
-      <mat-form-field appearance="outline" class="dark-field">
+      <mat-form-field appearance="outline" class="on-dark-field">
         <mat-label>{{ "SHIPMENTS.NAME" | translate }}</mat-label>
         <input
           matInput
@@ -40,7 +40,7 @@
           (input)="name.set($any($event.target).value)"
         />
       </mat-form-field>
-      <mat-form-field appearance="outline" class="dark-field comment-field">
+      <mat-form-field appearance="outline" class="on-dark-field comment-field">
         <mat-label>{{ "SHIPMENTS.COMMENT" | translate }}</mat-label>
         <input
           matInput
@@ -50,7 +50,7 @@
       </mat-form-field>
     </div>
 
-    <p class="mat-body-small secondary">{{ "SHIPMENTS.AB_HINT" | translate }}</p>
+    <p class="mat-body-small on-dark-secondary">{{ "SHIPMENTS.AB_HINT" | translate }}</p>
 
     <div class="line-list">
       @for (line of lines(); track line.key; let i = $index) {
@@ -70,7 +70,7 @@
               </button>
             </div>
           } @else {
-            <mat-form-field appearance="outline" class="dark-field line-product-field">
+            <mat-form-field appearance="outline" class="on-dark-field line-product-field">
               <mat-label>{{ "SHIPMENTS.PRODUCT" | translate }}</mat-label>
               <input
                 matInput
@@ -86,7 +86,7 @@
               >
                 @if (query()?.key === line.key) {
                   @for (option of options(); track option.id) {
-                    <mat-option [value]="option">{{ option.name }}</mat-option>
+                    <mat-option [value]="option" class="wrap-option">{{ option.name }}</mat-option>
                   }
                 }
               </mat-autocomplete>
@@ -94,7 +94,7 @@
           }
 
           @if (line.product) {
-            <mat-form-field appearance="outline" class="dark-field qty-field">
+            <mat-form-field appearance="outline" class="on-dark-field qty-field">
               <mat-label>{{ "SHIPMENTS.PIECES" | translate }}</mat-label>
               <input
                 matInput
@@ -103,6 +103,7 @@
                 step="1"
                 inputmode="numeric"
                 [value]="line.quantity"
+                (focus)="selectAll($event)"
                 (input)="setQuantity(line.key, $any($event.target).value)"
               />
               @if (isLineInvalid(line)) {
@@ -127,11 +128,20 @@
       · <strong>{{ draftM3() | number: "1.0-3" }} {{ "WORDS.M3" | translate }}</strong>
     </p>
 
+    @if (missing().length) {
+      <p class="mat-body-small missing-hint" role="status">
+        {{ "SHIPMENTS.MISSING.TITLE" | translate }}
+        @for (field of missing(); track field; let last = $last) {
+          {{ "SHIPMENTS.MISSING." + field | translate }}{{ last ? "" : "," }}
+        }
+      </p>
+    }
+
     <div class="actions">
-      <button mat-stroked-button type="button" class="secondary-btn" (click)="deleteDraft()" [disabled]="store.isBusy()">
+      <button mat-stroked-button type="button" class="on-dark-stroked" (click)="deleteDraft()" [disabled]="store.isBusy()">
         {{ (isNew() ? "DIALOG.CANCEL" : "SHIPMENTS.DELETE") | translate }}
       </button>
-      <button mat-stroked-button type="button" class="secondary-btn" (click)="saveDraft()" [disabled]="store.isBusy() || !canSave()">
+      <button mat-stroked-button type="button" class="on-dark-stroked" (click)="saveDraft()" [disabled]="store.isBusy() || !canSave()">
         {{ "DIALOG.SAVE" | translate }}
       </button>
       <button mat-flat-button type="button" class="validate-btn" (click)="validate()" [disabled]="store.isBusy() || !canSave()">
@@ -144,85 +154,108 @@
     <div class="summary-card">
       <div class="card-row">
         <span class="mat-title-medium">{{ s.name }}</span>
-        <span class="mat-body-medium secondary">{{ s.arrived_on | date: "yyyy.MM.dd" }}</span>
+        <span class="mat-body-medium on-dark-secondary">{{ s.arrived_on | date: "yyyy.MM.dd" }}</span>
       </div>
       @if (s.comment) {
-        <span class="mat-body-medium secondary">{{ s.comment }}</span>
+        <span class="mat-body-medium on-dark-secondary">{{ s.comment }}</span>
       }
       <span class="mat-body-medium">{{ shipmentM3() | number: "1.0-3" }} {{ "WORDS.M3" | translate }}</span>
+      <span class="mat-body-small on-dark-secondary">
+        @if (s.creator?.name) {
+          {{ "SHIPMENTS.CREATED_BY" | translate: { name: s.creator!.name } }}
+        }
+        @if (s.validated_at) {
+          {{ s.creator?.name ? "·" : "" }}
+          {{ "SHIPMENTS.VALIDATED_BY" | translate: { name: s.validator?.name || "?" } }}
+          {{ s.validated_at | date: "yyyy.MM.dd HH:mm" }}
+        }
+      </span>
     </div>
 
-    <div class="progress-list">
-      @for (line of progress(); track line.product_id) {
-        <div class="progress-row">
-          <span class="product-cell mat-body-medium">{{ line.product?.name }}</span>
+    @if (store.sortingsFailed() && !store.sortingsLoaded()) {
+      <div class="loading-state">
+        <p class="mat-body-medium on-dark-secondary">{{ "SORTING.LOAD_FAILED" | translate }}</p>
+        <button mat-stroked-button class="on-dark-stroked" (click)="retrySortings()">
+          <mat-icon>refresh</mat-icon>
+          {{ "WORDS.RETRY" | translate }}
+        </button>
+      </div>
+    } @else if (!store.sortingsLoaded()) {
+      <div class="loading-state"><mat-spinner diameter="40" /></div>
+    } @else {
+      <div class="progress-list">
+        @for (line of progress(); track line.product_id) {
+          <div class="progress-row">
+            <span class="product-cell mat-body-medium">{{ line.product?.name }}</span>
 
-          <dl class="progress-stats mat-body-small">
-            <div>
-              <dt>{{ "SHIPMENTS.RECEIVED" | translate }}</dt>
-              <dd class="mat-body-medium">{{ line.received }}</dd>
-            </div>
-            <div>
-              <dt>{{ "SHIPMENTS.SORTED" | translate }}</dt>
-              <dd class="mat-body-medium">{{ line.gradable ? line.sorted : "–" }}</dd>
-            </div>
-            <div>
-              <dt>{{ "SHIPMENTS.REMAINING" | translate }}</dt>
-              <dd
-                class="mat-body-medium"
-                [class.stock-warning]="line.gradable && line.remaining > 0"
-              >
-                {{ line.gradable ? line.remaining : "–" }}
-              </dd>
-            </div>
-          </dl>
+            <dl class="progress-stats mat-body-small">
+              <div>
+                <dt>{{ "SHIPMENTS.RECEIVED" | translate }}</dt>
+                <dd class="mat-body-medium">{{ line.received }}</dd>
+              </div>
+              <div>
+                <dt>{{ "SHIPMENTS.SORTED" | translate }}</dt>
+                <dd class="mat-body-medium">{{ line.gradable ? line.sorted : "–" }}</dd>
+              </div>
+              <div>
+                <dt>{{ "SHIPMENTS.REMAINING" | translate }}</dt>
+                <dd
+                  class="mat-body-medium"
+                  [class.stock-warning]="line.gradable && line.remaining > 0"
+                >
+                  {{ line.gradable ? line.remaining : "–" }}
+                </dd>
+              </div>
+            </dl>
 
-          <div class="progress-action">
-            @if (line.gradable && line.product) {
-              <button
-                mat-stroked-button
-                class="secondary-btn"
-                [disabled]="line.remaining <= 0"
-                (click)="openSorting(line.product, line.remaining)"
-              >
-                {{ "SORTING.BUTTON" | translate }}
-              </button>
-            } @else {
-              <span class="mat-body-small secondary">{{ "SHIPMENTS.ONLY_AB" | translate }}</span>
-            }
+            <div class="progress-action">
+              @if (line.gradable && line.product) {
+                <button
+                  mat-stroked-button
+                  class="on-dark-stroked"
+                  [disabled]="line.remaining <= 0"
+                  (click)="openSorting(line.product, line.remaining)"
+                >
+                  {{ "SORTING.BUTTON" | translate }}
+                </button>
+              } @else {
+                <span class="mat-body-small on-dark-secondary">{{ "SHIPMENTS.ONLY_AB" | translate }}</span>
+              }
+            </div>
           </div>
-        </div>
-      }
-    </div>
+        }
+      </div>
 
-    <h3 class="mat-title-small mt-3 mb-0">{{ "SORTING.HISTORY" | translate }}</h3>
-    <div class="sorting-list">
-      @for (sorting of store.sortings(); track sorting.id) {
-        <div class="sorting-row mat-body-medium">
-          <div class="sorting-text">
-            <span>{{ productStore.productsEntityMap()[sorting.product_id]?.name }}</span>
-            <span class="secondary mat-body-small">
-              {{ sorting.created_at | date: "yyyy.MM.dd HH:mm" }}
-              @if (sorting.comment) { · {{ sorting.comment }} }
+      <h3 class="mat-title-small mt-3 mb-0">{{ "SORTING.HISTORY" | translate }}</h3>
+      <div class="sorting-list">
+        @for (sorting of store.sortings(); track sorting.id) {
+          <div class="sorting-row mat-body-medium">
+            <div class="sorting-text">
+              <span>{{ productStore.productsEntityMap()[sorting.product_id]?.name }}</span>
+              <span class="on-dark-secondary mat-body-small">
+                {{ sorting.created_at | date: "yyyy.MM.dd HH:mm" }}
+                @if (sorting.sorter?.name) { · {{ sorting.sorter!.name }} }
+                @if (sorting.comment) { · {{ sorting.comment }} }
+              </span>
+            </div>
+            <span class="sorting-qty">
+              A {{ sorting.qty_a }} · B {{ sorting.qty_b }}
+              @if (sorting.qty_waste) { · {{ "SORTING.WASTE" | translate }} {{ sorting.qty_waste }} }
             </span>
+            <button
+              mat-icon-button
+              type="button"
+              (click)="undoSorting(sorting)"
+              [disabled]="store.isBusy()"
+              [attr.aria-label]="'SORTING.UNDO' | translate"
+            >
+              <mat-icon>undo</mat-icon>
+            </button>
           </div>
-          <span class="sorting-qty">
-            A {{ sorting.qty_a }} · B {{ sorting.qty_b }}
-            @if (sorting.qty_waste) { · {{ "SORTING.WASTE" | translate }} {{ sorting.qty_waste }} }
-          </span>
-          <button
-            mat-icon-button
-            type="button"
-            (click)="undoSorting(sorting)"
-            [disabled]="store.isBusy()"
-            [attr.aria-label]="'SORTING.UNDO' | translate"
-          >
-            <mat-icon>undo</mat-icon>
-          </button>
-        </div>
-      } @empty {
-        <p class="mat-body-medium secondary">{{ "SORTING.NONE" | translate }}</p>
-      }
-    </div>
+        } @empty {
+          <p class="mat-body-medium on-dark-secondary">{{ "SORTING.NONE" | translate }}</p>
+        }
+      </div>
+    }
   }
 </div>

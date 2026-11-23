@@ -19,10 +19,11 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
 import { ProductUtil } from '@shared/utils/product.util';
-import { ProductStore } from '@features/products/store/product.store';
+import { ProductStore, StockChange } from '@features/products/store/product.store';
 import { Category, Unit_id } from '@core/models/enums';
 import {
   availableStock,
+  hasVolume,
   isGradable,
   stockCategoriesOf,
   totalStock,
@@ -82,6 +83,13 @@ export class ProductsComponent {
   editingId = signal<number | null>(null);
   /** New values typed in the edit row, by stocks row id. */
   draft = signal<Record<number, number>>({});
+  /**
+   * Stock of each grade when the edit was opened, by stocks row id. Sent as
+   * the expected value, so a change made meanwhile by someone else is not
+   * overwritten (`set_stock` raises SA006).
+   */
+  private editBaseline: Record<number, number> = {};
+  readonly saving = signal(false);
   searchValue = signal('');
   stockFilter = signal<StockFilter>('all');
   sortDirection = signal<'none' | 'asc' | 'desc'>('none');
@@ -132,7 +140,14 @@ export class ProductsComponent {
       return;
     }
     this.draft.set({});
+    this.editBaseline = Object.fromEntries(card.grades.map((g) => [g.stock.id, g.stock.stock]));
     this.editingId.set(card.id);
+  }
+
+  /** Reloads products and stock after a failed load. */
+  retry(): void {
+    this.productStore.fetchProducts();
+    this.productStore.fetchStocks();
   }
 
   /** An emptied field is not a 0: it leaves that grade unchanged. */
@@ -152,16 +167,25 @@ export class ProductsComponent {
     this.stockFilter.set(event.value);
   }
 
-  saveEdit(card: ProductStockCard): void {
-    const draft = this.draft();
-    for (const row of card.grades) {
-      const value = draft[row.stock.id];
-      if (value === undefined || !Number.isFinite(value) || value < 0) continue;
-      if (value !== row.stock.stock) {
-        this.productStore.updateStock({ id: row.stock.id, stock: value });
-      }
+  async saveEdit(card: ProductStockCard): Promise<void> {
+    if (this.saving()) return;
+    const changes = stockChanges(card.grades, this.draft(), this.editBaseline);
+    if (!changes.length) {
+      this.editingId.set(null);
+      return;
     }
-    this.editingId.set(null);
+
+    this.saving.set(true);
+    const result = await this.productStore.setStocks(changes);
+    this.saving.set(false);
+
+    if (result === 'saved') {
+      this.editingId.set(null);
+    } else if (result === 'conflict') {
+      // the stock is being reloaded: show the new values and start from them
+      this.draft.set({});
+      this.editBaseline = {};
+    }
   }
 
   openSorting(card: ProductStockCard): void {
@@ -175,8 +199,7 @@ export class ProductsComponent {
     product: Product,
     graded: Partial<Record<StockCategory, Stock>>,
   ): ProductStockCard {
-    const withM3 =
-      product.unit_id === Unit_id.M3 || product.unit_id === Unit_id.BOUNDLE;
+    const withM3 = hasVolume(product);
     const m3 = (pieces: number) =>
       withM3 ? this.productUtil.calculateM3Quantity(product, pieces) : null;
 
@@ -208,4 +231,24 @@ export class ProductsComponent {
 /** Gradable product with unsorted AB pieces. */
 function isToSort(card: ProductStockCard): boolean {
   return card.gradable && card.ab > 0;
+}
+
+/**
+ * The grades whose typed value differs from the stock, with the value the
+ * edit started from (`baseline`, falling back to the current stock). Empty,
+ * negative or non-numeric values leave a grade unchanged.
+ */
+export function stockChanges(
+  grades: Pick<GradeRow, 'stock'>[],
+  draft: Record<number, number>,
+  baseline: Record<number, number>,
+): StockChange[] {
+  const changes: StockChange[] = [];
+  for (const { stock } of grades) {
+    const value = draft[stock.id];
+    if (value === undefined || !Number.isFinite(value) || value < 0) continue;
+    if (value === stock.stock) continue;
+    changes.push({ id: stock.id, expected: baseline[stock.id] ?? stock.stock, stock: value });
+  }
+  return changes;
 }

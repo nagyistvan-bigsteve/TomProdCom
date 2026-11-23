@@ -7,6 +7,15 @@
 
 begin;
 
+-- record_sorting below is the pre-hardening version; undo the hardening first.
+do $$
+begin
+  if to_regprocedure('public.set_stock(bigint, numeric, numeric)') is not null then
+    raise exception 'Run graded_stock_hardening_rollback.sql first';
+  end if;
+end;
+$$;
+
 drop trigger if exists orders_offer_conversion_stock on public.orders;
 drop function if exists private.trg_order_offer_conversion();
 drop function if exists private.item_stock_effect(integer, integer, numeric, boolean, integer);

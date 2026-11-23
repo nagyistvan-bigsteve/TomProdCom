@@ -1,6 +1,7 @@
 ﻿import { Routes } from '@angular/router';
 import { authGuard } from '@core/guards/auth-guard.service';
 import { staleCartGuard } from '@features/orders/store/cart/stale-cart.guard';
+import { unsavedDraftGuard } from '@features/shipments/pages/shipment-detail/unsaved-draft.guard';
 
 export const routes: Routes = [
   {
@@ -118,6 +119,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('@features/shipments/pages/shipment-detail/shipment-detail.component').then((m) => m.ShipmentDetailComponent),
     canActivate: [authGuard],
+    canDeactivate: [unsavedDraftGuard],
     data: {
       requiresApproval: true,
     },

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '@core/services/supabase.service';
 import { unwrapResult } from '@core/services/supabase-result.util';
-import { StockSorting } from '@core/models/models';
+import { StockSorting, TruckWithRemaining } from '@core/models/models';
 import { from, map, Observable } from 'rxjs';
 
 export type SortingRequest = {
@@ -57,9 +57,22 @@ export class SortingsService {
     return from(
       this.supabaseService.client
         .from('stock_sortings')
-        .select('*')
+        .select('*, sorter:created_by(name)')
         .eq('shipment_id', shipmentId)
         .order('created_at', { ascending: false }),
-    ).pipe(map((result) => unwrapResult(result) ?? []));
+    ).pipe(map((result) => (unwrapResult(result) ?? []) as StockSorting[]));
+  }
+
+  /** Validated trucks that still have unsorted pieces of the product, oldest first. */
+  async trucksWithRemaining(productId: number): Promise<TruckWithRemaining[] | null> {
+    const { data, error } = await this.supabaseService.client.rpc('shipments_with_remaining', {
+      p_product_id: productId,
+    });
+
+    if (error) {
+      console.error('Fail to load trucks with pieces left', error);
+      return null;
+    }
+    return (data ?? []) as TruckWithRemaining[];
   }
 }

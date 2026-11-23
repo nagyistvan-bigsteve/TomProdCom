@@ -95,7 +95,8 @@
     "TOTAL": "Totál",
     "VOUCHER": "Discount",
     "M3": "m³",
-    "SEARCH": "Keresés..."
+    "SEARCH": "Keresés...",
+    "RETRY": "Újra"
   },
   "OVERVIEW_PAGE": {
     "TITLE": "Rendelés áttekintése",
@@ -365,7 +366,9 @@
       "NOT_GRADABLE": "Ennek a terméknek nincs A/B készlete (M2 vagy 7 méter feletti).",
       "SHIPMENT_LOCKED": "A kamion már validálva van, nem módosítható.",
       "SORTING_SOLD": "A válogatott A/B darabok egy része már elfogyott, a válogatás nem vonható vissza.",
-      "MORE_THAN_TRUCK": "Ebből a termékből ennyi már nem maradt a kamionon."
+      "MORE_THAN_TRUCK": "Ebből a termékből ennyi már nem maradt a kamionon.",
+      "STOCK_CHANGED": "Valaki közben módosította ezt a készletet. Az új értékek betöltve, nézd át és mentsd újra.",
+      "DRAFT_CHANGED": "Valaki közben módosította ezt a kamiont."
     },
     "PRODUCT": {
       "STOCK": "Készlet: ",
@@ -528,7 +531,9 @@
       "ALL": "Mind",
       "TO_SORT": "Válogatásra vár",
       "NEGATIVE": "Hiány"
-    }
+    },
+    "LOAD_FAILED": "A termékek vagy a készlet nem tölthető be.",
+    "NO_PRODUCTS": "Még nincs termék."
   },
   "SORTING": {
     "TITLE": "Válogatás (AB → A / B)",
@@ -551,7 +556,12 @@
       "NOT_WHOLE": "Csak egész darabszám adható meg.",
       "MORE_THAN_TRUCK": "Több darabot válogatnál, mint amennyi ebből a termékből a kamionon maradt.",
       "MORE_THAN_AB": "Több darabot válogatnál, mint amennyi AB készleten van."
-    }
+    },
+    "TRUCK": "Kamion",
+    "NO_TRUCK": "Nincs kamionhoz kötve",
+    "TRUCK_HINT": "Ha a darabok egy kamionról jöttek, válaszd ki: így nő a kamion válogatottsága.",
+    "BOOKED_WARNING": "Figyelem: ebből {{booked}} AB darabot már megrendeltek. Válogatás után az AB szabad készlet {{free}} lesz.",
+    "LOAD_FAILED": "A válogatások nem tölthetők be."
   },
   "SHIPMENTS": {
     "TITLE": "Beérkező kamionok",
@@ -585,6 +595,28 @@
     "RECEIVED": "Beérkezett",
     "SORTED": "Válogatva",
     "REMAINING": "Maradt",
-    "ONLY_AB": "csak AB"
+    "ONLY_AB": "csak AB",
+    "MISSING": {
+      "TITLE": "Mentéshez hiányzik:",
+      "NAME": "név",
+      "DATE": "dátum",
+      "LINE": "legalább egy sor",
+      "QTY": "helyes darabszám"
+    },
+    "LEAVE": "Nem mentett kamion",
+    "LEAVE_CONFIRM": "A beírt adatok elvesznek. Biztosan kilépsz?",
+    "CREATED_BY": "Rögzítette: {{name}}",
+    "VALIDATED_BY": "Validálta: {{name}}",
+    "FILTER_TO_SORT": "Válogatásra vár",
+    "LOAD_FAILED": "A kamionok nem tölthetők be.",
+    "LOAD_MORE": "Továbbiak betöltése",
+    "CONFLICT": "Valaki közben módosította",
+    "CONFLICT_CONFIRM": "Valaki más közben elmentette ezt a kamiont. Betöltöd az ő változatát? A te nem mentett módosításaid elvesznek. (Mégse: megmaradnak a tieid, és a következő mentés felülírja az övét.)",
+    "FILTER_PARTIAL": "Csak a betöltött {{count}} kamionban keres. Továbbiak betöltése alább."
+  },
+  "A11Y": {
+    "UNIT_FILTER": "Szűrés mértékegység szerint",
+    "SIZE_FILTER": "Szűrés méret szerint",
+    "CATEGORY": "Minőségi kategória"
   }
 }

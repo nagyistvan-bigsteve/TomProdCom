@@ -9,7 +9,7 @@
     <mat-chip-listbox
       [(ngModel)]="selectedUnit"
       (ngModelChange)="onFilterChange()"
-      aria-label="Selected product group by unit"
+      [attr.aria-label]="'A11Y.UNIT_FILTER' | translate"
     >
       @for (productsByUnit of productsByUnits; track productsByUnit) {
       <mat-chip-option
@@ -33,7 +33,7 @@
     <mat-chip-listbox
       [(ngModel)]="selectedSize"
       (ngModelChange)="onFilterChange()"
-      aria-label="Selected product group by size"
+      [attr.aria-label]="'A11Y.SIZE_FILTER' | translate"
     >
       @for (productsBySize of productsBySizes; track productsBySize) {
       <mat-chip-option

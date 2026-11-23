@@ -2,8 +2,24 @@
 
 <mat-dialog-content>
   <p class="mat-title-small product-name">{{ data.product.name }}</p>
+
+  @if (canPickTruck && trucks().length) {
+    <mat-form-field appearance="outline" class="w-100 truck-field">
+      <mat-label>{{ "SORTING.TRUCK" | translate }}</mat-label>
+      <mat-select [value]="pickedTruckId()" (valueChange)="pickedTruckId.set($event)">
+        <mat-option [value]="null">{{ "SORTING.NO_TRUCK" | translate }}</mat-option>
+        @for (truck of trucks(); track truck.id) {
+          <mat-option [value]="truck.id">
+            {{ truck.arrived_on | date: "yyyy.MM.dd" }} · {{ truck.name }} ({{ truck.remaining }})
+          </mat-option>
+        }
+      </mat-select>
+      <mat-hint>{{ "SORTING.TRUCK_HINT" | translate }}</mat-hint>
+    </mat-form-field>
+  }
+
   <p class="mat-body-medium">
-    {{ (fromTruck ? "SORTING.ON_TRUCK" : "SORTING.AB_IN_STOCK") | translate }}:
+    {{ (fromTruck() ? "SORTING.ON_TRUCK" : "SORTING.AB_IN_STOCK") | translate }}:
     <strong>{{ available() }}</strong>
   </p>
 
@@ -16,8 +32,11 @@
         min="0"
         step="1"
         inputmode="numeric"
+        placeholder="0"
+        cdkFocusInitial
         [ngModel]="a()"
-        (ngModelChange)="a.set(toNumber($event))"
+        (ngModelChange)="a.set(toQty($event))"
+        (focus)="selectAll($event)"
       />
     </mat-form-field>
     <mat-form-field appearance="outline" class="qty-field">
@@ -28,8 +47,10 @@
         min="0"
         step="1"
         inputmode="numeric"
+        placeholder="0"
         [ngModel]="b()"
-        (ngModelChange)="b.set(toNumber($event))"
+        (ngModelChange)="b.set(toQty($event))"
+        (focus)="selectAll($event)"
       />
     </mat-form-field>
     <mat-form-field appearance="outline" class="qty-field">
@@ -40,13 +61,15 @@
         min="0"
         step="1"
         inputmode="numeric"
+        placeholder="0"
         [ngModel]="waste()"
-        (ngModelChange)="waste.set(toNumber($event))"
+        (ngModelChange)="waste.set(toQty($event))"
+        (focus)="selectAll($event)"
       />
     </mat-form-field>
   </div>
 
-  <button mat-stroked-button type="button" class="w-100" (click)="restToA()">
+  <button mat-stroked-button type="button" class="w-100 tall-btn" (click)="restToA()">
     {{ "SORTING.REST_TO_A" | translate }}
   </button>
 
@@ -57,19 +80,25 @@
 
   <p class="mat-body-medium summary">
     {{ "SORTING.TAKEN_FROM_AB" | translate }}: <strong>{{ total() }}</strong>
-    · {{ (fromTruck ? "SORTING.TRUCK_LEFT" : "SORTING.AB_LEFT") | translate }}:
+    · {{ (fromTruck() ? "SORTING.TRUCK_LEFT" : "SORTING.AB_LEFT") | translate }}:
     <strong [class.negative]="remaining() < 0">{{ remaining() }}</strong>
   </p>
 
+  @if (bookedTaken() > 0 && !error()) {
+    <p class="mat-body-medium warning-text" role="status">
+      {{ "SORTING.BOOKED_WARNING" | translate: { booked: bookedTaken(), free: abFreeAfter() } }}
+    </p>
+  }
+
   @if (error() && error() !== "EMPTY") {
-    <p class="mat-body-medium error-text">
+    <p class="mat-body-medium error-text" role="alert">
       {{ "SORTING.ERROR." + error() | translate }}
     </p>
   }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
-  <button mat-button type="button" (click)="cancel()">
+  <button mat-button type="button" [disabled]="saving()" (click)="cancel()">
     {{ "DIALOG.CANCEL" | translate }}
   </button>
   <button

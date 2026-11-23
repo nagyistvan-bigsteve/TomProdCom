@@ -11,6 +11,21 @@
 
 begin;
 
+-- Order matters: the later migrations build on this one. Undo them first:
+--   1. graded_stock_hardening_rollback.sql
+--   2. offer_conversion_booking_rollback.sql
+--   3. this script
+do $$
+begin
+  if to_regprocedure('private.item_stock_effect(integer, integer, numeric, boolean, integer)') is not null then
+    raise exception 'Run offer_conversion_booking_rollback.sql (after graded_stock_hardening_rollback.sql) first';
+  end if;
+  if to_regprocedure('public.set_stock(bigint, numeric, numeric)') is not null then
+    raise exception 'Run graded_stock_hardening_rollback.sql first';
+  end if;
+end;
+$$;
+
 -- Booking triggers: original bodies (one stock row per product) -------------
 -- (originals were security invoker with no pinned search_path; kept as-is)
 

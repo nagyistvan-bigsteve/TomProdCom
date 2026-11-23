@@ -20,8 +20,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import { Unit_id } from '@core/models/enums';
-import { Product, StockSorting } from '@core/models/models';
+import { Product, ShipmentWithItems, StockSorting } from '@core/models/models';
 import { ConfirmDeleteDialogComponent } from '@shared/components/dialogs/confirm-delete-dialog.component';
+import { ConfirmRestoreDialogComponent } from '@shared/components/dialogs/confirm-restore-dialog.component';
 import { FilterUtil } from '@shared/utils/filter.util';
 import { NotificationService } from '@shared/utils/notification.service';
 import { isGradable, shipmentTotalM3 } from '@shared/utils/stock.util';
@@ -32,14 +33,38 @@ import {
 } from '@features/products/components/sorting-dialog/sorting-dialog.component';
 import { ShipmentStore } from '@features/shipments/store/shipment.store';
 import {
+  DraftHeader,
   DraftLine,
-  invalidLines,
+  draftFingerprint,
+  missingForSave,
+  parseDraftBackup,
   shipmentProgress,
+  toDraftBackup,
   toShipmentItems,
   withTrailingEmptyLine,
 } from '@features/shipments/shipment.util';
 
 const MAX_OPTIONS = 30;
+
+/** localStorage key of the unsaved new truck (per device, survives a reload). */
+const BACKUP_KEY = 'shipment_draft_new';
+
+function readBackup(): string | null {
+  try {
+    return localStorage.getItem(BACKUP_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeBackup(value: object | null): void {
+  try {
+    if (value === null) localStorage.removeItem(BACKUP_KEY);
+    else localStorage.setItem(BACKUP_KEY, JSON.stringify(value));
+  } catch {
+    // storage blocked (private mode): the backup is only a convenience
+  }
+}
 
 /** Local date as YYYY-MM-DD (toISOString would give the UTC date after midnight). */
 function today(): string {
@@ -76,7 +101,13 @@ export class ShipmentDetailComponent {
   private readonly notify = inject(NotificationService);
 
   private lineKey = 0;
-  private filledFor: unknown = null;
+  /** The loaded draft the form was last filled from. */
+  private filledFor: ShipmentWithItems | null = null;
+  /**
+   * The user chose to load the other person's version after a conflict: fill
+   * the form from the next loaded draft even though it holds unsaved edits.
+   */
+  private readonly takeTheirs = signal(false);
   private readonly nextKey = () => ++this.lineKey;
 
   readonly shipmentId = computed(() => {
@@ -119,13 +150,28 @@ export class ShipmentDetailComponent {
 
   readonly draftPieces = computed(() => this.draftItems().reduce((s, i) => s + i.quantity, 0));
 
-  readonly canSave = computed(
-    () =>
-      this.name().trim().length > 0 &&
-      !!this.arrivedOn() &&
-      this.draftItems().length > 0 &&
-      invalidLines(this.lines()).length === 0,
+  private readonly header = computed<DraftHeader>(() => ({
+    arrivedOn: this.arrivedOn(),
+    name: this.name(),
+    comment: this.comment(),
+  }));
+
+  /** What stops a save, shown under the form instead of a silently disabled button. */
+  readonly missing = computed(() => missingForSave(this.header(), this.lines()));
+
+  readonly canSave = computed(() => this.missing().length === 0);
+
+  /** Fingerprint of the form as last loaded or saved; differing = unsaved changes. */
+  private readonly baseline = signal(draftFingerprint(this.header(), this.lines()));
+
+  readonly dirty = computed(
+    () => this.isDraft() && draftFingerprint(this.header(), this.lines()) !== this.baseline(),
   );
+
+  /** Set once leaving is decided (deleted, confirmed): the guard then lets it go. */
+  private leaving = false;
+  /** New truck: the restore offer has been made; only then may the backup be overwritten. */
+  private readonly backupChecked = signal(false);
 
   // validated view
   readonly progress = computed(() => {
@@ -158,31 +204,113 @@ export class ShipmentDetailComponent {
       });
     });
 
-    // fill the form once per loaded draft; later product reloads must not
+    // fill the form from each loaded draft; later product reloads must not
     // overwrite what the user is typing
     effect(() => {
       const shipment = this.shipment();
+      const takeTheirs = this.takeTheirs();
       if (!shipment || shipment.status !== 'draft' || this.filledFor === shipment) return;
       // wait for the products, or the lines would lose them on a direct page load
       if (shipment.shipment_items.length && !this.productStore.productsEntities().length) return;
+      // a reload of the same draft (e.g. after someone else saved it) never
+      // replaces unsaved edits, unless the user chose to load that version
+      const reload = this.filledFor?.id === shipment.id;
+      if (reload && untracked(this.dirty) && !takeTheirs) return;
       this.filledFor = shipment;
       untracked(() => {
-        const products = this.productStore.productsEntityMap();
-        this.arrivedOn.set(shipment.arrived_on);
-        this.name.set(shipment.name);
-        this.comment.set(shipment.comment ?? '');
-        this.lines.set(
-          withTrailingEmptyLine(
-            shipment.shipment_items.map((i) => ({
-              key: this.nextKey(),
-              product: products[i.product_id] ?? null,
-              quantity: i.quantity,
-            })),
-            this.nextKey,
-          ),
+        this.takeTheirs.set(false);
+        this.fillForm(
+          { arrivedOn: shipment.arrived_on, name: shipment.name, comment: shipment.comment ?? '' },
+          shipment.shipment_items,
         );
+        this.baseline.set(draftFingerprint(this.header(), this.lines()));
       });
     });
+
+    // a new truck: offer to restore one typed before a reload (once products are there)
+    effect(() => {
+      if (this.backupChecked() || !this.isNew() || !this.productStore.productsEntities().length) return;
+      untracked(() => this.offerBackupRestore());
+    });
+
+    // a new truck: keep what is typed in localStorage until it is saved; not
+    // before the restore offer, or typing early would overwrite the old backup
+    effect(() => {
+      if (!this.isNew() || !this.backupChecked()) return;
+      if (this.dirty()) {
+        writeBackup(toDraftBackup(this.header(), this.lines(), new Date()));
+      } else {
+        writeBackup(null);
+      }
+    });
+  }
+
+  /** Asked by `unsavedDraftGuard` before leaving the page. */
+  async confirmLeave(): Promise<boolean> {
+    if (this.leaving || !this.dirty()) return true;
+    const confirmed = await this.confirm('SHIPMENTS.LEAVE', 'SHIPMENTS.LEAVE_CONFIRM', true);
+    if (confirmed) {
+      this.leaving = true;
+      if (this.isNew()) writeBackup(null);
+    }
+    return confirmed;
+  }
+
+  selectAll(event: FocusEvent): void {
+    (event.target as HTMLInputElement | null)?.select();
+  }
+
+  /** Reloads the sortings after a failed load. */
+  retrySortings(): void {
+    const id = this.shipmentId();
+    if (id !== null) this.store.loadSortings(id);
+  }
+
+  private fillForm(header: DraftHeader, items: { product_id: number; quantity: number }[]): void {
+    const products = this.productStore.productsEntityMap();
+    this.arrivedOn.set(header.arrivedOn);
+    this.name.set(header.name);
+    this.comment.set(header.comment);
+    this.lines.set(
+      withTrailingEmptyLine(
+        items.map((i) => ({
+          key: this.nextKey(),
+          product: products[i.product_id] ?? null,
+          quantity: i.quantity,
+        })),
+        this.nextKey,
+      ),
+    );
+  }
+
+  private async offerBackupRestore(): Promise<void> {
+    const backup = parseDraftBackup(readBackup());
+    if (!backup) {
+      this.backupChecked.set(true);
+      return;
+    }
+    const keep = await firstValueFrom(
+      this.dialog
+        .open(ConfirmRestoreDialogComponent, { data: { lastUpdated: new Date(backup.savedAt) } })
+        .afterClosed(),
+    );
+    if (keep === true) {
+      this.fillForm(backup, backup.lines);
+    } else {
+      writeBackup(null);
+    }
+    this.backupChecked.set(true);
+  }
+
+  /**
+   * Someone else saved the draft meanwhile (SA007). The store is already
+   * loading their version; the user decides whether it replaces the form.
+   * Keeping their own edits means the next save (with the new version)
+   * replaces the other person's changes.
+   */
+  private async resolveConflict(): Promise<void> {
+    const loadTheirs = await this.confirm('SHIPMENTS.CONFLICT', 'SHIPMENTS.CONFLICT_CONFIRM', true);
+    if (loadTheirs) this.takeTheirs.set(true);
   }
 
   productName(product: Product | null | undefined): string {
@@ -216,24 +344,35 @@ export class ShipmentDetailComponent {
     return !!line.product && !(line.quantity > 0 && Number.isInteger(line.quantity));
   }
 
-  async saveDraft(): Promise<number | null> {
+  async saveDraft(options: { quiet?: boolean } = {}): Promise<number | null> {
     if (!this.canSave()) {
       this.notify.error('SHIPMENTS.FORM_INVALID');
       return null;
     }
-    const id = await this.store.save(
+    const wasNew = this.isNew();
+    const outcome = await this.store.save(
       {
         ...(this.shipmentId() ? { id: this.shipmentId()! } : {}),
+        ...(this.shipment()?.updated_at ? { updated_at: this.shipment()!.updated_at } : {}),
         arrived_on: this.arrivedOn(),
         name: this.name().trim(),
         comment: this.comment().trim(),
       },
       this.draftItems(),
+      options,
     );
-    if (id !== null && this.isNew()) {
-      await this.router.navigate(['/shipments', id], { replaceUrl: true });
+    if (!('id' in outcome)) {
+      if (outcome.failed === 'conflict') await this.resolveConflict();
+      return null;
     }
-    return id;
+
+    // saved: the form now matches the database
+    this.baseline.set(draftFingerprint(this.header(), this.lines()));
+    if (wasNew) {
+      writeBackup(null);
+      await this.router.navigate(['/shipments', outcome.id], { replaceUrl: true });
+    }
+    return outcome.id;
   }
 
   async validate(): Promise<void> {
@@ -244,11 +383,12 @@ export class ShipmentDetailComponent {
     const confirmed = await this.confirm('SHIPMENTS.VALIDATE', 'SHIPMENTS.VALIDATE_CONFIRM', false);
     if (!confirmed) return;
 
-    // validate exactly what is on screen
-    const id = await this.saveDraft();
+    // validate exactly what is on screen; one message ("validated") instead of two
+    const id = await this.saveDraft({ quiet: true });
     if (id !== null) await this.store.validate(id);
   }
 
+  /** New truck: back to the list (the guard asks if something was typed). Draft: delete it. */
   async deleteDraft(): Promise<void> {
     const id = this.shipmentId();
     if (id === null) {
@@ -257,6 +397,7 @@ export class ShipmentDetailComponent {
     }
     const confirmed = await this.confirm('SHIPMENTS.DELETE', 'SHIPMENTS.DELETE_CONFIRM', true);
     if (confirmed && (await this.store.remove(id))) {
+      this.leaving = true;
       this.router.navigate(['/shipments']);
     }
   }
@@ -270,8 +411,9 @@ export class ShipmentDetailComponent {
         maxWidth: '95vw',
       })
       .afterClosed()
-      .subscribe((saved) => {
-        if (saved && shipmentId !== null) this.store.loadSortings(shipmentId);
+      // reload on every close: the remaining numbers must never stay stale
+      .subscribe(() => {
+        if (shipmentId !== null) this.store.loadSortings(shipmentId);
       });
   }
 

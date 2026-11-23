@@ -14,6 +14,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { CartStore } from '@features/orders/store/cart/cart.store';
+import { ProductStore } from '@features/products/store/product.store';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatBadgeModule } from '@angular/material/badge';
 import { BreakpointObserver } from '@angular/cdk/layout';
@@ -48,6 +49,7 @@ export class CreateOfferPageComponent {
   private _snackBar = inject(MatSnackBar);
   private _dialog = inject(MatDialog);
   readonly cartStore = inject(CartStore);
+  private readonly productStore = inject(ProductStore);
 
   readonly isDesktop = toSignal(
     inject(BreakpointObserver)
@@ -55,6 +57,12 @@ export class CreateOfferPageComponent {
       .pipe(map((r) => r.matches)),
     { initialValue: false },
   );
+
+  constructor() {
+    // no realtime: show current stock while building the offer (skipped when
+    // stock was loaded seconds ago, e.g. right after sign-in)
+    this.productStore.refreshStocksIfStale();
+  }
 
   getSelectedProduct(product: Product): void {
     this.selectedProduct = product;

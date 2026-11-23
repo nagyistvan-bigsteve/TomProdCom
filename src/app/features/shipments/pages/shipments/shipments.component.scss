@@ -1,5 +1,8 @@
 @use "breakpoints" as *;
 
+// Page header, content width, dark fields and buttons and secondary text are
+// the shared dark-page helpers in styles.scss.
+
 :host {
   flex: 1;
   min-height: 0;
@@ -8,31 +11,6 @@
   background-color: rgb(57, 72, 60);
   color: white;
   overflow-y: auto;
-}
-
-.page-header {
-  flex-shrink: 0;
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.header-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
-.page-content {
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-4) var(--space-3);
-  gap: var(--space-3);
-  width: 100%;
-
-  @include md {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-4);
-  }
 }
 
 .new-btn {
@@ -68,10 +46,24 @@
   }
 }
 
+.list-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-3);
+}
+
+.search-field {
+  flex: 1 1 220px;
+}
+
 .loading-state {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
   padding: var(--space-8);
+  text-align: center;
 }
 
 .shipment-list {
@@ -95,10 +87,8 @@
   gap: var(--space-2);
   min-height: 44px;
   padding: var(--space-3);
-  text-align: left;
   color: inherit;
-  font: inherit;
-  cursor: pointer;
+  text-decoration: none;
   background: rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
@@ -117,11 +107,13 @@
   gap: var(--space-2);
 }
 
-.secondary {
-  color: rgba(255, 255, 255, 0.65);
+.card-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .progress {
+  display: block;
   height: 4px;
   border-radius: 2px;
   background: rgba(255, 255, 255, 0.12);
@@ -129,6 +121,11 @@
 }
 
 .progress-bar {
+  display: block;
   height: 100%;
   background: rgb(141, 216, 27);
+}
+
+.load-more {
+  align-self: center;
 }

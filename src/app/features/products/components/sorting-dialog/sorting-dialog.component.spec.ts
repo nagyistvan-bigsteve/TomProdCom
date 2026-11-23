@@ -131,7 +131,7 @@ describe('SortingDialogComponent from a truck', () => {
   });
 
   it('shows what is left on the truck, not the whole AB stock', () => {
-    expect(component.fromTruck).toBe(true);
+    expect(component.fromTruck()).toBe(true);
     expect(component.available()).toBe(20);
     expect(fixture.nativeElement.textContent).toContain('20');
     expect(fixture.nativeElement.textContent).not.toContain('49');
@@ -150,5 +150,92 @@ describe('SortingDialogComponent from a truck', () => {
     expect(component.error()).toBe('MORE_THAN_TRUCK');
     await component.save();
     expect(recordSorting).not.toHaveBeenCalled();
+  });
+});
+
+describe('SortingDialogComponent from the products page', () => {
+  let component: SortingDialogComponent;
+  let fixture: ComponentFixture<SortingDialogComponent>;
+  let resolveSave: (ok: boolean) => void;
+  const dialogRef = { close: vi.fn(), disableClose: false };
+  const recordSorting = vi.fn();
+  const trucksWithRemaining = vi.fn();
+
+  beforeEach(async () => {
+    dialogRef.close.mockClear();
+    dialogRef.disableClose = false;
+    recordSorting.mockReset().mockImplementation(
+      () => new Promise<boolean>((resolve) => (resolveSave = resolve)),
+    );
+    trucksWithRemaining.mockReset().mockResolvedValue([
+      { id: 9, name: 'Truck 9', arrived_on: '2026-11-20', received: 30, sorted: 10, remaining: 20 },
+    ]);
+    await TestBed.configureTestingModule({
+      imports: [SortingDialogComponent],
+      providers: [
+        { provide: MAT_DIALOG_DATA, useValue: { product } },
+        { provide: MatDialogRef, useValue: dialogRef },
+        { provide: SortingsService, useValue: { recordSorting, trucksWithRemaining } },
+        {
+          provide: ProductStore,
+          useValue: {
+            // 49 AB pieces, 40 of them ordered by customers: 9 free
+            stocksByProduct: signal({
+              1: { [Category.AB]: { id: 3, product_id: 1, category_id: Category.AB, stock: 49, booked_stock: 40 } },
+            }),
+            fetchStocks: vi.fn(),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(SortingDialogComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
+  });
+
+  it('counts against the whole AB stock until a truck is picked', () => {
+    expect(trucksWithRemaining).toHaveBeenCalledWith(1);
+    expect(component.trucks()).toHaveLength(1);
+    expect(component.fromTruck()).toBe(false);
+    expect(component.available()).toBe(49);
+  });
+
+  it('switches to the picked truck and sends its id', async () => {
+    component.pickedTruckId.set(9);
+    expect(component.fromTruck()).toBe(true);
+    expect(component.available()).toBe(20);
+
+    component.a.set(21);
+    expect(component.error()).toBe('MORE_THAN_TRUCK');
+
+    component.a.set(5);
+    const saving = component.save();
+    resolveSave(true);
+    await saving;
+    expect(recordSorting).toHaveBeenCalledWith(expect.objectContaining({ shipmentId: 9, a: 5 }));
+  });
+
+  it('warns, but allows, sorting AB pieces that customers ordered', () => {
+    component.a.set(12);
+    expect(component.error()).toBeNull();
+    expect(component.bookedTaken()).toBe(3);
+    expect(component.abFreeAfter()).toBe(-3);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.warning-text')).not.toBeNull();
+  });
+
+  it('cannot be closed while saving', async () => {
+    component.a.set(1);
+    const saving = component.save();
+    expect(dialogRef.disableClose).toBe(true);
+    component.cancel();
+    expect(dialogRef.close).not.toHaveBeenCalled();
+
+    resolveSave(true);
+    await saving;
+    expect(dialogRef.disableClose).toBe(false);
+    expect(dialogRef.close).toHaveBeenCalledWith(true);
   });
 });

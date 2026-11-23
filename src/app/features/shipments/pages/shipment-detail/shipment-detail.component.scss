@@ -1,5 +1,8 @@
 @use "breakpoints" as *;
 
+// Page header, content width, dark fields and buttons, secondary text and the
+// stock colours are the shared dark-page helpers in styles.scss.
+
 :host {
   flex: 1;
   min-height: 0;
@@ -10,64 +13,24 @@
   overflow-y: auto;
 }
 
-.page-header {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.header-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
 .status-badge {
   padding: var(--space-1) var(--space-2);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.12);
 
+  // validated is a good state: success green, not the red of the actions
   &.validated {
-    background: rgba(95, 1, 1, 1);
-  }
-}
-
-.page-content {
-  display: flex;
-  flex-direction: column;
-  padding: var(--space-4) var(--space-3);
-  gap: var(--space-3);
-  width: 100%;
-
-  @include md {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: var(--space-6) var(--space-4);
+    background: #216e25;
   }
 }
 
 .loading-state {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
   padding: var(--space-8);
-}
-
-.secondary {
-  color: rgba(255, 255, 255, 0.65);
-}
-
-.dark-field {
-  --mat-form-field-outlined-label-text-color: rgba(255, 255, 255, 0.65);
-  --mat-form-field-outlined-hover-label-text-color: rgba(255, 255, 255, 0.85);
-  --mat-form-field-outlined-focus-label-text-color: white;
-  --mat-form-field-outlined-input-text-color: white;
-  --mat-form-field-outlined-outline-color: rgba(255, 255, 255, 0.35);
-  --mat-form-field-outlined-hover-outline-color: rgba(255, 255, 255, 0.65);
-  --mat-form-field-outlined-focus-outline-color: white;
-  --mat-form-field-outlined-caret-color: white;
+  text-align: center;
 }
 
 .header-fields {
@@ -75,7 +38,7 @@
   flex-wrap: wrap;
   gap: 0 var(--space-3);
 
-  .dark-field {
+  .on-dark-field {
     flex: 1 1 220px;
   }
 }
@@ -104,7 +67,6 @@
 .line-no {
   width: 2rem;
   color: rgba(255, 255, 255, 0.65);
-  align-self: center;
 }
 
 .line-product,
@@ -113,6 +75,7 @@
   min-width: 0;
 }
 
+// the dimensions are at the end of a product name: wrap, never cut off
 .line-product {
   display: flex;
   align-items: center;
@@ -122,8 +85,8 @@
   margin-bottom: var(--space-2);
 
   span {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 }
 
@@ -143,6 +106,12 @@
   text-align: right;
 }
 
+.missing-hint {
+  margin: 0;
+  text-align: right;
+  color: rgb(251, 255, 17);
+}
+
 .actions {
   display: flex;
   flex-direction: column;
@@ -152,12 +121,6 @@
     flex-direction: row;
     justify-content: flex-end;
   }
-}
-
-.secondary-btn {
-  --mat-button-outlined-label-text-color: white;
-  --mat-button-outlined-outline-color: rgba(255, 255, 255, 0.35);
-  --mat-button-outlined-disabled-label-text-color: rgba(255, 255, 255, 0.35);
 }
 
 .validate-btn {
@@ -249,13 +212,6 @@
   justify-self: end;
 }
 
-.stock-warning {
-  color: rgb(251, 255, 17);
-  font-weight: 600;
-}
-
-
-
 .sorting-list {
   display: flex;
   flex-direction: column;
@@ -279,4 +235,10 @@
 .sorting-qty {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+// autocomplete options render in the overlay, outside this component
+::ng-deep .wrap-option .mdc-list-item__primary-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }

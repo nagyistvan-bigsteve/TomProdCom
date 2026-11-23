@@ -5,6 +5,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -15,12 +16,19 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TranslateModule } from '@ngx-translate/core';
+import { MatSelectModule } from '@angular/material/select';
 import { Category } from '@core/models/enums';
-import { Product } from '@core/models/models';
+import { Product, TruckWithRemaining } from '@core/models/models';
 import { ProductStore } from '@features/products/store/product.store';
 import { SortingsService } from '@features/products/services/sortings.service';
 import { NotificationService } from '@shared/utils/notification.service';
-import { sortingLimit, sortingTotal, validateSorting } from '@shared/utils/stock.util';
+import {
+  availableStock,
+  bookedAbShortfall,
+  sortingLimit,
+  sortingTotal,
+  validateSorting,
+} from '@shared/utils/stock.util';
 
 export interface SortingDialogData {
   product: Product;
@@ -37,11 +45,13 @@ export interface SortingDialogData {
 @Component({
   selector: 'app-sorting-dialog',
   imports: [
+    DatePipe,
     FormsModule,
     MatButtonModule,
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     TranslateModule,
   ],
   templateUrl: './sorting-dialog.component.html',
@@ -55,68 +65,101 @@ export class SortingDialogComponent {
   private readonly sortingsService = inject(SortingsService);
   private readonly notify = inject(NotificationService);
 
-  readonly a = signal(0);
-  readonly b = signal(0);
-  readonly waste = signal(0);
+  /** Typed quantities; `null` = empty field, counted as 0. */
+  readonly a = signal<number | null>(null);
+  readonly b = signal<number | null>(null);
+  readonly waste = signal<number | null>(null);
   readonly comment = signal('');
   readonly saving = signal(false);
 
-  readonly abStock = computed(
-    () =>
-      this.productStore.stocksByProduct()[this.data.product.id]?.[Category.AB]
-        ?.stock ?? 0,
+  /** Opened from the products page: the user may pick the truck the pieces came from. */
+  readonly canPickTruck = this.data.shipmentId == null;
+  readonly trucks = signal<TruckWithRemaining[]>([]);
+  readonly trucksLoaded = signal(false);
+  readonly pickedTruckId = signal<number | null>(null);
+
+  private readonly abRow = computed(
+    () => this.productStore.stocksByProduct()[this.data.product.id]?.[Category.AB],
   );
 
-  /** Set when sorting from a truck: the dialog then counts against that truck, not all AB. */
-  readonly truckRemaining: number | null =
-    this.data.shipmentId != null && this.data.truckRemaining != null
-      ? this.data.truckRemaining
-      : null;
+  readonly abStock = computed(() => this.abRow()?.stock ?? 0);
 
-  readonly fromTruck = this.truckRemaining !== null;
+  /** The truck the sorting counts against, if any. */
+  readonly shipmentId = computed(() => this.data.shipmentId ?? this.pickedTruckId());
+
+  /** Pieces of the product left on that truck, or null when not sorting from a truck. */
+  readonly truckRemaining = computed<number | null>(() => {
+    if (this.data.shipmentId != null) return this.data.truckRemaining ?? null;
+    const picked = this.trucks().find((t) => t.id === this.pickedTruckId());
+    return picked ? picked.remaining : null;
+  });
+
+  readonly fromTruck = computed(() => this.truckRemaining() !== null);
 
   /** The number shown at the top and counted down: truck remainder or AB stock. */
-  readonly available = computed(() => this.truckRemaining ?? this.abStock());
+  readonly available = computed(() => this.truckRemaining() ?? this.abStock());
 
-  readonly total = computed(() =>
-    sortingTotal({ a: this.a(), b: this.b(), waste: this.waste() }),
-  );
+  private readonly input = computed(() => ({
+    a: this.a() ?? 0,
+    b: this.b() ?? 0,
+    waste: this.waste() ?? 0,
+  }));
+
+  readonly total = computed(() => sortingTotal(this.input()));
 
   readonly remaining = computed(() => this.available() - this.total());
 
+  /** AB pieces ordered by customers that this sorting takes away (allowed, but warned). */
+  readonly bookedTaken = computed(() => bookedAbShortfall(this.abRow(), this.total()));
+
+  /** AB free after the sorting (negative when it takes booked pieces). */
+  readonly abFreeAfter = computed(() => availableStock(this.abRow()) - this.total());
+
   readonly error = computed(() =>
-    validateSorting(
-      this.abStock(),
-      { a: this.a(), b: this.b(), waste: this.waste() },
-      this.truckRemaining,
-    ),
+    validateSorting(this.abStock(), this.input(), this.truckRemaining()),
   );
 
-  /** Input value as a number; an emptied field counts as 0. */
-  toNumber(value: string | number | null): number {
+  constructor() {
+    if (this.canPickTruck) this.loadTrucks();
+  }
+
+  /** Input value as a number; an emptied field is `null` (counted as 0). */
+  toQty(value: string | number | null): number | null {
+    if (value === null || value === '') return null;
     const n = Number(value);
-    return Number.isFinite(n) ? n : 0;
+    return Number.isFinite(n) ? n : null;
+  }
+
+  /** Selects the field's content on focus, so typing replaces it. */
+  selectAll(event: FocusEvent): void {
+    (event.target as HTMLInputElement | null)?.select();
   }
 
   /** Puts all remaining pieces into A (the usual case: most of a bale is A). */
   restToA(): void {
-    const limit = sortingLimit(this.abStock(), this.truckRemaining);
-    this.a.set(Math.max(0, limit - this.b() - this.waste()));
+    const limit = sortingLimit(this.abStock(), this.truckRemaining());
+    const { b, waste } = this.input();
+    this.a.set(Math.max(0, limit - b - waste));
   }
 
   async save(): Promise<void> {
     if (this.error() || this.saving()) return;
 
     this.saving.set(true);
+    // a backdrop click or Esc must not close the dialog while saving: the
+    // truck page reloads its sortings when the dialog closes
+    this.dialogRef.disableClose = true;
+    const { a, b, waste } = this.input();
     const ok = await this.sortingsService.recordSorting({
       productId: this.data.product.id,
-      a: this.a(),
-      b: this.b(),
-      waste: this.waste(),
-      shipmentId: this.data.shipmentId ?? null,
+      a,
+      b,
+      waste,
+      shipmentId: this.shipmentId() ?? null,
       comment: this.comment().trim(),
     });
     this.saving.set(false);
+    this.dialogRef.disableClose = false;
 
     // reload either way: on failure the AB count may simply be out of date
     this.productStore.fetchStocks();
@@ -128,6 +171,13 @@ export class SortingDialogComponent {
   }
 
   cancel(): void {
+    if (this.saving()) return;
     this.dialogRef.close(false);
+  }
+
+  private async loadTrucks(): Promise<void> {
+    const trucks = await this.sortingsService.trucksWithRemaining(this.data.product.id);
+    this.trucks.set(trucks ?? []);
+    this.trucksLoaded.set(true);
   }
 }

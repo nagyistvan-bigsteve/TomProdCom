@@ -95,7 +95,8 @@
     "TOTAL": "Total",
     "VOUCHER": "Discount",
     "M3": "m³",
-    "SEARCH": "Cautare..."
+    "SEARCH": "Cautare...",
+    "RETRY": "Reîncearcă"
   },
   "OVERVIEW_PAGE": {
     "TITLE": "Confirmare ofertă",
@@ -365,7 +366,9 @@
       "NOT_GRADABLE": "Acest produs nu are stoc A/B (M2 sau peste 7 metri).",
       "SHIPMENT_LOCKED": "Camionul este deja validat și nu mai poate fi modificat.",
       "SORTING_SOLD": "O parte din bucățile A/B sortate s-au vândut deja; sortarea nu mai poate fi anulată.",
-      "MORE_THAN_TRUCK": "Din acest produs nu au mai rămas atâtea bucăți în camion."
+      "MORE_THAN_TRUCK": "Din acest produs nu au mai rămas atâtea bucăți în camion.",
+      "STOCK_CHANGED": "Între timp cineva a modificat acest stoc. Valorile noi au fost încărcate, verifică și salvează din nou.",
+      "DRAFT_CHANGED": "Între timp cineva a modificat acest camion."
     },
     "PRODUCT": {
       "STOCK": "Stoc: ",
@@ -528,7 +531,9 @@
       "ALL": "Toate",
       "TO_SORT": "De sortat",
       "NEGATIVE": "Lipsă"
-    }
+    },
+    "LOAD_FAILED": "Produsele sau stocul nu au putut fi încărcate.",
+    "NO_PRODUCTS": "Încă nu există produse."
   },
   "SORTING": {
     "TITLE": "Sortare (AB → A / B)",
@@ -551,7 +556,12 @@
       "NOT_WHOLE": "Doar număr întreg de bucăți.",
       "MORE_THAN_TRUCK": "Ai sorta mai multe bucăți decât au rămas din acest produs în camion.",
       "MORE_THAN_AB": "Ai sorta mai multe bucăți decât există în stocul AB."
-    }
+    },
+    "TRUCK": "Camion",
+    "NO_TRUCK": "Fără camion",
+    "TRUCK_HINT": "Dacă bucățile provin dintr-un camion, alege-l: astfel crește gradul de sortare al camionului.",
+    "BOOKED_WARNING": "Atenție: {{booked}} bucăți AB din acestea sunt deja comandate. După sortare, stocul liber AB va fi {{free}}.",
+    "LOAD_FAILED": "Sortările nu au putut fi încărcate."
   },
   "SHIPMENTS": {
     "TITLE": "Camioane sosite",
@@ -585,6 +595,28 @@
     "RECEIVED": "Sosit",
     "SORTED": "Sortat",
     "REMAINING": "Rămas",
-    "ONLY_AB": "doar AB"
+    "ONLY_AB": "doar AB",
+    "MISSING": {
+      "TITLE": "Pentru salvare lipsește:",
+      "NAME": "numele",
+      "DATE": "data",
+      "LINE": "cel puțin un rând",
+      "QTY": "o cantitate corectă"
+    },
+    "LEAVE": "Camion nesalvat",
+    "LEAVE_CONFIRM": "Datele introduse se vor pierde. Sigur ieși?",
+    "CREATED_BY": "Înregistrat de: {{name}}",
+    "VALIDATED_BY": "Validat de: {{name}}",
+    "FILTER_TO_SORT": "De sortat",
+    "LOAD_FAILED": "Camioanele nu au putut fi încărcate.",
+    "LOAD_MORE": "Încarcă mai multe",
+    "CONFLICT": "Modificat între timp",
+    "CONFLICT_CONFIRM": "Altcineva a salvat între timp acest camion. Încarci varianta lui? Modificările tale nesalvate se vor pierde. (Anulează: le păstrezi pe ale tale, iar următoarea salvare o înlocuiește pe a lui.)",
+    "FILTER_PARTIAL": "Caută doar în cele {{count}} camioane încărcate. Poți încărca mai multe mai jos."
+  },
+  "A11Y": {
+    "UNIT_FILTER": "Filtrare după unitate",
+    "SIZE_FILTER": "Filtrare după mărime",
+    "CATEGORY": "Categorie de calitate"
   }
 }

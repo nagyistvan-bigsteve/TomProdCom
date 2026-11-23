@@ -1,12 +1,15 @@
 ﻿import {
   Component,
+  effect,
   ElementRef,
   inject,
   OnInit,
+  signal,
+  untracked,
   ViewChild,
   ChangeDetectionStrategy
 } from '@angular/core';
-import { Product, Products, Stock } from '@core/models/models';
+import { Product, Products, Stock, StockCategory } from '@core/models/models';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -25,7 +28,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FilterUtil } from '@shared/utils/filter.util';
-import { ProductStore } from '@features/products/store/product.store';
+import { ProductStore, StockChange } from '@features/products/store/product.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 import { Category } from '@core/models/enums';
 import { STOCK_CATEGORIES } from '@shared/utils/stock.util';
@@ -91,8 +94,25 @@ export class UpdateProductsComponent implements OnInit {
 
   /** Editable copies of the selected product's stock rows, one per grade. */
   gradeStocks: Stock[] = [];
+  /** Stock of each grade when the rows were filled: the expected value for `set_stock`. */
+  private stockBaseline: Partial<Record<StockCategory, number>> = {};
+  /** After a "changed meanwhile" refusal: refill the rows once the reload arrives. */
+  private readonly refillOnReload = signal<number | null>(null);
+  savingStock = false;
 
   readonly categoryName = (category: Category) => Category[category];
+
+  constructor() {
+    effect(() => {
+      const productId = this.refillOnReload();
+      const graded = this.productStore.stocksByProduct();
+      if (productId === null || this.productStore.isBusy()) return;
+      untracked(() => {
+        this.refillOnReload.set(null);
+        if (graded[productId]) this.fetchProductStock(productId);
+      });
+    });
+  }
 
   ngOnInit(): void {}
 
@@ -101,6 +121,9 @@ export class UpdateProductsComponent implements OnInit {
     this.gradeStocks = STOCK_CATEGORIES.map((c) => graded[c])
       .filter((s): s is Stock => !!s)
       .map((s) => ({ ...s }));
+    this.stockBaseline = Object.fromEntries(
+      this.gradeStocks.map((s) => [s.category_id, s.stock]),
+    );
   }
 
   onModeChange(updateStock: boolean): void {
@@ -119,16 +142,35 @@ export class UpdateProductsComponent implements OnInit {
     }
   }
 
-  onStockSave() {
-    const saved = this.productStore.stocksEntityMap();
+  /**
+   * Saves the changed grades. The rows are matched to the product's stock
+   * rows as they are now (by grade), so a length change that merged A/B into
+   * AB cannot make a save "succeed" on a row that no longer exists.
+   */
+  async onStockSave(): Promise<void> {
+    if (this.savingStock || !this.selectedProduct?.id) return;
+    const productId: number = this.selectedProduct.id;
+    const current = this.productStore.stocksByProduct()[productId] ?? {};
+    const changes: StockChange[] = [];
     for (const row of this.gradeStocks) {
       // an emptied number field gives null: leave that grade unchanged
       if (row.stock === null || (row.stock as unknown) === '') continue;
       const stock = Number(row.stock);
-      if (Number.isFinite(stock) && stock >= 0 && stock !== saved[row.id]?.stock) {
-        this.productStore.updateStock({ id: row.id, stock });
-      }
+      const live = current[row.category_id];
+      if (!live || !Number.isFinite(stock) || stock < 0) continue;
+      // "changed" means changed by the admin (vs. the value shown when the
+      // rows were filled), not vs. a stock reload that happened meanwhile
+      const baseline = this.stockBaseline[row.category_id] ?? live.stock;
+      if (stock === baseline) continue;
+      changes.push({ id: live.id, expected: baseline, stock });
     }
+
+    this.savingStock = true;
+    const result = await this.productStore.setStocks(changes);
+    this.savingStock = false;
+
+    if (result === 'saved') this.fetchProductStock(productId);
+    else if (result === 'conflict') this.refillOnReload.set(productId);
   }
 
   onSave() {

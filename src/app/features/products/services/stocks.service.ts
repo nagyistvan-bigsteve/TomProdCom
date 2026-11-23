@@ -21,13 +21,18 @@ export class StocksService {
     ).pipe(map((result) => unwrapResult(result) ?? []));
   }
 
-  /** Overwrites one grade's stock (inventory correction). */
-  updateStockObs(id: number, stock: number): Observable<void> {
+  /**
+   * Sets one grade's stock (inventory correction) through `set_stock`: refused
+   * with SA006 when the stored value is no longer `expected` (someone changed
+   * it meanwhile). Every edit is logged in `stock_adjustments`.
+   */
+  setStockObs(id: number, expected: number, stock: number): Observable<void> {
     return from(
-      this.supabaseService.client
-        .from('stocks')
-        .update({ stock })
-        .eq('id', id),
+      this.supabaseService.client.rpc('set_stock', {
+        p_stock_id: id,
+        p_expected: expected,
+        p_new: stock,
+      }),
     ).pipe(
       map(({ error }) => {
         if (error) throw error;
@@ -35,3 +40,6 @@ export class StocksService {
     );
   }
 }
+
+/** Error code of `set_stock` when the stock was changed meanwhile. */
+export const STOCK_CHANGED = 'SA006';

@@ -176,6 +176,9 @@ export type PriceResponse2 = {
 
 export type ShipmentStatus = 'draft' | 'validated';
 
+/** Name of the user who did something (embedded `profiles` row; null if not readable). */
+export type PersonName = { name: string | null } | null;
+
 /** A truck delivery. Its lines enter AB stock when it is validated. */
 export type Shipment = {
   id: number;
@@ -184,7 +187,21 @@ export type Shipment = {
   comment: string;
   status: ShipmentStatus;
   created_at: string;
+  /** Draft version: sent back on save, the database refuses a stale one (SA007). */
+  updated_at?: string;
   validated_at: string | null;
+  creator?: PersonName;
+  validator?: PersonName;
+};
+
+/** A validated truck that still has unsorted pieces of one product (`shipments_with_remaining`). */
+export type TruckWithRemaining = {
+  id: number;
+  name: string;
+  arrived_on: string;
+  received: number;
+  sorted: number;
+  remaining: number;
 };
 
 /** One line of a truck delivery, in pieces; always AB. */
@@ -207,6 +224,7 @@ export type StockSorting = {
   qty_waste: number;
   comment: string;
   created_at: string;
+  sorter?: PersonName;
 };
 
 export type UsedPricesInOrder = {

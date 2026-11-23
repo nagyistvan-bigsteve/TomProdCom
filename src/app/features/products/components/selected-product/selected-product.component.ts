@@ -66,7 +66,15 @@ export class SelectedProductComponent implements OnChanges {
   private productUtil = inject(ProductUtil);
   private hasFocused = false;
 
-  currentStock: Stock | null = null;
+  /**
+   * The stock row the selected category books from. Read from the store on
+   * every render, so the number follows a stock reload (e.g. after coming
+   * back to the app) instead of staying at the value it had when picked.
+   */
+  get currentStock(): Stock | null {
+    return this.selectedProduct ? this.gradeStock(this.selectedProduct) : null;
+  }
+
   readonly available = availableStock;
 
   ngOnChanges(): void {
@@ -124,9 +132,9 @@ export class SelectedProductComponent implements OnChanges {
   }
 
   private checkStock(product: Product): void {
-    this.currentStock = this.gradeStock(product);
+    const stock = this.gradeStock(product);
 
-    if (this.currentStock && availableStock(this.currentStock) <= 0) {
+    if (stock && availableStock(stock) <= 0) {
       this.translateService
         .get(['SNACKBAR.PRODUCT.OUT_OF_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
         .subscribe((translations) => {
@@ -201,14 +209,12 @@ export class SelectedProductComponent implements OnChanges {
     );
 
     this.calculatePrice();
-    if (this.selectedProduct) {
-      this.currentStock = this.gradeStock(this.selectedProduct);
-    }
   }
 
   /** Warns only: an order may book more than is available (SPEC §12). */
   verifyStock(): void {
-    if (this.currentStock && +this.quantity > availableStock(this.currentStock)) {
+    const stock = this.currentStock;
+    if (stock && +this.quantity > availableStock(stock)) {
       this.translateService
         .get(['SNACKBAR.PRODUCT.OUT_OF_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
         .subscribe((translations) => {

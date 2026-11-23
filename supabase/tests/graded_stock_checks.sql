@@ -2,16 +2,25 @@
 -- products, orders and shipments, and ends with RAISE EXCEPTION, so
 -- EVERYTHING is rolled back. The "error" message is the test report:
 -- every line should start with "ok". Look for "FAIL".
--- Needs migrations 20261123152149_graded_stock and
--- 20261123163000_offer_conversion_booking (or their renamed versions).
+-- Needs migrations 20261123152149_graded_stock,
+-- 20261123163000_offer_conversion_booking and 20261123180000_graded_stock_hardening
+-- (or their renamed versions), and at least one approved user.
 do $test$
 declare
-  pa int; pb int; pl int; pm int; o int; o2 int; o3 int;
+  pa int; pb int; pl int; pm int; pv int; o int; o2 int; o3 int;
   i1 int; i2 int; i3 int; i4 int; i5 int; i6 int; i7 int; i8 int;
-  sh bigint; sh2 bigint; so1 bigint; so2 bigint;
-  v_admin uuid;
+  sh bigint; sh2 bigint; sh3 bigint; sh4 bigint; so1 bigint; so2 bigint;
+  v_admin uuid; v_user uuid; v_stock_a bigint; v_version timestamptz;
+  v_n int; v_state text; v_rls text := ''; v_booked numeric;
   r text := '';
 begin
+  -- the RPCs check private.is_approved(): act as an approved user
+  select id into v_user from profiles where approved order by id limit 1;
+  if v_user is null then
+    raise exception 'graded_stock_checks needs at least one approved user in profiles';
+  end if;
+  perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
+
   execute $q$create function pg_temp.chk(l text, a text, e text) returns text language sql as $f$
     select case when a is not distinct from e then 'ok   ' else 'FAIL ' end || l || ': ' || coalesce(a,'null')
       || case when a is distinct from e then ' (expected ' || coalesce(e,'null') || ')' else '' end || chr(10) $f$ $q$;
@@ -187,10 +196,13 @@ begin
   exception when others then r := r || pg_temp.chk('sort 13 > 12 on truck raises', sqlstate, 'SA005'); end;
   perform public.record_sorting(pa, 8, 2, 0, sh);
   r := r || pg_temp.chk('truck sort 10: AB', pg_temp.st(pa,2), '47/0');
+  r := r || pg_temp.chk('trucks with pieces left: 2 of 12', (select remaining::text from public.shipments_with_remaining(pa) where id = sh), '2');
+  r := r || pg_temp.chk('sorting created_by is the caller', (select (created_by = v_user)::text from stock_sortings where shipment_id = sh limit 1), 'true');
   begin perform public.record_sorting(pa, 3, 0, 0, sh); r := r || 'FAIL truck remainder exceeded' || chr(10);
   exception when others then r := r || pg_temp.chk('10 sorted + 3 > 12 raises', sqlstate, 'SA005'); end;
   perform public.record_sorting(pa, 2, 0, 0, sh);
   r := r || pg_temp.chk('truck fully sorted: AB', pg_temp.st(pa,2), '45/0');
+  r := r || pg_temp.chk('fully sorted truck no longer offered', (select count(*)::text from public.shipments_with_remaining(pa) where id = sh), '0');
   begin perform public.record_sorting(pb, 1, 0, 0, sh); r := r || 'FAIL product not on truck sorted' || chr(10);
   exception when others then r := r || pg_temp.chk('product not on truck raises', sqlstate, 'SA005'); end;
   update stocks set stock = 57 where product_id = pa and category_id = 2;
@@ -219,6 +231,8 @@ begin
   r := r || pg_temp.chk('deliver after convert: booking released', pg_temp.st(pb,1), '45/3');
   update orders set comment = 'x' where id = o3;
   r := r || pg_temp.chk('other order update: no change', pg_temp.st(pb,1), '45/3');
+  -- as nobody (no JWT): is_admin() is false
+  perform set_config('request.jwt.claims', '', true);
   begin update orders set just_offer = true where id = o3; r := r || 'FAIL non-admin turned order into offer' || chr(10);
   exception when others then r := r || pg_temp.chk('order -> offer needs admin', sqlstate, '42501'); end;
   select a.id into v_admin from admin_users a join profiles p on p.id = a.id where p.approved limit 1;
@@ -229,8 +243,100 @@ begin
     update orders set just_offer = true where id = o3;
     r := r || pg_temp.chk('admin order -> offer: A released', pg_temp.st(pb,1), '50/0');
     r := r || pg_temp.chk('admin order -> offer: B returned', pg_temp.st(pb,3), '0/0');
-    perform set_config('request.jwt.claims', '', true);
   end if;
+  perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
+
+  r := r || '-- hardening: hand stock edit (pb A set to 50)' || chr(10);
+  select id into v_stock_a from stocks where product_id = pb and category_id = 1;
+  update stocks set stock = 50 where id = v_stock_a;
+  begin perform public.set_stock(v_stock_a, 49, 60); r := r || 'FAIL stale stock edit accepted' || chr(10);
+  exception when others then r := r || pg_temp.chk('stale expected value raises', sqlstate, 'SA006'); end;
+  r := r || pg_temp.chk('stale edit: stock unchanged', (select stock::text from stocks where id = v_stock_a), '50');
+  perform public.set_stock(v_stock_a, 50, 60);
+  r := r || pg_temp.chk('edit from the current value: saved', (select stock::text from stocks where id = v_stock_a), '60');
+  r := r || pg_temp.chk('edit logged with the caller',
+    (select old_stock || '->' || new_stock || ' ' || (created_by = v_user)::text from stock_adjustments where stock_id = v_stock_a), '50->60 true');
+  begin perform public.set_stock(v_stock_a, 60, -1); r := r || 'FAIL negative stock accepted' || chr(10);
+  exception when others then r := r || pg_temp.chk('negative stock raises', sqlstate, '22023'); end;
+
+  r := r || '-- hardening: draft version' || chr(10);
+  sh3 := public.save_shipment('{"name":"ZZTEST version"}', jsonb_build_array(jsonb_build_object('product_id', pb, 'quantity', 1)));
+  select updated_at into v_version from shipments where id = sh3;
+  r := r || pg_temp.chk('draft created_by is the caller', (select (created_by = v_user)::text from shipments where id = sh3), 'true');
+  begin
+    perform public.save_shipment(jsonb_build_object('id', sh3, 'name', 'x', 'updated_at', v_version - interval '1 second'),
+      jsonb_build_array(jsonb_build_object('product_id', pb, 'quantity', 2)));
+    r := r || 'FAIL stale draft save accepted' || chr(10);
+  exception when others then r := r || pg_temp.chk('stale draft version raises', sqlstate, 'SA007'); end;
+  perform public.save_shipment(jsonb_build_object('id', sh3, 'name', 'ZZTEST version 2', 'updated_at', v_version),
+    jsonb_build_array(jsonb_build_object('product_id', pb, 'quantity', 2)));
+  r := r || pg_temp.chk('current draft version: saved', (select name from shipments where id = sh3), 'ZZTEST version 2');
+  r := r || pg_temp.chk('save gives a new version', (select (updated_at > v_version)::text from shipments where id = sh3), 'true');
+  -- an older app sends no version: still saved (last writer wins)
+  perform public.save_shipment(jsonb_build_object('id', sh3, 'name', 'ZZTEST version 3'),
+    jsonb_build_array(jsonb_build_object('product_id', pb, 'quantity', 2)));
+  r := r || pg_temp.chk('save without version: saved', (select name from shipments where id = sh3), 'ZZTEST version 3');
+
+  r := r || '-- hardening: product becomes M2' || chr(10);
+  insert into products (name, unit_id, length) values ('ZZTEST 300', 1, 300) returning id into pv;
+  insert into order_items (order_id, product_id, category_id, quantity, item_status) values (o, pv, 1, 3, false);
+  r := r || pg_temp.chk('before: A booked 3', pg_temp.st(pv,1), '0/3');
+  sh4 := public.save_shipment('{"name":"ZZTEST m2 later"}', jsonb_build_array(jsonb_build_object('product_id', pv, 'quantity', 5)));
+  update products set unit_id = 2 where id = pv;
+  r := r || pg_temp.chk('M2: only one row, bookings dropped', (select string_agg(category_id || ':' || booked_stock, ',') from stocks where product_id = pv), '2:0');
+  begin perform public.validate_shipment(sh4); r := r || 'FAIL truck with an M2 line validated' || chr(10);
+  exception when others then r := r || pg_temp.chk('validate with an M2 line raises', sqlstate, 'SA002'); end;
+  r := r || pg_temp.chk('M2 validate: still a draft', (select status from shipments where id = sh4), 'draft');
+
+  r := r || '-- hardening: no access without approval' || chr(10);
+  perform set_config('request.jwt.claims', json_build_object('sub', gen_random_uuid(), 'role', 'authenticated')::text, true);
+  begin perform public.save_shipment('{"name":"x"}', jsonb_build_array(jsonb_build_object('product_id', pb, 'quantity', 1))); r := r || 'FAIL unapproved user saved a truck' || chr(10);
+  exception when others then r := r || pg_temp.chk('unapproved: save_shipment raises', sqlstate, '42501'); end;
+  begin perform public.record_sorting(pa, 1, 0, 0); r := r || 'FAIL unapproved user sorted' || chr(10);
+  exception when others then r := r || pg_temp.chk('unapproved: record_sorting raises', sqlstate, '42501'); end;
+  begin perform public.set_stock(v_stock_a, 60, 1); r := r || 'FAIL unapproved user set stock' || chr(10);
+  exception when others then r := r || pg_temp.chk('unapproved: set_stock raises', sqlstate, '42501'); end;
+  perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
+
+  -- As the API role (RLS applies). pg_temp helpers are not usable under
+  -- another role, so results are collected first and checked after reset.
+  r := r || '-- hardening: tables are read-only through the API (approved user)' || chr(10);
+  select booked_stock into v_booked from stocks where id = v_stock_a;
+  execute 'set local role authenticated';
+  begin
+    insert into shipments (name) values ('ZZTEST direct');
+    v_rls := v_rls || 'insert shipments: allowed;';
+  exception when others then v_rls := v_rls || 'insert shipments: ' || sqlstate || ';'; end;
+  update shipments set status = 'draft' where id = sh;
+  get diagnostics v_n = row_count;
+  v_rls := v_rls || 'reopen validated: ' || v_n || ';';
+  update shipment_items set quantity = 999 where shipment_id = sh;
+  get diagnostics v_n = row_count;
+  v_rls := v_rls || 'edit lines: ' || v_n || ';';
+  delete from stock_sortings where shipment_id = sh;
+  get diagnostics v_n = row_count;
+  v_rls := v_rls || 'delete sortings: ' || v_n || ';';
+  select count(*)::text into v_state from shipments where id = sh;
+  v_rls := v_rls || 'can read: ' || v_state || ';';
+  begin
+    perform public.delete_shipment(sh3);
+    v_rls := v_rls || 'rpc delete draft: ok;';
+  exception when others then v_rls := v_rls || 'rpc delete draft: ' || sqlstate || ';'; end;
+  begin
+    update stocks set stock = 0 where id = v_stock_a;
+    v_rls := v_rls || 'direct stock write: allowed;';
+  exception when others then v_rls := v_rls || 'direct stock write: ' || sqlstate || ';'; end;
+  -- the booking path of an order placed by a normal user (order_items trigger)
+  begin
+    perform private.apply_item_effect(o, pb, 1, 2, false, 1);
+    select booked_stock::text into v_state from stocks where id = v_stock_a;
+    v_rls := v_rls || 'booking as user: ' || v_state;
+  exception when others then v_rls := v_rls || 'booking as user: ' || sqlstate; end;
+  execute 'reset role';
+  r := r || pg_temp.chk('direct writes refused, reads, RPCs and bookings work', v_rls,
+    'insert shipments: 42501;reopen validated: 0;edit lines: 0;delete sortings: 0;can read: 1;rpc delete draft: ok;direct stock write: 42501;booking as user: '
+    || (v_booked + 2)::text);
+  r := r || pg_temp.chk('validated truck still validated', (select status from shipments where id = sh), 'validated');
 
   raise exception 'TEST REPORT (rolled back)%', chr(10) || r;
 end;

@@ -1,11 +1,11 @@
-<div class="page-header">
-  <span class="header-title">{{ "NAVBAR.PRODUCTS" | translate }}</span>
+<div class="dark-page-header">
+  <span class="dark-page-title">{{ "NAVBAR.PRODUCTS" | translate }}</span>
 </div>
 
 @if (cards().length) {
   <div class="page-body">
     <div class="controls-row">
-      <mat-form-field appearance="outline" class="search-field">
+      <mat-form-field appearance="outline" class="search-field on-dark-field">
         <mat-label>{{ "WORDS.SEARCH" | translate }}</mat-label>
         <input
           matInput
@@ -43,7 +43,7 @@
           {{ "STOCK.FILTER.NEGATIVE" | translate }} ({{ counts().negative }})
         </mat-chip-option>
       </mat-chip-listbox>
-      <span class="mat-body-small rule-hint">{{ "STOCK.RULE_HINT" | translate }}</span>
+      <span class="mat-body-small on-dark-secondary">{{ "STOCK.RULE_HINT" | translate }}</span>
     </div>
 
     <div class="product-list">
@@ -104,7 +104,7 @@
             <div @enterAndLeaveAnimation class="edit-panel">
               <div class="edit-fields">
                 @for (row of card.grades; track row.stock.id) {
-                  <mat-form-field appearance="outline" class="stock-edit-field">
+                  <mat-form-field appearance="outline" class="stock-edit-field on-dark-field">
                     <mat-label>{{ "STOCK.GRADE." + row.category | translate }}</mat-label>
                     <input
                       matInput
@@ -112,24 +112,43 @@
                       min="0"
                       inputmode="numeric"
                       [value]="row.stock.stock"
+                      (focus)="$any($event.target).select()"
                       (input)="setDraft(row.stock.id, $any($event.target).value)"
                     />
                   </mat-form-field>
                 }
               </div>
-              <button mat-mini-fab class="save-btn" (click)="saveEdit(card)" [attr.aria-label]="'DIALOG.SAVE' | translate">
+              <button
+                mat-mini-fab
+                class="save-btn"
+                [disabled]="saving()"
+                (click)="saveEdit(card)"
+                [attr.aria-label]="'DIALOG.SAVE' | translate"
+              >
                 <mat-icon>save</mat-icon>
               </button>
             </div>
           }
         </div>
       } @empty {
-        <p class="mat-body-medium empty-text">{{ "STOCK.EMPTY" | translate }}</p>
+        <p class="mat-body-medium on-dark-secondary">{{ "STOCK.EMPTY" | translate }}</p>
       }
     </div>
   </div>
-} @else {
+} @else if (productStore.isBusy()) {
   <div class="loading-state">
     <mat-spinner />
+  </div>
+} @else {
+  <div class="loading-state">
+    <p class="mat-body-medium on-dark-secondary">
+      {{ (productStore.loadFailed() ? "STOCK.LOAD_FAILED" : "STOCK.NO_PRODUCTS") | translate }}
+    </p>
+    @if (productStore.loadFailed()) {
+      <button mat-stroked-button class="on-dark-stroked" (click)="retry()">
+        <mat-icon>refresh</mat-icon>
+        {{ "WORDS.RETRY" | translate }}
+      </button>
+    }
   </div>
 }

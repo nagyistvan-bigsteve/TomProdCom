@@ -951,7 +951,7 @@ Route:
 - correct stock per grade (absolute values, ≥ 0);
 - start a sorting (AB → A / B / waste) for a product with AB stock.
 
-The stock is reloaded every time the page is opened (there is no realtime subscription).
+The stock is reloaded every time the page is opened (there is no realtime subscription). It is also reloaded when the offer page opens and when the app comes back to the foreground (at most every 30 seconds), so the stock shown while building an offer is current.
 
 ### UX
 
@@ -1320,10 +1320,17 @@ When graded stock was introduced, `booked_stock` was recomputed from the undeliv
 
 When a truck arrives, nobody knows yet how much of it is A and how much B, but the goods must be in stock immediately. So a truck delivery always enters stock as **AB**.
 
-1. **Draft** (`/shipments/new`): date of arrival, truck / supplier name, comment, and lines (product + pieces; M2 products are not allowed). The page shows the total m³ so it can be checked against the delivery papers. A draft can be edited and deleted (`save_shipment`, `delete_shipment`).
-2. **Validate** (`validate_shipment`): the draft becomes `validated` and every line's pieces are added to the product's AB stock, in one transaction. A shipment can be validated only once and is read-only afterwards.
+1. **Draft** (`/shipments/new`): date of arrival, truck / supplier name, comment, and lines (product + pieces; M2 products are not allowed). The page shows the total m³ (M3 and bundle products only, as on the products page) so it can be checked against the delivery papers. A draft can be edited and deleted (`save_shipment`, `delete_shipment`).
+   - The page says what still stops a save (name, date, a line, a valid quantity).
+   - Leaving a draft with unsaved changes asks first. An unsaved **new** truck is also kept on the device (localStorage) and offered back after a reload, e.g. the forced reload after a deploy.
+   - **Two people editing one draft:** each save sends the draft's version (`shipments.updated_at`). If someone else saved it meanwhile, the save is refused (`SA007`) instead of the last writer silently winning. The page asks: load the other version (the user's unsaved edits are dropped), or keep their own edits, in which case the next save replaces the other version. A reload never replaces unsaved edits on its own.
+2. **Validate** (`validate_shipment`): the draft becomes `validated` and every line's pieces are added to the product's AB stock, in one transaction. A shipment can be validated only once and is read-only afterwards. It is refused (`SA002`) if a line's product has become M2 since the draft was saved.
 
 A bale may never be opened and be sold as AB; nothing else is needed for that.
+
+The trucks list has Draft / Validated tabs, a search by truck name and, for validated trucks, a "to sort" filter (pieces left). It loads 50 trucks at a time, newest first. A validated truck shows who registered and who validated it, and each sorting shows who recorded it.
+
+**Writes only through the database functions.** Approved users can read `shipments`, `shipment_items` and `stock_sortings` but not write them directly: every write goes through `save_shipment`, `validate_shipment`, `delete_shipment`, `record_sorting` or `delete_sorting`. These run with the database owner's rights, check `private.is_approved()` themselves, and set `created_by` / `validated_by` to the caller. Without this, a direct API call could reopen a validated truck and validate it again (AB added twice), or delete a sorting without moving its stock back.
 
 ### Sorting (`stock_sortings`)
 
@@ -1331,9 +1338,30 @@ At the sorting ramp the AB pieces are sorted, e.g. `7.5x15x400: 49 pcs AB → 40
 
 - `record_sorting`: AB `-=` A + B + waste, A `+=` A, B `+=` B, and the sorting is kept as a row (optionally linked to the validated truck it came from). Refused when the product has no A/B stock (M2 or longer than 7 m) or when AB stock is smaller than the pieces sorted. A sorting linked to a truck is also refused when it takes more pieces than are left of that product on the truck (received minus already sorted from it), or when the product is not on the truck.
 - `delete_sorting`: undoes a sorting (typo fix): the pieces go back into AB. Refused when the sorted A or B pieces are no longer in stock.
-- A sorting can be started from the products page (counted against the product's whole AB stock, e.g. stock that existed before graded stock) or from a validated truck, which shows per line: received / sorted / remaining. From a truck the dialog shows and counts down what is left on that truck, not the whole AB stock; the Sort button is disabled once a line is fully sorted.
+- A sorting can be started from a validated truck, which shows per line: received / sorted / remaining. The dialog then shows and counts down what is left on that truck, not the whole AB stock. The Sort button is disabled until the truck's sortings have loaded, and once a line is fully sorted.
+- It can also be started from the products page. There it counts against the product's whole AB stock (e.g. stock that existed before graded stock). The user may pick the validated truck the pieces came from, from those that still have pieces of this product left (`shipments_with_remaining`). The sorting then counts against that truck, as if started from it, so the truck reaches 100%.
+- **Booked AB pieces:** a sorting is limited by the physical AB stock, not by AB free (stock − booked). If it takes AB pieces that customers ordered as AB, it is still allowed, but the dialog warns how many ordered pieces it takes and that AB free will be negative.
+- The dialog cannot be closed while a sorting is being saved. The truck page reloads its sortings whenever the dialog closes.
 
-Error codes raised by these functions (shown by the central toast, `apiErrorKey`): `SA001` not enough AB stock, `SA002` product has no A/B stock, `SA003` shipment already validated (or not validated, for a sorting), `SA004` a sorting cannot be undone because its A/B pieces are no longer in stock, `SA005` more pieces than are left of the product on the truck.
+Error codes raised by these functions (shown by the central toast, `apiErrorKey`):
+- `SA001` not enough AB stock;
+- `SA002` product has no A/B stock (or became M2, for a validation);
+- `SA003` shipment already validated (or not validated, for a sorting);
+- `SA004` a sorting cannot be undone because its A/B pieces are no longer in stock;
+- `SA005` more pieces than are left of the product on the truck;
+- `SA006` stock changed meanwhile (hand edit, below);
+- `SA007` truck draft changed meanwhile.
+
+`42501` is raised when the caller is not an approved user.
+
+### Hand stock edit (`set_stock`, `stock_adjustments`)
+
+Any approved user can correct a grade's stock by hand (products page pencil, admin "update stock"). The value is absolute (≥ 0) and is saved through `set_stock(stock_id, expected, new)`:
+- `expected` is the value the user started editing from. If the stored value is different by now (a sale, a delivery, a sorting or another user's edit happened meanwhile), the save is refused with `SA006`. The page then reloads the stock and keeps the edit open with the new values, instead of silently overwriting that change.
+- Every saved edit is logged in `stock_adjustments` (old and new value, who, when). The table is read-only through the API.
+- Saving several grades shows one message.
+
+**Unit change to M2.** When a product becomes M2, its A/B stock is merged into AB as for any product that stops being graded, and its bookings are set to 0. M2 is not tracked, so those bookings could never be released.
 
 ### Stock concepts
 
@@ -1666,7 +1694,7 @@ The SQL lives in `supabase/migrations/` (`*_rls_require_approved_user.sql`, `*_r
 | Approved user          | Read everything; create and edit clients, orders, offers, order items, stock; register, validate and delete truck deliveries; record and undo sortings; hard-delete offers |
 | Admin                  | Additionally: edit prices and products, hard-delete orders, approve / deny users, change roles |
 
-`admin_users` can be changed only by an admin. `stocks` is writable by every approved user because the `order_items` booking triggers update it on the user's behalf. Soft-deleting an order (`deleted_at`) is an ordinary update and is not restricted in the database.
+`admin_users` can be changed only by an admin. `stocks` is readable by every approved user but written only by database functions (`security definer`): the `order_items` booking triggers through `private.adjust_stock`, truck validation and sorting, and hand edits through `set_stock` (conflict check and audit log). The API role has no insert, update or delete right on it. Soft-deleting an order (`deleted_at`) is an ordinary update and is not restricted in the database.
 
 The app loads products, prices, stock and clients only once a user is signed in and approved, and reloads them after every sign-in.
 

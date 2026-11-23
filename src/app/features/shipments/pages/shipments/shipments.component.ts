@@ -1,24 +1,31 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatChipsModule } from '@angular/material/chips';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import { ShipmentStatus } from '@core/models/models';
 import { ProductStore } from '@features/products/store/product.store';
 import { ShipmentStore } from '@features/shipments/store/shipment.store';
-import { sortedPercent } from '@features/shipments/shipment.util';
-import { isGradable, shipmentTotalM3 } from '@shared/utils/stock.util';
+import { ShipmentCard, toShipmentCard, filterShipmentCards } from '@features/shipments/shipment.util';
+import { isGradable } from '@shared/utils/stock.util';
 
 @Component({
   selector: 'app-shipments',
   imports: [
     CommonModule,
+    RouterLink,
     MatButtonModule,
     MatButtonToggleModule,
+    MatChipsModule,
+    MatFormFieldModule,
     MatIconModule,
+    MatInputModule,
     MatProgressSpinnerModule,
     TranslateModule,
   ],
@@ -29,29 +36,33 @@ import { isGradable, shipmentTotalM3 } from '@shared/utils/stock.util';
 export class ShipmentsComponent {
   readonly store = inject(ShipmentStore);
   private readonly productStore = inject(ProductStore);
-  private readonly router = inject(Router);
 
-  readonly cards = computed(() => {
+  readonly search = signal('');
+  /** Validated tab: only trucks with pieces still to sort. */
+  readonly onlyToSort = signal(false);
+
+  readonly cards = computed<ShipmentCard[]>(() => {
     const products = this.productStore.productsEntityMap();
     const gradable = (id: number) => !!products[id] && isGradable(products[id]);
-    return this.store.shipments().map((s) => ({
-      shipment: s,
-      lines: s.shipment_items.length,
-      pieces: s.shipment_items.reduce((sum, i) => sum + i.quantity, 0),
-      m3: shipmentTotalM3(s.shipment_items, products),
-      sortedPercent: sortedPercent(s.shipment_items, s.stock_sortings, gradable),
-    }));
+    return this.store.shipments().map((s) => toShipmentCard(s, products, gradable));
   });
+
+  readonly visibleCards = computed(() =>
+    filterShipmentCards(this.cards(), this.search(), this.onlyToSort()),
+  );
+
+  /**
+   * A search or "to sort" is active. It runs over the loaded pages only, so
+   * the page says so while older trucks are not loaded yet.
+   */
+  readonly filtering = computed(() => !!this.search().trim() || this.onlyToSort());
 
   constructor() {
     this.store.loadList(this.store.status());
   }
 
   setStatus(status: ShipmentStatus): void {
+    this.onlyToSort.set(false);
     this.store.loadList(status);
-  }
-
-  open(id: number | 'new'): void {
-    this.router.navigate(['/shipments', id]);
   }
 }

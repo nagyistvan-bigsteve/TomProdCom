@@ -10,22 +10,15 @@
   overflow: hidden;
 }
 
-.page-header {
-  flex-shrink: 0;
-  padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.header-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
 .loading-state {
   flex: 1;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  text-align: center;
 }
 
 .page-body {
@@ -56,15 +49,6 @@
 
 .search-field {
   flex: 1;
-
-  --mat-form-field-outlined-label-text-color: rgba(255, 255, 255, 0.65);
-  --mat-form-field-outlined-hover-label-text-color: rgba(255, 255, 255, 0.85);
-  --mat-form-field-outlined-focus-label-text-color: white;
-  --mat-form-field-outlined-input-text-color: white;
-  --mat-form-field-outlined-outline-color: rgba(255, 255, 255, 0.35);
-  --mat-form-field-outlined-hover-outline-color: rgba(255, 255, 255, 0.65);
-  --mat-form-field-outlined-focus-outline-color: white;
-  --mat-form-field-outlined-caret-color: white;
 }
 
 .sort-btn {
@@ -127,17 +111,15 @@
   font-weight: 500;
   line-height: 1.35;
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
+// Material's default 48px icon button: a 44px+ touch target
 .edit-btn {
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.6);
-  width: 36px;
-  height: 36px;
-
-  &:hover {
-    color: white;
-  }
+  --mat-icon-button-icon-color: rgba(255, 255, 255, 0.6);
+  margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-2)) 0 0;
 }
 
 .grade-table {
@@ -173,21 +155,6 @@
   padding-top: var(--space-1);
 }
 
-.stock-good {
-  color: rgb(141, 216, 27);
-  font-weight: 600;
-}
-
-.stock-warning {
-  color: rgb(251, 255, 17);
-  font-weight: 600;
-}
-
-.stock-negative {
-  color: rgb(255, 120, 120);
-  font-weight: 700;
-}
-
 .m3-value {
   color: rgba(255, 255, 255, 0.65);
 }
@@ -196,6 +163,7 @@
   flex-shrink: 0;
   --mat-button-outlined-label-text-color: white;
   --mat-button-outlined-outline-color: rgba(255, 255, 255, 0.35);
+  --mat-button-outlined-container-height: 44px;
 }
 
 .filter-row {
@@ -216,14 +184,6 @@
   }
 }
 
-.rule-hint {
-  color: rgba(255, 255, 255, 0.65);
-}
-
-.empty-text {
-  color: rgba(255, 255, 255, 0.65);
-}
-
 .edit-panel {
   display: flex;
   gap: var(--space-2);
@@ -240,15 +200,6 @@
 
 .stock-edit-field {
   flex: 1;
-
-  --mat-form-field-outlined-label-text-color: rgba(255, 255, 255, 0.65);
-  --mat-form-field-outlined-hover-label-text-color: rgba(255, 255, 255, 0.85);
-  --mat-form-field-outlined-focus-label-text-color: white;
-  --mat-form-field-outlined-input-text-color: white;
-  --mat-form-field-outlined-outline-color: rgba(255, 255, 255, 0.35);
-  --mat-form-field-outlined-hover-outline-color: rgba(255, 255, 255, 0.65);
-  --mat-form-field-outlined-focus-outline-color: white;
-  --mat-form-field-outlined-caret-color: white;
 }
 
 .save-btn {

@@ -17,18 +17,34 @@ export type ShipmentOverview = ShipmentWithItems & {
 
 export type ShipmentHeader = Pick<Shipment, 'arrived_on' | 'name' | 'comment'> & {
   id?: number;
+  /** Version of the draft being edited; a changed draft is refused (SA007). */
+  updated_at?: string;
 };
 
+/** Result of a save: the id, or the Postgres error code when it failed. */
+export type SaveShipmentResult = { id: number | null; code: string | null };
+
+/** Error code of `save_shipment` when the draft was changed by someone else. */
+export const DRAFT_CHANGED = 'SA007';
+
+/** Shipments per page in the list. */
+export const SHIPMENTS_PAGE_SIZE = 50;
+
+const PEOPLE = 'creator:created_by(name), validator:validated_by(name)';
+
 /**
- * Truck deliveries (`shipments`, `shipment_items`). Writes go through the
- * save / validate / delete RPCs so header, lines and stock change together;
- * failures are reported by the central toast.
+ * Truck deliveries (`shipments`, `shipment_items`). The tables are read-only
+ * through the API: writes go through the save / validate / delete RPCs so
+ * header, lines and stock change together. Failures are reported by the
+ * central toast.
  */
 @Injectable({ providedIn: 'root' })
 export class ShipmentsService {
   private supabaseService = inject(SupabaseService);
 
-  getShipmentsObs(status: ShipmentStatus): Observable<ShipmentOverview[]> {
+  /** One page of shipments, newest first. */
+  getShipmentsObs(status: ShipmentStatus, page = 0): Observable<ShipmentOverview[]> {
+    const fromRow = page * SHIPMENTS_PAGE_SIZE;
     return from(
       this.supabaseService.client
         .from('shipments')
@@ -37,7 +53,8 @@ export class ShipmentsService {
         )
         .eq('status', status)
         .order('arrived_on', { ascending: false })
-        .order('id', { ascending: false }),
+        .order('id', { ascending: false })
+        .range(fromRow, fromRow + SHIPMENTS_PAGE_SIZE - 1),
     ).pipe(map((result) => (unwrapResult(result) ?? []) as ShipmentOverview[]));
   }
 
@@ -45,17 +62,17 @@ export class ShipmentsService {
     return from(
       this.supabaseService.client
         .from('shipments')
-        .select('*, shipment_items(id, product_id, quantity)')
+        .select(`*, shipment_items(id, product_id, quantity), ${PEOPLE}`)
         .eq('id', id)
         .maybeSingle(),
     ).pipe(map((result) => unwrapResult(result) as ShipmentWithItems | null));
   }
 
-  /** Creates a draft (header without id) or replaces a draft; returns its id or null. */
+  /** Creates a draft (header without id) or replaces a draft. */
   async saveShipment(
     header: ShipmentHeader,
     items: Pick<ShipmentItem, 'product_id' | 'quantity'>[],
-  ): Promise<number | null> {
+  ): Promise<SaveShipmentResult> {
     const { data, error } = await this.supabaseService.client.rpc('save_shipment', {
       p_shipment: header,
       p_items: items,
@@ -63,9 +80,9 @@ export class ShipmentsService {
 
     if (error) {
       console.error('Fail to save shipment', error);
-      return null;
+      return { id: null, code: error.code ?? null };
     }
-    return data as number;
+    return { id: data as number, code: null };
   }
 
   /** Adds the lines to AB stock; a shipment can be validated once. */

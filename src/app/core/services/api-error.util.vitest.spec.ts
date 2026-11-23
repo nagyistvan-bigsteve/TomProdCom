@@ -55,6 +55,12 @@ describe('apiErrorKey', () => {
     );
     expect(hasSpecificApiMessage({ code: 'SA001' })).toBe(true);
     expect(hasSpecificApiMessage({ code: 'SA005' })).toBe(true);
+    expect(apiErrorKey({ status: 400, code: 'SA006', method: 'POST' })).toBe(
+      'SNACKBAR.API.STOCK_CHANGED',
+    );
+    expect(apiErrorKey({ status: 400, code: 'SA007', method: 'POST' })).toBe(
+      'SNACKBAR.API.DRAFT_CHANGED',
+    );
   });
 
   it('falls back to a load error for reads and a save error for writes', () => {

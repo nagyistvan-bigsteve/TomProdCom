@@ -11,7 +11,7 @@
             class="ms-2"
             [(ngModel)]="selectedCategory"
             (ngModelChange)="onCategoryChange()"
-            aria-label="Select product category"
+            [attr.aria-label]="'A11Y.CATEGORY' | translate"
             [hideSingleSelectionIndicator]="true"
           >
             @for (price of productStore.pricesForSelectedProduct(); track $index) {

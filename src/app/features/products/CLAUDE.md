@@ -30,7 +30,16 @@ The running list of products added to the current offer cart.
 
 ### `sorting-dialog/` — AB → A / B / waste
 
-Opened from the products page (`data: { product }`) and from a validated truck (`data: { product, shipmentId, truckRemaining }`). From the products page it shows and counts down the whole AB stock; from a truck it shows what is left of the product on that truck instead (`fromTruck`), and "rest to A" fills up to `sortingLimit()` (the smaller of the two). Fields for A, B and waste. Validation is `validateSorting(abStock, input, truckRemaining)` (same checks as the `record_sorting` RPC: `MORE_THAN_TRUCK` ↔ `SA005`, `MORE_THAN_AB` ↔ `SA001`). Saves through `SortingsService`, reloads stock, closes with `true`.
+Opened from a validated truck (`data: { product, shipmentId, truckRemaining }`) or from the products page (`data: { product }`).
+- **From a truck** it shows and counts down what is left of the product on that truck (`fromTruck()`).
+- **From the products page** it counts against the whole AB stock. It also loads `SortingsService.trucksWithRemaining(productId)` (RPC `shipments_with_remaining`) and offers an optional truck `mat-select`. Picking a truck switches to that truck's remainder and sends its `shipmentId`.
+
+How the dialog behaves:
+- **Rest to A:** fills up to `sortingLimit()`, the smaller of AB stock and the truck remainder.
+- **Inputs:** A / B / waste start empty (`null`, counted as 0), select their content on focus, and A has `cdkFocusInitial`.
+- **Validation:** `validateSorting(abStock, input, truckRemaining)`, the same checks as the `record_sorting` RPC (`MORE_THAN_TRUCK` ↔ `SA005`, `MORE_THAN_AB` ↔ `SA001`).
+- **Booked AB pieces:** taking them is allowed. `bookedAbShortfall()` drives a non-blocking warning with AB free after the sorting.
+- **Saving:** `dialogRef.disableClose` is set and Cancel is ignored while saving. It saves through `SortingsService`, reloads stock and closes with `true`. Callers must refresh on any close, not only on `true`.
 
 ### `overwrite-dialog/` — cart duplicate confirmation
 
@@ -64,26 +73,37 @@ Product cards use `background: rgba(0,0,0,0.15)` with `border-radius: 8px`. Hove
 
 **Filter chips:** all · to sort (gradable product with AB > 0) · shortage (any negative available). Sorting by total stock toggles asc/desc.
 
-**Inline stock edit:** the edit icon reveals one field per grade + a `mat-mini-fab` save button via `@enterAndLeaveAnimation`; only changed grades are saved. The fields use the same dark-background overrides as the search field.
+**Inline stock edit:** the edit icon (48px touch target) reveals one field per grade and a `mat-mini-fab` save button via `@enterAndLeaveAnimation`.
+- Only changed grades are saved (`stockChanges()`), each with the value it had when the edit opened (`editBaseline`). They go through `ProductStore.setStocks()` → `set_stock`, with one toast.
+- On `SA006` ("changed meanwhile") the stock is reloaded, the typed values are dropped and the edit stays open with the new numbers.
+- The fields use `.on-dark-field` and select their content on focus.
+
+**Empty page:** the spinner shows only while `isBusy()`. Otherwise it shows "no products", or a load error (`loadFailed`) with a retry.
 
 **Sorting:** the "Sort" button (gradable product with AB stock) opens `SortingDialogComponent`.
 
 **Stock colors:** `rgb(141, 216, 27)` (total stock) / `rgb(251, 255, 17)` (available = total − booked) / `rgb(255, 120, 120)` (negative available: more ordered than held — allowed, shown as a warning).
 
-The page calls `fetchStocks()` when it opens, because there is no realtime subscription.
+The page calls `fetchStocks()` when it opens, because there is no realtime subscription. The stock colours and dark-page helpers (`.stock-good/-warning/-negative`, `.dark-page-header`, `.on-dark-*`) are global in `styles.scss`.
 
 ## services/
 
 - `products.service.ts` — Supabase queries for the `products` table.
 - `prices.service.ts` — Supabase queries for the **`prices_new`** table (not `prices`). The price matrix is keyed by `unit_id + size_id + category_id`, or by `product_id + unit_id + category_id` for product-specific overrides. There is no PF/PJ column in this table.
-- `stocks.service.ts` — Supabase queries for the `stocks` table (one row per product and grade A / B / AB; rows are created by the `products_stock_rows` database trigger, never by the app). There is **no real-time subscription**: stock is loaded when a user signs in, when the products page opens, and after a truck validation or sorting.
-- `sortings.service.ts` — `record_sorting` / `delete_sorting` RPCs (AB → A / B / waste, and undo) and the sortings of a shipment.
+- `stocks.service.ts` — Supabase queries for the `stocks` table (one row per product and grade A / B / AB; rows are created by the `products_stock_rows` database trigger, never by the app). There is **no real-time subscription**. Stock is loaded:
+  - when a user signs in;
+  - when the products page or the create-offer page opens;
+  - when the app comes back to the foreground (`visibilitychange`, at most every 30 s, in `ProductStore`);
+  - after a truck validation or a sorting.
+
+  Hand edits go through `setStockObs(id, expected, stock)` → RPC `set_stock` (`SA006` when changed meanwhile; logged in `stock_adjustments`). The app never writes `stocks` directly.
+- `sortings.service.ts` — the `record_sorting` / `delete_sorting` RPCs (AB → A / B / waste, and undo), the sortings of a shipment (with `sorter` name), and `trucksWithRemaining(productId)`.
 
 ## store/
 
 NgRX Signals entity store. Loaded once on app start; shared by offer workflow, admin settings, and order-details.
 
-- `product.store.ts` — main store with `products`, `prices_new` and `stocks` collections. Stocks are keyed by **stocks row id**; use `stocksByProduct()[productId][Category.A | AB | B]` to read a product's grades. `updateStock({ id, stock })` overwrites one grade. The fetch methods sit in the first `withMethods` block so later methods can call `fetchStocks()`.
+- `product.store.ts` — main store with `products`, `prices_new` and `stocks` collections. Stocks are keyed by **stocks row id**; use `stocksByProduct()[productId][Category.A | AB | B]` to read a product's grades. `setStocks(changes)` saves one or more grades (`{ id, expected, stock }`) one after the other and resolves `'saved' | 'conflict' | 'failed'`; on `'conflict'` it has already started a stock reload. `loadFailed` is set when products or stock fail to load. The fetch methods sit in the first `withMethods` block so later methods can call `fetchStocks()`.
 - `product.slice.ts` — state shape
 - `product.computed.ts` — derived signals including filtered product lists and category-level price totals
 

@@ -111,16 +111,40 @@ export function sortingLimit(abStock: number, truckRemaining: number | null = nu
   return Math.max(0, limit);
 }
 
+/**
+ * How many AB pieces already ordered by customers (booked) a sorting of
+ * `total` pieces takes away: the part of `total` beyond AB free
+ * (stock − booked), at most the booked pieces. Sorting is allowed anyway;
+ * the dialog warns.
+ */
+export function bookedAbShortfall(
+  ab: Pick<Stock, 'stock' | 'booked_stock'> | undefined,
+  total: number,
+): number {
+  if (!ab || total <= 0) return 0;
+  const free = Math.max(availableStock(ab), 0);
+  return Math.min(Math.max(ab.booked_stock, 0), Math.max(0, total - free));
+}
+
+/** Products whose stock is shown and summed in m³ (M3 and bundles). */
+export function hasVolume(product: Pick<Product, 'unit_id'>): boolean {
+  return product.unit_id === Unit_id.M3 || product.unit_id === Unit_id.BOUNDLE;
+}
+
 const productUtil = new ProductUtil();
 
-/** Total volume of shipment lines; lines of unknown or non-M3-measurable products count 0. */
+/**
+ * Total volume of shipment lines. Only M3 and bundle products count (as on
+ * the products page); lines of unknown products or without dimensions count 0.
+ */
 export function shipmentTotalM3(
   items: Pick<ShipmentItem, 'product_id' | 'quantity'>[],
   products: Record<number, Product | undefined>,
 ): number {
   return items.reduce((sum, item) => {
     const product = products[item.product_id];
-    if (!product || !product.width || !product.thickness || !product.length) return sum;
+    if (!product || !hasVolume(product)) return sum;
+    if (!product.width || !product.thickness || !product.length) return sum;
     return sum + productUtil.calculateM3Quantity(product, item.quantity || 0);
   }, 0);
 }
