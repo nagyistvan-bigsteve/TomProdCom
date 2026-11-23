@@ -1310,11 +1310,11 @@ An item's effect on its grade: not delivered → `booked_stock += quantity`; del
 | `trg_order_item_status_change` | UPDATE   | removes the old effect and applies the new one, so a change of delivery status, quantity, category or product moves the booking to the right grade |
 | `trg_order_item_delete_unbook` | DELETE   | if the item was not delivered: `booked_stock -= quantity` (a delivered item stays deducted)       |
 
-When graded stock was introduced, `booked_stock` was recomputed from the undelivered items of real orders.
+This also applies to a delivered item (decided 2026-11-23): changing its category or quantity is treated as a correction, so the deduction moves with it. Example: 10 pieces delivered as T took 10 from A; changing the line to AB gives A its 10 pieces back and takes 10 from AB instead.
 
-Known gap (not yet decided how to handle — do not "fix" silently):
+When graded stock was introduced, `booked_stock` was recomputed from the undelivered items of real orders. This intentionally changed visible booked numbers wherever an offer had been converted into an order without booking (staging: 47 → 79 in total).
 
-- Transforming an offer into an order only flips `just_offer`; its items were inserted as offer items and were never booked, but delivering them later still decrements `booked_stock` and `stock`.
+**Offer ↔ order conversion** (trigger `orders_offer_conversion_stock` on `orders.just_offer`): offer items have no stock effect. When an offer becomes an order (any approved user, "direct transform"), every item's effect is applied: undelivered items are booked, items already marked delivered are deducted. When an admin turns an order back into an offer (only admins may, `prevent_order_to_offer`), every item's effect is removed again. Before this trigger existed (until 2026-11-23), converted offers were never booked, and delivering their items pushed `booked_stock` below zero; `booked_stock` was recomputed once to repair that.
 
 ### Truck intake (`shipments`, `shipment_items`)
 
@@ -1329,11 +1329,11 @@ A bale may never be opened and be sold as AB; nothing else is needed for that.
 
 At the sorting ramp the AB pieces are sorted, e.g. `7.5x15x400: 49 pcs AB → 40 A + 8 B + 1 waste`.
 
-- `record_sorting`: AB `-=` A + B + waste, A `+=` A, B `+=` B, and the sorting is kept as a row (optionally linked to the validated truck it came from). Refused when the product has no A/B stock (M2 or longer than 7 m) or when AB stock is smaller than the pieces sorted.
+- `record_sorting`: AB `-=` A + B + waste, A `+=` A, B `+=` B, and the sorting is kept as a row (optionally linked to the validated truck it came from). Refused when the product has no A/B stock (M2 or longer than 7 m) or when AB stock is smaller than the pieces sorted. A sorting linked to a truck is also refused when it takes more pieces than are left of that product on the truck (received minus already sorted from it), or when the product is not on the truck.
 - `delete_sorting`: undoes a sorting (typo fix): the pieces go back into AB. Refused when the sorted A or B pieces are no longer in stock.
-- A sorting can be started from the products page (any AB stock, e.g. stock that existed before graded stock) or from a validated truck, which shows per line: received / sorted / remaining.
+- A sorting can be started from the products page (counted against the product's whole AB stock, e.g. stock that existed before graded stock) or from a validated truck, which shows per line: received / sorted / remaining. From a truck the dialog shows and counts down what is left on that truck, not the whole AB stock; the Sort button is disabled once a line is fully sorted.
 
-Error codes raised by these functions (shown by the central toast, `apiErrorKey`): `SA001` not enough AB stock, `SA002` product has no A/B stock, `SA003` shipment already validated (or not validated, for a sorting), `SA004` a sorting cannot be undone because its A/B pieces are no longer in stock.
+Error codes raised by these functions (shown by the central toast, `apiErrorKey`): `SA001` not enough AB stock, `SA002` product has no A/B stock, `SA003` shipment already validated (or not validated, for a sorting), `SA004` a sorting cannot be undone because its A/B pieces are no longer in stock, `SA005` more pieces than are left of the product on the truck.
 
 ### Stock concepts
 

@@ -20,6 +20,7 @@ const STOCK_ERROR_KEYS: Record<string, string> = {
   SA002: 'SNACKBAR.API.NOT_GRADABLE',
   SA003: 'SNACKBAR.API.SHIPMENT_LOCKED',
   SA004: 'SNACKBAR.API.SORTING_SOLD',
+  SA005: 'SNACKBAR.API.MORE_THAN_TRUCK',
 };
 
 /** Accepts an `ApiFailure` or the error object a Supabase call returned. */

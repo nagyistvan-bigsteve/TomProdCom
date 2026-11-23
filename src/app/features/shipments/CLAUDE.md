@@ -9,7 +9,9 @@ Any approved user registers, validates and deletes trucks and records sortings (
 1. `/shipments/new` → draft: date, truck / supplier name, comment, lines (product + pieces). M2 products are not offered. The page shows the total pieces and m³ (`shipmentTotalM3`).
 2. **Save** → `save_shipment` RPC (creates or replaces the draft and its lines; same product lines are summed). A new draft navigates to `/shipments/:id`.
 3. **Validate** → confirm → save (so exactly what is on screen is validated) → `validate_shipment` RPC: status `validated`, pieces added to AB, once. Read-only afterwards.
-4. Validated truck: per line received / sorted / remaining (`shipmentProgress`), a Sort button per gradable line (opens `SortingDialogComponent` from `@features/products` with the shipment id), and the sortings history with undo (`delete_sorting`).
+4. Validated truck: per line received / sorted / remaining (`shipmentProgress`), a Sort button per gradable line (opens `SortingDialogComponent` from `@features/products` with the shipment id and the line's remaining pieces; disabled when nothing is left), and the sortings history with undo (`delete_sorting`). A sorting from a truck can never take more than is left on it (`record_sorting` raises `SA005`).
+
+**Layout of the validated lines:** not a table. Each `.progress-row` is a grid: on mobile the product name and Sort button on top and the three numbers (`<dl class="progress-stats">`, label above value) below; from `sm` one line (name · numbers · button). A 5-column table did not fit a phone (headers overlapped, the button was cut off).
 
 ## Files
 

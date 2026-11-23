@@ -364,7 +364,8 @@
       "NOT_ENOUGH_AB": "Nu există atâtea bucăți AB în stoc! Reîncarcă sau corectează stocul AB.",
       "NOT_GRADABLE": "Acest produs nu are stoc A/B (M2 sau peste 7 metri).",
       "SHIPMENT_LOCKED": "Camionul este deja validat și nu mai poate fi modificat.",
-      "SORTING_SOLD": "O parte din bucățile A/B sortate s-au vândut deja; sortarea nu mai poate fi anulată."
+      "SORTING_SOLD": "O parte din bucățile A/B sortate s-au vândut deja; sortarea nu mai poate fi anulată.",
+      "MORE_THAN_TRUCK": "Din acest produs nu au mai rămas atâtea bucăți în camion."
     },
     "PRODUCT": {
       "STOCK": "Stoc: ",
@@ -522,7 +523,6 @@
     "SORT": "Sortare după stoc",
     "EDIT": "Corectare stoc",
     "EMPTY": "Niciun rezultat",
-    "T_FROM_A": "T (terasă) se scade din stocul A",
     "RULE_HINT": "T se scade din A · peste 7 m doar AB",
     "FILTER": {
       "ALL": "Toate",
@@ -534,6 +534,8 @@
     "TITLE": "Sortare (AB → A / B)",
     "BUTTON": "Sortare",
     "AB_IN_STOCK": "AB în stoc",
+    "ON_TRUCK": "De sortat din camion",
+    "TRUCK_LEFT": "Rămân din camion",
     "WASTE": "Rebut",
     "REST_TO_A": "Restul tot A",
     "TAKEN_FROM_AB": "Scăzut din AB",
@@ -547,6 +549,7 @@
     "ERROR": {
       "NEGATIVE": "Cantitatea nu poate fi negativă.",
       "NOT_WHOLE": "Doar număr întreg de bucăți.",
+      "MORE_THAN_TRUCK": "Ai sorta mai multe bucăți decât au rămas din acest produs în camion.",
       "MORE_THAN_AB": "Ai sorta mai multe bucăți decât există în stocul AB."
     }
   },

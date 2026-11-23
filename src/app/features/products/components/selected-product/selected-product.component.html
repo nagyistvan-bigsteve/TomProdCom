@@ -102,9 +102,6 @@
           [class.stock-negative]="available(currentStock) < 0"
           >{{ available(currentStock) }}</span
         >
-        @if (selectedCategory === 4 && currentStock.category_id === 1) {
-          <span class="stock-hint">· {{ "STOCK.T_FROM_A" | translate }}</span>
-        }
       }
     </div>
   </div>

@@ -20,12 +20,14 @@ import { Product } from '@core/models/models';
 import { ProductStore } from '@features/products/store/product.store';
 import { SortingsService } from '@features/products/services/sortings.service';
 import { NotificationService } from '@shared/utils/notification.service';
-import { sortingTotal, validateSorting } from '@shared/utils/stock.util';
+import { sortingLimit, sortingTotal, validateSorting } from '@shared/utils/stock.util';
 
 export interface SortingDialogData {
   product: Product;
   /** The validated truck the pieces came from, if sorted from its page. */
   shipmentId?: number | null;
+  /** Pieces of the product still unsorted on that truck (received − sorted). */
+  truckRemaining?: number | null;
 }
 
 /**
@@ -65,18 +67,29 @@ export class SortingDialogComponent {
         ?.stock ?? 0,
   );
 
+  /** Set when sorting from a truck: the dialog then counts against that truck, not all AB. */
+  readonly truckRemaining: number | null =
+    this.data.shipmentId != null && this.data.truckRemaining != null
+      ? this.data.truckRemaining
+      : null;
+
+  readonly fromTruck = this.truckRemaining !== null;
+
+  /** The number shown at the top and counted down: truck remainder or AB stock. */
+  readonly available = computed(() => this.truckRemaining ?? this.abStock());
+
   readonly total = computed(() =>
     sortingTotal({ a: this.a(), b: this.b(), waste: this.waste() }),
   );
 
-  readonly remainingAb = computed(() => this.abStock() - this.total());
+  readonly remaining = computed(() => this.available() - this.total());
 
   readonly error = computed(() =>
-    validateSorting(this.abStock(), {
-      a: this.a(),
-      b: this.b(),
-      waste: this.waste(),
-    }),
+    validateSorting(
+      this.abStock(),
+      { a: this.a(), b: this.b(), waste: this.waste() },
+      this.truckRemaining,
+    ),
   );
 
   /** Input value as a number; an emptied field counts as 0. */
@@ -85,9 +98,10 @@ export class SortingDialogComponent {
     return Number.isFinite(n) ? n : 0;
   }
 
-  /** Puts all remaining AB pieces into A (the usual case: most of a bale is A). */
+  /** Puts all remaining pieces into A (the usual case: most of a bale is A). */
   restToA(): void {
-    this.a.set(Math.max(0, this.abStock() - this.b() - this.waste()));
+    const limit = sortingLimit(this.abStock(), this.truckRemaining);
+    this.a.set(Math.max(0, limit - this.b() - this.waste()));
   }
 
   async save(): Promise<void> {

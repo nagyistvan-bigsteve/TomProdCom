@@ -152,31 +152,45 @@
       <span class="mat-body-medium">{{ shipmentM3() | number: "1.0-3" }} {{ "WORDS.M3" | translate }}</span>
     </div>
 
-    <div class="progress-table" role="table">
-      <div class="progress-head mat-body-small" role="row">
-        <span role="columnheader">{{ "SHIPMENTS.PRODUCT" | translate }}</span>
-        <span role="columnheader">{{ "SHIPMENTS.RECEIVED" | translate }}</span>
-        <span role="columnheader">{{ "SHIPMENTS.SORTED" | translate }}</span>
-        <span role="columnheader">{{ "SHIPMENTS.REMAINING" | translate }}</span>
-        <span role="columnheader"></span>
-      </div>
+    <div class="progress-list">
       @for (line of progress(); track line.product_id) {
-        <div class="progress-row mat-body-medium" role="row">
-          <span role="cell" class="product-cell">{{ line.product?.name }}</span>
-          <span role="cell">{{ line.received }}</span>
-          <span role="cell">{{ line.gradable ? line.sorted : "–" }}</span>
-          <span role="cell" [class.stock-warning]="line.gradable && line.remaining > 0">
-            {{ line.gradable ? line.remaining : "–" }}
-          </span>
-          <span role="cell">
+        <div class="progress-row">
+          <span class="product-cell mat-body-medium">{{ line.product?.name }}</span>
+
+          <dl class="progress-stats mat-body-small">
+            <div>
+              <dt>{{ "SHIPMENTS.RECEIVED" | translate }}</dt>
+              <dd class="mat-body-medium">{{ line.received }}</dd>
+            </div>
+            <div>
+              <dt>{{ "SHIPMENTS.SORTED" | translate }}</dt>
+              <dd class="mat-body-medium">{{ line.gradable ? line.sorted : "–" }}</dd>
+            </div>
+            <div>
+              <dt>{{ "SHIPMENTS.REMAINING" | translate }}</dt>
+              <dd
+                class="mat-body-medium"
+                [class.stock-warning]="line.gradable && line.remaining > 0"
+              >
+                {{ line.gradable ? line.remaining : "–" }}
+              </dd>
+            </div>
+          </dl>
+
+          <div class="progress-action">
             @if (line.gradable && line.product) {
-              <button mat-stroked-button class="secondary-btn" (click)="openSorting(line.product)">
+              <button
+                mat-stroked-button
+                class="secondary-btn"
+                [disabled]="line.remaining <= 0"
+                (click)="openSorting(line.product, line.remaining)"
+              >
                 {{ "SORTING.BUTTON" | translate }}
               </button>
             } @else {
               <span class="mat-body-small secondary">{{ "SHIPMENTS.ONLY_AB" | translate }}</span>
             }
-          </span>
+          </div>
         </div>
       }
     </div>

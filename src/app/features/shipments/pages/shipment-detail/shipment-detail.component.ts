@@ -261,11 +261,11 @@ export class ShipmentDetailComponent {
     }
   }
 
-  openSorting(product: Product): void {
+  openSorting(product: Product, truckRemaining: number): void {
     const shipmentId = this.shipmentId();
     this.dialog
       .open<SortingDialogComponent, SortingDialogData, boolean>(SortingDialogComponent, {
-        data: { product, shipmentId },
+        data: { product, shipmentId, truckRemaining },
         width: '420px',
         maxWidth: '95vw',
       })

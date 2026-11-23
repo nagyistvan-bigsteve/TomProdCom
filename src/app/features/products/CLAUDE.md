@@ -10,7 +10,7 @@ Used on the `/products` page and embedded inside the offer creation flow (`/offe
 
 ### `selected-product/` — single cart line-item builder
 
-Shows one product selected for an offer line item. Lets the user enter quantity, choose the quantity input mode for M2 products (BRUT / NET / BUC / PAC), and set the quality category (A / AB / B / T).
+Shows one product selected for an offer line item. Lets the user enter quantity, choose the quantity input mode for M2 products (BRUT / NET / BUC / PAC), and set the quality category (A / AB / B / T). Below it: total / available stock of the grade the item will deduct from (`stockCategoryFor`; e.g. "(A)" for T), red when available is negative. No extra "T is taken from A" text (removed on request; the grade label says it).
 
 **Add button:** full-width `mat-flat-button` with `add_shopping_cart` icon, app-red background (`rgb(134, 2, 2)`). Styled via `--mdc-filled-button-container-color` / `--mdc-filled-button-label-text-color` CSS custom properties in the component SCSS (no `!important`).
 
@@ -30,7 +30,7 @@ The running list of products added to the current offer cart.
 
 ### `sorting-dialog/` — AB → A / B / waste
 
-Opened from the products page and from a validated truck (`data: { product, shipmentId? }`). Shows the current AB stock, fields for A, B and waste, "rest to A", and the AB that remains. Validation is `validateSorting()` (same checks as the `record_sorting` RPC). Saves through `SortingsService`, reloads stock, closes with `true`.
+Opened from the products page (`data: { product }`) and from a validated truck (`data: { product, shipmentId, truckRemaining }`). From the products page it shows and counts down the whole AB stock; from a truck it shows what is left of the product on that truck instead (`fromTruck`), and "rest to A" fills up to `sortingLimit()` (the smaller of the two). Fields for A, B and waste. Validation is `validateSorting(abStock, input, truckRemaining)` (same checks as the `record_sorting` RPC: `MORE_THAN_TRUCK` ↔ `SA005`, `MORE_THAN_AB` ↔ `SA001`). Saves through `SortingsService`, reloads stock, closes with `true`.
 
 ### `overwrite-dialog/` — cart duplicate confirmation
 

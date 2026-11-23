@@ -73,22 +73,42 @@ export function totalStock(graded: GradedStock | undefined): number {
 
 export type SortingInput = { a: number; b: number; waste: number };
 
-export type SortingError = 'EMPTY' | 'NEGATIVE' | 'NOT_WHOLE' | 'MORE_THAN_AB';
+export type SortingError =
+  | 'EMPTY'
+  | 'NEGATIVE'
+  | 'NOT_WHOLE'
+  | 'MORE_THAN_TRUCK'
+  | 'MORE_THAN_AB';
 
 /** Pieces a sorting takes out of AB. */
 export function sortingTotal(input: SortingInput): number {
   return (input.a || 0) + (input.b || 0) + (input.waste || 0);
 }
 
-/** Why a sorting cannot be saved, or `null` when it can. Same checks as `record_sorting`. */
-export function validateSorting(abStock: number, input: SortingInput): SortingError | null {
+/**
+ * Why a sorting cannot be saved, or `null` when it can. Same checks as
+ * `record_sorting`. `truckRemaining` is given when sorting from a truck: the
+ * pieces of the product left on it (received minus already sorted).
+ */
+export function validateSorting(
+  abStock: number,
+  input: SortingInput,
+  truckRemaining: number | null = null,
+): SortingError | null {
   const values = [input.a || 0, input.b || 0, input.waste || 0];
   if (values.some((v) => v < 0)) return 'NEGATIVE';
   if (values.some((v) => !Number.isInteger(v))) return 'NOT_WHOLE';
   const total = sortingTotal(input);
   if (total <= 0) return 'EMPTY';
+  if (truckRemaining !== null && total > truckRemaining) return 'MORE_THAN_TRUCK';
   if (total > abStock) return 'MORE_THAN_AB';
   return null;
+}
+
+/** Most pieces a sorting may take: the AB stock, and from a truck also what is left on it. */
+export function sortingLimit(abStock: number, truckRemaining: number | null = null): number {
+  const limit = truckRemaining === null ? abStock : Math.min(abStock, truckRemaining);
+  return Math.max(0, limit);
 }
 
 const productUtil = new ProductUtil();

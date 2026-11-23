@@ -364,7 +364,8 @@
       "NOT_ENOUGH_AB": "Nincs ennyi AB a készletben! Frissítsd vagy javítsd az AB készletet.",
       "NOT_GRADABLE": "Ennek a terméknek nincs A/B készlete (M2 vagy 7 méter feletti).",
       "SHIPMENT_LOCKED": "A kamion már validálva van, nem módosítható.",
-      "SORTING_SOLD": "A válogatott A/B darabok egy része már elfogyott, a válogatás nem vonható vissza."
+      "SORTING_SOLD": "A válogatott A/B darabok egy része már elfogyott, a válogatás nem vonható vissza.",
+      "MORE_THAN_TRUCK": "Ebből a termékből ennyi már nem maradt a kamionon."
     },
     "PRODUCT": {
       "STOCK": "Készlet: ",
@@ -522,7 +523,6 @@
     "SORT": "Rendezés készlet szerint",
     "EDIT": "Készlet javítása",
     "EMPTY": "Nincs találat",
-    "T_FROM_A": "a T (terasz) az A készletből fogy",
     "RULE_HINT": "T az A-ból fogy · 7 m felett csak AB",
     "FILTER": {
       "ALL": "Mind",
@@ -534,6 +534,8 @@
     "TITLE": "Válogatás (AB → A / B)",
     "BUTTON": "Válogatás",
     "AB_IN_STOCK": "AB készleten",
+    "ON_TRUCK": "Kamionról válogatható",
+    "TRUCK_LEFT": "Marad a kamionon",
     "WASTE": "Selejt",
     "REST_TO_A": "A maradék mind A",
     "TAKEN_FROM_AB": "AB-ból levonva",
@@ -547,6 +549,7 @@
     "ERROR": {
       "NEGATIVE": "A mennyiség nem lehet negatív.",
       "NOT_WHOLE": "Csak egész darabszám adható meg.",
+      "MORE_THAN_TRUCK": "Több darabot válogatnál, mint amennyi ebből a termékből a kamionon maradt.",
       "MORE_THAN_AB": "Több darabot válogatnál, mint amennyi AB készleten van."
     }
   },

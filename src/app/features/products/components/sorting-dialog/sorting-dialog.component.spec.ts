@@ -62,7 +62,7 @@ describe('SortingDialogComponent', () => {
     component.b.set(9);
     component.restToA();
     expect(component.a()).toBe(40);
-    expect(component.remainingAb()).toBe(0);
+    expect(component.remaining()).toBe(0);
     expect(component.error()).toBeNull();
   });
 
@@ -96,5 +96,59 @@ describe('SortingDialogComponent', () => {
     component.a.set(1);
     await component.save();
     expect(close).not.toHaveBeenCalled();
+  });
+});
+
+describe('SortingDialogComponent from a truck', () => {
+  let component: SortingDialogComponent;
+  let fixture: ComponentFixture<SortingDialogComponent>;
+  const recordSorting = vi.fn();
+
+  beforeEach(async () => {
+    recordSorting.mockReset().mockResolvedValue(true);
+    await TestBed.configureTestingModule({
+      imports: [SortingDialogComponent],
+      providers: [
+        // AB holds 49 pieces in total, 20 of them are still unsorted on this truck
+        { provide: MAT_DIALOG_DATA, useValue: { product, shipmentId: 7, truckRemaining: 20 } },
+        { provide: MatDialogRef, useValue: { close: vi.fn() } },
+        { provide: SortingsService, useValue: { recordSorting } },
+        {
+          provide: ProductStore,
+          useValue: {
+            stocksByProduct: signal({
+              1: { [Category.AB]: { id: 3, product_id: 1, category_id: Category.AB, stock: 49, booked_stock: 0 } },
+            }),
+            fetchStocks: vi.fn(),
+          },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(SortingDialogComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('shows what is left on the truck, not the whole AB stock', () => {
+    expect(component.fromTruck).toBe(true);
+    expect(component.available()).toBe(20);
+    expect(fixture.nativeElement.textContent).toContain('20');
+    expect(fixture.nativeElement.textContent).not.toContain('49');
+  });
+
+  it('puts the truck remainder into A', () => {
+    component.b.set(5);
+    component.restToA();
+    expect(component.a()).toBe(15);
+    expect(component.remaining()).toBe(0);
+    expect(component.error()).toBeNull();
+  });
+
+  it('refuses more than is left on the truck', async () => {
+    component.a.set(21);
+    expect(component.error()).toBe('MORE_THAN_TRUCK');
+    await component.save();
+    expect(recordSorting).not.toHaveBeenCalled();
   });
 });

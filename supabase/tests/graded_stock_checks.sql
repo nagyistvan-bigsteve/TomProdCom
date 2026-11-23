@@ -2,11 +2,14 @@
 -- products, orders and shipments, and ends with RAISE EXCEPTION, so
 -- EVERYTHING is rolled back. The "error" message is the test report:
 -- every line should start with "ok". Look for "FAIL".
+-- Needs migrations 20261123152149_graded_stock and
+-- 20261123163000_offer_conversion_booking (or their renamed versions).
 do $test$
 declare
-  pa int; pb int; pl int; pm int; o int; o2 int;
-  i1 int; i2 int; i3 int; i4 int; i5 int; i6 int; i7 int;
+  pa int; pb int; pl int; pm int; o int; o2 int; o3 int;
+  i1 int; i2 int; i3 int; i4 int; i5 int; i6 int; i7 int; i8 int;
   sh bigint; sh2 bigint; so1 bigint; so2 bigint;
+  v_admin uuid;
   r text := '';
 begin
   execute $q$create function pg_temp.chk(l text, a text, e text) returns text language sql as $f$
@@ -151,7 +154,7 @@ begin
   r := r || pg_temp.chk('delete draft (+cascade lines)', (select count(*)::text from shipment_items where shipment_id = sh2), '0');
 
   r := r || '-- sorting (pa AB 62)' || chr(10);
-  begin perform public.record_sorting(pa, 50, 10, 3, sh); r := r || 'FAIL oversort accepted' || chr(10);
+  begin perform public.record_sorting(pa, 50, 10, 3); r := r || 'FAIL oversort accepted' || chr(10);
   exception when others then r := r || pg_temp.chk('sort 63 > AB 62 raises', sqlstate, 'SA001'); end;
   r := r || pg_temp.chk('oversort: AB unchanged', pg_temp.st(pa,2), '62/0');
   r := r || pg_temp.chk('oversort: no row', (select count(*)::text from stock_sortings where product_id = pa), '0');
@@ -161,7 +164,7 @@ begin
   exception when others then r := r || pg_temp.chk('zero sort raises', sqlstate, '23514'); end;
   begin perform public.record_sorting(pa, -1, 5, 0); r := r || 'FAIL negative sort accepted' || chr(10);
   exception when others then r := r || pg_temp.chk('negative qty raises', sqlstate, '23514'); end;
-  so1 := public.record_sorting(pa, 40, 9, 2, sh, 'test');
+  so1 := public.record_sorting(pa, 40, 9, 2, null, 'test');
   r := r || pg_temp.chk('sort 40A 9B 2W: A', pg_temp.st(pa,1), '140/0');
   r := r || pg_temp.chk('sort: B', pg_temp.st(pa,3), '29/0');
   r := r || pg_temp.chk('sort: AB', pg_temp.st(pa,2), '11/0');
@@ -179,6 +182,19 @@ begin
   begin perform public.delete_sorting(-1); r := r || 'FAIL undo missing' || chr(10);
   exception when others then r := r || pg_temp.chk('undo missing raises', sqlstate, 'P0002'); end;
 
+  r := r || '-- sorting from a truck (sh brought 12 of pa, AB 57)' || chr(10);
+  begin perform public.record_sorting(pa, 10, 2, 1, sh); r := r || 'FAIL truck oversort accepted' || chr(10);
+  exception when others then r := r || pg_temp.chk('sort 13 > 12 on truck raises', sqlstate, 'SA005'); end;
+  perform public.record_sorting(pa, 8, 2, 0, sh);
+  r := r || pg_temp.chk('truck sort 10: AB', pg_temp.st(pa,2), '47/0');
+  begin perform public.record_sorting(pa, 3, 0, 0, sh); r := r || 'FAIL truck remainder exceeded' || chr(10);
+  exception when others then r := r || pg_temp.chk('10 sorted + 3 > 12 raises', sqlstate, 'SA005'); end;
+  perform public.record_sorting(pa, 2, 0, 0, sh);
+  r := r || pg_temp.chk('truck fully sorted: AB', pg_temp.st(pa,2), '45/0');
+  begin perform public.record_sorting(pb, 1, 0, 0, sh); r := r || 'FAIL product not on truck sorted' || chr(10);
+  exception when others then r := r || pg_temp.chk('product not on truck raises', sqlstate, 'SA005'); end;
+  update stocks set stock = 57 where product_id = pa and category_id = 2;
+
   r := r || '-- product becomes > 7 m' || chr(10);
   update stocks set stock = 10 where product_id = pa and category_id = 1;
   update stocks set stock = 5 where product_id = pa and category_id = 3;
@@ -188,6 +204,33 @@ begin
   update products set length = 800 where id = pa;
   r := r || pg_temp.chk('after: only AB row', (select string_agg(category_id::text, ',') from stocks where product_id = pa), '2');
   r := r || pg_temp.chk('after: AB merged + rebooked', pg_temp.st(pa,2), '72/7');
+
+  r := r || '-- offer -> order conversion (pb: A 50, B 0)' || chr(10);
+  update stocks set stock = 50 where product_id = pb and category_id = 1;
+  insert into orders (client_id, just_offer) values (1, true) returning id into o3;
+  insert into order_items (order_id, product_id, category_id, quantity, item_status) values (o3, pb, 1, 5, false) returning id into i8;
+  insert into order_items (order_id, product_id, category_id, quantity, item_status) values (o3, pb, 4, 3, false);
+  insert into order_items (order_id, product_id, category_id, quantity, item_status) values (o3, pb, 3, 2, true);
+  r := r || pg_temp.chk('offer: nothing booked', pg_temp.st(pb,1) || ' ' || pg_temp.st(pb,3), '50/0 0/0');
+  update orders set just_offer = false where id = o3;
+  r := r || pg_temp.chk('convert: A + T booked', pg_temp.st(pb,1), '50/8');
+  r := r || pg_temp.chk('convert: delivered B deducted', pg_temp.st(pb,3), '-2/0');
+  update order_items set item_status = true where id = i8;
+  r := r || pg_temp.chk('deliver after convert: booking released', pg_temp.st(pb,1), '45/3');
+  update orders set comment = 'x' where id = o3;
+  r := r || pg_temp.chk('other order update: no change', pg_temp.st(pb,1), '45/3');
+  begin update orders set just_offer = true where id = o3; r := r || 'FAIL non-admin turned order into offer' || chr(10);
+  exception when others then r := r || pg_temp.chk('order -> offer needs admin', sqlstate, '42501'); end;
+  select a.id into v_admin from admin_users a join profiles p on p.id = a.id where p.approved limit 1;
+  if v_admin is null then
+    r := r || 'skip order -> offer as admin: no approved admin found' || chr(10);
+  else
+    perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
+    update orders set just_offer = true where id = o3;
+    r := r || pg_temp.chk('admin order -> offer: A released', pg_temp.st(pb,1), '50/0');
+    r := r || pg_temp.chk('admin order -> offer: B returned', pg_temp.st(pb,3), '0/0');
+    perform set_config('request.jwt.claims', '', true);
+  end if;
 
   raise exception 'TEST REPORT (rolled back)%', chr(10) || r;
 end;

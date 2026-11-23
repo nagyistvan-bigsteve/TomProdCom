@@ -3,7 +3,8 @@
 <mat-dialog-content>
   <p class="mat-title-small product-name">{{ data.product.name }}</p>
   <p class="mat-body-medium">
-    {{ "SORTING.AB_IN_STOCK" | translate }}: <strong>{{ abStock() }}</strong>
+    {{ (fromTruck ? "SORTING.ON_TRUCK" : "SORTING.AB_IN_STOCK") | translate }}:
+    <strong>{{ available() }}</strong>
   </p>
 
   <div class="qty-fields">
@@ -56,8 +57,8 @@
 
   <p class="mat-body-medium summary">
     {{ "SORTING.TAKEN_FROM_AB" | translate }}: <strong>{{ total() }}</strong>
-    · {{ "SORTING.AB_LEFT" | translate }}:
-    <strong [class.negative]="remainingAb() < 0">{{ remainingAb() }}</strong>
+    · {{ (fromTruck ? "SORTING.TRUCK_LEFT" : "SORTING.AB_LEFT") | translate }}:
+    <strong [class.negative]="remaining() < 0">{{ remaining() }}</strong>
   </p>
 
   @if (error() && error() !== "EMPTY") {

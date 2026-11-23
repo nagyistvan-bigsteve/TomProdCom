@@ -6,6 +6,7 @@ import {
   groupStocksByProduct,
   isGradable,
   shipmentTotalM3,
+  sortingLimit,
   sortingTotal,
   stockCategoriesOf,
   stockCategoryFor,
@@ -131,6 +132,36 @@ describe('validateSorting', () => {
 
   it('rejects any sorting when AB is empty', () => {
     expect(validateSorting(0, { a: 1, b: 0, waste: 0 })).toBe('MORE_THAN_AB');
+  });
+
+  it('from a truck, caps the sorting at what is left on it, not the whole AB stock', () => {
+    // AB holds 1000249 pieces, the truck brought 250 of which 0 are sorted
+    expect(validateSorting(1000249, { a: 200, b: 50, waste: 0 }, 250)).toBeNull();
+    expect(validateSorting(1000249, { a: 200, b: 50, waste: 1 }, 250)).toBe('MORE_THAN_TRUCK');
+  });
+
+  it('from a truck, still needs the pieces in AB stock', () => {
+    expect(validateSorting(10, { a: 20, b: 0, waste: 0 }, 250)).toBe('MORE_THAN_AB');
+  });
+
+  it('reports the truck limit before the AB limit when both are exceeded', () => {
+    expect(validateSorting(5, { a: 30, b: 0, waste: 0 }, 20)).toBe('MORE_THAN_TRUCK');
+  });
+});
+
+describe('sortingLimit', () => {
+  it('is the AB stock without a truck', () => {
+    expect(sortingLimit(49)).toBe(49);
+  });
+
+  it('is the smaller of AB stock and truck remainder', () => {
+    expect(sortingLimit(1000249, 250)).toBe(250);
+    expect(sortingLimit(10, 250)).toBe(10);
+  });
+
+  it('is never negative', () => {
+    expect(sortingLimit(-3)).toBe(0);
+    expect(sortingLimit(10, -1)).toBe(0);
   });
 });
 
