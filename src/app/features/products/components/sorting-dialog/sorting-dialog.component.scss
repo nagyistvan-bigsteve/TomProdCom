@@ -1,0 +1,36 @@
+@use "breakpoints" as *;
+
+:host {
+  display: block;
+}
+
+.product-name {
+  margin-bottom: var(--space-1);
+}
+
+.qty-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.qty-field {
+  flex: 1 1 80px;
+}
+
+.summary {
+  margin-top: var(--space-2);
+}
+
+.negative,
+.error-text {
+  color: rgb(134, 2, 2);
+}
+
+.submit-btn {
+  --mat-button-filled-container-color: rgb(57, 72, 60);
+  --mat-button-filled-label-text-color: white;
+  --mat-button-filled-disabled-container-color: rgba(57, 72, 60, 0.3);
+  --mat-button-filled-disabled-label-text-color: rgba(255, 255, 255, 0.5);
+}

@@ -1,0 +1,261 @@
+@use "breakpoints" as *;
+
+:host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(57, 72, 60);
+  color: white;
+  overflow-y: auto;
+}
+
+.page-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.header-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.status-badge {
+  padding: var(--space-1) var(--space-2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+
+  &.validated {
+    background: rgba(95, 1, 1, 1);
+  }
+}
+
+.page-content {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4) var(--space-3);
+  gap: var(--space-3);
+  width: 100%;
+
+  @include md {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
+.loading-state {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-8);
+}
+
+.secondary {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.dark-field {
+  --mat-form-field-outlined-label-text-color: rgba(255, 255, 255, 0.65);
+  --mat-form-field-outlined-hover-label-text-color: rgba(255, 255, 255, 0.85);
+  --mat-form-field-outlined-focus-label-text-color: white;
+  --mat-form-field-outlined-input-text-color: white;
+  --mat-form-field-outlined-outline-color: rgba(255, 255, 255, 0.35);
+  --mat-form-field-outlined-hover-outline-color: rgba(255, 255, 255, 0.65);
+  --mat-form-field-outlined-focus-outline-color: white;
+  --mat-form-field-outlined-caret-color: white;
+}
+
+.header-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+
+  .dark-field {
+    flex: 1 1 220px;
+  }
+}
+
+.line-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.line-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-2);
+  padding: var(--space-2) var(--space-3) 0;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+
+  @include sm {
+    flex-wrap: nowrap;
+  }
+}
+
+.line-no {
+  width: 2rem;
+  color: rgba(255, 255, 255, 0.65);
+  align-self: center;
+}
+
+.line-product,
+.line-product-field {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.line-product {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 56px;
+  margin-bottom: var(--space-2);
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.qty-field {
+  flex: 1 1 100px;
+
+  @include sm {
+    flex: 0 0 140px;
+  }
+}
+
+.invalid-hint {
+  color: rgb(255, 120, 120);
+}
+
+.totals {
+  text-align: right;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  @include md {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+.secondary-btn {
+  --mat-button-outlined-label-text-color: white;
+  --mat-button-outlined-outline-color: rgba(255, 255, 255, 0.35);
+  --mat-button-outlined-disabled-label-text-color: rgba(255, 255, 255, 0.35);
+}
+
+.validate-btn {
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  --mat-button-filled-container-color: rgba(95, 1, 1, 0.75);
+  --mat-button-filled-label-text-color: white;
+  --mat-button-filled-disabled-container-color: rgba(95, 1, 1, 0.3);
+  --mat-button-filled-disabled-label-text-color: rgba(255, 255, 255, 0.5);
+
+  @include md {
+    width: 200px;
+  }
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+}
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.progress-table {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.progress-head,
+.progress-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 3rem 3rem 3rem 5.5rem;
+  align-items: center;
+  gap: var(--space-2);
+  font-variant-numeric: tabular-nums;
+
+  @include md {
+    grid-template-columns: minmax(0, 1fr) 6rem 6rem 6rem 7rem;
+  }
+
+  > span:not(:first-child) {
+    text-align: right;
+  }
+}
+
+.progress-head {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.progress-row {
+  min-height: 48px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.product-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stock-warning {
+  color: rgb(251, 255, 17);
+  font-weight: 600;
+}
+
+
+
+.sorting-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.sorting-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sorting-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sorting-qty {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

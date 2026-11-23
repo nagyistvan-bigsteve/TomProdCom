@@ -74,7 +74,7 @@ Use these aliases for all cross-folder imports. Relative imports are only accept
 | `admin/`        | `/settings`, `/deleted`                                 | user approval, product/price admin     |
 | `auth/`         | `/auth`, `/user`, `/wait-to-approve`, `/reset-password` | login, signup, account                 |
 | `clients/`      | `/clients`                                              | client CRUD, client store              |
-| `coming-wares/` | `/coming-wares`                                         | incoming stock tracking                |
+| `shipments/`    | `/shipments`, `/shipments/:id`                          | truck intake (AB), sorting progress    |
 | `orders/`       | `/offer/*`, `/orders`, `/offers`, `/deleted`            | offer workflow, cart store, PDF        |
 | `products/`     | `/products`                                             | catalog, stock, pricing, product store |
 
@@ -103,7 +103,8 @@ State held in `@features/orders/store/cart/` and `@features/orders/store/order/`
 Key types in `@core/models/models` and `@core/models/enums`:
 
 - **Units:** `BUC` (pieces), `M2`, `M3`, `BOUNDLE` (bundles — spelled with a U in the enum; do not rename)
-- **Categories:** `A`, `AB`, `B`, `T` (quality grades)
+- **Categories:** `A`, `AB`, `B`, `T` (quality grades; T = terrace)
+- **Graded stock:** one `stocks` row per product and grade (A, B, AB). T is taken from A, products longer than 7 m have only AB, M2 is not tracked. Trucks enter stock as AB; a sorting moves AB into A/B/waste. Rule: `stockCategoryFor()` in `@shared/utils/stock.util` mirrors SQL `stock_category_for` (SPEC.md §6.5, §12)
 - **ClientType:** `PF` (individual), `PJ` (company — different pricing rules)
 - **Size:** `NORMAL`, `EXTRA`, `EXTRA2`, `UNDEFINED`
 
@@ -310,7 +311,7 @@ See `auth/components/login/login.component.scss` for the live example.
 - Prefer **Signals** over RxJS for new state; use RxJS only for async data fetching
 - **Supabase errors:** supabase-js resolves with `{ data, error }` and never rejects. Services must not turn a failed query into an empty result — unwrap with `unwrapResult()` from `@core/services/supabase-result.util` (Observables) or check `error` and return `false`/`null` (Promises). The caller ends its loading state and keeps user input (cart, form) on failure.
 - **Error toasts are central:** `SupabaseService` reports every failed data request (`apiFailures$`), and `AppComponent` shows one translated toast for it via `apiErrorKey()` in `@core/services/api-error.util` (no permission, duplicate, still in use, no connection, otherwise load/save error). Do not add generic "load failed / save failed" toasts at call sites — they would replace the more specific central message. A call site may still show a domain-specific message (e.g. duplicate client code); guard a general one with `hasSpecificApiMessage(error)` so it does not replace a more precise central message. A new error category needs a key under `SNACKBAR.API` in both `ro.json` and `hu.json`.
-- **Writes that touch more than one row or table** (order + items, client + phones, role + `admin_users`, shipment verify + stock) are Postgres functions called with `.rpc(...)`, so they succeed or fail as a whole. Their SQL lives in `supabase/migrations/` and must be applied to both the staging and the production project before the app code that calls them is deployed. Migration files are named `YYYYMMDDHHMMSS_name.sql` (UTC; when applied through the Supabase MCP, use the version it records), so their order is the filename order. Emergency undo scripts live in `supabase/rollbacks/`, never in `migrations/`. Pin `search_path = public` in new functions — the existing `order_items` triggers use unqualified table names.
+- **Writes that touch more than one row or table** (order + items, client + phones, role + `admin_users`, shipment validate + stock, sorting + stock) are Postgres functions called with `.rpc(...)`, so they succeed or fail as a whole. Their SQL lives in `supabase/migrations/` and must be applied to both the staging and the production project before the app code that calls them is deployed. Migration files are named `YYYYMMDDHHMMSS_name.sql` (UTC; when applied through the Supabase MCP, use the version it records), so their order is the filename order. Emergency undo scripts live in `supabase/rollbacks/`, never in `migrations/`. Pin `search_path = public` in new functions — the existing `order_items` triggers use unqualified table names.
 - **RLS:** no table is readable or writable without a signed-in, approved user (`private.is_approved()`); admin-only operations check `private.is_admin()`. See `SPEC.md` §24 "Policy model". A new table needs explicit policies using these helpers — never `using (true)`. Root stores that load data on init must do it in an `effect` on `useAuthStore().id()` / `approved()` (see `ProductStore`), not unconditionally, or they stay empty after a sign-in.
 - `withBusy()` counts calls in flight (`setBusy()` / `setIdle()` must be paired); `isBusy()` stays true until every overlapping call has finished.
 - `SPEC.md` in the repo root is the authoritative business requirements document — consult it for domain rules (pricing logic, stock semantics, approval flow, etc.)

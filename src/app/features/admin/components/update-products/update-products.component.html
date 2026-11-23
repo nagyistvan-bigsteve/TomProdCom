@@ -1,7 +1,7 @@
 <mat-button-toggle-group
   class="type-toggle w-100 mb-3"
   [value]="updateStock"
-  (change)="updateStock = $event.value"
+  (change)="onModeChange($event.value)"
 >
   <mat-button-toggle class="w-100" [checked]="!updateStock" [value]="false">
     {{ "SETTINGS.PRODUCT" | translate }}
@@ -103,11 +103,20 @@
     </button>
   } @else {
     <div @enterAndLeaveAnimation class="stock-panel">
-      <form [formGroup]="stockForm" class="w-100">
-        <mat-form-field appearance="outline" class="form-field w-100">
-          <mat-label>{{ "SETTINGS.STOCK" | translate }}</mat-label>
-          <input matInput [(ngModel)]="currentStock.stock" formControlName="stock" type="number" required />
-        </mat-form-field>
+      <form class="w-100">
+        @for (row of gradeStocks; track row.id) {
+          <mat-form-field appearance="outline" class="form-field w-100">
+            <mat-label>{{ "SETTINGS.STOCK" | translate }} {{ categoryName(row.category_id) }}</mat-label>
+            <input
+              matInput
+              [(ngModel)]="row.stock"
+              [name]="'stock-' + row.id"
+              type="number"
+              min="0"
+              required
+            />
+          </mat-form-field>
+        }
       </form>
 
       <button class="save-btn w-100" mat-flat-button (click)="onStockSave()">

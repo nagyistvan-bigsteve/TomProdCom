@@ -105,18 +105,18 @@ export const routes: Routes = [
     },
   },
   {
-    path: 'coming-wares',
+    path: 'shipments',
     loadComponent: () =>
-      import('@features/coming-wares/pages/coming-wares.component').then((m) => m.ComingWaresComponent),
+      import('@features/shipments/pages/shipments/shipments.component').then((m) => m.ShipmentsComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,
     },
   },
   {
-    path: 'coming-wares/:id/:verified',
+    path: 'shipments/:id',
     loadComponent: () =>
-      import('@features/coming-wares/components/coming-wares-details/coming-wares-details.component').then((m) => m.ComingWaresDetailsComponent),
+      import('@features/shipments/pages/shipment-detail/shipment-detail.component').then((m) => m.ShipmentDetailComponent),
     canActivate: [authGuard],
     data: {
       requiresApproval: true,

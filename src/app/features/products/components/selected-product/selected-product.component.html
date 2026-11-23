@@ -97,9 +97,14 @@
     <div class="ms-4">
       @if (currentStock && selectedProduct.unit_id !== 2) {
         {{ "SNACKBAR.PRODUCT.STOCK" | translate }}
-        {{ currentStock.stock }}/{{
-          currentStock.stock - currentStock.booked_stock
-        }}
+        ({{ "STOCK.GRADE." + currentStock.category_id | translate }})
+        {{ currentStock.stock }}/<span
+          [class.stock-negative]="available(currentStock) < 0"
+          >{{ available(currentStock) }}</span
+        >
+        @if (selectedCategory === 4 && currentStock.category_id === 1) {
+          <span class="stock-hint">· {{ "STOCK.T_FROM_A" | translate }}</span>
+        }
       }
     </div>
   </div>

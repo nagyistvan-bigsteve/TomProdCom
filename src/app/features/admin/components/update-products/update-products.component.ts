@@ -27,6 +27,8 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FilterUtil } from '@shared/utils/filter.util';
 import { ProductStore } from '@features/products/store/product.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
+import { Category } from '@core/models/enums';
+import { STOCK_CATEGORIES } from '@shared/utils/stock.util';
 
 @Component({
   selector: 'app-update-products',
@@ -87,29 +89,25 @@ export class UpdateProductsComponent implements OnInit {
     piece_per_pack: [this.selectedProduct.piece_per_pack],
   });
 
-  currentStock: Stock = {
-    id: 0,
-    product_id: 0,
-    stock: 0,
-    booked_stock: 0,
-  };
+  /** Editable copies of the selected product's stock rows, one per grade. */
+  gradeStocks: Stock[] = [];
 
-  stockForm = this.fb.group({
-    id: [this.currentStock?.id],
-    product_id: [this.currentStock?.product_id],
-    stock: [this.currentStock?.stock],
-  });
+  readonly categoryName = (category: Category) => Category[category];
 
   ngOnInit(): void {}
 
   fetchProductStock(productId: number): void {
-    this.currentStock =
-      this.productStore.stocksEntityMap()[productId] ?? {
-        id: 0,
-        product_id: productId,
-        stock: 0,
-        booked_stock: 0,
-      };
+    const graded = this.productStore.stocksByProduct()[productId] ?? {};
+    this.gradeStocks = STOCK_CATEGORIES.map((c) => graded[c])
+      .filter((s): s is Stock => !!s)
+      .map((s) => ({ ...s }));
+  }
+
+  onModeChange(updateStock: boolean): void {
+    this.updateStock = updateStock;
+    if (updateStock && this.isProductSelectet) {
+      this.fetchProductStock(this.selectedProduct.id);
+    }
   }
 
   optionSelected(product: Product): void {
@@ -122,21 +120,14 @@ export class UpdateProductsComponent implements OnInit {
   }
 
   onStockSave() {
-    if (this.currentStock.id) {
-      this.productStore.updateStock({
-        id: this.currentStock.id,
-        stock: this.currentStock.stock,
-        product_id: this.currentStock.product_id,
-      });
-    } else {
-      this.productStore
-        .addStockAndReturn({
-          stock: this.currentStock.stock,
-          product_id: this.currentStock.product_id,
-        })
-        .subscribe((newStock) => {
-          this.currentStock = newStock;
-        });
+    const saved = this.productStore.stocksEntityMap();
+    for (const row of this.gradeStocks) {
+      // an emptied number field gives null: leave that grade unchanged
+      if (row.stock === null || (row.stock as unknown) === '') continue;
+      const stock = Number(row.stock);
+      if (Number.isFinite(stock) && stock >= 0 && stock !== saved[row.id]?.stock) {
+        this.productStore.updateStock({ id: row.id, stock });
+      }
     }
   }
 

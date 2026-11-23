@@ -311,9 +311,9 @@ Category represents the **quality grade** of a product (or of a specific line it
 | `A`   | 1   | Premium grade           |
 | `AB`  | 2   | Standard grade          |
 | `B`   | 3   | Board / secondary grade |
-| `T`   | 4   | Treated / impregnated   |
+| `T`   | 4   | Terrace (sorted from A) |
 
-A single product may be sold at different quality grades. The category determines which price row applies.
+A single product may be sold at different quality grades. The category determines which price row applies, and which stock grade the item is taken from (see §6.5).
 
 ### Size (`Size_id`)
 
@@ -416,7 +416,7 @@ Products may exist without a currently configured price. The application must be
 
 ## 6.4 Category (quality grade)
 
-In the domain, "category" means the **quality grade** of a product or of a specific line item in an offer/order. The four grades are: **A** (premium), **AB** (standard), **B** (board/secondary), **T** (treated/impregnated). See section 6.0 for enum values.
+In the domain, "category" means the **quality grade** of a product or of a specific line item in an offer/order. The four grades are: **A** (premium), **AB** (unsorted mix of A and B, as it arrives on the truck), **B** (board/secondary), **T** (terrace: always picked out of A; it is priced as T but has no stock of its own). See section 6.0 for enum values.
 
 A single physical product may be sold at multiple quality grades. Each grade has its own price row in the `prices_new` table.
 
@@ -426,9 +426,24 @@ Pricing is configured at the category level via the `prices_new` table (matched 
 
 ## 6.5 Stock
 
-Stock represents the currently available inventory.
+Stock represents the currently available inventory, **per stock grade**: the `stocks` table has one row per product and grade (`category_id` 1 = A, 2 = AB, 3 = B).
 
-The current application primarily manages stock directly.
+| Product                                   | Stock grades it has |
+| ----------------------------------------- | ------------------- |
+| up to 7 m long (`length <= 700` cm), not M2 | A, B and AB         |
+| longer than 7 m                           | AB only (no A/B split exists above 7 m) |
+| M2                                        | one AB row, not tracked by the booking triggers (as before) |
+
+**Stock grade rule** — which grade an order item is booked and deducted from:
+
+1. M2 product → not tracked;
+2. longer than 7 m → AB, whatever grade it is sold at;
+3. sold as T (terrace) → A;
+4. otherwise the sold grade (A, AB or B).
+
+The rule lives in SQL (`public.stock_category_for`) and is mirrored by `stockCategoryFor()` in `@shared/utils/stock.util`; keep both in step. Stock rows are created by the database (`products_stock_rows` triggers) when a product is added or its length/unit changes. If a product stops being graded (e.g. its length becomes more than 7 m), its A and B pieces are merged into AB; after any such change its bookings are recomputed for the new rule.
+
+An order may book more than is available: available stock (`stock - booked_stock`) can go negative, which the UI shows as a warning, not an error. Goods arrive as AB (truck intake) and are moved to A/B by a sorting; see §12.
 
 Future versions should support:
 
@@ -929,11 +944,14 @@ Route:
 
 ### Features
 
-- list products;
-- view stock;
+- list products with their A / B / AB stock (total, available, m³), and a total;
 - search products;
-- sort by stock;
-- edit stock.
+- filter: all · to sort (AB pieces of a product up to 7 m) · shortage (negative available);
+- sort by total stock;
+- correct stock per grade (absolute values, ≥ 0);
+- start a sorting (AB → A / B / waste) for a product with AB stock.
+
+The stock is reloaded every time the page is opened (there is no realtime subscription).
 
 ### UX
 
@@ -1270,49 +1288,65 @@ Every bug fix or new feature that touches pricing, cart state, or core business 
 
 Current functionality:
 
-- view stock;
-- edit stock;
-- use stock information while creating orders;
-- track incoming shipments and increment stock on verified delivery.
+- view stock per grade (A / B / AB, see §6.5);
+- correct stock per grade;
+- use stock information while creating orders (the grade the item will be taken from is shown);
+- register truck deliveries and add them to AB stock when validated;
+- sort AB pieces into A, B and waste.
+
+SQL: `supabase/migrations/*_graded_stock.sql` (undo: `supabase/rollbacks/graded_stock_rollback.sql`).
 
 ### `booked_stock`
 
-The `stocks` table (and the TypeScript `Stock` type) contains a `booked_stock` column.
+The `stocks` table (and the TypeScript `Stock` type) contains a `booked_stock` column, per grade.
 
-**Current state — maintained by three Postgres triggers on `order_items`** (real orders only, `just_offer = false`; M2 products are ignored):
+**Maintained by three Postgres triggers on `order_items`** (real orders only, `just_offer = false`; M2 products are ignored). Every change goes to the grade given by the stock grade rule (§6.5: T → A, longer than 7 m → AB).
+
+An item's effect on its grade: not delivered → `booked_stock += quantity`; delivered → `stock -= quantity`.
 
 | Trigger function               | Fires on | Effect                                                                                           |
 | ------------------------------ | -------- | ------------------------------------------------------------------------------------------------ |
-| `trg_order_item_book_stock`    | INSERT   | `booked_stock += quantity`                                                                       |
-| `trg_order_item_status_change` | UPDATE   | `item_status` false → true: `booked_stock -= quantity` and `stock -= quantity`; true → false reverses both |
-| `trg_order_item_delete_unbook` | DELETE   | if the item was not delivered: `booked_stock -= quantity`                                        |
+| `trg_order_item_book_stock`    | INSERT   | applies the item's effect (`booked_stock += quantity`)                                           |
+| `trg_order_item_status_change` | UPDATE   | removes the old effect and applies the new one, so a change of delivery status, quantity, category or product moves the booking to the right grade |
+| `trg_order_item_delete_unbook` | DELETE   | if the item was not delivered: `booked_stock -= quantity` (a delivered item stays deducted)       |
 
-Known gaps (not yet decided how to handle — do not "fix" silently):
+When graded stock was introduced, `booked_stock` was recomputed from the undelivered items of real orders.
+
+Known gap (not yet decided how to handle — do not "fix" silently):
 
 - Transforming an offer into an order only flips `just_offer`; its items were inserted as offer items and were never booked, but delivering them later still decrements `booked_stock` and `stock`.
-- Changing an item's quantity or category does not adjust `booked_stock`.
 
-Frontend service methods `addToBookedStock()`, `bookedStockSold()`, and `updateBookedStock()` in `stocks.service.ts` are **dead code** — they are defined but never called; the triggers do this work.
+### Truck intake (`shipments`, `shipment_items`)
 
-### Incoming stock (`coming_wares`)
+When a truck arrives, nobody knows yet how much of it is A and how much B, but the goods must be in stock immediately. So a truck delivery always enters stock as **AB**.
 
-The `coming_wares` feature tracks incoming shipments. When a shipment is inspected and verified, stock IS updated:
+1. **Draft** (`/shipments/new`): date of arrival, truck / supplier name, comment, and lines (product + pieces; M2 products are not allowed). The page shows the total m³ so it can be checked against the delivery papers. A draft can be edited and deleted (`save_shipment`, `delete_shipment`).
+2. **Validate** (`validate_shipment`): the draft becomes `validated` and every line's pieces are added to the product's AB stock, in one transaction. A shipment can be validated only once and is read-only afterwards.
 
-- Items with `for_order = false`: delivered to the **warehouse** → `stock` is incremented when the shipment is verified and the item is marked correct. Verification and the stock increment happen in one database transaction (`verify_coming_wares`); a shipment can be verified only once.
-- Items with `for_order = true`: delivered **directly to a customer's order** → stock is NOT incremented (the goods bypass the warehouse).
-- The `all_for_order` convenience flag forces all items in a shipment to `for_order = true`.
+A bale may never be opened and be sold as AB; nothing else is needed for that.
+
+### Sorting (`stock_sortings`)
+
+At the sorting ramp the AB pieces are sorted, e.g. `7.5x15x400: 49 pcs AB → 40 A + 8 B + 1 waste`.
+
+- `record_sorting`: AB `-=` A + B + waste, A `+=` A, B `+=` B, and the sorting is kept as a row (optionally linked to the validated truck it came from). Refused when the product has no A/B stock (M2 or longer than 7 m) or when AB stock is smaller than the pieces sorted.
+- `delete_sorting`: undoes a sorting (typo fix): the pieces go back into AB. Refused when the sorted A or B pieces are no longer in stock.
+- A sorting can be started from the products page (any AB stock, e.g. stock that existed before graded stock) or from a validated truck, which shows per line: received / sorted / remaining.
+
+Error codes raised by these functions (shown by the central toast, `apiErrorKey`): `SA001` not enough AB stock, `SA002` product has no A/B stock, `SA003` shipment already validated (or not validated, for a sorting), `SA004` a sorting cannot be undone because its A/B pieces are no longer in stock.
 
 ### Stock concepts
 
 ```text
-available stock      ← currently active (stocks.stock field)
-reserved stock       ← active (booked_stock maintained by order_items triggers; see known gaps above)
-incoming/ordered     ← active (coming_wares feature — stock incremented on verification for warehouse items)
+stock (per grade)    ← stocks.stock: A, B, AB
+reserved stock       ← booked_stock per grade, maintained by order_items triggers
+available            ← stock - booked_stock (may be negative: more ordered than held)
+incoming             ← truck deliveries; enter AB stock when validated
 ```
 
 Future functionality:
 
-- closing the `booked_stock` gaps listed above (offer → order transformation, quantity edits);
+- closing the offer → order booking gap listed above;
 - stock per warehouse;
 - warehouse-specific inventory.
 
@@ -1629,8 +1663,8 @@ The SQL lives in `supabase/migrations/` (`*_rls_require_approved_user.sql`, `*_r
 | ---------------------- | --------------------------------------------------------------------------------------------------------------- |
 | Not signed in          | Nothing: no table access, no function calls                                                                     |
 | Signed in, unapproved  | Read their own profile only                                                                                     |
-| Approved user          | Read everything; create and edit clients, orders, offers, order items, stock; inspect, verify and delete shipments; hard-delete offers |
-| Admin                  | Additionally: edit prices and products, create shipments, hard-delete orders, approve / deny users, change roles |
+| Approved user          | Read everything; create and edit clients, orders, offers, order items, stock; register, validate and delete truck deliveries; record and undo sortings; hard-delete offers |
+| Admin                  | Additionally: edit prices and products, hard-delete orders, approve / deny users, change roles |
 
 `admin_users` can be changed only by an admin. `stocks` is writable by every approved user because the `order_items` booking triggers update it on the user's behalf. Soft-deleting an order (`deleted_at`) is an ordinary update and is not restricted in the database.
 

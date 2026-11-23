@@ -4,7 +4,7 @@
   updateEntity,
   withEntities,
 } from '@ngrx/signals/entities';
-import { Price2, Product, Stock } from '@core/models/models';
+import { Price2, Product } from '@core/models/models';
 import {
   patchState,
   signalStore,
@@ -20,7 +20,8 @@ import { useAuthStore } from '@core/store/auth-store';
 import { hasSpecificApiMessage } from '@core/services/api-error.util';
 import { ProductsService } from '@features/products/services/products.service';
 import { rxMethod } from '@ngrx/signals/rxjs-interop';
-import { Observable, pipe, switchMap, tap } from 'rxjs';
+import { mergeMap, Observable, pipe, switchMap, tap } from 'rxjs';
+import { groupStocksByProduct } from '@shared/utils/stock.util';
 import { setBusy, setIdle } from '@core/store/custom-features/with-busy/with-busy.updaters';
 import { tapResponse } from '@ngrx/operators';
 import { PricesService } from '@features/products/services/prices.service';
@@ -67,6 +68,8 @@ export const ProductStore = signalStore(
       availableCategoriesForSelectedProduct: computed(() =>
         pricesForSelected().map((p) => p.category_id as Category),
       ),
+      /** Stock rows by product id and grade (A / B / AB). */
+      stocksByProduct: computed(() => groupStocksByProduct(store.stocksEntities())),
     };
   }),
   withMethods((store) => ({
@@ -129,12 +132,15 @@ export const ProductStore = signalStore(
         ),
       ),
     ),
-
+  })),
+  withMethods((store) => ({
     addProductAndReturn(product: Product): Observable<Product> {
       return store._productService.addProductObs(product).pipe(
         tap({
           next: (newProduct) => {
             patchState(store, addEntity(newProduct, productConfig));
+            // the database created its stock rows (one per grade)
+            store.fetchStocks();
             store._notify.success('SNACKBAR.PRODUCT.SUCCESS.ADD');
           },
           error: (error) => {
@@ -161,6 +167,8 @@ export const ProductStore = signalStore(
                     productConfig,
                   ),
                 );
+                // a length or unit change can add grade rows in the database
+                store.fetchStocks();
                 store._notify.success('SNACKBAR.PRODUCT.SUCCESS.UPDATE');
               },
               error: (error) => {
@@ -228,16 +236,17 @@ export const ProductStore = signalStore(
       ),
     ),
 
-    updateStock: rxMethod<{ id: number; stock: number; product_id: number }>(
+    /** Overwrites one grade's stock (`id` is the stocks row id). */
+    updateStock: rxMethod<{ id: number; stock: number }>(
       pipe(
         tap(() => patchState(store, setBusy())),
-        switchMap(({ id, stock, product_id }) =>
+        mergeMap(({ id, stock }) =>
           store._stockService.updateStockObs(id, stock).pipe(
             tapResponse({
               next: () => {
                 patchState(
                   store,
-                  updateEntity({ id: product_id, changes: { stock } }, stockConfig),
+                  updateEntity({ id, changes: { stock } }, stockConfig),
                 );
                 store._notify.success('SNACKBAR.STOCK.SUCCESS.UPDATE');
               },
@@ -253,17 +262,6 @@ export const ProductStore = signalStore(
         ),
       ),
     ),
-
-    addStockAndReturn(stock: Partial<Stock>): Observable<Stock> {
-      return store._stockService.addStockObs(stock).pipe(
-        tap({
-          next: (newStock) => {
-            patchState(store, addEntity(newStock, stockConfig));
-          },
-          error: (error) => console.error(error),
-        }),
-      );
-    },
   })),
   withHooks((store) => ({
     onInit: () => {

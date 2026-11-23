@@ -26,3 +26,4 @@ Pure utility functions and helper services:
 - `notification.service.ts` — wraps `MatSnackBar` for app-wide toast notifications
 - `order-pdf-generator.util.ts` — builds jsPDF documents from order data (used by the orders feature)
 - `product.util.ts` — price calculation helpers for M2/M3/BUC/BUNDLE unit conversions
+- `stock.util.ts` — graded stock rules (pure, Vitest-covered): `stockCategoryFor()` (T → A, > 7 m → AB, M2 untracked; mirrors SQL `stock_category_for`), `stockCategoriesOf()`, `availableStock()`, `groupStocksByProduct()`, `validateSorting()`, `shipmentTotalM3()`

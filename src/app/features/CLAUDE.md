@@ -18,6 +18,6 @@ features/<name>/
 | `admin/` | User approval, product/price admin | `/settings`, `/deleted` |
 | `auth/` | Login, signup, password reset, account | `/auth`, `/reset-password`, `/user`, `/wait-to-approve` |
 | `clients/` | Client CRUD, history | `/clients` |
-| `coming-wares/` | Incoming stock tracking | `/coming-wares`, `/coming-wares/:id/:verified` |
+| `shipments/` | Truck intake into AB stock, sorting progress | `/shipments`, `/shipments/:id` |
 | `orders/` | Order listing, offer creation workflow, PDF | `/offer/*`, `/orders`, `/offers`, `/deleted` |
 | `products/` | Product catalog, stock, pricing | `/products` |

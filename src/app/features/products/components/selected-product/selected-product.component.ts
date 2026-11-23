@@ -28,6 +28,7 @@ import { CommonModule } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { applyBDiscount, ProductUtil } from '@shared/utils/product.util';
 import { ProductStore } from '@features/products/store/product.store';
+import { availableStock, stockCategoryFor } from '@shared/utils/stock.util';
 
 @Component({
   selector: 'app-selected-product',
@@ -66,6 +67,7 @@ export class SelectedProductComponent implements OnChanges {
   private hasFocused = false;
 
   currentStock: Stock | null = null;
+  readonly available = availableStock;
 
   ngOnChanges(): void {
     this.selectedCategory = Category.A;
@@ -114,10 +116,17 @@ export class SelectedProductComponent implements OnChanges {
     });
   }
 
-  private checkStock(product: Product): void {
-    this.currentStock = this.productStore.stocksEntityMap()[product.id] ?? null;
+  /** The stock row the selected category books from (T → A, longer than 7 m → AB). */
+  private gradeStock(product: Product): Stock | null {
+    const grade = stockCategoryFor(product, this.selectedCategory);
+    if (grade === null) return null;
+    return this.productStore.stocksByProduct()[product.id]?.[grade] ?? null;
+  }
 
-    if (this.currentStock && this.currentStock.stock <= 0) {
+  private checkStock(product: Product): void {
+    this.currentStock = this.gradeStock(product);
+
+    if (this.currentStock && availableStock(this.currentStock) <= 0) {
       this.translateService
         .get(['SNACKBAR.PRODUCT.OUT_OF_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
         .subscribe((translations) => {
@@ -192,10 +201,14 @@ export class SelectedProductComponent implements OnChanges {
     );
 
     this.calculatePrice();
+    if (this.selectedProduct) {
+      this.currentStock = this.gradeStock(this.selectedProduct);
+    }
   }
 
+  /** Warns only: an order may book more than is available (SPEC §12). */
   verifyStock(): void {
-    if (+this.quantity > this.currentStock!.stock) {
+    if (this.currentStock && +this.quantity > availableStock(this.currentStock)) {
       this.translateService
         .get(['SNACKBAR.PRODUCT.OUT_OF_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
         .subscribe((translations) => {

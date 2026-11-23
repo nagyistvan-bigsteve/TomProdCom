@@ -1,14 +1,13 @@
 ﻿import { ElementRef, Injectable } from '@angular/core';
-import { Products, ProductWithStock } from '@core/models/models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FilterUtil {
-  productFilter(
+  productFilter<T extends { name: string }>(
     input: ElementRef<HTMLInputElement> | string | null,
-    products: Products | ProductWithStock[],
-  ): Products | ProductWithStock[] {
+    products: T[],
+  ): T[] {
     if (!input) return products;
 
     let rawValue =

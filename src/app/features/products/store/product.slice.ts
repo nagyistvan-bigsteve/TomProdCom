@@ -25,5 +25,5 @@ export const priceConfig = entityConfig({
 export const stockConfig = entityConfig({
   entity: type<Stock>(),
   collection: 'stocks',
-  selectId: (stock) => stock.product_id,
+  selectId: (stock) => stock.id,
 });

@@ -16,26 +16,20 @@ export type Product = {
   piece_per_pack: number;
 };
 
+/** One grade's stock of a product (A, AB or B; T is kept in A). */
 export type Stock = {
   id: number;
   product_id: number;
+  category_id: StockCategory;
   stock: number;
   booked_stock: number;
 };
 
-export type ProductWithStock = {
-  id: number;
-  name: string;
-  unit_id: Unit_id;
-  size_id: Size_id;
-  thickness: number;
-  width: number;
-  length: number;
-  m2_util: number;
-  m2_brut: number;
-  piece_per_pack: number;
-  stock: Stock;
-};
+/** The grades that hold stock. */
+export type StockCategory = Category.A | Category.AB | Category.B;
+
+/** A product's stock rows by grade; a grade the product has no row for is missing. */
+export type GradedStock = Partial<Record<StockCategory, Stock>>;
 
 export type ProductItems = ProductItem[];
 
@@ -180,38 +174,39 @@ export type PriceResponse2 = {
   product: { id: number; name: string };
 };
 
-export type ComingWares = {
+export type ShipmentStatus = 'draft' | 'validated';
+
+/** A truck delivery. Its lines enter AB stock when it is validated. */
+export type Shipment = {
   id: number;
-  expected_delivery: Date;
+  arrived_on: string;
   name: string;
-  total_quantity: number;
-  all_for_order: boolean;
   comment: string;
-  verified: boolean;
+  status: ShipmentStatus;
+  created_at: string;
+  validated_at: string | null;
 };
 
-export type ComingWaresItems = ComingWaresItem[];
-
-export type ComingWaresItem = {
+/** One line of a truck delivery, in pieces; always AB. */
+export type ShipmentItem = {
   id?: number;
-  order_id: number;
+  shipment_id?: number;
   product_id: number;
-  category: Category;
   quantity: number;
-  for_order: boolean;
-  is_correct?: boolean | null;
-  comment: string;
 };
 
-export type ComingWaresItemResponse = {
+export type ShipmentWithItems = Shipment & { shipment_items: ShipmentItem[] };
+
+/** AB pieces sorted into A, B and waste at the sorting ramp. */
+export type StockSorting = {
   id: number;
-  order_id: number;
-  product: { id: number; name: string; unit_id: Unit_id };
-  category: { name: string };
-  quantity: number;
-  for_order: boolean;
-  is_correct?: boolean | null;
+  product_id: number;
+  shipment_id: number | null;
+  qty_a: number;
+  qty_b: number;
+  qty_waste: number;
   comment: string;
+  created_at: string;
 };
 
 export type UsedPricesInOrder = {

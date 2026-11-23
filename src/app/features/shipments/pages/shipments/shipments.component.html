@@ -1,0 +1,52 @@
+<div class="page-header">
+  <span class="header-title">{{ "SHIPMENTS.TITLE" | translate }}</span>
+</div>
+
+<div class="page-content">
+  <button mat-flat-button class="new-btn" (click)="open('new')">
+    <mat-icon>local_shipping</mat-icon>
+    {{ "SHIPMENTS.NEW" | translate }}
+  </button>
+
+  <mat-button-toggle-group
+    class="status-toggle w-100"
+    [value]="store.status()"
+    (change)="setStatus($event.value)"
+    hideSingleSelectionIndicator
+  >
+    <mat-button-toggle value="draft">{{ "SHIPMENTS.STATUS.draft" | translate }}</mat-button-toggle>
+    <mat-button-toggle value="validated">{{ "SHIPMENTS.STATUS.validated" | translate }}</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  @if (store.isBusy() && !cards().length) {
+    <div class="loading-state"><mat-spinner diameter="40" /></div>
+  } @else {
+    <div class="shipment-list">
+      @for (card of cards(); track card.shipment.id) {
+        <button type="button" class="shipment-card" (click)="open(card.shipment.id)">
+          <div class="card-row">
+            <span class="mat-title-medium">{{ card.shipment.name }}</span>
+            <span class="mat-body-medium secondary">{{ card.shipment.arrived_on | date: "yyyy.MM.dd" }}</span>
+          </div>
+          <div class="card-row mat-body-medium">
+            <span>
+              {{ card.lines }} {{ "SHIPMENTS.LINES" | translate }} · {{ card.pieces }}
+              {{ "SHIPMENTS.PIECES" | translate }}
+            </span>
+            <span>{{ card.m3 | number: "1.0-2" }} {{ "WORDS.M3" | translate }}</span>
+          </div>
+          @if (card.shipment.status === "validated") {
+            <div class="progress" [attr.aria-label]="'SHIPMENTS.SORTED' | translate">
+              <div class="progress-bar" [style.width.%]="card.sortedPercent"></div>
+            </div>
+            <span class="mat-body-small secondary">
+              {{ "SHIPMENTS.SORTED" | translate }}: {{ card.sortedPercent }}%
+            </span>
+          }
+        </button>
+      } @empty {
+        <p class="mat-body-medium secondary">{{ "SHIPMENTS.EMPTY" | translate }}</p>
+      }
+    </div>
+  }
+</div>

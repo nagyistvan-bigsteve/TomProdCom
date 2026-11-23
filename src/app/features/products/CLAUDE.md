@@ -28,6 +28,10 @@ The running list of products added to the current offer cart.
 - The root div's `h-100` and `justify-content-evenly` classes are **only applied when `!isInOverview`** (i.e., in the create-offer cart panel). In overview mode these are omitted to prevent the single-child accordion from being vertically centred inside the element, which would create an empty gap above the product list.
 - The `.limited-height` class (`max-height: 42.5vh; overflow: auto`) is applied to the accordion when `isInOverview` is true. On desktop (`≥ 960px`) this constraint is lifted via a breakpoint override so the product list expands naturally in its grid column.
 
+### `sorting-dialog/` — AB → A / B / waste
+
+Opened from the products page and from a validated truck (`data: { product, shipmentId? }`). Shows the current AB stock, fields for A, B and waste, "rest to A", and the AB that remains. Validation is `validateSorting()` (same checks as the `record_sorting` RPC). Saves through `SortingsService`, reloads stock, closes with `true`.
+
 ### `overwrite-dialog/` — cart duplicate confirmation
 
 Opened by `create-offer-page` when the user adds a product+category combination that already exists in the cart.
@@ -56,28 +60,38 @@ Inventory tool (not just a catalogue). Stock information is prominent. Admins ca
 
 Product cards use `background: rgba(0,0,0,0.15)` with `border-radius: 8px`. Hovering darkens to `rgba(0,0,0,0.25)`. Active edit state uses `rgba(0,0,0,0.3)` with a brighter border.
 
-**Inline stock edit:** clicking the edit icon on a card reveals a `mat-form-field` + `mat-mini-fab` save button via `@enterAndLeaveAnimation`. The edit field uses the same dark-background `::ng-deep` MDC overrides as the search field (see root CLAUDE.md).
+**Card = grade table:** one row per stock grade the product has (A, B, AB; products longer than 7 m only AB; M2 products are not listed) with total, available and m³ (M3 / bundle products), plus a Σ row. Cards are built in `ProductsComponent.cards()` (`ProductStockCard`).
 
-**Stock colors:** `rgb(141, 216, 27)` (total stock) / `rgb(251, 255, 17)` (available = total − booked). M3 products additionally show the cubic-metre equivalent below the piece count.
+**Filter chips:** all · to sort (gradable product with AB > 0) · shortage (any negative available). Sorting by total stock toggles asc/desc.
+
+**Inline stock edit:** the edit icon reveals one field per grade + a `mat-mini-fab` save button via `@enterAndLeaveAnimation`; only changed grades are saved. The fields use the same dark-background overrides as the search field.
+
+**Sorting:** the "Sort" button (gradable product with AB stock) opens `SortingDialogComponent`.
+
+**Stock colors:** `rgb(141, 216, 27)` (total stock) / `rgb(251, 255, 17)` (available = total − booked) / `rgb(255, 120, 120)` (negative available: more ordered than held — allowed, shown as a warning).
+
+The page calls `fetchStocks()` when it opens, because there is no realtime subscription.
 
 ## services/
 
 - `products.service.ts` — Supabase queries for the `products` table.
 - `prices.service.ts` — Supabase queries for the **`prices_new`** table (not `prices`). The price matrix is keyed by `unit_id + size_id + category_id`, or by `product_id + unit_id + category_id` for product-specific overrides. There is no PF/PJ column in this table.
-- `stocks.service.ts` — Supabase queries for the `stocks` table. There is **no real-time subscription**: stock is loaded when a user signs in (and after a shipment is verified), so changes made on another device appear after a reload or the next sign-in.
+- `stocks.service.ts` — Supabase queries for the `stocks` table (one row per product and grade A / B / AB; rows are created by the `products_stock_rows` database trigger, never by the app). There is **no real-time subscription**: stock is loaded when a user signs in, when the products page opens, and after a truck validation or sorting.
+- `sortings.service.ts` — `record_sorting` / `delete_sorting` RPCs (AB → A / B / waste, and undo) and the sortings of a shipment.
 
 ## store/
 
 NgRX Signals entity store. Loaded once on app start; shared by offer workflow, admin settings, and order-details.
 
-- `product.store.ts` — main store; merges `products`, `prices_new`, and `stocks` data into `ProductWithStock` entities; coming-wares calls `fetchStocks()` after a shipment is verified (the stock increment itself happens in the database)
+- `product.store.ts` — main store with `products`, `prices_new` and `stocks` collections. Stocks are keyed by **stocks row id**; use `stocksByProduct()[productId][Category.A | AB | B]` to read a product's grades. `updateStock({ id, stock })` overwrites one grade. The fetch methods sit in the first `withMethods` block so later methods can call `fetchStocks()`.
 - `product.slice.ts` — state shape
 - `product.computed.ts` — derived signals including filtered product lists and category-level price totals
 
 ## Key domain types
 
 - `Unit_id`: `BUC` (1, pieces) | `M2` (2, square metres) | `M3` (3, cubic metres) | `BUNDLE` (4, bundles — spelled `BOUNDLE` in the enum)
-- `Category`: `A` (1, premium) | `AB` (2, standard) | `B` (3, board/secondary) | `T` (4, treated/impregnated)
+- `Category`: `A` (1, premium) | `AB` (2, unsorted A+B) | `B` (3, board/secondary) | `T` (4, terrace — priced as T, stock taken from A)
+- Stock grades: `StockCategory` = A | AB | B. Which grade an item uses: `stockCategoryFor()` in `@shared/utils/stock.util` (SPEC.md §6.5).
 - `Size_id`: `NORMAL` (0) | `EXTRA` (1) | `EXTRA2` (2) | `UNDEFINED` (3)
 
 Price calculation depends on unit type. See `@shared/utils/product.util` and SPEC.md §10 for the complete formulas, M2 quantity modes, and TVA adjustment rules.

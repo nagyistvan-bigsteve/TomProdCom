@@ -1,0 +1,106 @@
+import { Category, Unit_id } from '@core/models/enums';
+import {
+  GradedStock,
+  Product,
+  ShipmentItem,
+  Stock,
+  StockCategory,
+} from '@core/models/models';
+import { ProductUtil } from './product.util';
+
+/** Products longer than this (cm) have no A/B split: only AB stock. */
+export const MAX_GRADED_LENGTH_CM = 700;
+
+/** Grades in display order. */
+export const STOCK_CATEGORIES: readonly StockCategory[] = [
+  Category.A,
+  Category.B,
+  Category.AB,
+];
+
+type GradeRuleProduct = Pick<Product, 'unit_id' | 'length'>;
+
+/** Stock of the product is tracked per grade (not M2, at most 7 m). */
+export function isGradable(product: GradeRuleProduct): boolean {
+  return (
+    product.unit_id !== Unit_id.M2 &&
+    (product.length ?? 0) <= MAX_GRADED_LENGTH_CM
+  );
+}
+
+/**
+ * The grade an item sold at `category` is booked and deducted from, or `null`
+ * when the product's stock is not tracked (M2). Mirrors the SQL function
+ * `public.stock_category_for` in supabase/migrations/*_graded_stock.sql:
+ * longer than 7 m → AB, T (terrace) → A, otherwise the category itself.
+ */
+export function stockCategoryFor(
+  product: GradeRuleProduct,
+  category: Category,
+): StockCategory | null {
+  if (product.unit_id === Unit_id.M2) return null;
+  if ((product.length ?? 0) > MAX_GRADED_LENGTH_CM) return Category.AB;
+  if (category === Category.T) return Category.A;
+  if (category === Category.A || category === Category.B) return category;
+  return Category.AB;
+}
+
+/** The grades a product holds stock in, in display order. */
+export function stockCategoriesOf(product: GradeRuleProduct): StockCategory[] {
+  if (product.unit_id === Unit_id.M2) return [];
+  return isGradable(product) ? [...STOCK_CATEGORIES] : [Category.AB];
+}
+
+/** Pieces not booked by open orders; negative when more is ordered than held. */
+export function availableStock(stock: Pick<Stock, 'stock' | 'booked_stock'> | undefined): number {
+  return stock ? stock.stock - stock.booked_stock : 0;
+}
+
+/** Groups stock rows by product and grade. */
+export function groupStocksByProduct(stocks: Stock[]): Record<number, GradedStock> {
+  const result: Record<number, GradedStock> = {};
+  for (const stock of stocks) {
+    (result[stock.product_id] ??= {})[stock.category_id] = stock;
+  }
+  return result;
+}
+
+/** Sum of all grades of a product. */
+export function totalStock(graded: GradedStock | undefined): number {
+  if (!graded) return 0;
+  return STOCK_CATEGORIES.reduce((sum, c) => sum + (graded[c]?.stock ?? 0), 0);
+}
+
+export type SortingInput = { a: number; b: number; waste: number };
+
+export type SortingError = 'EMPTY' | 'NEGATIVE' | 'NOT_WHOLE' | 'MORE_THAN_AB';
+
+/** Pieces a sorting takes out of AB. */
+export function sortingTotal(input: SortingInput): number {
+  return (input.a || 0) + (input.b || 0) + (input.waste || 0);
+}
+
+/** Why a sorting cannot be saved, or `null` when it can. Same checks as `record_sorting`. */
+export function validateSorting(abStock: number, input: SortingInput): SortingError | null {
+  const values = [input.a || 0, input.b || 0, input.waste || 0];
+  if (values.some((v) => v < 0)) return 'NEGATIVE';
+  if (values.some((v) => !Number.isInteger(v))) return 'NOT_WHOLE';
+  const total = sortingTotal(input);
+  if (total <= 0) return 'EMPTY';
+  if (total > abStock) return 'MORE_THAN_AB';
+  return null;
+}
+
+const productUtil = new ProductUtil();
+
+/** Total volume of shipment lines; lines of unknown or non-M3-measurable products count 0. */
+export function shipmentTotalM3(
+  items: Pick<ShipmentItem, 'product_id' | 'quantity'>[],
+  products: Record<number, Product | undefined>,
+): number {
+  return items.reduce((sum, item) => {
+    const product = products[item.product_id];
+    if (!product || !product.width || !product.thickness || !product.length) return sum;
+    return sum + productUtil.calculateM3Quantity(product, item.quantity || 0);
+  }, 0);
+}
