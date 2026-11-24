@@ -26,6 +26,9 @@ import {
   countsWholePieces,
   hasVolume,
   isGradable,
+  m3InputAllowed,
+  parseM3,
+  piecesFromM3,
   stockCategoriesOf,
   totalStock,
 } from '@shared/utils/stock.util';
@@ -91,6 +94,11 @@ export class ProductsComponent {
    */
   private editBaseline: Record<number, number> = {};
   readonly saving = signal(false);
+  /**
+   * The edit fields take m³ (`m3InputAllowed` products only). The typed m³
+   * is turned into the nearest whole pieces right away; stock stays in pieces.
+   */
+  readonly editInM3 = signal(false);
   /** Stock rows whose typed value was refused on save; shown under the field. */
   readonly invalidStockIds = signal<number[]>([]);
   searchValue = signal('');
@@ -144,6 +152,7 @@ export class ProductsComponent {
     }
     this.draft.set({});
     this.invalidStockIds.set([]);
+    this.editInM3.set(false);
     this.editBaseline = Object.fromEntries(card.grades.map((g) => [g.stock.id, g.stock.stock]));
     this.editingId.set(card.id);
   }
@@ -152,18 +161,41 @@ export class ProductsComponent {
     return countsWholePieces(card.product);
   }
 
+  canTypeM3(card: ProductStockCard): boolean {
+    return m3InputAllowed(card.product);
+  }
+
+  /** Switches the edit fields between pieces and m³; typed values are dropped. */
+  toggleM3(): void {
+    this.editInM3.update((v) => !v);
+    this.draft.set({});
+    this.invalidStockIds.set([]);
+  }
+
+  /** Value shown in an edit field: the stock, in m³ when typing in m³. */
+  editValue(row: GradeRow): number {
+    return this.editInM3() && row.m3 !== null ? +row.m3.toFixed(3) : row.stock.stock;
+  }
+
   /** Reloads products and stock after a failed load. */
   retry(): void {
     this.productStore.fetchProducts();
     this.productStore.fetchStocks();
   }
 
-  /** An emptied field is not a 0: it leaves that grade unchanged. */
-  setDraft(stockId: number, value: string): void {
+  /**
+   * An emptied field is not a 0: it leaves that grade unchanged. In m³ the
+   * draft holds the pieces the m³ converts to (`m3DraftPieces`).
+   */
+  setDraft(card: ProductStockCard, stockId: number, value: string): void {
     this.invalidStockIds.update((ids) => ids.filter((id) => id !== stockId));
+    const pieces =
+      this.editInM3() && this.canTypeM3(card)
+        ? m3DraftPieces(card.product, value)
+        : Number(value);
     this.draft.update((d) => {
       const { [stockId]: _, ...rest } = d;
-      return value.trim() === '' ? rest : { ...rest, [stockId]: Number(value) };
+      return value.trim() === '' ? rest : { ...rest, [stockId]: pieces };
     });
   }
 
@@ -247,10 +279,16 @@ function isToSort(card: ProductStockCard): boolean {
 }
 
 /**
- * The grades whose typed value differs from the stock, with the value the
- * edit started from (`baseline`, falling back to the current stock). Empty,
- * negative or non-numeric values leave a grade unchanged.
+ * Pieces to save for an m³ typed in the stock edit: the nearest whole pieces.
+ * NaN (refused on save) when it is not a number, or when a positive m³ rounds
+ * to 0 pieces: that would wipe the grade's stock although something was meant.
  */
+export function m3DraftPieces(product: Product, text: string): number {
+  const m3 = parseM3(text);
+  const pieces = piecesFromM3(product, m3);
+  return m3 > 0 && pieces === 0 ? NaN : pieces;
+}
+
 /**
  * Stock rows whose typed value cannot be saved: not a number, below 0, or a
  * fraction for a product counted in whole pieces (`countsWholePieces`).
@@ -271,6 +309,11 @@ export function invalidStockDrafts(
     .map(({ id }) => id);
 }
 
+/**
+ * The grades whose typed value differs from the stock, with the value the
+ * edit started from (`baseline`, falling back to the current stock). Empty,
+ * negative or non-numeric values leave a grade unchanged.
+ */
 export function stockChanges(
   grades: Pick<GradeRow, 'stock'>[],
   draft: Record<number, number>,

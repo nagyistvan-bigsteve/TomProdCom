@@ -541,7 +541,9 @@
     "LOAD_FAILED": "Produsele sau stocul nu au putut fi încărcate.",
     "NO_PRODUCTS": "Încă nu există produse.",
     "INVALID": "Valoarea trebuie să fie 0 sau mai mare. Nimic nu a fost salvat.",
-    "INVALID_WHOLE": "Număr întreg de bucăți, 0 sau mai mare. Nimic nu a fost salvat."
+    "INVALID_WHOLE": "Număr întreg de bucăți, 0 sau mai mare. Nimic nu a fost salvat.",
+    "SWITCH_UNIT": "Schimbă unitatea: bucăți sau m³",
+    "INVALID_M3": "m³ de cel puțin o bucată, sau 0. Nimic nu a fost salvat."
   },
   "SORTING": {
     "TITLE": "Sortare (AB → A / B)",
@@ -590,6 +592,7 @@
     "CHANGE_PRODUCT": "Schimbă produsul",
     "REMOVE_LINE": "Șterge poziția",
     "QTY_INVALID": "Număr întreg pozitiv",
+    "QTY_INVALID_M3": "Cel puțin o bucată",
     "VALIDATE": "Validare",
     "VALIDATE_CONFIRM": "După validare bucățile intră în stocul AB, iar camionul nu mai poate fi modificat. Continui?",
     "DELETE": "Șterge camionul",

@@ -204,6 +204,13 @@ body {
   --mat-button-outlined-container-height: 44px;
 }
 
+// compact mat-button as matSuffix of an .on-dark-field (e.g. the pcs / m³ switch)
+.on-dark-unit-btn {
+  min-width: 0;
+  padding: 0 var(--space-2);
+  --mat-button-text-label-text-color: white;
+}
+
 // mat-form-field appearance="outline" on the dark page
 .on-dark-field {
   --mat-form-field-outlined-label-text-color: rgba(255, 255, 255, 0.65);

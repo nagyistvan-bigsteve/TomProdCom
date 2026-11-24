@@ -92,8 +92,8 @@ describe('ProductsComponent', () => {
   it('saves only the grades that changed, with the value the edit started from', async () => {
     const card = component.cards()[0];
     component.toggleEdit(card);
-    component.setDraft(12, '7');
-    component.setDraft(13, '49');
+    component.setDraft(card, 12, '7');
+    component.setDraft(card, 13, '49');
     await component.saveEdit(card);
 
     expect(setStocks).toHaveBeenCalledTimes(1);
@@ -104,8 +104,8 @@ describe('ProductsComponent', () => {
   it('does not write 0 for an emptied field', async () => {
     const card = component.cards()[0];
     component.toggleEdit(card);
-    component.setDraft(12, '7');
-    component.setDraft(12, '');
+    component.setDraft(card, 12, '7');
+    component.setDraft(card, 12, '');
     await component.saveEdit(card);
 
     expect(setStocks).not.toHaveBeenCalled();
@@ -116,7 +116,7 @@ describe('ProductsComponent', () => {
     setStocks.mockResolvedValue('conflict');
     const card = component.cards()[0];
     component.toggleEdit(card);
-    component.setDraft(12, '7');
+    component.setDraft(card, 12, '7');
     await component.saveEdit(card);
 
     expect(component.editingId()).toBe(card.id);
@@ -126,8 +126,8 @@ describe('ProductsComponent', () => {
   it('keeps the edit open and shows a message for a negative or fractional value', async () => {
     const card = component.cards()[0];
     component.toggleEdit(card);
-    component.setDraft(11, '-3');
-    component.setDraft(12, '2.5');
+    component.setDraft(card, 11, '-3');
+    component.setDraft(card, 12, '2.5');
     await component.saveEdit(card);
     fixture.detectChanges();
 
@@ -136,8 +136,79 @@ describe('ProductsComponent', () => {
     expect(component.invalidStockIds()).toEqual([11, 12]);
     expect(fixture.nativeElement.querySelector('.invalid-hint')).not.toBeNull();
 
-    component.setDraft(11, '5');
+    component.setDraft(card, 11, '5');
     expect(component.invalidStockIds()).toEqual([12]);
+  });
+
+  it('takes m³ and saves the nearest whole pieces', async () => {
+    // 7.5×15×400 = 0.045 m³ a piece
+    const card = component.cards()[0];
+    component.toggleEdit(card);
+    component.toggleM3();
+    expect(component.editValue(card.grades[1])).toBe(0.405); // B: 9 pieces
+    component.setDraft(card, 12, '1'); // 22.2 pieces
+    await component.saveEdit(card);
+
+    expect(setStocks).toHaveBeenCalledWith([{ id: 12, expected: 9, stock: 22 }]);
+  });
+
+  it('drops typed values when switching the unit, and starts a new edit in pieces', () => {
+    const card = component.cards()[0];
+    component.toggleEdit(card);
+    component.setDraft(card, 12, '7');
+    component.toggleM3();
+    expect(component.draft()).toEqual({});
+
+    component.toggleEdit(card); // close
+    component.toggleEdit(card); // open again
+    expect(component.editInM3()).toBe(false);
+  });
+
+  it('refuses a negative m³ without sending anything', async () => {
+    const card = component.cards()[0];
+    component.toggleEdit(card);
+    component.toggleM3();
+    component.setDraft(card, 12, '-1');
+    await component.saveEdit(card);
+
+    expect(setStocks).not.toHaveBeenCalled();
+    expect(component.invalidStockIds()).toEqual([12]);
+  });
+
+  it('accepts a decimal comma and refuses m³ that rounds to 0 pieces instead of wiping the stock', async () => {
+    const card = component.cards()[0];
+    component.toggleEdit(card);
+    component.toggleM3();
+    component.setDraft(card, 11, '0,9'); // A: 20 pieces
+    component.setDraft(card, 12, '0.02'); // B: 0.44 piece
+    await component.saveEdit(card);
+
+    expect(setStocks).not.toHaveBeenCalled();
+    expect(component.invalidStockIds()).toEqual([12]);
+
+    component.setDraft(card, 12, '0'); // a real 0 is fine
+    await component.saveEdit(card);
+    expect(setStocks).toHaveBeenCalledWith([
+      { id: 11, expected: 40, stock: 20 },
+      { id: 12, expected: 9, stock: 0 },
+    ]);
+  });
+
+  it('rebuilds the fields after switching, so no typed text stays behind', () => {
+    const card = component.cards()[1]; // 7.5×15×800, AB only: 10 pieces = 0.9 m³
+    component.toggleEdit(card);
+    fixture.detectChanges();
+    const input = () => fixture.nativeElement.querySelector('.stock-edit-field input') as HTMLInputElement;
+    input().value = '7';
+    component.toggleM3();
+    fixture.detectChanges();
+    expect(input().value).toBe('0.9');
+  });
+
+  it('offers the unit switch only for products counted in pieces with dimensions', () => {
+    const card = component.cards()[0];
+    expect(component.canTypeM3(card)).toBe(true);
+    expect(component.canTypeM3({ ...card, product: { ...card.product, unit_id: Unit_id.BUC } })).toBe(false);
   });
 });
 

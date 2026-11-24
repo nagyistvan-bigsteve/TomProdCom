@@ -25,7 +25,14 @@ import { ConfirmDeleteDialogComponent } from '@shared/components/dialogs/confirm
 import { ConfirmRestoreDialogComponent } from '@shared/components/dialogs/confirm-restore-dialog.component';
 import { FilterUtil } from '@shared/utils/filter.util';
 import { NotificationService } from '@shared/utils/notification.service';
-import { isGradable, shipmentTotalM3 } from '@shared/utils/stock.util';
+import { pieceVolumeM3 } from '@shared/utils/product.util';
+import {
+  isGradable,
+  m3InputAllowed,
+  parseM3,
+  piecesFromM3,
+  shipmentTotalM3,
+} from '@shared/utils/stock.util';
 import { ProductStore } from '@features/products/store/product.store';
 import {
   SortingDialogComponent,
@@ -133,6 +140,12 @@ export class ShipmentDetailComponent {
   readonly comment = signal('');
   readonly lines = signal<DraftLine[]>(withTrailingEmptyLine([], this.nextKey));
   readonly query = signal<{ key: number; text: string } | null>(null);
+  /**
+   * Lines typed in m³, by line key, with the text as typed. The line itself
+   * keeps the pieces it converts to (`piecesFromM3`), so saving, the
+   * fingerprint and the backup only ever see pieces.
+   */
+  readonly m3Text = signal<Record<number, string>>({});
 
   private readonly gradeableProducts = computed(() =>
     this.productStore.productsEntities().filter((p) => p.unit_id !== Unit_id.M2),
@@ -273,6 +286,7 @@ export class ShipmentDetailComponent {
     this.arrivedOn.set(header.arrivedOn);
     this.name.set(header.name);
     this.comment.set(header.comment);
+    this.m3Text.set({});
     this.lines.set(
       withTrailingEmptyLine(
         items.map((i) => ({
@@ -329,6 +343,7 @@ export class ShipmentDetailComponent {
   }
 
   clearProduct(key: number): void {
+    this.dropM3(key);
     this.updateLine(key, { product: null });
   }
 
@@ -336,7 +351,51 @@ export class ShipmentDetailComponent {
     this.updateLine(key, { quantity: Number(value) });
   }
 
+  /** The line's product can be typed in m³ (M3 / bundle counted in pieces). */
+  canTypeM3(line: DraftLine): boolean {
+    return !!line.product && m3InputAllowed(line.product);
+  }
+
+  isM3(line: DraftLine): boolean {
+    return line.key in this.m3Text();
+  }
+
+  /**
+   * Switches the line between pieces and m³. m³ starts from the current
+   * pieces when they are valid, otherwise empty (and 0 pieces), so the text
+   * and the pieces always agree.
+   */
+  toggleM3(line: DraftLine): void {
+    if (this.isM3(line)) {
+      this.dropM3(line.key);
+      return;
+    }
+    const valid = line.quantity > 0 && Number.isInteger(line.quantity);
+    const text = valid ? String(+this.lineM3(line).toFixed(3)) : '';
+    if (!valid) this.updateLine(line.key, { quantity: 0 });
+    this.m3Text.update((t) => ({ ...t, [line.key]: text }));
+  }
+
+  /** m³ typed: the line gets the nearest whole number of pieces; empty = 0. */
+  setM3(key: number, value: string): void {
+    this.m3Text.update((t) => ({ ...t, [key]: value }));
+    const product = this.lineOf(key)?.product;
+    if (!product) return;
+    const quantity = value.trim() === '' ? 0 : piecesFromM3(product, parseM3(value));
+    this.updateLine(key, { quantity });
+  }
+
+  /** Volume of the line's pieces, as saved. */
+  lineM3(line: DraftLine): number {
+    return line.product ? pieceVolumeM3(line.product) * (line.quantity || 0) : 0;
+  }
+
+  private dropM3(key: number): void {
+    this.m3Text.update(({ [key]: _, ...rest }) => rest);
+  }
+
   removeLine(key: number): void {
+    this.dropM3(key);
     this.lines.update((lines) =>
       withTrailingEmptyLine(lines.filter((l) => l.key !== key), this.nextKey),
     );

@@ -9,6 +9,7 @@ Any approved user registers, validates and deletes trucks and records sortings. 
 1. **`/shipments/new` → draft.**
    - Fields: date, truck / supplier name, comment, and lines (product + pieces). M2 products are not offered.
    - The page shows the total pieces and m³ (`shipmentTotalM3`: M3 and bundle products only).
+   - A line of an `m3InputAllowed()` product can be typed in m³ (suffix button `.on-dark-unit-btn`). `m3Text` keeps the typed text per line key; `line.quantity` always holds the converted pieces (`piecesFromM3`), so save, fingerprint and backup see pieces only. After a reload the line is back in pieces.
    - Under the form, `missingForSave()` says what still stops a save. The buttons are disabled with a reason, never silently.
 2. **Save** → `save_shipment` RPC. It creates or replaces the draft and its lines, and lines of the same product are summed.
    - The header sends the draft's `updated_at`. If someone else saved meanwhile, the RPC raises `SA007`, the store reloads the draft and the central toast says so.

@@ -7,6 +7,9 @@ import {
   groupStocksByProduct,
   hasVolume,
   isGradable,
+  m3InputAllowed,
+  parseM3,
+  piecesFromM3,
   shipmentTotalM3,
   sortingLimit,
   sortingTotal,
@@ -240,5 +243,70 @@ describe('bookedAbShortfall', () => {
   it('is 0 without an AB row or for an empty sorting', () => {
     expect(bookedAbShortfall(undefined, 5)).toBe(0);
     expect(bookedAbShortfall(ab(10, 5), 0)).toBe(0);
+  });
+});
+
+describe('m3InputAllowed', () => {
+  it('allows M3 boards with a width and bundles with all dimensions', () => {
+    expect(m3InputAllowed(makeProduct())).toBe(true);
+    expect(m3InputAllowed(makeProduct({ unit_id: Unit_id.BOUNDLE }))).toBe(true);
+  });
+
+  it('refuses products not counted in pieces or without volume', () => {
+    // M3 without width: stock is already in m³
+    expect(m3InputAllowed(makeProduct({ width: null as unknown as number }))).toBe(false);
+    expect(m3InputAllowed(makeProduct({ unit_id: Unit_id.BUC }))).toBe(false);
+    expect(m3InputAllowed(makeProduct({ unit_id: Unit_id.M2 }))).toBe(false);
+  });
+
+  it('refuses a product with a missing or zero dimension', () => {
+    expect(m3InputAllowed(makeProduct({ thickness: 0 }))).toBe(false);
+    expect(m3InputAllowed(makeProduct({ length: null as unknown as number }))).toBe(false);
+  });
+});
+
+describe('piecesFromM3', () => {
+  it('rounds to the nearest whole piece', () => {
+    // 7.5×15×400 = 0.045 m³ a piece: 4 m³ = 88.9 pieces
+    expect(piecesFromM3(makeProduct(), 4)).toBe(89);
+    // 1 m³ = 22.2 pieces
+    expect(piecesFromM3(makeProduct(), 1)).toBe(22);
+  });
+
+  it('gives the exact count without float noise', () => {
+    // 2.5×10×400 = 0.01 m³ a piece
+    const board = makeProduct({ thickness: 2.5, width: 10, length: 400 });
+    expect(piecesFromM3(board, 4)).toBe(400);
+    expect(piecesFromM3(board, 0.07)).toBe(7);
+  });
+
+  it('counts bundles of 10 boards', () => {
+    // one bundle of 7.5×15×400 = 0.45 m³
+    expect(piecesFromM3(makeProduct({ unit_id: Unit_id.BOUNDLE }), 4.5)).toBe(10);
+  });
+
+  it('gives 0 for 0 and negative counts for negative m³', () => {
+    expect(piecesFromM3(makeProduct(), 0)).toBe(0);
+    expect(Object.is(piecesFromM3(makeProduct(), -0.01), 0)).toBe(true);
+    expect(piecesFromM3(makeProduct(), -1)).toBe(-22);
+  });
+
+  it('is NaN when the m³ is not a number or the product cannot be typed in m³', () => {
+    expect(piecesFromM3(makeProduct(), NaN)).toBeNaN();
+    expect(piecesFromM3(makeProduct({ unit_id: Unit_id.BUC }), 4)).toBeNaN();
+    expect(piecesFromM3(makeProduct({ width: null as unknown as number }), 4)).toBeNaN();
+  });
+});
+
+describe('parseM3', () => {
+  it('reads a decimal point or comma', () => {
+    expect(parseM3('4.5')).toBe(4.5);
+    expect(parseM3(' 4,5 ')).toBe(4.5);
+    expect(parseM3('4,')).toBe(4);
+  });
+
+  it('is NaN for empty or non-numeric text', () => {
+    expect(parseM3('')).toBeNaN();
+    expect(parseM3('abc')).toBeNaN();
   });
 });

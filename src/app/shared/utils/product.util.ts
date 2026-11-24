@@ -104,6 +104,21 @@ export function calculateActualPrice(
   return applyTvaDiscount(basePrice, price.unit_id, isTva);
 }
 
+/** A bundle holds this many boards of its size (volume = 10 × one board). */
+export const BOARDS_PER_BUNDLE = 10;
+
+/**
+ * Volume of one piece in m³ (`width × thickness × length` in cm / 1,000,000),
+ * of one bundle for bundle products. 0 or NaN when a dimension is missing.
+ */
+export function pieceVolumeM3(
+  product: Pick<Product, 'unit_id' | 'width' | 'thickness' | 'length'>,
+): number {
+  const { unit_id, width, thickness, length } = product;
+  const multiplier = unit_id === Unit_id.BOUNDLE ? BOARDS_PER_BUNDLE : 1;
+  return ((width * thickness * length) / 1_000_000) * multiplier;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -216,12 +231,7 @@ export class ProductUtil {
   }
 
   calculateM3Quantity(product: Product, buc: number): number {
-    const { unit_id, width, thickness, length } = product;
-
-    const volumeM3 = (width * thickness * length) / 1_000_000;
-    const multiplier = unit_id === Unit_id.BOUNDLE ? 10 : 1;
-
-    return buc * volumeM3 * multiplier;
+    return buc * pieceVolumeM3(product);
   }
 
   calculateTotalQuantity(products: ProductItems): number {

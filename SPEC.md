@@ -1331,6 +1331,7 @@ When graded stock was introduced, `booked_stock` was recomputed from the undeliv
 When a truck arrives, nobody knows yet how much of it is A and how much B, but the goods must be in stock immediately. So a truck delivery always enters stock as **AB**.
 
 1. **Draft** (`/shipments/new`): date of arrival, truck / supplier name, comment, and lines (product + pieces; M2 products are not allowed). The page shows the total m³ (M3 and bundle products only, as on the products page) so it can be checked against the delivery papers. A draft can be edited and deleted (`save_shipment`, `delete_shipment`).
+   - A line's quantity can also be typed in **m³** (pcs / m³ switch in the field) for M3 and bundle products counted in pieces whose dimensions are known. The m³ is converted to the nearest whole number of pieces (bundles: one bundle = 10 boards' volume), and the field shows the pieces and the m³ they really are, e.g. 4 m³ of 7.5×15×400 → 89 pcs = 4.005 m³. Only the pieces are saved; m³ that rounds to 0 pieces is refused. Rule: `piecesFromM3()` / `m3InputAllowed()` in `@shared/utils/stock.util`.
    - The page says what still stops a save (name, date, a line, a valid quantity).
    - Leaving a draft with unsaved changes asks first. An unsaved **new** truck is also kept on the device (localStorage) and offered back after a reload, e.g. the forced reload after a deploy.
    - **Two people editing one draft:** each save sends the draft's version (`shipments.updated_at`). If someone else saved it meanwhile, the save is refused (`SA007`) instead of the last writer silently winning. The page asks: load the other version (the user's unsaved edits are dropped), or keep their own edits, in which case the next save replaces the other version. A reload never replaces unsaved edits on its own.
@@ -1373,6 +1374,7 @@ Any approved user can correct a grade's stock by hand (products page pencil, adm
 - Saving several grades shows one message.
 - Products counted in pieces take whole numbers only: BUC, bundles, and M3 products with a width (`SA008` otherwise). M3 products without a width are sold by volume, so their stock is in m³ and may have decimals; M2 stock is in m². Rule: `countsWholePieces()` in `@shared/utils/stock.util`, mirrored in `set_stock`.
 - A value the page cannot save (negative, not a number, a fraction of a piece) keeps the edit open with a message under the fields; nothing is sent.
+- For the same products as on a truck line (M3 / bundle counted in pieces, dimensions known) the edit fields can be switched to **m³**. The typed m³ is converted to the nearest whole pieces (shown under the field) and saved as pieces; switching the unit drops what was typed. A positive m³ that rounds to 0 pieces is refused (it would wipe the grade's stock); typing 0 sets it to 0. In both places a decimal comma is accepted (`parseM3`).
 
 **Unit change to M2.** When a product becomes M2, its A/B stock is merged into AB as for any product that stops being graded, and its bookings are set to 0. M2 is not tracked, so those bookings could never be released.
 

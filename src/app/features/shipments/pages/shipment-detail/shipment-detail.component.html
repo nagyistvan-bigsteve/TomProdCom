@@ -95,19 +95,50 @@
 
           @if (line.product) {
             <mat-form-field appearance="outline" class="on-dark-field qty-field">
-              <mat-label>{{ "SHIPMENTS.PIECES" | translate }}</mat-label>
-              <input
-                matInput
-                type="number"
-                min="1"
-                step="1"
-                inputmode="numeric"
-                [value]="line.quantity"
-                (focus)="selectAll($event)"
-                (input)="setQuantity(line.key, $any($event.target).value)"
-              />
+              <mat-label>{{ (isM3(line) ? "WORDS.M3" : "SHIPMENTS.PIECES") | translate }}</mat-label>
+              @if (isM3(line)) {
+                <!-- text, not number: a half-typed "4," must stay as typed -->
+                <input
+                  matInput
+                  type="text"
+                  inputmode="decimal"
+                  [value]="m3Text()[line.key]"
+                  (focus)="selectAll($event)"
+                  (input)="setM3(line.key, $any($event.target).value)"
+                />
+              } @else {
+                <input
+                  matInput
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  [value]="line.quantity"
+                  (focus)="selectAll($event)"
+                  (input)="setQuantity(line.key, $any($event.target).value)"
+                />
+              }
+              @if (canTypeM3(line)) {
+                <button
+                  matSuffix
+                  mat-button
+                  type="button"
+                  class="on-dark-unit-btn"
+                  (click)="toggleM3(line)"
+                  [attr.aria-label]="'STOCK.SWITCH_UNIT' | translate"
+                >
+                  {{ (isM3(line) ? "SHIPMENTS.PIECES" : "WORDS.M3") | translate }}
+                </button>
+              }
               @if (isLineInvalid(line)) {
-                <mat-hint class="invalid-hint">{{ "SHIPMENTS.QTY_INVALID" | translate }}</mat-hint>
+                <mat-hint class="invalid-hint">
+                  {{ (isM3(line) ? "SHIPMENTS.QTY_INVALID_M3" : "SHIPMENTS.QTY_INVALID") | translate }}
+                </mat-hint>
+              } @else if (isM3(line)) {
+                <mat-hint class="on-dark-secondary">
+                  = {{ line.quantity }} {{ "SHIPMENTS.PIECES" | translate }} ·
+                  {{ lineM3(line) | number: "1.0-3" }} {{ "WORDS.M3" | translate }}
+                </mat-hint>
               }
             </mat-form-field>
             <button
