@@ -6,7 +6,7 @@ import {
   Stock,
   StockCategory,
 } from '@core/models/models';
-import { ProductUtil } from './product.util';
+import { ProductUtil, pieceVolumeM3 } from './product.util';
 
 /** Products longer than this (cm) have no A/B split: only AB stock. */
 export const MAX_GRADED_LENGTH_CM = 700;
@@ -140,6 +140,46 @@ export function countsWholePieces(product: Pick<Product, 'unit_id' | 'width'>): 
 /** Products whose stock is shown and summed in m³ (M3 and bundles). */
 export function hasVolume(product: Pick<Product, 'unit_id'>): boolean {
   return product.unit_id === Unit_id.M3 || product.unit_id === Unit_id.BOUNDLE;
+}
+
+type VolumeProduct = Pick<Product, 'unit_id' | 'width' | 'thickness' | 'length'>;
+
+/**
+ * Stock can be typed in m³ and is converted to pieces: M3 and bundle products
+ * counted in whole pieces whose dimensions are all known. Stock is still
+ * stored in pieces.
+ */
+export function m3InputAllowed(product: VolumeProduct): boolean {
+  if (!hasVolume(product) || !countsWholePieces(product)) return false;
+  const volume = pieceVolumeM3(product);
+  return Number.isFinite(volume) && volume > 0;
+}
+
+/**
+ * Whole pieces (bundles) nearest to `m3`, e.g. 4 m³ of 7.5×15×400 (0.045 m³
+ * a piece, 88.9 pieces) → 89.
+ * NaN when the product cannot be typed in m³ or `m3` is not a number; a
+ * negative `m3` gives a negative count, so the usual checks refuse it.
+ */
+export function piecesFromM3(product: VolumeProduct, m3: number): number {
+  if (!m3InputAllowed(product) || !Number.isFinite(m3)) return NaN;
+  // + 0 turns a -0 (from a small negative m³) into 0
+  return Math.round(m3 / pieceVolumeM3(product)) + 0;
+}
+
+/** Typed m³ as a number; a decimal comma (RO/HU keyboards) is accepted. Empty → NaN. */
+export function parseM3(text: string): number {
+  const value = text.trim().replace(',', '.');
+  return value === '' ? NaN : Number(value);
+}
+
+/**
+ * m³ as the text of an input: at most 3 decimals and a decimal comma, the
+ * way RO and HU write it ("6.997" would read as six thousand). `parseM3`
+ * reads it back.
+ */
+export function formatM3Input(m3: number): string {
+  return String(+m3.toFixed(3)).replace('.', ',');
 }
 
 const productUtil = new ProductUtil();

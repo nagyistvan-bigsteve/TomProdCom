@@ -541,7 +541,9 @@
     "LOAD_FAILED": "A termékek vagy a készlet nem tölthető be.",
     "NO_PRODUCTS": "Még nincs termék.",
     "INVALID": "Az érték 0 vagy nagyobb legyen. Semmi sem lett mentve.",
-    "INVALID_WHOLE": "Egész darabszám, 0 vagy nagyobb. Semmi sem lett mentve."
+    "INVALID_WHOLE": "Egész darabszám, 0 vagy nagyobb. Semmi sem lett mentve.",
+    "SWITCH_UNIT": "Mértékegység váltása: darab vagy m³",
+    "INVALID_M3": "Legalább egy darabnyi m³, vagy 0. Semmi sem lett mentve."
   },
   "SORTING": {
     "TITLE": "Válogatás (AB → A / B)",
@@ -590,6 +592,7 @@
     "CHANGE_PRODUCT": "Termék cseréje",
     "REMOVE_LINE": "Tétel törlése",
     "QTY_INVALID": "Pozitív egész szám",
+    "QTY_INVALID_M3": "Legalább egy darab",
     "VALIDATE": "Validálás",
     "VALIDATE_CONFIRM": "Validálás után a darabok bekerülnek az AB készletbe, és a kamion nem módosítható. Folytatod?",
     "DELETE": "Kamion törlése",

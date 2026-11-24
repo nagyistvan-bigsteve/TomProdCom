@@ -78,6 +78,8 @@ Product cards use `background: rgba(0,0,0,0.15)` with `border-radius: 8px`. Hove
 - On `SA006` ("changed meanwhile") the stock is reloaded, the typed values are dropped and the edit stays open with the new numbers.
 - Before saving, `invalidStockDrafts()` checks the typed values (negative, not a number, or a fraction for a product counted in whole pieces, `countsWholePieces()`). If any is invalid, nothing is sent, the edit stays open and a message names the grade(s) (`STOCK.INVALID` / `STOCK.INVALID_WHOLE`). `set_stock` refuses fractions of pieces too (`SA008`).
 - The fields use `.on-dark-field` and select their content on focus.
+- **Layout:** a toolbar (pcs | m³ `mat-button-toggle-group` for `m3InputAllowed()` products, save button on the right) and below it **one full-width field per grade**. Fields side by side left room for one digit; do not put them back in a row. The form-field subscript is hidden on this page, so extra text goes in a `matTextSuffix`, never a `mat-hint`.
+- **m³ input:** the toggle switches the whole card (`setEditInM3`). In m³ the field shows the stock with a decimal comma (`formatM3Input`), the draft holds the converted pieces (`m3DraftPieces` → `piecesFromM3`; a positive m³ under one piece is NaN → refused), and the suffix shows "m³ = N buc" (`editPieces`). Switching drops the typed values (the inputs are rebuilt); a new edit starts in pieces.
 
 **Empty page:** the spinner shows only while `isBusy()`. Otherwise it shows "no products", or a load error (`loadFailed`) with a retry.
 

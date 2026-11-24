@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm start          # dev server at http://localhost:4200 with live reload
+npm start          # dev server at http://localhost:4200 with live reload (uses the STAGING Supabase project)
 npm run build      # production build → dist/tom-prod-com/browser/
 npm test           # component specs, Angular unit-test builder + Vitest/jsdom (watch mode)
 npx ng test --watch=false   # component specs once

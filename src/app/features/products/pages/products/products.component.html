@@ -101,31 +101,65 @@
           </div>
 
           @if (editingId() === card.id) {
+            <!-- one full-width field per grade, so a 6-digit stock or an m³ with decimals fits -->
             <div @enterAndLeaveAnimation class="edit-panel">
-              <div class="edit-fields">
-                @for (row of card.grades; track row.stock.id) {
-                  <mat-form-field appearance="outline" class="stock-edit-field on-dark-field">
-                    <mat-label>{{ "STOCK.GRADE." + row.category | translate }}</mat-label>
+              <div class="edit-toolbar">
+                @if (canTypeM3(card)) {
+                  <mat-button-toggle-group
+                    class="unit-toggle"
+                    hideSingleSelectionIndicator
+                    [value]="editInM3() ? 'm3' : 'pcs'"
+                    (change)="setEditInM3($event.value === 'm3')"
+                    [attr.aria-label]="'STOCK.SWITCH_UNIT' | translate"
+                  >
+                    <mat-button-toggle value="pcs">{{ "SHIPMENTS.PIECES" | translate }}</mat-button-toggle>
+                    <mat-button-toggle value="m3">{{ "WORDS.M3" | translate }}</mat-button-toggle>
+                  </mat-button-toggle-group>
+                }
+                <button
+                  mat-mini-fab
+                  class="save-btn"
+                  [disabled]="saving()"
+                  (click)="saveEdit(card)"
+                  [attr.aria-label]="'DIALOG.SAVE' | translate"
+                >
+                  <mat-icon>save</mat-icon>
+                </button>
+              </div>
+              @for (row of card.grades; track row.stock.id) {
+                <mat-form-field appearance="outline" class="stock-edit-field on-dark-field">
+                  <mat-label>{{ "STOCK.GRADE." + row.category | translate }}</mat-label>
+                  <!-- two inputs, so switching the unit rebuilds the field with the new value -->
+                  @if (editInM3()) {
+                    <input
+                      matInput
+                      type="text"
+                      inputmode="decimal"
+                      [value]="editValue(row)"
+                      (focus)="$any($event.target).select()"
+                      (input)="setDraft(card, row.stock.id, $any($event.target).value)"
+                    />
+                  } @else {
                     <input
                       matInput
                       type="number"
                       min="0"
-                      [attr.inputmode]="wholePieces(card) ? 'numeric' : 'decimal'"                      [value]="row.stock.stock"
+                      [attr.inputmode]="wholePieces(card) ? 'numeric' : 'decimal'"
+                      [value]="row.stock.stock"
                       (focus)="$any($event.target).select()"
-                      (input)="setDraft(row.stock.id, $any($event.target).value)"
+                      (input)="setDraft(card, row.stock.id, $any($event.target).value)"
                     />
-                  </mat-form-field>
-                }
-              </div>
-              <button
-                mat-mini-fab
-                class="save-btn"
-                [disabled]="saving()"
-                (click)="saveEdit(card)"
-                [attr.aria-label]="'DIALOG.SAVE' | translate"
-              >
-                <mat-icon>save</mat-icon>
-              </button>
+                  }
+                  @if (editInM3()) {
+                    <span matTextSuffix class="unit-suffix">
+                      {{ "WORDS.M3" | translate }}
+                      @if (editPieces(row); as pieces) {
+                        = {{ pieces.value }} {{ "SHIPMENTS.PIECES" | translate }}
+                      }
+                    </span>
+                  }
+                </mat-form-field>
+              }
             </div>
             @if (invalidStockIds().length) {
               <p class="mat-body-small invalid-hint" role="alert">
@@ -134,7 +168,10 @@
                     {{ "STOCK.GRADE." + row.category | translate }}:
                   }
                 }
-                {{ (wholePieces(card) ? "STOCK.INVALID_WHOLE" : "STOCK.INVALID") | translate }}
+                {{
+                  (editInM3() ? "STOCK.INVALID_M3" : wholePieces(card) ? "STOCK.INVALID_WHOLE" : "STOCK.INVALID")
+                    | translate
+                }}
               </p>
             }
           }
