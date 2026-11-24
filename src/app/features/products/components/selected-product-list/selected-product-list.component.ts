@@ -76,6 +76,18 @@ export class SelectedProductListComponent implements OnChanges {
     }, 0);
   });
 
+  /** Cart lines with no B (A) price: "Total B" ("Total A") counts them at their own price. */
+  readonly linesWithoutB = computed(() =>
+    this.productStore.pricesEntities().length
+      ? this.cartStore.productItems().filter((item) => !this.getCalculatedPrice(Category.B, item)).length
+      : 0,
+  );
+  readonly linesWithoutA = computed(() =>
+    this.productStore.pricesEntities().length
+      ? this.cartStore.productItems().filter((item) => !this.getCalculatedPrice(Category.A, item)).length
+      : 0,
+  );
+
   editingItem: ProductItem | null = null;
   editableQuantity: number | null = null;
   usedPrices: Price2[] = [];

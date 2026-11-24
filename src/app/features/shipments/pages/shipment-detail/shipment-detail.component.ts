@@ -43,6 +43,7 @@ import {
   toShipmentItems,
   withTrailingEmptyLine,
 } from '@features/shipments/shipment.util';
+import { AppDatePipe } from '@shared/pipes/app-date.pipe';
 
 const MAX_OPTIONS = 30;
 
@@ -76,6 +77,7 @@ function today(): string {
 @Component({
   selector: 'app-shipment-detail',
   imports: [
+    AppDatePipe,
     CommonModule,
     MatAutocompleteModule,
     MatButtonModule,

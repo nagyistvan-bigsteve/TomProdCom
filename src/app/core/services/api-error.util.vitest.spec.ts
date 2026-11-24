@@ -61,6 +61,9 @@ describe('apiErrorKey', () => {
     expect(apiErrorKey({ status: 400, code: 'SA007', method: 'POST' })).toBe(
       'SNACKBAR.API.DRAFT_CHANGED',
     );
+    expect(apiErrorKey({ status: 400, code: 'SA008', method: 'POST' })).toBe(
+      'SNACKBAR.API.WHOLE_PIECES',
+    );
   });
 
   it('falls back to a load error for reads and a save error for writes', () => {

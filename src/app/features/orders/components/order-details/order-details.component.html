@@ -7,7 +7,7 @@
     <div class="header-text">
       <span class="mat-title-medium header-client">{{ client().name }}</span>
       <span class="mat-body-medium header-date">{{
-        order.dateOrderPlaced | date: "yyyy.MM.dd"
+        order.dateOrderPlaced | appDate
       }}</span>
     </div>
     <div class="header-actions">
@@ -77,18 +77,33 @@
                   </span>
                 }
                 <span class="item-price"
-                  >{{ item.price | number: "1.0-1" }} RON</span
+                  >{{ item.price | money }} RON</span
                 >
               </div>
             </div>
           }
+          @if (order.voucher || order.deliveryFee) {
+            <div class="subtotal-row">
+              <span>{{ "ORDER.DETAILS.SUBTOTAL" | translate }}</span>
+              <span>{{ order.totalAmount | money }} RON</span>
+            </div>
+            @if (order.voucher) {
+              <div class="subtotal-row">
+                <span>{{ "WORDS.VOUCHER" | translate }} ({{ order.voucher }})</span>
+                <span>−{{ order.totalAmount - order.totalAmountFinal | money }} RON</span>
+              </div>
+            }
+            @if (order.deliveryFee) {
+              <div class="subtotal-row">
+                <span>{{ "ORDER.DETAILS.TRANSPORT" | translate }}</span>
+                <span>{{ order.deliveryFee | money }} RON</span>
+              </div>
+            }
+          }
           <div class="total-row">
-            <span class="total-label">Total</span>
+            <span class="total-label">{{ "WORDS.TOTAL" | translate }}</span>
             <span class="total-value"
-              >{{
-                order.totalAmountFinal + order.deliveryFee | number: "1.0-1"
-              }}
-              RON</span
+              >{{ order.totalAmountFinal + order.deliveryFee | money }} RON</span
             >
           </div>
         </div>

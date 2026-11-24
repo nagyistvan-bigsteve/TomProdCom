@@ -154,7 +154,7 @@
     <div class="summary-card">
       <div class="card-row">
         <span class="mat-title-medium">{{ s.name }}</span>
-        <span class="mat-body-medium on-dark-secondary">{{ s.arrived_on | date: "yyyy.MM.dd" }}</span>
+        <span class="mat-body-medium on-dark-secondary">{{ s.arrived_on | appDate }}</span>
       </div>
       @if (s.comment) {
         <span class="mat-body-medium on-dark-secondary">{{ s.comment }}</span>
@@ -167,7 +167,7 @@
         @if (s.validated_at) {
           {{ s.creator?.name ? "·" : "" }}
           {{ "SHIPMENTS.VALIDATED_BY" | translate: { name: s.validator?.name || "?" } }}
-          {{ s.validated_at | date: "yyyy.MM.dd HH:mm" }}
+          {{ s.validated_at | appDate: "dateTime" }}
         }
       </span>
     </div>
@@ -233,7 +233,7 @@
             <div class="sorting-text">
               <span>{{ productStore.productsEntityMap()[sorting.product_id]?.name }}</span>
               <span class="on-dark-secondary mat-body-small">
-                {{ sorting.created_at | date: "yyyy.MM.dd HH:mm" }}
+                {{ sorting.created_at | appDate: "dateTime" }}
                 @if (sorting.sorter?.name) { · {{ sorting.sorter!.name }} }
                 @if (sorting.comment) { · {{ sorting.comment }} }
               </span>

@@ -14,10 +14,12 @@ import { ProductStore } from '@features/products/store/product.store';
 import { ShipmentStore } from '@features/shipments/store/shipment.store';
 import { ShipmentCard, toShipmentCard, filterShipmentCards } from '@features/shipments/shipment.util';
 import { isGradable } from '@shared/utils/stock.util';
+import { AppDatePipe } from '@shared/pipes/app-date.pipe';
 
 @Component({
   selector: 'app-shipments',
   imports: [
+    AppDatePipe,
     CommonModule,
     RouterLink,
     MatButtonModule,

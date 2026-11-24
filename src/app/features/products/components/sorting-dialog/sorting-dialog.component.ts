@@ -5,7 +5,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -29,6 +28,7 @@ import {
   sortingTotal,
   validateSorting,
 } from '@shared/utils/stock.util';
+import { AppDatePipe } from '@shared/pipes/app-date.pipe';
 
 export interface SortingDialogData {
   product: Product;
@@ -45,7 +45,7 @@ export interface SortingDialogData {
 @Component({
   selector: 'app-sorting-dialog',
   imports: [
-    DatePipe,
+    AppDatePipe,
     FormsModule,
     MatButtonModule,
     MatDialogModule,

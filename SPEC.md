@@ -499,9 +499,9 @@ Each line item in an order (table `order_items`) contains:
 | -------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `product_id`   | number  | FK → products                                                                                                                                  |
 | `order_id`     | number  | FK → orders                                                                                                                                    |
-| `quantity`     | number  | Quantity in the product's native unit (or m² for M2 products stored as BRUT m²)                                                                |
+| `quantity`     | number  | Quantity in the product's native unit (or m² for M2 products stored as BRUT m²). Always more than 0 (database check; the add buttons refuse 0)  |
 | `category_id`  | number  | Quality grade chosen for this line item (FK → categories)                                                                                      |
-| `price`        | number  | Total price for this line item (already calculated)                                                                                            |
+| `price`        | number  | Total price for this line item (already calculated); 0 or more (database check)                                                                 |
 | `item_status`  | boolean | `false` = pending; `true` = delivered/completed. Set to `true` for all items when the order is marked delivered. Can also be toggled per item. |
 | `packs_pieces` | string  | For M2 products: pack breakdown in format `"Np + Mb"` (N full packs, M extra pieces). Empty for non-M2 products.                               |
 
@@ -820,6 +820,8 @@ Admins may additionally:
 
 - delete the order.
 
+Deleting and restoring are enforced in the database, not only in the UI (§21).
+
 ### Order details
 
 A user can:
@@ -835,6 +837,8 @@ A user can:
 - change the prices of the saved items (see 10.3, "Changing prices of a saved offer or order");
 - print order details;
 - mark the order as delivered.
+
+The items card ends with the amount to pay (`total_amount_final + delivery_fee`). When a voucher or a delivery fee is set, it shows the subtotal (`total_amount`), the voucher discount and the transport above it, so the lines add up to the total.
 
 Editing a product keeps its current unit price when only the quantity changes (except M2 products), so a price set by hand is not lost. Changing the category re-prices the item from the price list.
 
@@ -1009,7 +1013,7 @@ Route:
 
 ### Auto-purge
 
-Soft-deleted **orders and offers** are automatically and permanently purged **10 days** after their `deleted_at` timestamp. A countdown is shown in the Deleted page so employees know how long before an order is unrecoverable. The constant `DAYS_UNTIL_PERMANENT_DELETE = 10` controls this threshold.
+Soft-deleted **orders and offers** are automatically and permanently purged **10 days** after their `deleted_at` timestamp. The purge runs in the database every night at 02:30 UTC (pg_cron job `purge-deleted-orders` → `private.purge_deleted_orders()`), so it does not depend on anyone opening the Deleted page; the page itself never deletes anything on load. A countdown is shown in the Deleted page so employees know how long before an order is unrecoverable (0 days: it goes in the next nightly run). The constant `DAYS_UNTIL_PERMANENT_DELETE = 10` controls the countdown and must match the interval in the purge function.
 
 ### Deleted users
 
@@ -1059,6 +1063,10 @@ An offer may also be used as the starting point for creating an order while allo
 ### Cart persistence
 
 The product selection (cart) is persisted to `localStorage` throughout the offer creation workflow. If the user returns to the offer creation flow after more than **10 minutes** of inactivity, they are prompted to either restore the saved cart or discard it and start fresh. The prompt only appears when one of the offer creation pages is opened; until then the saved cart is left as it is, and it is replaced if the cart is filled from elsewhere (e.g. an offer loaded into the cart). A saved cart with no products is dropped without asking.
+
+### Cart totals
+
+Below the cart: the total, and "Total B" / "Total A", what the cart would cost with every line in that grade (the arrow switches the lines to it). A line whose product has no price in that grade keeps its own price; the pill then says how many such lines there are. Adding the same product and grade again asks to add to the line or replace it; either way the totals update at once. A line with quantity 0 is not added.
 
 ---
 
@@ -1316,6 +1324,8 @@ When graded stock was introduced, `booked_stock` was recomputed from the undeliv
 
 **Offer ↔ order conversion** (trigger `orders_offer_conversion_stock` on `orders.just_offer`): offer items have no stock effect. When an offer becomes an order (any approved user, "direct transform"), every item's effect is applied: undelivered items are booked, items already marked delivered are deducted. When an admin turns an order back into an offer (only admins may, `prevent_order_to_offer`), every item's effect is removed again. Before this trigger existed (until 2026-11-23), converted offers were never booked, and delivering their items pushed `booked_stock` below zero; `booked_stock` was recomputed once to repair that.
 
+**Deleted orders** (trigger `orders_deleted_stock` on `orders.deleted_at`, decided 2026-11-24): a soft-deleted order books nothing. Deleting it releases the bookings of its undelivered items; restoring it books them again. Delivered items stay deducted either way, as for a permanent delete (the goods have left). While an order is deleted its items have no stock effect at all (`order_is_real` is false), so the nightly purge does not release them a second time. Until 2026-11-24 a deleted order kept its bookings until it was purged; `booked_stock` was recomputed once without deleted orders.
+
 ### Truck intake (`shipments`, `shipment_items`)
 
 When a truck arrives, nobody knows yet how much of it is A and how much B, but the goods must be in stock immediately. So a truck delivery always enters stock as **AB**.
@@ -1350,7 +1360,8 @@ Error codes raised by these functions (shown by the central toast, `apiErrorKey`
 - `SA004` a sorting cannot be undone because its A/B pieces are no longer in stock;
 - `SA005` more pieces than are left of the product on the truck;
 - `SA006` stock changed meanwhile (hand edit, below);
-- `SA007` truck draft changed meanwhile.
+- `SA007` truck draft changed meanwhile;
+- `SA008` a fraction of a piece in a hand stock edit (below).
 
 `42501` is raised when the caller is not an approved user.
 
@@ -1360,6 +1371,8 @@ Any approved user can correct a grade's stock by hand (products page pencil, adm
 - `expected` is the value the user started editing from. If the stored value is different by now (a sale, a delivery, a sorting or another user's edit happened meanwhile), the save is refused with `SA006`. The page then reloads the stock and keeps the edit open with the new values, instead of silently overwriting that change.
 - Every saved edit is logged in `stock_adjustments` (old and new value, who, when). The table is read-only through the API.
 - Saving several grades shows one message.
+- Products counted in pieces take whole numbers only: BUC, bundles, and M3 products with a width (`SA008` otherwise). M3 products without a width are sold by volume, so their stock is in m³ and may have decimals; M2 stock is in m². Rule: `countsWholePieces()` in `@shared/utils/stock.util`, mirrored in `set_stock`.
+- A value the page cannot save (negative, not a number, a fraction of a piece) keeps the edit open with a message under the fields; nothing is sent.
 
 **Unit change to M2.** When a product becomes M2, its A/B stock is merged into AB as for any product that stops being graded, and its bookings are set to 0. M2 is not tracked, so those bookings could never be released.
 
@@ -1435,6 +1448,8 @@ When adding a feature:
 4. verify labels, errors, dialogs, empty states, buttons, and accessibility labels.
 
 Translation keys should be descriptive and consistent.
+
+**Dates and money** follow the language, using each country's convention: Romanian `24.11.2026` (short `24.11`), Hungarian `2026.11.24` (short `11.24`), with `HH:mm` added where a time is shown. Templates use the `appDate` pipe (`@shared/pipes/app-date.pipe`, formats in `display-format.util`), never a hard-coded `date:` format; date pickers follow the language through `syncDatePickerLocale()`. Money uses the `money` pipe: whole amounts without decimals (`960`), amounts with cents with two (`2.155,50`).
 
 Avoid keys such as:
 
@@ -1621,6 +1636,15 @@ Deleted orders should be restorable.
 
 A restore operation must not create duplicate records.
 
+**Who may delete and restore** (trigger `orders_guard_deletion` on `orders.deleted_at`, so a direct API call cannot skip it):
+
+| Record | Soft delete           | Restore     | Permanent delete              |
+| ------ | --------------------- | ----------- | ----------------------------- |
+| Order  | admin                 | admin       | admin (RLS)                   |
+| Offer  | any approved user (e.g. "delete the offer" when loading it into the cart) | admin | any approved user (RLS) |
+
+The UI shows the Delete button for an offer only to its author and to admins; the Deleted page is admin-only. A soft-deleted order releases its stock bookings (§12).
+
 ---
 
 # 22. Printing
@@ -1642,6 +1666,8 @@ The printed document should prioritize:
 Printing should not depend on the visual mobile UI layout.
 
 Prefer a dedicated print layout/CSS or dedicated print representation.
+
+The PDF is built from that layout as images (html2canvas → jsPDF). The images are JPEG, so a one-page order stays around 250–300 kB (PNG made it 6.5 MB). The document title is "Comanda #37" / "Oferta #37", which the print dialog offers as the file name; a direct download is named "Comanda-37.pdf".
 
 ---
 
@@ -1691,10 +1717,10 @@ The SQL lives in `supabase/migrations/` (`*_rls_require_approved_user.sql`, `*_r
 | ---------------------- | --------------------------------------------------------------------------------------------------------------- |
 | Not signed in          | Nothing: no table access, no function calls                                                                     |
 | Signed in, unapproved  | Read their own profile only                                                                                     |
-| Approved user          | Read everything; create and edit clients, orders, offers, order items, stock; register, validate and delete truck deliveries; record and undo sortings; hard-delete offers |
-| Admin                  | Additionally: edit prices and products, hard-delete orders, approve / deny users, change roles |
+| Approved user          | Read everything; create and edit clients, orders, offers, order items, stock; register, validate and delete truck deliveries; record and undo sortings; soft- and hard-delete offers |
+| Admin                  | Additionally: edit prices and products, soft-delete, restore and hard-delete orders, restore offers, approve / deny users, change roles |
 
-`admin_users` can be changed only by an admin. `stocks` is readable by every approved user but written only by database functions (`security definer`): the `order_items` booking triggers through `private.adjust_stock`, truck validation and sorting, and hand edits through `set_stock` (conflict check and audit log). The API role has no insert, update or delete right on it. Soft-deleting an order (`deleted_at`) is an ordinary update and is not restricted in the database.
+`admin_users` can be changed only by an admin. `stocks` is readable by every approved user but written only by database functions (`security definer`): the `order_items` booking triggers through `private.adjust_stock`, truck validation and sorting, and hand edits through `set_stock` (conflict check and audit log). The API role has no insert, update or delete right on it. Soft-deleting (`deleted_at`) is checked by the trigger `orders_guard_deletion`: only admins may delete or restore an order and restore an offer; any approved user may delete an offer (§21).
 
 The app loads products, prices, stock and clients only once a user is signed in and approved, and reloads them after every sign-in.
 

@@ -23,6 +23,7 @@ import { ProductStore, StockChange } from '@features/products/store/product.stor
 import { Category, Unit_id } from '@core/models/enums';
 import {
   availableStock,
+  countsWholePieces,
   hasVolume,
   isGradable,
   stockCategoriesOf,
@@ -90,6 +91,8 @@ export class ProductsComponent {
    */
   private editBaseline: Record<number, number> = {};
   readonly saving = signal(false);
+  /** Stock rows whose typed value was refused on save; shown under the field. */
+  readonly invalidStockIds = signal<number[]>([]);
   searchValue = signal('');
   stockFilter = signal<StockFilter>('all');
   sortDirection = signal<'none' | 'asc' | 'desc'>('none');
@@ -140,8 +143,13 @@ export class ProductsComponent {
       return;
     }
     this.draft.set({});
+    this.invalidStockIds.set([]);
     this.editBaseline = Object.fromEntries(card.grades.map((g) => [g.stock.id, g.stock.stock]));
     this.editingId.set(card.id);
+  }
+
+  wholePieces(card: ProductStockCard): boolean {
+    return countsWholePieces(card.product);
   }
 
   /** Reloads products and stock after a failed load. */
@@ -152,6 +160,7 @@ export class ProductsComponent {
 
   /** An emptied field is not a 0: it leaves that grade unchanged. */
   setDraft(stockId: number, value: string): void {
+    this.invalidStockIds.update((ids) => ids.filter((id) => id !== stockId));
     this.draft.update((d) => {
       const { [stockId]: _, ...rest } = d;
       return value.trim() === '' ? rest : { ...rest, [stockId]: Number(value) };
@@ -169,6 +178,10 @@ export class ProductsComponent {
 
   async saveEdit(card: ProductStockCard): Promise<void> {
     if (this.saving()) return;
+    const invalid = invalidStockDrafts(card.grades, this.draft(), countsWholePieces(card.product));
+    this.invalidStockIds.set(invalid);
+    if (invalid.length) return;
+
     const changes = stockChanges(card.grades, this.draft(), this.editBaseline);
     if (!changes.length) {
       this.editingId.set(null);
@@ -238,6 +251,26 @@ function isToSort(card: ProductStockCard): boolean {
  * edit started from (`baseline`, falling back to the current stock). Empty,
  * negative or non-numeric values leave a grade unchanged.
  */
+/**
+ * Stock rows whose typed value cannot be saved: not a number, below 0, or a
+ * fraction for a product counted in whole pieces (`countsWholePieces`).
+ * Untouched (or emptied) fields are not checked.
+ */
+export function invalidStockDrafts(
+  grades: Pick<GradeRow, 'stock'>[],
+  draft: Record<number, number>,
+  wholePieces: boolean,
+): number[] {
+  return grades
+    .map(({ stock }) => ({ id: stock.id, value: draft[stock.id] }))
+    .filter(
+      ({ value }) =>
+        value !== undefined &&
+        (!Number.isFinite(value) || value < 0 || (wholePieces && !Number.isInteger(value))),
+    )
+    .map(({ id }) => id);
+}
+
 export function stockChanges(
   grades: Pick<GradeRow, 'stock'>[],
   draft: Record<number, number>,

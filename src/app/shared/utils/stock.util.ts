@@ -126,6 +126,17 @@ export function bookedAbShortfall(
   return Math.min(Math.max(ab.booked_stock, 0), Math.max(0, total - free));
 }
 
+/**
+ * Stock is a count of pieces (bundles): BUC and bundle products, and M3
+ * products with a width. An M3 product without a width is sold by volume
+ * (stock in m³) and M2 in m², so both may hold decimals. Mirrors the check in
+ * `public.set_stock` (supabase/migrations/*_set_stock_whole_pieces.sql).
+ */
+export function countsWholePieces(product: Pick<Product, 'unit_id' | 'width'>): boolean {
+  if (product.unit_id === Unit_id.BUC || product.unit_id === Unit_id.BOUNDLE) return true;
+  return product.unit_id === Unit_id.M3 && product.width != null;
+}
+
 /** Products whose stock is shown and summed in m³ (M3 and bundles). */
 export function hasVolume(product: Pick<Product, 'unit_id'>): boolean {
   return product.unit_id === Unit_id.M3 || product.unit_id === Unit_id.BOUNDLE;

@@ -20,10 +20,16 @@ Both are opened via Angular Material `MatDialog`. Pass data in via `MAT_DIALOG_D
 ## directives/
 - `decimal-input.directive.ts` — formats numeric inputs as decimals with comma/dot normalization; applied to price and quantity fields
 
+## pipes/
+- `app-date.pipe.ts` — `| appDate`, `| appDate: 'dateTime'`, `| appDate: 'short'`: dates in the current UI language's format (RO `24.11.2026`, HU `2026.11.24`). Impure so it follows a language switch. Use it instead of `date: '...'` in templates.
+- `money.pipe.ts` — `| money`: whole amounts without decimals (`960`), with cents two decimals (`2.155,50`).
+
 ## utils/
 Pure utility functions and helper services:
 - `filter.util.ts` — product/stock list filtering helpers
 - `notification.service.ts` — wraps `MatSnackBar` for app-wide toast notifications
 - `order-pdf-generator.util.ts` — builds jsPDF documents from order data (used by the orders feature)
 - `product.util.ts` — price calculation helpers for M2/M3/BUC/BUNDLE unit conversions
-- `stock.util.ts` — graded stock rules (pure, Vitest-covered): `stockCategoryFor()` (T → A, > 7 m → AB, M2 untracked; mirrors SQL `stock_category_for`), `stockCategoriesOf()`, `availableStock()`, `groupStocksByProduct()`, `validateSorting()` / `sortingLimit()` (AB stock, and the truck remainder when sorting from a truck), `bookedAbShortfall()` (ordered AB pieces a sorting takes; warning only), `hasVolume()` (M3 / bundle: shown and summed in m³), `shipmentTotalM3()`
+- `stock.util.ts` — graded stock rules (pure, Vitest-covered): `stockCategoryFor()` (T → A, > 7 m → AB, M2 untracked; mirrors SQL `stock_category_for`), `stockCategoriesOf()`, `availableStock()`, `groupStocksByProduct()`, `validateSorting()` / `sortingLimit()` (AB stock, and the truck remainder when sorting from a truck), `bookedAbShortfall()` (ordered AB pieces a sorting takes; warning only), `hasVolume()` (M3 / bundle: shown and summed in m³), `shipmentTotalM3()`, `countsWholePieces()` (BUC, bundle, M3 with a width: stock in whole pieces; mirrors `set_stock`)
+- `display-format.util.ts` — pure, Vitest-covered: `dateFormatFor(language, kind)`, `datePickerLocale(language)`, `moneyDigits(value)`; used by the pipes above
+- `date-picker-locale.ts` — `syncDatePickerLocale()`: call in the constructor of a component that provides a date adapter, so its date picker follows the UI language

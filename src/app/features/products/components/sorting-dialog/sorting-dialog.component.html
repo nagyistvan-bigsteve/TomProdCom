@@ -10,7 +10,7 @@
         <mat-option [value]="null">{{ "SORTING.NO_TRUCK" | translate }}</mat-option>
         @for (truck of trucks(); track truck.id) {
           <mat-option [value]="truck.id">
-            {{ truck.arrived_on | date: "yyyy.MM.dd" }} · {{ truck.name }} ({{ truck.remaining }})
+            {{ truck.arrived_on | appDate }} · {{ truck.name }} ({{ truck.remaining }})
           </mat-option>
         }
       </mat-select>

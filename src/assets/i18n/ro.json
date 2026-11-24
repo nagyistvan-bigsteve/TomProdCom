@@ -24,6 +24,7 @@
       "PRODUCTS": "Lista de stoc"
     },
     "CREATE_OFFER": {
+      "TOTAL_PARTIAL": "{{count}} produs(e) fără preț {{grade}} rămân la prețul lor",
       "UNIT_FILTER": {
         "FILTER_LABEL": "Alege unitatea:",
         "FILTER_OPTIONS": {
@@ -99,9 +100,9 @@
     "RETRY": "Reîncearcă"
   },
   "OVERVIEW_PAGE": {
-    "TITLE": "Confirmare ofertă",
+    "TITLE": "Revizuire comandă",
     "BUTTONS": {
-      "CONFIRM": "Confirmare comanda"
+      "CONFIRM": "Confirmare comandă"
     },
     "POPUP": {
       "COMMENT": "Adauga un comentariu",
@@ -250,6 +251,8 @@
   },
   "ORDER": {
     "DETAILS": {
+      "SUBTOTAL": "Subtotal",
+      "TRANSPORT": "Transport",
       "DELIVERED_BUTTON": "A fost expediat",
       "TOTAL_TRANSFORM_BUTTON": "Transformare în comandă",
       "TOTAL_TRANSFORM_DESCRIPTION": "Vrei să transformi într-o comandă așa cum este? \n Oferta o să dispară din tabela asta.",
@@ -368,11 +371,13 @@
       "SORTING_SOLD": "O parte din bucățile A/B sortate s-au vândut deja; sortarea nu mai poate fi anulată.",
       "MORE_THAN_TRUCK": "Din acest produs nu au mai rămas atâtea bucăți în camion.",
       "STOCK_CHANGED": "Între timp cineva a modificat acest stoc. Valorile noi au fost încărcate, verifică și salvează din nou.",
-      "DRAFT_CHANGED": "Între timp cineva a modificat acest camion."
+      "DRAFT_CHANGED": "Între timp cineva a modificat acest camion.",
+      "WHOLE_PIECES": "Stocul acestui produs se numără în bucăți întregi."
     },
     "PRODUCT": {
       "STOCK": "Stoc: ",
       "OUT_OF_STOCK": "Produsul nu mai e pe stoc!",
+      "QUANTITY_REQUIRED": "Introdu o cantitate mai mare de 0!",
       "LIMITED_STOCK": "Stock limitat \n Stock rămas: ",
       "SUCCESS": {
         "ADD": "Produs adăugat cu succes!",
@@ -533,7 +538,9 @@
       "NEGATIVE": "Lipsă"
     },
     "LOAD_FAILED": "Produsele sau stocul nu au putut fi încărcate.",
-    "NO_PRODUCTS": "Încă nu există produse."
+    "NO_PRODUCTS": "Încă nu există produse.",
+    "INVALID": "Valoarea trebuie să fie 0 sau mai mare. Nimic nu a fost salvat.",
+    "INVALID_WHOLE": "Număr întreg de bucăți, 0 sau mai mare. Nimic nu a fost salvat."
   },
   "SORTING": {
     "TITLE": "Sortare (AB → A / B)",

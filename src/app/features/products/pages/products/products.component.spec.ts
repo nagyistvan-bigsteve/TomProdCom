@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { Category, Unit_id } from '@core/models/enums';
 import { GradedStock, Product, Stock } from '@core/models/models';
 import { ProductStore } from '@features/products/store/product.store';
-import { ProductsComponent, stockChanges } from './products.component';
+import { invalidStockDrafts, ProductsComponent, stockChanges } from './products.component';
 
 function product(id: number, length: number, unit_id = Unit_id.M3): Product {
   return {
@@ -122,6 +122,23 @@ describe('ProductsComponent', () => {
     expect(component.editingId()).toBe(card.id);
     expect(component.draft()).toEqual({});
   });
+
+  it('keeps the edit open and shows a message for a negative or fractional value', async () => {
+    const card = component.cards()[0];
+    component.toggleEdit(card);
+    component.setDraft(11, '-3');
+    component.setDraft(12, '2.5');
+    await component.saveEdit(card);
+    fixture.detectChanges();
+
+    expect(setStocks).not.toHaveBeenCalled();
+    expect(component.editingId()).toBe(card.id);
+    expect(component.invalidStockIds()).toEqual([11, 12]);
+    expect(fixture.nativeElement.querySelector('.invalid-hint')).not.toBeNull();
+
+    component.setDraft(11, '5');
+    expect(component.invalidStockIds()).toEqual([12]);
+  });
 });
 
 describe('stockChanges', () => {
@@ -137,6 +154,21 @@ describe('stockChanges', () => {
   it('skips unchanged, negative and non-numeric values', () => {
     expect(stockChanges(grades, { 1: 40, 2: -1 }, {})).toEqual([]);
     expect(stockChanges(grades, { 2: Number.NaN }, {})).toEqual([]);
+  });
+});
+
+describe('invalidStockDrafts', () => {
+  const grades = [{ stock: stock(1, 1, Category.A, 40) }, { stock: stock(2, 1, Category.B, 9) }];
+
+  it('flags negative and non-numeric values, not untouched fields', () => {
+    expect(invalidStockDrafts(grades, { 1: -3 }, true)).toEqual([1]);
+    expect(invalidStockDrafts(grades, { 2: Number.NaN }, false)).toEqual([2]);
+    expect(invalidStockDrafts(grades, {}, true)).toEqual([]);
+  });
+
+  it('flags fractions only for products counted in whole pieces', () => {
+    expect(invalidStockDrafts(grades, { 1: 8.5, 2: 3 }, true)).toEqual([1]);
+    expect(invalidStockDrafts(grades, { 1: 8.5 }, false)).toEqual([]);
   });
 });
 

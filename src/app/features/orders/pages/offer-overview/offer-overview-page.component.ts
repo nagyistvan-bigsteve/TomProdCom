@@ -27,6 +27,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { syncDatePickerLocale } from '@shared/utils/date-picker-locale';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -111,6 +112,7 @@ export class OfferOverviewPageComponent {
   private lastClientId = signal<number | null>(null);
 
   constructor() {
+    syncDatePickerLocale();
     effect(() => {
       const currentId = this.clientStore.client()?.id ?? null;
       const previous = this.lastClientId();

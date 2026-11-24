@@ -10,6 +10,7 @@ import {
   shipmentTotalM3,
   sortingLimit,
   sortingTotal,
+  countsWholePieces,
   stockCategoriesOf,
   stockCategoryFor,
   totalStock,
@@ -193,6 +194,19 @@ describe('shipmentTotalM3', () => {
     // a piece-priced (BUC) product with dimensions adds no m³
     const products = { 1: makeProduct({ id: 1, unit_id: Unit_id.BUC }) };
     expect(shipmentTotalM3([{ product_id: 1, quantity: 49 }], products)).toBe(0);
+  });
+});
+
+describe('countsWholePieces', () => {
+  it('is true for pieces: BUC, bundles, M3 with a width', () => {
+    expect(countsWholePieces({ unit_id: Unit_id.BUC, width: 50 })).toBe(true);
+    expect(countsWholePieces({ unit_id: Unit_id.BOUNDLE, width: 3 })).toBe(true);
+    expect(countsWholePieces({ unit_id: Unit_id.M3, width: 10 })).toBe(true);
+  });
+
+  it('is false for volume and area: M3 without a width, M2', () => {
+    expect(countsWholePieces({ unit_id: Unit_id.M3, width: null as unknown as number })).toBe(false);
+    expect(countsWholePieces({ unit_id: Unit_id.M2, width: 10 })).toBe(false);
   });
 });
 

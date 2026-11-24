@@ -147,7 +147,7 @@
             <div
               [matTooltip]="
                 'ORDER.TABLE.CONTENT.EXPECTED_DELIVERY_TOOLTIP'
-                  | translate: { date: order.expectedDelivery | date: 'MM.dd' }
+                  | translate: { date: order.expectedDelivery | appDate: 'short' }
               "
               class="delivery-badge until-delivery"
               [class.in-past]="
@@ -157,7 +157,7 @@
                 )
               "
             >
-              {{ order.expectedDelivery | date: "MM.dd" }}
+              {{ order.expectedDelivery | appDate: "short" }}
               <span class="until-star">*</span>
             </div>
           } @else {
@@ -169,7 +169,7 @@
                 )
               "
             >
-              {{ order.expectedDelivery | date: "MM.dd" }}
+              {{ order.expectedDelivery | appDate: "short" }}
             </div>
           }
           @if (order.forFirstHour) {
@@ -178,7 +178,7 @@
             </div>
           }
         } @else {
-          {{ order.dateOrderPlaced | date: "MM.dd" }}
+          {{ order.dateOrderPlaced | appDate: "short" }}
         }
       </td>
     </ng-container>

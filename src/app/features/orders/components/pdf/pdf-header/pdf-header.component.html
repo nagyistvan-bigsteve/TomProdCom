@@ -16,11 +16,11 @@
       </div>
       <div>
         <strong> {{ "PDF.HEADER.CREATE_DATE" | translate }}</strong>
-        {{ orderDate() | date: "yyyy-MM-dd" }}
+        {{ orderDate() | appDate }}
       </div>
       <div>
         <strong> {{ "PDF.HEADER.EXPECTED_DELIVERY" | translate }}</strong>
-        {{ deliveryDate() | date: "yyyy-MM-dd" }}
+        {{ deliveryDate() | appDate }}
       </div>
       @if (firstHour()) {
         <div class="fw-bold d-flex align-items-center">

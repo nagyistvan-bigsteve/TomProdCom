@@ -78,8 +78,6 @@ export class CreateOfferPageComponent {
       );
 
     if (existingProduct) {
-      const productList = this.cartStore.productItems();
-
       const dialogRef = this._dialog.open(OverwriteDialogComponent, {
         data: { productName: item.product.name },
       });
@@ -89,12 +87,7 @@ export class CreateOfferPageComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((result: any) => {
           if (result === 'overwrite') {
-            const index = this.cartStore
-              .productItems()
-              .indexOf(existingProduct);
-            productList[index] = item;
-
-            this.cartStore.setProductItems(productList);
+            this.cartStore.replaceProductItem(existingProduct, item);
             this.openSnackBar(
               this.translateService.instant(
                 'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.OVERWRITE',

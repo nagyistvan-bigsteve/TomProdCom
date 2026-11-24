@@ -202,6 +202,11 @@
   flex: 1;
 }
 
+.invalid-hint {
+  margin: var(--space-1) 0 0;
+  color: rgb(255, 120, 120);
+}
+
 .save-btn {
   flex-shrink: 0;
   background-color: rgb(78, 97, 82);

@@ -103,6 +103,21 @@ export class SelectedProductComponent implements OnChanges {
   addNewProduct() {
     setTimeout(() => {
       if (this.selectedProduct) {
+        const quantity =
+          this.selectedProduct.unit_id === Unit_id.M2 ? this.totalPiecesNeeded : +this.quantity;
+        if (!(quantity > 0)) {
+          this.translateService
+            .get(['SNACKBAR.PRODUCT.QUANTITY_REQUIRED', 'SNACKBAR.BUTTONS.CLOSE'])
+            .subscribe((translations) => {
+              this.snackBar.open(
+                translations['SNACKBAR.PRODUCT.QUANTITY_REQUIRED'],
+                translations['SNACKBAR.BUTTONS.CLOSE'],
+                { duration: 4500, panelClass: 'danger-snackbar' },
+              );
+            });
+          return;
+        }
+
         if (this.selectedProduct.unit_id !== Unit_id.M2) {
           this.addProduct.emit({
             product: this.selectedProduct,

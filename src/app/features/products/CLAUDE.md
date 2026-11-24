@@ -22,7 +22,7 @@ The running list of products added to the current offer cart.
 - On every load, `compareSavedPrice()` compares each item's saved price against the current price from `ProductStore`. If the price table has changed since the cart was last saved, the cart item price is silently updated.
 - `getExactPrice()` implements the full price-lookup hierarchy: product-specific price first, then size/category matrix. Also applies TVA adjustment (`client.tva=true` → M3 −100, BUNDLE −5) and any manual discounts from the offer-overview page.
 - Emits `@Output() pricesOutput: EventEmitter<Price2[]>` so the offer-overview page knows which price rows are in use.
-- `getTotalPriceInA()` / `getTotalPriceInB()` compute hypothetical totals at category A and B prices — displayed as reference prices during cart review.
+- `getTotalPriceInA()` / `getTotalPriceInB()` compute hypothetical totals at category A and B prices — displayed as reference prices during cart review. A line with no price in that grade counts at its own price; `linesWithoutA()` / `linesWithoutB()` drive the note under the pill (`OFFER_PAGE.CREATE_OFFER.TOTAL_PARTIAL`).
 
 **Layout constraints (`isInOverview` flag):**
 - The root div's `h-100` and `justify-content-evenly` classes are **only applied when `!isInOverview`** (i.e., in the create-offer cart panel). In overview mode these are omitted to prevent the single-child accordion from being vertically centred inside the element, which would create an empty gap above the product list.
@@ -76,6 +76,7 @@ Product cards use `background: rgba(0,0,0,0.15)` with `border-radius: 8px`. Hove
 **Inline stock edit:** the edit icon (48px touch target) reveals one field per grade and a `mat-mini-fab` save button via `@enterAndLeaveAnimation`.
 - Only changed grades are saved (`stockChanges()`), each with the value it had when the edit opened (`editBaseline`). They go through `ProductStore.setStocks()` → `set_stock`, with one toast.
 - On `SA006` ("changed meanwhile") the stock is reloaded, the typed values are dropped and the edit stays open with the new numbers.
+- Before saving, `invalidStockDrafts()` checks the typed values (negative, not a number, or a fraction for a product counted in whole pieces, `countsWholePieces()`). If any is invalid, nothing is sent, the edit stays open and a message names the grade(s) (`STOCK.INVALID` / `STOCK.INVALID_WHOLE`). `set_stock` refuses fractions of pieces too (`SA008`).
 - The fields use `.on-dark-field` and select their content on focus.
 
 **Empty page:** the spinner shows only while `isBusy()`. Otherwise it shows "no products", or a load error (`loadFailed`) with a retry.

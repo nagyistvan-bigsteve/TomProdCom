@@ -29,7 +29,7 @@ Key capabilities:
 
 **Card design (`.detail-card`):**
 - Both the items section and the client/info section render inside white rounded cards (`border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.18)`).
-- **Items card:** each line item uses `.item-row` (flex, `justify-content: space-between`) with `.item-row-divider` (bottom border) between rows. Left: `.item-name-cat` (product name + category as two-line column). Right: `.item-right` (quantity on top, price below, right-aligned). Total appears in `.total-row` at the bottom of the card.
+- **Items card:** each line item uses `.item-row` (flex, `justify-content: space-between`) with `.item-row-divider` (bottom border) between rows. Left: `.item-name-cat` (product name + category as two-line column). Right: `.item-right` (quantity on top, price below, right-aligned). Total appears in `.total-row` at the bottom of the card; when the order has a voucher or a delivery fee, `.subtotal-row`s above it show subtotal, voucher discount and transport. Amounts use the `money` pipe, dates the `appDate` pipe (`@shared/pipes`). Add / edit item refuse a quantity of 0 or less with a toast (`SNACKBAR.PRODUCT.QUANTITY_REQUIRED`).
 - **Client card:** each detail row uses `.info-row` with a small Material icon (`.info-row-icon`, 18px), an optional label chip (`.info-row-label`), and the value (`.info-row-value`). Phone and delivery address rows are `.clickable` (tap-to-call / open-in-maps).
 - **Action buttons:** `.primary-action-btn` (dark red `rgba(95,1,1,…)`, 48px full-width flat) for delivered/transform; `.secondary-action-btn` (white-border stroked, 44px) for the load-into-cart transform.
 
@@ -96,6 +96,7 @@ Sort is chosen via a `mat-menu` dropdown triggered by a sort icon button.
 
 **Delete behavior:**
 - Orders and offers alike → **soft-delete** (sets `deleted_at`); they appear on the Deleted page and can be restored for 10 days.
+- The database decides who may (trigger `orders_guard_deletion`, SPEC.md §21): orders only admins, offers any approved user; restoring only admins. A soft-deleted order releases its stock bookings (`orders_deleted_stock`).
 
 **Text search:** Single `searchFilter` FormControl. Matches client name **or** delivery address (case- and diacritic-insensitive). Previously there were two separate fields (name / address); merged into one unified search.
 
@@ -194,7 +195,7 @@ Both use `OrderTableComponent` with `justOffers` set accordingly.
 ### `deleted-orders/`
 
 Admin-only view of soft-deleted orders **and offers** (each card is titled "Comanda #…" or "Oferta #…"; the restore and permanent-delete dialogs use the matching wording).
-- On load, auto-purges orders and offers where `deleted_at` is more than **10 days** ago (`DAYS_UNTIL_PERMANENT_DELETE = 10`) via `OrdersService.permanentlyDeleteOrder()`.
+- Does **not** purge: the database deletes orders and offers 10 days after `deleted_at` every night (pg_cron `purge-deleted-orders`, `20261124130000_deleted_orders_stock.sql`). The page only shows the countdown (`DAYS_UNTIL_PERMANENT_DELETE = 10`, never below 0).
 - Shows a countdown (`daysUntilDelete`) for each order.
 - Restore: `restoreDeletedOrder()` sets `deleted_at = null`.
 - Permanent delete: `permanentlyDeleteOrder()` hard-deletes the order and its items.
@@ -243,6 +244,7 @@ Persists to `localStorage` with key `product_items_data`.
 
 Key methods:
 - `addProductItem()` — **prepends** new items (newest first in the list).
+- `replaceProductItem(replaced, item)` — duplicate dialog "overwrite". Builds a new array (`replaceCartItem()` in `cart.items.ts`, unit-tested): never write into the array from `productItems()`, the signal would not notice and `cartTotal()` would keep the old total.
 - `updateProductItem(productId, category, updates)` — finds by `(productId + category)` pair.
 - `checkForDuplicatedItems()` — merges exact duplicates by summing quantity and price.
 - `cartTotal()` — computed signal; sums all `item.price`.

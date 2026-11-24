@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, input, Input, ChangeDetectionStrategy } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
+import { AppDatePipe } from '@shared/pipes/app-date.pipe';
 
 @Component({
   selector: 'app-pdf-header',
-  imports: [TranslateModule, CommonModule],
+  imports: [AppDatePipe, TranslateModule, CommonModule],
   templateUrl: './pdf-header.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './pdf-header.component.scss',

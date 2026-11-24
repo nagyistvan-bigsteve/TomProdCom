@@ -16,6 +16,15 @@
 
 begin;
 
+-- rebook_product below must not lose the deleted-orders rule while it is in place
+do $$
+begin
+  if to_regprocedure('private.guard_order_deletion()') is not null then
+    raise exception 'Run deleted_orders_stock_rollback.sql first';
+  end if;
+end;
+$$;
+
 do $$
 declare
   t text;

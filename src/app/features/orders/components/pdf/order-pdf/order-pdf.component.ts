@@ -7,10 +7,12 @@ import { CommonModule } from '@angular/common';
 import { MatDivider } from '@angular/material/divider';
 import { Unit_id } from '@core/models/enums';
 import { ClientStore } from '@features/clients/store/client.store';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
   selector: 'app-order-pdf',
   imports: [
+    MoneyPipe,
     PDFFooterComponent,
     PDFHeaderComponent,
     TranslateModule,

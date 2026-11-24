@@ -74,6 +74,12 @@
 
 .confirm-btn {
   width: 100%;
+  height: 48px;
+  font-weight: 600;
+  border-radius: 8px;
+  // app red, as the cart's add button
+  --mat-button-filled-container-color: rgb(134, 2, 2);
+  --mat-button-filled-label-text-color: white;
 }
 
 .overview-layout {

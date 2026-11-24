@@ -110,8 +110,7 @@
                       matInput
                       type="number"
                       min="0"
-                      inputmode="numeric"
-                      [value]="row.stock.stock"
+                      [attr.inputmode]="wholePieces(card) ? 'numeric' : 'decimal'"                      [value]="row.stock.stock"
                       (focus)="$any($event.target).select()"
                       (input)="setDraft(row.stock.id, $any($event.target).value)"
                     />
@@ -128,6 +127,16 @@
                 <mat-icon>save</mat-icon>
               </button>
             </div>
+            @if (invalidStockIds().length) {
+              <p class="mat-body-small invalid-hint" role="alert">
+                @for (row of card.grades; track row.stock.id) {
+                  @if (invalidStockIds().includes(row.stock.id)) {
+                    {{ "STOCK.GRADE." + row.category | translate }}:
+                  }
+                }
+                {{ (wholePieces(card) ? "STOCK.INVALID_WHOLE" : "STOCK.INVALID") | translate }}
+              </p>
+            }
           }
         </div>
       } @empty {

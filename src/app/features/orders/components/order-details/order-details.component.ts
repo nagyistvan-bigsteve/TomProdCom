@@ -65,10 +65,14 @@ import {
   unitPriceFromLine,
 } from '@features/orders/store/order-details/order-price-rows';
 import { PriceAdjustPanelComponent } from '@features/orders/components/price-adjust-panel/price-adjust-panel.component';
+import { AppDatePipe } from '@shared/pipes/app-date.pipe';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
   selector: 'app-order-details',
   imports: [
+    MoneyPipe,
+    AppDatePipe,
     DecimalInputDirective,
     MatIconModule,
     MatButtonModule,
@@ -332,6 +336,10 @@ export class OrderDetailsComponent implements OnInit {
   addOrderItem(): void {
     const product = this.selectedProduct;
     if (!product) return;
+    if (!(+this.selectedProductQuantity > 0)) {
+      this.showQuantityRequired();
+      return;
+    }
 
     const newUnitPrice = this.customUnitPrice ?? this.findExistingCategories();
 
@@ -421,9 +429,21 @@ export class OrderDetailsComponent implements OnInit {
     this.editingItemId.set(null);
   }
 
+  private showQuantityRequired(): void {
+    this.snackBar.open(
+      this.translateService.instant('SNACKBAR.PRODUCT.QUANTITY_REQUIRED'),
+      this.translateService.instant('SNACKBAR.BUTTONS.CLOSE'),
+      { duration: 4500, panelClass: 'danger-snackbar' },
+    );
+  }
+
   saveEditItem(item: OrderItemsResponse): void {
     const newCategory = this.editingItemCategory;
     const newQuantity = this.editingItemQuantity;
+    if (!(+newQuantity > 0)) {
+      this.showQuantityRequired();
+      return;
+    }
 
     const prices = computePricesForProduct(
       item.product.id,

@@ -61,7 +61,7 @@
         <a class="shipment-card" [routerLink]="['/shipments', card.shipment.id]">
           <span class="card-row">
             <span class="mat-title-medium card-name">{{ card.shipment.name }}</span>
-            <span class="mat-body-medium on-dark-secondary">{{ card.shipment.arrived_on | date: "yyyy.MM.dd" }}</span>
+            <span class="mat-body-medium on-dark-secondary">{{ card.shipment.arrived_on | appDate }}</span>
           </span>
           <span class="card-row mat-body-medium">
             <span>

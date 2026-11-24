@@ -2,6 +2,8 @@
   class="d-flex flex-column justify-content-center align-items-center w-100 my-2"
 >
   @if(products) {
+  <!-- one block so both filter rows start at the same left edge -->
+  <div class="filter-group">
   <div>
     <div>
       {{ "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_LABEL" | translate }}
@@ -47,6 +49,7 @@
       >
       }
     </mat-chip-listbox>
+  </div>
   </div>
 
   <form class="product-select w-100 mt-3">

@@ -40,13 +40,13 @@
             <div class="detail-row">
               <mat-icon class="detail-icon">calendar_today</mat-icon>
               <span class="detail-label">{{ "DELETED_ORDERS.CREATED" | translate }}:</span>
-              <span class="detail-value">{{ order.dateOrderPlaced | date: "dd/MM/yyyy" }}</span>
+              <span class="detail-value">{{ order.dateOrderPlaced | appDate }}</span>
             </div>
             @if (order.dateOrderDelivered) {
               <div class="detail-row">
                 <mat-icon class="detail-icon">local_shipping</mat-icon>
                 <span class="detail-label">{{ "DELETED_ORDERS.DELIVERED" | translate }}:</span>
-                <span class="detail-value">{{ order.dateOrderDelivered | date: "dd/MM/yyyy" }}</span>
+                <span class="detail-value">{{ order.dateOrderDelivered | appDate }}</span>
               </div>
             }
             <div class="detail-row price-row">
