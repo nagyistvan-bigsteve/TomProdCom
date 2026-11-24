@@ -13,6 +13,7 @@ import { FilterUtil } from '@shared/utils/filter.util';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatChipListboxChange, MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
@@ -26,6 +27,7 @@ import {
   countsWholePieces,
   hasVolume,
   isGradable,
+  formatM3Input,
   m3InputAllowed,
   parseM3,
   piecesFromM3,
@@ -65,6 +67,7 @@ export type ProductStockCard = {
     TranslateModule,
     CommonModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatIconModule,
     MatInputModule,
     MatChipsModule,
@@ -166,15 +169,30 @@ export class ProductsComponent {
   }
 
   /** Switches the edit fields between pieces and m³; typed values are dropped. */
-  toggleM3(): void {
-    this.editInM3.update((v) => !v);
+  setEditInM3(inM3: boolean): void {
+    if (inM3 === this.editInM3()) return;
+    this.editInM3.set(inM3);
     this.draft.set({});
     this.invalidStockIds.set([]);
   }
 
-  /** Value shown in an edit field: the stock, in m³ when typing in m³. */
-  editValue(row: GradeRow): number {
-    return this.editInM3() && row.m3 !== null ? +row.m3.toFixed(3) : row.stock.stock;
+  /**
+   * Value shown in an m³ edit field: the stock in m³ with a decimal comma
+   * (RO/HU read "6.997" as six thousand). `parseM3` reads it back.
+   */
+  editValue(row: GradeRow): string {
+    return row.m3 !== null ? formatM3Input(row.m3) : String(row.stock.stock);
+  }
+
+  /**
+   * Pieces an m³ field stands for: what was typed, or the stock while the
+   * field is untouched; `null` when the typed value is not valid. Wrapped so
+   * 0 pieces still shows.
+   */
+  editPieces(row: GradeRow): { value: number } | null {
+    const typed = this.draft()[row.stock.id];
+    const value = typed === undefined ? row.stock.stock : typed;
+    return Number.isFinite(value) && value >= 0 ? { value } : null;
   }
 
   /** Reloads products and stock after a failed load. */

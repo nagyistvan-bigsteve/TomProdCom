@@ -127,6 +127,7 @@
                   (click)="toggleM3(line)"
                   [attr.aria-label]="'STOCK.SWITCH_UNIT' | translate"
                 >
+                  <mat-icon>swap_horiz</mat-icon>
                   {{ (isM3(line) ? "SHIPMENTS.PIECES" : "WORDS.M3") | translate }}
                 </button>
               }

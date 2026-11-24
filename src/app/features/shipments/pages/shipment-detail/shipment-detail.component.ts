@@ -27,6 +27,7 @@ import { FilterUtil } from '@shared/utils/filter.util';
 import { NotificationService } from '@shared/utils/notification.service';
 import { pieceVolumeM3 } from '@shared/utils/product.util';
 import {
+  formatM3Input,
   isGradable,
   m3InputAllowed,
   parseM3,
@@ -371,7 +372,7 @@ export class ShipmentDetailComponent {
       return;
     }
     const valid = line.quantity > 0 && Number.isInteger(line.quantity);
-    const text = valid ? String(+this.lineM3(line).toFixed(3)) : '';
+    const text = valid ? formatM3Input(this.lineM3(line)) : '';
     if (!valid) this.updateLine(line.key, { quantity: 0 });
     this.m3Text.update((t) => ({ ...t, [line.key]: text }));
   }

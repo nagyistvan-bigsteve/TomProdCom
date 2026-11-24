@@ -111,7 +111,7 @@ describe('ShipmentDetailComponent (new truck)', () => {
     expect(component.canTypeM3(line())).toBe(true);
 
     component.toggleM3(line());
-    expect(component.m3Text()[key]).toBe('0.045'); // the 1 piece picked so far
+    expect(component.m3Text()[key]).toBe('0,045'); // the 1 piece picked so far
     component.setM3(key, '4'); // 88.9 pieces of 0.045 m³
     expect(line().quantity).toBe(89);
     expect(component.lineM3(line())).toBeCloseTo(4.005, 6);

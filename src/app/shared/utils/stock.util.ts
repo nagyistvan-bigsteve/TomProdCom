@@ -173,6 +173,15 @@ export function parseM3(text: string): number {
   return value === '' ? NaN : Number(value);
 }
 
+/**
+ * m³ as the text of an input: at most 3 decimals and a decimal comma, the
+ * way RO and HU write it ("6.997" would read as six thousand). `parseM3`
+ * reads it back.
+ */
+export function formatM3Input(m3: number): string {
+  return String(+m3.toFixed(3)).replace('.', ',');
+}
+
 const productUtil = new ProductUtil();
 
 /**

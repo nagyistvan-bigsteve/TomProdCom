@@ -8,6 +8,7 @@ import {
   hasVolume,
   isGradable,
   m3InputAllowed,
+  formatM3Input,
   parseM3,
   piecesFromM3,
   shipmentTotalM3,
@@ -308,5 +309,15 @@ describe('parseM3', () => {
   it('is NaN for empty or non-numeric text', () => {
     expect(parseM3('')).toBeNaN();
     expect(parseM3('abc')).toBeNaN();
+  });
+});
+
+describe('formatM3Input', () => {
+  it('writes at most 3 decimals with a decimal comma, and parseM3 reads it back', () => {
+    expect(formatM3Input(6.9976)).toBe('6,998');
+    expect(formatM3Input(7499.9926)).toBe('7499,993');
+    expect(formatM3Input(0.9)).toBe('0,9');
+    expect(formatM3Input(4)).toBe('4');
+    expect(parseM3(formatM3Input(0.405))).toBe(0.405);
   });
 });

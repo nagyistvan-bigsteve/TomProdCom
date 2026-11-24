@@ -144,8 +144,8 @@ describe('ProductsComponent', () => {
     // 7.5×15×400 = 0.045 m³ a piece
     const card = component.cards()[0];
     component.toggleEdit(card);
-    component.toggleM3();
-    expect(component.editValue(card.grades[1])).toBe(0.405); // B: 9 pieces
+    component.setEditInM3(true);
+    expect(component.editValue(card.grades[1])).toBe('0,405'); // B: 9 pieces
     component.setDraft(card, 12, '1'); // 22.2 pieces
     await component.saveEdit(card);
 
@@ -156,7 +156,7 @@ describe('ProductsComponent', () => {
     const card = component.cards()[0];
     component.toggleEdit(card);
     component.setDraft(card, 12, '7');
-    component.toggleM3();
+    component.setEditInM3(true);
     expect(component.draft()).toEqual({});
 
     component.toggleEdit(card); // close
@@ -167,7 +167,7 @@ describe('ProductsComponent', () => {
   it('refuses a negative m³ without sending anything', async () => {
     const card = component.cards()[0];
     component.toggleEdit(card);
-    component.toggleM3();
+    component.setEditInM3(true);
     component.setDraft(card, 12, '-1');
     await component.saveEdit(card);
 
@@ -178,7 +178,7 @@ describe('ProductsComponent', () => {
   it('accepts a decimal comma and refuses m³ that rounds to 0 pieces instead of wiping the stock', async () => {
     const card = component.cards()[0];
     component.toggleEdit(card);
-    component.toggleM3();
+    component.setEditInM3(true);
     component.setDraft(card, 11, '0,9'); // A: 20 pieces
     component.setDraft(card, 12, '0.02'); // B: 0.44 piece
     await component.saveEdit(card);
@@ -200,9 +200,9 @@ describe('ProductsComponent', () => {
     fixture.detectChanges();
     const input = () => fixture.nativeElement.querySelector('.stock-edit-field input') as HTMLInputElement;
     input().value = '7';
-    component.toggleM3();
+    component.setEditInM3(true);
     fixture.detectChanges();
-    expect(input().value).toBe('0.9');
+    expect(input().value).toBe('0,9');
   });
 
   it('offers the unit switch only for products counted in pieces with dimensions', () => {
