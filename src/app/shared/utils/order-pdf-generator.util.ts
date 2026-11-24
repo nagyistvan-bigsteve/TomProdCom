@@ -180,7 +180,11 @@ export class OrderPdfGeneratorUtil {
         navigator.userAgent,
       );
 
-      if (isIOS || isSafari) {
+      if (navigator.pdfViewerEnabled === false) {
+        // No built-in PDF viewer (e.g. Chrome on Android): the iframe would only
+        // download the blob under its random UUID name, so save it with a real one
+        pdf.save(pdfFileName(order, justOffers));
+      } else if (isIOS || isSafari) {
         // For iOS/Safari: Use native share/print
         this.printPDFiOS(pdf, justOffers, order);
       } else {

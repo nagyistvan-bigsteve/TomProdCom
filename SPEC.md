@@ -368,7 +368,7 @@ A customer is either `PF` (persoană fizică — individual) or `PJ` (persoană 
 | `type`          | `ClientType`   | PF or PJ                                 |
 | `name`          | string         | Required; must be non-empty              |
 | `address`       | string \| null | Billing / main address                   |
-| `code`          | string \| null | Company registration or tax code; unique |
+| `code`          | string \| null | Company registration or tax code; unique. A Romanian PJ's CUI (2–10 digits, optional `RO`) must have a valid check digit (key 753217532; `isValidCui()` in `@core/guards/cuiValidator`) |
 | `other_details` | string \| null | Free-form extra information              |
 | `tva`           | boolean        | Reverse-charge VAT flag (see below)      |
 | `client_phones` | array          | One or more phone numbers with labels    |
@@ -838,7 +838,11 @@ A user can:
 - print order details;
 - mark the order as delivered.
 
-The items card ends with the amount to pay (`total_amount_final + delivery_fee`). When a voucher or a delivery fee is set, it shows the subtotal (`total_amount`), the voucher discount and the transport above it, so the lines add up to the total.
+The items card ends with the amount to pay (`total_amount_final + delivery_fee`). When a voucher or a delivery fee is set, it shows the subtotal (`total_amount`), the voucher discount and the transport above it, so the lines add up to the total. When something has been paid (`paid_amount`), the paid amount and the remainder follow the total.
+
+Adding, editing and deleting a product save at once and confirm with a toast; deleting asks first. Saving an order or offer, recording a payment, deleting, restoring and permanently deleting also confirm with a toast.
+
+The offers table shows the expected delivery date in its "Expected delivery" column, like the orders table; the creation date is in the expanded row.
 
 Editing a product keeps its current unit price when only the quantity changes (except M2 products), so a price set by hand is not lost. Changing the category re-prices the item from the price list.
 
@@ -1333,6 +1337,7 @@ When a truck arrives, nobody knows yet how much of it is A and how much B, but t
 1. **Draft** (`/shipments/new`): date of arrival, truck / supplier name, comment, and lines (product + pieces; M2 products are not allowed). The page shows the total m³ (M3 and bundle products only, as on the products page) so it can be checked against the delivery papers. A draft can be edited and deleted (`save_shipment`, `delete_shipment`).
    - A line's quantity can also be typed in **m³** (pcs / m³ switch in the field) for M3 and bundle products counted in pieces whose dimensions are known. The m³ is converted to the nearest whole number of pieces (bundles: one bundle = 10 boards' volume), and the field shows the pieces and the m³ they really are, e.g. 4 m³ of 7.5×15×400 → 89 pcs = 4.005 m³. Only the pieces are saved; m³ that rounds to 0 pieces is refused. Rule: `piecesFromM3()` / `m3InputAllowed()` in `@shared/utils/stock.util`.
    - The page says what still stops a save (name, date, a line, a valid quantity).
+   - After a save the lines stay in the order they were typed, although the database returns them by product (`inScreenOrder()` in `shipment.util`), so "line 1" is still the same board when the papers are checked again.
    - Leaving a draft with unsaved changes asks first. An unsaved **new** truck is also kept on the device (localStorage) and offered back after a reload, e.g. the forced reload after a deploy.
    - **Two people editing one draft:** each save sends the draft's version (`shipments.updated_at`). If someone else saved it meanwhile, the save is refused (`SA007`) instead of the last writer silently winning. The page asks: load the other version (the user's unsaved edits are dropped), or keep their own edits, in which case the next save replaces the other version. A reload never replaces unsaved edits on its own.
 2. **Validate** (`validate_shipment`): the draft becomes `validated` and every line's pieces are added to the product's AB stock, in one transaction. A shipment can be validated only once and is read-only afterwards. It is refused (`SA002`) if a line's product has become M2 since the draft was saved.

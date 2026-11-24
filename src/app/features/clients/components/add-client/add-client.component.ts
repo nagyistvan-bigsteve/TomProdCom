@@ -1,4 +1,5 @@
-﻿import { Component, effect, inject, Input, signal, ChangeDetectionStrategy } from '@angular/core';
+﻿import { Component, DestroyRef, effect, inject, Input, signal, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormArray,
   FormControl,
@@ -60,6 +61,7 @@ export class AddClientComponent {
 
   readonly clientStore = inject(ClientStore);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   private phoneIdCounter = 0;
 
@@ -154,9 +156,12 @@ export class AddClientComponent {
   }
 
   private setupTypeValidation(): void {
-    this.clientForm.get('type')?.valueChanges.subscribe((typeValue) => {
-      this.setTypeValidation(typeValue);
-    });
+    this.clientForm
+      .get('type')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((typeValue) => {
+        this.setTypeValidation(typeValue);
+      });
   }
 
   private setTypeValidation(clientType: ClientType): void {

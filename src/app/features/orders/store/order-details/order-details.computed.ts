@@ -56,7 +56,11 @@ export function itemVolumeM3(item: OrderItemForTotals): number {
   return item.product.unit_id === Unit_id.BOUNDLE ? rounded * 10 : rounded;
 }
 
-/** Order totals for a list of line items and the order's voucher. */
+/**
+ * Order totals for a list of line items and the order's voucher. The m³ total
+ * leaves out M2 and BUC items, as the cart does (`calculateTotalQuantity`,
+ * SPEC.md §10.5), so an order keeps its m³ when it is edited.
+ */
 export function orderTotals(
   items: OrderItemForTotals[],
   voucher: string | null | undefined,
@@ -66,7 +70,8 @@ export function orderTotals(
 
   items.forEach((item) => {
     totalAmount += item.price;
-    totalQuantity += item.product.unit_id !== Unit_id.M2 ? itemVolumeM3(item) : 0;
+    const unit = item.product.unit_id;
+    totalQuantity += unit !== Unit_id.M2 && unit !== Unit_id.BUC ? itemVolumeM3(item) : 0;
   });
 
   return {

@@ -176,6 +176,11 @@
   color: rgba(0, 0, 0, 0.6);
 }
 
+.remaining-row {
+  font-weight: 600;
+  color: rgba(0, 0, 0, 0.87);
+}
+
 .total-row {
   display: flex;
   justify-content: space-between;
@@ -334,9 +339,14 @@
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
 
+  // Wraps instead of the card's ellipsis: the dimensions and the grade at the
+  // end of the name tell two boards apart next to buttons that save at once
   .item-name {
     flex: 1;
     min-width: 0;
+    white-space: normal;
+    overflow: visible;
+    overflow-wrap: anywhere;
   }
 
   .item-actions {

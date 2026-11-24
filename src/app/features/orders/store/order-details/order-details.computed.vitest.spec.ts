@@ -111,6 +111,18 @@ describe('orderTotals', () => {
     });
   });
 
+  it('skips BUC items, as the cart does', () => {
+    const withPieces = [
+      ...items,
+      makeItem({
+        price: 900,
+        quantity: 18,
+        product: { unit_id: Unit_id.BUC, width: 10, thickness: 12, length: 300 },
+      }),
+    ];
+    expect(orderTotals(withPieces, '').totalQuantity).toBe(0.15);
+  });
+
   it('is zero for an order without items', () => {
     expect(orderTotals([], '200')).toEqual({
       totalAmount: 0,

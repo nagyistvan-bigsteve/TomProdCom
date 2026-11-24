@@ -285,7 +285,10 @@
         "EMPTY": "Nu există produse cu preț modificabil aici.",
         "CANCEL_BUTTON": "Înapoi",
         "SAVE_BUTTON": "Salvează"
-      }
+      },
+      "PAID": "Plătit în avans",
+      "REMAINING": "Rest de plată",
+      "DELETE_ITEM_MESSAGE": "Ștergi {{product}} din listă?"
     },
     "TABLE": {
       "FILTER": {
@@ -354,7 +357,17 @@
       "OK": "OK"
     },
     "ORDER": {
-      "UPDATE_SUCCESS": "Update cu succes!"
+      "UPDATE_SUCCESS": "Update cu succes!",
+      "ORDER_SAVED": "Comanda a fost salvată!",
+      "OFFER_SAVED": "Oferta a fost salvată!",
+      "PAID": "Plata a fost înregistrată!",
+      "ORDER_DELETED": "Comanda a fost mutată la Șterse.",
+      "OFFER_DELETED": "Oferta a fost mutată la Șterse.",
+      "ORDER_RESTORED": "Comanda a fost restaurată!",
+      "OFFER_RESTORED": "Oferta a fost restaurată!",
+      "PERMANENTLY_DELETED": "Ștearsă definitiv.",
+      "ITEM_SAVED": "Produsul a fost salvat!",
+      "ITEM_DELETED": "Produsul a fost șters!"
     },
     "GENERAL": {
       "UPDATE_ERROR": "Problemă la updatare",
@@ -488,6 +501,7 @@
   "RESTORE_DIALOG": {
     "TITLE": "Restaurezi sesiunea anterioară?",
     "MESSAGE": "Aveți date nesalvate dintr-o sesiune anterioară care sunt mai vechi de 10 minute.",
+    "MESSAGE_SHIPMENT": "Ai un camion nou nesalvat dintr-o sesiune anterioară.",
     "LAST_UPDATED": "Ultima actualizare",
     "DISCARD": "Renunță",
     "KEEP": "Păstrează datele"

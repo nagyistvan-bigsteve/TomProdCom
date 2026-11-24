@@ -49,6 +49,7 @@ import { OrderStore } from '@features/orders/store/order/order.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 import { AppDatePipe } from '@shared/pipes/app-date.pipe';
 import { MoneyPipe } from '@shared/pipes/money.pipe';
+import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-order-table',
@@ -93,6 +94,7 @@ export class OrderTableComponent implements OnInit {
   readonly store = inject(OrderStore);
   private readonly destroyRef = inject(DestroyRef);
   private _dialog = inject(MatDialog);
+  private readonly notification = inject(NotificationService);
 
   readonly dateRange = new FormGroup({
     start: new FormControl<Date | null>(null),
@@ -105,7 +107,7 @@ export class OrderTableComponent implements OnInit {
   displayedColumns: string[] = [
     'CLIENT',
     'DELIVERY_PLACE',
-    this.justOffers ? 'OFFER_PLACED' : 'EXPECTED_DELIVERY',
+    'EXPECTED_DELIVERY',
     'QUANTITY',
     'TOTAL_AMOUND_FINAL',
   ];
@@ -150,7 +152,11 @@ export class OrderTableComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result === true && this.paidAmount) {
-          this.store.pay(orderId, this.paidAmount + alreadyPaidAmount);
+          this.store
+            .pay(orderId, this.paidAmount + alreadyPaidAmount)
+            .then((paid) => {
+              if (paid) this.notification.success('SNACKBAR.ORDER.PAID');
+            });
         }
       });
   }
@@ -181,7 +187,15 @@ export class OrderTableComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result === true) {
-          this.store.delete(order.id);
+          this.store.delete(order.id).then((deleted) => {
+            if (deleted) {
+              this.notification.success(
+                this.justOffers
+                  ? 'SNACKBAR.ORDER.OFFER_DELETED'
+                  : 'SNACKBAR.ORDER.ORDER_DELETED',
+              );
+            }
+          });
         }
       });
   }

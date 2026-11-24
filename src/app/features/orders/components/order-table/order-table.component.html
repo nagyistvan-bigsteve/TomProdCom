@@ -136,49 +136,45 @@
       </td>
     </ng-container>
 
-    <!-- Expected Delivery / Offer Placed Column -->
+    <!-- Expected Delivery Column (orders and offers; the creation date is in the expanded row) -->
     <ng-container matColumnDef="EXPECTED_DELIVERY">
       <th mat-header-cell *matHeaderCellDef class="date-header">
         {{ "ORDER.TABLE.CONTENT.EXPECTED_DELIVERY" | translate }}
       </th>
       <td mat-cell *matCellDef="let order" class="date-cell">
-        @if (!justOffers) {
-          @if (order.untilDeliveryDate) {
-            <div
-              [matTooltip]="
-                'ORDER.TABLE.CONTENT.EXPECTED_DELIVERY_TOOLTIP'
-                  | translate: { date: order.expectedDelivery | appDate: 'short' }
-              "
-              class="delivery-badge until-delivery"
-              [class.in-past]="
-                !isExpectedDeliveryInFuture(
-                  order.expectedDelivery,
-                  order.dateOrderDelivered
-                )
-              "
-            >
-              {{ order.expectedDelivery | appDate: "short" }}
-              <span class="until-star">*</span>
-            </div>
-          } @else {
-            <div
-              [class.in-past]="
-                !isExpectedDeliveryInFuture(
-                  order.expectedDelivery,
-                  order.dateOrderDelivered
-                )
-              "
-            >
-              {{ order.expectedDelivery | appDate: "short" }}
-            </div>
-          }
-          @if (order.forFirstHour) {
-            <div class="first-hour-tag">
-              {{ "ORDER.TABLE.CONTENT.FIRST_HOUR" | translate }}
-            </div>
-          }
+        @if (order.untilDeliveryDate) {
+          <div
+            [matTooltip]="
+              'ORDER.TABLE.CONTENT.EXPECTED_DELIVERY_TOOLTIP'
+                | translate: { date: order.expectedDelivery | appDate: 'short' }
+            "
+            class="delivery-badge until-delivery"
+            [class.in-past]="
+              !isExpectedDeliveryInFuture(
+                order.expectedDelivery,
+                order.dateOrderDelivered
+              )
+            "
+          >
+            {{ order.expectedDelivery | appDate: "short" }}
+            <span class="until-star">*</span>
+          </div>
         } @else {
-          {{ order.dateOrderPlaced | appDate: "short" }}
+          <div
+            [class.in-past]="
+              !isExpectedDeliveryInFuture(
+                order.expectedDelivery,
+                order.dateOrderDelivered
+              )
+            "
+          >
+            {{ order.expectedDelivery | appDate: "short" }}
+          </div>
+        }
+        @if (order.forFirstHour) {
+          <div class="first-hour-tag">
+            {{ "ORDER.TABLE.CONTENT.FIRST_HOUR" | translate }}
+          </div>
         }
       </td>
     </ng-container>

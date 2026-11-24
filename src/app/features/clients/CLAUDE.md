@@ -13,7 +13,7 @@ Used both as a standalone page section and as an embedded form in the offer work
 - Form groups: `name`, `type` (PF/PJ), `address`, `code`, `other_details`, plus a `phones` FormArray.
 - Validation:
   - PF clients: `code` must be exactly 13 digits.
-  - PJ clients: `code` must pass `cuiValidator()` (Romanian CUI format), unless the "foreign client" mode is enabled.
+  - PJ clients: `code` must pass `cuiValidator()` (Romanian CUI format and check digit), unless the "foreign client" mode is enabled.
   - Phone: pattern allows international formats.
   - `code` must be unique (validated async via `uniqueClientCodeValidator()`).
 - When `clientStore.isClientSelected()` is true on init, the form pre-fills with the selected client's data (edit mode).

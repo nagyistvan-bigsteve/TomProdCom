@@ -45,6 +45,8 @@ import {
 import { ClientStore } from '@features/clients/store/client.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 import { PriceAdjustPanelComponent } from '@features/orders/components/price-adjust-panel/price-adjust-panel.component';
+import { appendCommentLine } from './offer-comment.util';
+import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-offer-overview',
@@ -84,6 +86,7 @@ export class OfferOverviewPageComponent {
   readonly cartStore = inject(CartStore);
   readonly clientStore = inject(ClientStore);
   readonly authStore = inject(useAuthStore);
+  private readonly notification = inject(NotificationService);
   private readonly productUtil = inject(ProductUtil);
   private router = inject(Router);
   private ordersService = inject(OrdersService);
@@ -292,13 +295,17 @@ export class OfferOverviewPageComponent {
         let orderComment = this.comment;
 
         if (this.deliveryFee) {
-          orderComment += 'Transport: ' + this.deliveryFee + 'RON' + '\n';
+          orderComment = appendCommentLine(
+            orderComment,
+            'Transport: ' + this.deliveryFee + ' RON',
+          );
         }
 
         if (this.transferPayment) {
-          orderComment +=
-            this.translate.instant('OVERVIEW_PAGE.POPUP.TRANSFER_PAYMENT') +
-            '\n';
+          orderComment = appendCommentLine(
+            orderComment,
+            this.translate.instant('OVERVIEW_PAGE.POPUP.TRANSFER_PAYMENT'),
+          );
         }
 
         if (result === true) {
@@ -334,6 +341,11 @@ export class OfferOverviewPageComponent {
               this.comment = '';
               this.deliveryFee = 0;
 
+              this.notification.success(
+                this.justOffer
+                  ? 'SNACKBAR.ORDER.OFFER_SAVED'
+                  : 'SNACKBAR.ORDER.ORDER_SAVED',
+              );
               this.router.navigate([this.justOffer ? '/offers' : '/orders']);
             });
         } else {

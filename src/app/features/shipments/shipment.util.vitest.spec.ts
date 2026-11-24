@@ -5,6 +5,7 @@ import {
   DraftLine,
   draftFingerprint,
   filterShipmentCards,
+  inScreenOrder,
   invalidLines,
   missingForSave,
   parseDraftBackup,
@@ -56,6 +57,32 @@ describe('toShipmentItems', () => {
   it('skips zero, negative and fractional quantities', () => {
     expect(toShipmentItems([line(1, product(1), 0), line(2, product(2), -3), line(3, product(3), 1.5)])).toEqual([]);
     expect(invalidLines([line(1, product(1), 0), line(2, null, 0), line(3, product(3), 2)]).map((l) => l.key)).toEqual([1]);
+  });
+});
+
+describe('inScreenOrder', () => {
+  it('puts the saved lines back in the order typed on screen', () => {
+    const saved = [
+      { product_id: 1, quantity: 25 },
+      { product_id: 2, quantity: 20 },
+    ];
+    const screen = [line(1, product(2), 20), line(2, product(1), 25), line(3, null, 0)];
+    expect(inScreenOrder(saved, screen).map((i) => i.product_id)).toEqual([2, 1]);
+  });
+
+  it('keeps products not on screen last, in their saved order', () => {
+    const saved = [
+      { product_id: 3, quantity: 1 },
+      { product_id: 1, quantity: 2 },
+      { product_id: 4, quantity: 3 },
+    ];
+    expect(inScreenOrder(saved, [line(1, product(1), 2)]).map((i) => i.product_id)).toEqual([
+      1, 3, 4,
+    ]);
+  });
+
+  it('returns an empty list for no saved lines', () => {
+    expect(inScreenOrder([], [line(1, product(1), 2)])).toEqual([]);
   });
 });
 

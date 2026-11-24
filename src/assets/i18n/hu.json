@@ -285,7 +285,10 @@
         "EMPTY": "Nincs olyan tétel, aminek az árát itt módosítani lehet.",
         "CANCEL_BUTTON": "Mégse",
         "SAVE_BUTTON": "Mentés"
-      }
+      },
+      "PAID": "Előre kifizetve",
+      "REMAINING": "Fizetendő",
+      "DELETE_ITEM_MESSAGE": "Törlöd a(z) {{product}} tételt a listából?"
     },
     "TABLE": {
       "FILTER": {
@@ -354,7 +357,17 @@
       "OK": "OK"
     },
     "ORDER": {
-      "UPDATE_SUCCESS": "Sikeresen frissítve!"
+      "UPDATE_SUCCESS": "Sikeresen frissítve!",
+      "ORDER_SAVED": "A rendelés elmentve!",
+      "OFFER_SAVED": "Az ajánlat elmentve!",
+      "PAID": "A fizetés rögzítve!",
+      "ORDER_DELETED": "A rendelés a Töröltek közé került.",
+      "OFFER_DELETED": "Az ajánlat a Töröltek közé került.",
+      "ORDER_RESTORED": "A rendelés visszaállítva!",
+      "OFFER_RESTORED": "Az ajánlat visszaállítva!",
+      "PERMANENTLY_DELETED": "Véglegesen törölve.",
+      "ITEM_SAVED": "A termék elmentve!",
+      "ITEM_DELETED": "A termék törölve!"
     },
     "GENERAL": {
       "UPDATE_ERROR": "Hiba szerkesztéskor",
@@ -488,6 +501,7 @@
   "RESTORE_DIALOG": {
     "TITLE": "Visszaállítod az előző munkamenetet?",
     "MESSAGE": "Az előző munkamenetből származó mentetlen ajánlat adatok több mint 10 percesek.",
+    "MESSAGE_SHIPMENT": "Egy korábbi munkamenetből van egy mentetlen új kamionod.",
     "LAST_UPDATED": "Utoljára frissítve",
     "DISCARD": "Elvetés",
     "KEEP": "Adatok megtartása"

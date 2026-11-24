@@ -23,6 +23,23 @@ export function toShipmentItems(
   return [...byProduct].map(([product_id, quantity]) => ({ product_id, quantity }));
 }
 
+/**
+ * Saved lines in the order they had on screen: the database returns them by
+ * product, so after a save line 1 would otherwise become another product.
+ * Products not on screen go last, in their saved order.
+ */
+export function inScreenOrder<T extends { product_id: number }>(
+  items: T[],
+  lines: DraftLine[],
+): T[] {
+  const position = new Map<number, number>();
+  lines.forEach((line, i) => {
+    if (line.product && !position.has(line.product.id)) position.set(line.product.id, i);
+  });
+  const rank = (item: T) => position.get(item.product_id) ?? Number.MAX_SAFE_INTEGER;
+  return [...items].sort((a, b) => rank(a) - rank(b));
+}
+
 /** Lines with a product but an invalid quantity (0, negative, fractional). */
 export function invalidLines(lines: DraftLine[]): DraftLine[] {
   return lines.filter(

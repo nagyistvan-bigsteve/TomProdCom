@@ -41,8 +41,9 @@
     border-color: rgba(255, 255, 255, 0.2);
   }
 
+  // basis follows the label, so a long label ("pentru astăzi") gets more room
   ::ng-deep .mat-button-toggle {
-    flex: 1;
+    flex: 1 1 auto;
     font-size: 0.8125rem;
     color: rgba(255, 255, 255, 0.7);
     border-color: rgba(255, 255, 255, 0.2) !important;
@@ -55,7 +56,15 @@
   }
 
   ::ng-deep .mat-button-toggle-button {
-    height: 36px;
+    height: 100%;
+    min-height: 36px;
+  }
+
+  // on a small phone a label wraps onto two lines instead of being cut off
+  ::ng-deep .mat-button-toggle-label-content {
+    padding: 0 var(--space-2);
+    white-space: normal;
+    line-height: 1.15;
   }
 }
 

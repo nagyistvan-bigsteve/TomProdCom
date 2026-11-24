@@ -41,7 +41,7 @@ The global `mat.icon-overrides(color: white)` in `styles.scss` makes all icons w
 **Edit dialog:**
 - Opens with `maxHeight: '95vh'` to prevent overflow on small screens. The `mat-dialog-content` uses `max-height: calc(90vh - 130px)` via `::ng-deep` to bound the scrollable area while leaving room for the title bar and action row.
 - Edits `orderComment` (comment) and `orderVoucher` (discount code/amount, e.g. `10%` or `500`).
-- **Item list** (`.edit-order-popup-list`): each row shows `[name–category] [qty] [edit] [delete(red)]`. Edit and delete save immediately to the DB — they do not wait for the dialog's Save button.
+- **Item list** (`.edit-order-popup-list`): each row shows `[name–category] [qty] [edit] [delete(red)]`. Edit and delete save immediately to the DB — they do not wait for the dialog's Save button. Delete asks first (`ConfirmDeleteDialogComponent` with `messageParams`); add / edit / delete confirm with a toast. The name wraps (`overflow-wrap: anywhere`) instead of the card's ellipsis, so the dimensions and grade at its end stay visible on phones.
 - **Inline item editing:** clicking the pencil button opens `.item-inline-edit` (dark panel, same background as add form) replacing that row. Shows category chips (populated from `computePricesForProduct` — does NOT mutate `selectedProductId` in the store) and a quantity input. ✓ saves via `saveEditItem()`, ✗ cancels. Opening inline edit closes the add form if it was open.
   - `saveEditItem()`: looks up the unit price for the new category from the price table (applying TVA and B-2.5cm adjustments), calls `productUtil.calculatePrice()` using the full product from `catalogStore.productsEntityMap()` (because `OrderItemsResponse.product` is a partial type missing `m2_brut` etc.), then calls `detailsStore.updateItem()`, which saves the item and the new order totals in one transaction.
 - **Add product form**: hidden by default, revealed by the "Termék hozzáadása" / "Adaugă produs" toggle button (`showAddForm` signal). Same chip + autocomplete + quantity form as before.
@@ -183,7 +183,7 @@ Key features:
 - A typed general-row price keeps the 2.5 cm B −50 per item (`unitPriceForTypedRow` in `@shared/utils/product.util`); a product-row price is used as is — the same rule as the order-details price dialog.
 - Manual discount: `setFinalPrice(index, finalPrice)` stores the difference as `discount` on the price row; this discount is applied back in `SelectedProductListComponent.getExactPrice()`.
 - TVA auto-comment: if `client.tva = true`, prepends `"Taxare inversa - fără TVA\n"` to the comment.
-- Delivery fee appended to comment as `"Transport: N RON\n"`.
+- Delivery fee appended to comment as `"Transport: N RON\n"` on its own line (`appendCommentLine()` in `offer-comment.util.ts`).
 - On confirm: calls `OrdersService.placeOrder()`, clears cart, resets client, navigates to `/orders` (order) or `/offers` (offer).
 
 **`justOffer` flag:** controls whether the saved record is an offer (`just_offer=true`) or order (`just_offer=false`). Set by toggling the "just offer" checkbox before confirming.
@@ -280,7 +280,7 @@ Default: `tableSortType='delivery'`, `tableFilterType='open'`, `justOffers=false
 
 Provided by `OrderDetailsComponent` (not root): each opened order gets its own instance.
 
-- `order-details.computed.ts` — pure, unit-tested: `applyVoucher(amount, voucher)`, `itemVolumeM3(item)` (how order details counts an item's m³: M2 items with a pack breakdown 0, items without width their quantity, bundles ×10, rounded to 3 decimals per item), `orderTotals(items, voucher)`.
+- `order-details.computed.ts` — pure, unit-tested: `applyVoucher(amount, voucher)`, `itemVolumeM3(item)` (how order details counts an item's m³: M2 items with a pack breakdown 0, items without width their quantity, bundles ×10, rounded to 3 decimals per item), `orderTotals(items, voucher)` (its m³ total leaves out M2 and BUC items, like the cart's `calculateTotalQuantity`, SPEC §10.5).
 - `order-details.store.ts` — state `{ order, items }`:
   - `load(orderId)` — order and items together.
   - `addItem` / `updateItem` / `updatePrices` / `deleteItem` — compute the totals for the item list **after** the change, save item + totals in one database call, then update the order and reload the items. No timers.

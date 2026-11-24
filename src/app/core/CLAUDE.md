@@ -8,7 +8,7 @@ Route guards. `auth-guard.service.ts` enforces three access levels:
 2. Authenticated but unapproved → `/wait-to-approve`
 3. Non-admin on admin routes → `/offer`
 
-`cuiValidator.ts` — Angular validator for Romanian CUI (company tax ID) format.
+`cuiValidator.ts` — Angular validator for Romanian CUI (company tax ID): format and check digit (`isValidCui()`, Vitest-covered).
 
 ## models/
 Domain-wide TypeScript types and constants. No business logic here.
