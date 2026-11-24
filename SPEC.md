@@ -248,6 +248,10 @@ The user approval state is separate from authentication.
 
 A user may be successfully authenticated by Supabase but still be unable to access protected application functionality.
 
+An unapproved user who signs in stays signed in and lands on the wait-to-approve page, so its refresh button works in any tab or device. RLS gives them no data (§24). That page shows no menu or sidebar, only refresh and log out.
+
+An admin who **denies** a waiting user erases that user completely: profile and Supabase sign-in account (`auth.users`), at once, through `deny_user` (security definer, admin only, refuses an approved user and the caller themselves). The same email can sign up again. Approve, deny, promote and demote each ask for confirmation and confirm with a toast.
+
 ---
 
 ## 5.3 Public routes
@@ -368,7 +372,7 @@ A customer is either `PF` (persoană fizică — individual) or `PJ` (persoană 
 | `type`          | `ClientType`   | PF or PJ                                 |
 | `name`          | string         | Required; must be non-empty              |
 | `address`       | string \| null | Billing / main address                   |
-| `code`          | string \| null | Company registration or tax code; unique. A Romanian PJ's CUI (2–10 digits, optional `RO`) must have a valid check digit (key 753217532; `isValidCui()` in `@core/guards/cuiValidator`) |
+| `code`          | string \| null | Company registration or tax code; unique. A Romanian PJ's CUI (2–10 digits, optional `RO`) must have a valid check digit (key 753217532; `isValidCui()` in `@core/guards/cuiValidator`). Lowercase and spaces are accepted ("ro 31241122") and saved normalised ("RO31241122", `normalizeCui()`); the duplicate check compares normalised codes. An invalid CUI or CNP shows an error text under the field |
 | `other_details` | string \| null | Free-form extra information              |
 | `tva`           | boolean        | Reverse-charge VAT flag (see below)      |
 | `client_phones` | array          | One or more phone numbers with labels    |
@@ -513,9 +517,9 @@ An order can be marked as delivered, which sets `date_order_delivered` to today 
 
 Deleted records may be soft-deleted where appropriate.
 
-Deleted orders and offers should be recoverable from the Deleted page. Deleting an offer (from the offers table, or by ticking "delete the offer" when loading it into the cart) is a soft delete, the same as for orders.
+Deleted orders and offers should be recoverable from the Deleted page. Deleting an offer (from the offers table, or by ticking "delete the offer" for "Create order", §8.10) is a soft delete, the same as for orders.
 
-Deleted users follow a separate lifecycle and are permanently erased after 10 days.
+A denied user is erased at once, profile and sign-in account (§5.2). An approved user is never erased by the app.
 
 Do not assume that "delete" always means immediate physical deletion.
 
@@ -604,8 +608,10 @@ Allow a user to set a new password after following the password-reset email.
 
 - does not require application approval;
 - should only be reachable through the valid reset-password flow;
-- invalid/expired reset links must be handled gracefully;
+- invalid/expired reset links must be handled gracefully: opened without a recovery link (no `?code=` / `#access_token=`), or with one Supabase refused, the page says so at once and offers "back to login"; a link that has not become a session within 10 seconds is treated the same;
 - after successful reset, redirect to the appropriate authentication/application flow.
+
+The reset email links back to the app it was requested from (`window.location.origin` + `/reset-password`): live, the staging channel or localhost. Each such URL must be in the Supabase project's Auth redirect allow list.
 
 ---
 
@@ -794,7 +800,7 @@ Users can sort by:
 
 Admins additionally have an order-priority sorting mechanism using drag and drop.
 
-The priority/order position must be persisted reliably.
+The priority/order position must be persisted reliably. A drag while a search, status filter or date range hides some orders places the dragged order next to the row it was dropped on, keeps the hidden orders where they were, and renumbers the whole list (`moveOrderInFullList()`), so no order is left without a position.
 
 ### Search
 
@@ -808,6 +814,8 @@ The UI should avoid forcing users to choose which field they are searching.
 ### Date filtering
 
 Users can select a period and see orders created during that period.
+
+Typed dates (here and in the overview's expected delivery) are read in the UI language's order: Romanian day first (`1.12.2026`, `01.12.26`), Hungarian year first (`2026.12.01.`). Text that is not a real day shows an error under the field and is not used; the overview's Save stays disabled until the date is valid and not in the past. Rule: `parseTypedDate()` in `@shared/utils/typed-date.util`, used by `AppDateAdapter` (`provideAppDateAdapter()` instead of `provideNativeDateAdapter()`).
 
 ### Row actions
 
@@ -891,12 +899,14 @@ Redirect to:
 /offer/overview
 ```
 
-The existing offer data should populate the workflow.
+The existing offer data should populate the workflow: items at the offer's prices, the client, and in the overview the transport fee, the voucher, the delivery address, the comment (without the TVA and "Transport: N RON" lines, which are added again on save) and the expected delivery date (unless it is already past; then the usual today + 3 days). These are kept with the cart (`CartStore.sourceOffer`, localStorage), so a reload keeps them.
 
 The user can decide whether the original offer should:
 
 - remain;
 - be deleted.
+
+"Be deleted" happens only when the new order is saved, in the same transaction (`place_order(..., p_offer_to_delete)`): the offer is soft-deleted (Deleted page, restorable by an admin). If the user gives up before saving, the offer stays among the offers.
 
 #### Transform into order
 
@@ -994,6 +1004,8 @@ Pricing management:
 - edit category prices;
 - edit special prices.
 
+An m³ matrix price always has a grade and a size: the selected grade and size chips cannot be tapped off. Under the price the page lists the M3 products of that size the price applies to (those without their own price in that grade).
+
 ### Security
 
 These are configuration operations and may require elevated permissions depending on the specific operation.
@@ -1021,11 +1033,7 @@ Soft-deleted **orders and offers** are automatically and permanently purged **10
 
 ### Deleted users
 
-Denied/deleted users are permanently erased after 10 days.
-
-This retention behavior should be implemented deliberately and safely.
-
-The system should avoid accidental permanent deletion of active users.
+Users are not on this page. A denied user is erased at once (§5.2); `deny_user` refuses an approved user, so an active user cannot be deleted by accident.
 
 ---
 
@@ -1234,7 +1242,7 @@ volumeM3 per item = (width × thickness × length / 1,000,000) × quantity
 
 > Units: `width`, `thickness`, `length` are in **cm**. Dividing by 1,000,000 converts cm³ → m³.
 
-M2 and BUC items are excluded from this total.
+M2 and BUC items are excluded from this total (`countedVolumeM3()` per line). The printed PDF uses the same rule per line: an M2 or BUC line shows "–" in the m³ column, so the lines add up to the total, and when the total is 0 the m³ column is left out altogether.
 
 ---
 
@@ -1648,7 +1656,7 @@ A restore operation must not create duplicate records.
 | Record | Soft delete           | Restore     | Permanent delete              |
 | ------ | --------------------- | ----------- | ----------------------------- |
 | Order  | admin                 | admin       | admin (RLS)                   |
-| Offer  | any approved user (e.g. "delete the offer" when loading it into the cart) | admin | any approved user (RLS) |
+| Offer  | any approved user (e.g. "delete the offer" with "Create order", done by `place_order` when the order is saved) | admin | any approved user (RLS) |
 
 The UI shows the Delete button for an offer only to its author and to admins; the Deleted page is admin-only. A soft-deleted order releases its stock bookings (§12).
 

@@ -234,12 +234,6 @@ export const OrderDetailsStore = signalStore(
         const order = store.order();
         return order ? store._ordersService.transformOfferToOrder(order.id) : false;
       },
-
-      /** Moves the order or offer to the deleted list (restorable for 10 days). */
-      async moveToDeleted(): Promise<boolean> {
-        const order = store.order();
-        return order ? store._ordersService.setDeletionForOrder(order.id) : false;
-      },
     };
   }),
 );

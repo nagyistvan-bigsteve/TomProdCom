@@ -16,7 +16,7 @@ Key capabilities:
 - Print PDF via `OrderPdfGeneratorUtil`.
 - Mark entire order delivered: sets `date_order_delivered` and flips all `item_status` to `true`.
 - **Offer → Order transformation (two variants):**
-  1. *Load into cart:* reads items from DB, loads them into `CartStore`, sets the client in `ClientStore`, navigates to `/offer/overview` so the user can review/change before confirming.
+  1. *Load into cart:* reads items from DB, loads them into `CartStore` together with `offerCarryOver()` (transport fee, voucher, delivery address, comment without the auto lines, expected delivery unless past, and whether to delete the offer), sets the client in `ClientStore`, navigates to `/offer/overview` so the user can review/change before confirming. The overview prefills these; the offer is soft-deleted only when the order is saved.
   2. *Direct transform:* calls `OrdersService.transformOfferToOrder()` which sets `just_offer = false` in the DB immediately — no changes possible.
 
 **Layout:**
@@ -120,6 +120,8 @@ The `td.expand-detail-td` cell must have `padding: 0 !important` to prevent the 
 
 jsPDF render targets. Invoked from `order-details` via `@shared/utils/order-pdf-generator.util`. Not used standalone.
 
+`order-pdf` m³ column: each line shows `countedVolumeM3()` (M2 / BUC lines "–"), the total is the sum of the lines, and the whole column is left out when that sum is 0.
+
 ## pages/ — Offer creation workflow
 
 Sequential flow — state persists via `CartStore` (localStorage) across all steps:
@@ -182,7 +184,9 @@ Key features:
 - The price rows are rendered by `PriceAdjustPanelComponent` (`components/price-adjust-panel/`).
 - A typed general-row price keeps the 2.5 cm B −50 per item (`unitPriceForTypedRow` in `@shared/utils/product.util`); a product-row price is used as is — the same rule as the order-details price dialog.
 - Manual discount: `setFinalPrice(index, finalPrice)` stores the difference as `discount` on the price row; this discount is applied back in `SelectedProductListComponent.getExactPrice()`.
-- TVA auto-comment: if `client.tva = true`, prepends `"Taxare inversa - fără TVA\n"` to the comment.
+- TVA auto-comment: if `client.tva = true`, prepends `"Taxare inversa - fără TVA\n"` (`TVA_COMMENT_LINE`) to the comment when the confirm dialog opens, unless it is already there; "back" restores the comment as it was.
+- Expected delivery: typed dates go through `provideAppDateAdapter()` (day first in RO, year first in HU); the field is `required`, shows `OVERVIEW_PAGE.POPUP.INVALID_DATE` and disables Save while invalid or in the past.
+- An offer loaded with "Creare comandă" prefills fee, voucher, comment, delivery address and date from `CartStore.sourceOffer()`; `placeOrder(..., offerToDelete)` passes the offer id when "delete the offer" was ticked.
 - Delivery fee appended to comment as `"Transport: N RON\n"` on its own line (`appendCommentLine()` in `offer-comment.util.ts`).
 - On confirm: calls `OrdersService.placeOrder()`, clears cart, resets client, navigates to `/orders` (order) or `/offers` (offer).
 
@@ -268,23 +272,24 @@ Root store used by `OrderTableComponent`. It owns the loaded rows and everything
 
 Default: `tableSortType='delivery'`, `tableFilterType='open'`, `justOffers=false`, no search, no date range.
 
-- `order.computed.ts` — pure, unit-tested functions: `filterByStatus`, `filterBySearch`, `filterByDateRange`, `sortOrders`, `selectVisibleOrders` (all of them combined), `orderListStats`, `moveOrder`. **Change filtering or sorting here**, not in the component, and extend `order.computed.vitest.spec.ts`.
+- `order.computed.ts` — pure, unit-tested functions: `filterByStatus`, `filterBySearch`, `filterByDateRange`, `sortOrders`, `selectVisibleOrders` (all of them combined), `orderListStats`, `moveOrderInFullList` (a drag in the filtered rows → the whole list in admin order, hidden orders kept in place, every order renumbered). **Change filtering or sorting here**, not in the component, and extend `order.computed.vitest.spec.ts`.
 - `order.store.ts` — `OrderStore`:
   - `init(justOffers)` — called by the table on creation: resets filter/sort/search/date range to the defaults and loads the rows. The table is recreated every time the user returns from order details, so the list is always fresh.
   - `visibleOrders()` / `stats()` — the filtered and sorted rows and the footer numbers. Status filter, search and date range always apply together.
   - `setFilter`, `setSort`, `setSearchText`, `setDateRange`.
   - `pay(orderId, paidAmount)` and `delete(orderId)` update the row in place on success (no reload, no delay). `delete` soft-deletes (orders and offers alike).
-  - `reorder(previousIndex, currentIndex)` — drag-and-drop: shows the new order immediately, saves it through `update_order_sort_orders`, then refreshes the rows in the background.
+  - `reorder(previousIndex, currentIndex)` — drag-and-drop: computes the whole list with `moveOrderInFullList` (indexes are of the visible rows), shows it immediately, saves every order's position through `update_order_sort_orders`, then refreshes the rows in the background.
 
 ### `order-details/` — one open order (`OrderDetailsStore`)
 
 Provided by `OrderDetailsComponent` (not root): each opened order gets its own instance.
 
-- `order-details.computed.ts` — pure, unit-tested: `applyVoucher(amount, voucher)`, `itemVolumeM3(item)` (how order details counts an item's m³: M2 items with a pack breakdown 0, items without width their quantity, bundles ×10, rounded to 3 decimals per item), `orderTotals(items, voucher)` (its m³ total leaves out M2 and BUC items, like the cart's `calculateTotalQuantity`, SPEC §10.5).
+- `order-details.computed.ts` — pure, unit-tested: `applyVoucher(amount, voucher)`, `itemVolumeM3(item)` (how order details counts an item's m³: M2 items with a pack breakdown 0, items without width their quantity, bundles ×10, rounded to 3 decimals per item), `countedVolumeM3(item)` (what a line adds to the m³ total: 0 for M2 and BUC, like the cart's `calculateTotalQuantity`, SPEC §10.5; also the PDF's per-line m³), `orderTotals(items, voucher)` (m³ total = sum of `countedVolumeM3`).
 - `order-details.store.ts` — state `{ order, items }`:
   - `load(orderId)` — order and items together.
   - `addItem` / `updateItem` / `updatePrices` / `deleteItem` — compute the totals for the item list **after** the change, save item + totals in one database call, then update the order and reload the items. No timers.
-  - `setItemStatus`, `saveCommentAndVoucher`, `markDelivered`, `transformToOrder`, `moveToDeleted` (used when an offer is loaded into the cart with "delete the offer" ticked: the offer goes to the Deleted page).
+  - `setItemStatus`, `saveCommentAndVoucher`, `markDelivered`, `transformToOrder`.
+- "Delete the offer" on load-into-cart is **not** done here: the offer id travels with the cart (`CartStore.sourceOffer`, see `cart/offer-carry-over.ts`) and `place_order(..., p_offer_to_delete)` soft-deletes it in the same transaction as the new order.
 
 Client history and the deleted-orders page keep their state in the component; they are single-screen lists and do not need a store.
 

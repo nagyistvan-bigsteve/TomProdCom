@@ -18,8 +18,13 @@ export class WaitToApproveComponent {
   private router = inject(Router);
   private authStore = inject(useAuthStore);
 
-  tryRefresh(): void {
-    this.authStore.refreshUserData();
+  /** Reads the approval again; the guard keeps the user here while it is still pending. */
+  async tryRefresh(): Promise<void> {
+    await this.authStore.refreshUserData();
     this.router.navigate(['/offer']);
+  }
+
+  logout(): void {
+    this.authStore.logout();
   }
 }

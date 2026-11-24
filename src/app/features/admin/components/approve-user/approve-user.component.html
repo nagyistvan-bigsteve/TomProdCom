@@ -17,10 +17,10 @@
               <span class="user-email">{{ user.email }}</span>
             </div>
             <div class="user-actions">
-              <button mat-icon-button class="approve-btn" (click)="approveUser(user.id)">
+              <button mat-icon-button class="approve-btn" (click)="approveUser(user)">
                 <mat-icon>check_circle</mat-icon>
               </button>
-              <button mat-icon-button class="deny-btn" (click)="denieUser(user.id)">
+              <button mat-icon-button class="deny-btn" (click)="denyUser(user)">
                 <mat-icon>cancel</mat-icon>
               </button>
             </div>

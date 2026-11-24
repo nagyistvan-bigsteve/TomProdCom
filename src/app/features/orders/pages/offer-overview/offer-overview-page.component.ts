@@ -26,8 +26,13 @@ import { OrdersService } from '@features/orders/services/orders.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { provideNativeDateAdapter } from '@angular/material/core';
+import { provideAppDateAdapter } from '@shared/utils/app-date-adapter';
 import { syncDatePickerLocale } from '@shared/utils/date-picker-locale';
+import { validDateOrNull } from '@shared/utils/typed-date.util';
+import {
+  carriedDeliveryDate,
+  TVA_COMMENT_LINE,
+} from '@features/orders/store/cart/offer-carry-over';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -51,7 +56,7 @@ import { NotificationService } from '@shared/utils/notification.service';
 @Component({
   selector: 'app-offer-overview',
   standalone: true,
-  providers: [provideNativeDateAdapter()],
+  providers: [provideAppDateAdapter()],
   imports: [
     DecimalInputDirective,
     CommonModule,
@@ -103,7 +108,7 @@ export class OfferOverviewPageComponent {
   comment: string = '';
   voucher: string = '';
   justOffer: boolean = false;
-  expectedDeliveryDate: Date = new Date(
+  expectedDeliveryDate: Date | null = new Date(
     this.currentDate.getTime() + 3 * 24 * 60 * 60 * 1000,
   );
   untilDeliveryDate: boolean = false;
@@ -116,6 +121,7 @@ export class OfferOverviewPageComponent {
 
   constructor() {
     syncDatePickerLocale();
+    this.applyOfferCarryOver();
     effect(() => {
       const currentId = this.clientStore.client()?.id ?? null;
       const previous = this.lastClientId();
@@ -131,6 +137,18 @@ export class OfferOverviewPageComponent {
 
       this.lastClientId.set(currentId);
     });
+  }
+
+  /** Prefills what "Creare comandă" carried over from the offer (SPEC.md §8.10). */
+  private applyOfferCarryOver(): void {
+    const carry = this.cartStore.sourceOffer();
+    if (!carry) return;
+
+    this.deliveryFee = carry.deliveryFee;
+    this.voucher = carry.voucher;
+    this.comment = carry.comment;
+    this.delivery_address.set(carry.deliveryAddress);
+    this.expectedDeliveryDate = carriedDeliveryDate(carry) ?? this.expectedDeliveryDate;
   }
 
   private resetForClientChange(): void {
@@ -282,9 +300,11 @@ export class OfferOverviewPageComponent {
     });
 
     let totalOrderQuantity = this.getTotalQuantity();
+    // Restored on "back", so a comment carried over from an offer survives
+    const commentBefore = this.comment;
 
-    if (this.clientStore.client()?.tva) {
-      this.comment = 'Taxare inversa - fără TVA\n';
+    if (this.clientStore.client()?.tva && !this.comment.startsWith(TVA_COMMENT_LINE)) {
+      this.comment = TVA_COMMENT_LINE + '\n' + this.comment;
     }
 
     dialogRef
@@ -308,8 +328,10 @@ export class OfferOverviewPageComponent {
           );
         }
 
-        if (result === true) {
-          this.expectedDeliveryDate.setHours(6);
+        const typedDate = validDateOrNull(this.expectedDeliveryDate);
+        if (result === true && typedDate) {
+          const deliveryDate = new Date(typedDate);
+          deliveryDate.setHours(6, 0, 0, 0);
           this.ordersService
             .placeOrder(
               this.cartStore.productItems(),
@@ -319,7 +341,7 @@ export class OfferOverviewPageComponent {
               this.clientStore.client()!,
               this.authStore.id()!,
               orderComment,
-              this.expectedDeliveryDate!,
+              deliveryDate,
               this.untilDeliveryDate,
               this.forFirstHour,
               totalOrderQuantity,
@@ -328,6 +350,7 @@ export class OfferOverviewPageComponent {
                 this.clientStore.client()?.address ||
                 '',
               this.deliveryFee,
+              this.offerToDelete(),
             )
             .then((saved) => {
               if (!saved) {
@@ -349,9 +372,15 @@ export class OfferOverviewPageComponent {
               this.router.navigate([this.justOffer ? '/offers' : '/orders']);
             });
         } else {
-          this.comment = '';
+          this.comment = commentBefore;
         }
       });
+  }
+
+  /** The offer this order replaces, when "Creare comandă" had "Șterge oferta" ticked. */
+  private offerToDelete(): number | null {
+    const carry = this.cartStore.sourceOffer();
+    return carry?.deleteOnSave ? carry.offerId : null;
   }
 
   goBack(): void {

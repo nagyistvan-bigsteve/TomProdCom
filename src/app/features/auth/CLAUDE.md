@@ -28,7 +28,8 @@ Both components own **only their form content** — no card or container styling
 Handles the Supabase magic-link callback for password reset.
 
 - Password reset email is triggered from `LoginComponent` via `supabaseService.client.auth.resetPasswordForEmail()`.
-- Redirect URL is hardcoded to `https://tom-prod-com.web.app/reset-password`.
+- Redirect URL is `window.location.origin + '/reset-password'` (the app it was requested from: live, staging channel, localhost). Each origin must be in the Supabase project's Auth redirect allow list.
+- Without a recovery link in the URL (`hasRecoveryParams()`: `?code=` or `#access_token=`, no `error`), or when none became a session within 10 s, the page shows `RESET_PASSWORD.LINK_MISSING` and the back-to-login button instead of the spinner.
 - On load, listens to `onAuthStateChange`; the form only becomes active when the event is `PASSWORD_RECOVERY` and a valid session exists.
 - Validates that new password and confirm-password match (min 6 chars each), then calls `supabaseService.auth.updateUser({ password })`.
 - On success navigates to `/auth`.
@@ -58,7 +59,8 @@ For admins this page loads both user lists on init (`UsersStore.loadUnapprovedUs
 
 Shown to authenticated but not-yet-approved users.
 
-- **No automatic polling.** The page has a manual `tryRefresh()` button that calls `authStore.refreshUserData()` and then tries to navigate to `/offer`. If the user has been approved since their last check, navigation succeeds; otherwise the guard keeps them on this page.
+- **No automatic polling.** The page has a manual `tryRefresh()` button that awaits `authStore.refreshUserData()` and then tries to navigate to `/offer`. If the user has been approved since their last check, navigation succeeds; otherwise the guard keeps them on this page. A log-out button sits below it.
+- The user stays signed in here (login no longer signs an unapproved user out). `AppComponent` renders the sidebar and the topbar menu/back buttons only for approved users.
 
 **Layout:** single frosted dark card centered on the dark-green background (same glass style as the user profile card).
 - 80px circle icon wrapper with `pending_actions` icon
@@ -80,7 +82,7 @@ Unauthenticated
     → authGuard redirects to /auth
 
 Login succeeds
-    → authStore.approved() is false   → /wait-to-approve
+    → authStore.approved() is false   → /wait-to-approve (stays signed in; no menu or sidebar)
     → authStore.approved() is true    → /offer
 
 Signup succeeds
@@ -91,7 +93,7 @@ Admin approves user
     → user can now access protected routes
 
 Admin denies user
-    → user record permanently hard-deleted from Supabase (no recovery)
+    → RPC deny_user erases profile + auth.users account (no recovery; the email can sign up again)
 
 /wait-to-approve
     → manual refresh button → tries /offer (guard redirects back if still unapproved)

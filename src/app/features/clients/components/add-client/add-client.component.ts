@@ -22,7 +22,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { cuiValidator } from '@core/guards/cuiValidator';
+import { cuiValidator, normalizeCui } from '@core/guards/cuiValidator';
 import { uniqueClientCodeValidator } from '@features/clients/validators/unique-client-code.validator';
 import { ClientStore } from '@features/clients/store/client.store';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -271,7 +271,10 @@ export class AddClientComponent {
         type: formValue.type,
         tva: formValue.type === 2 ? this.tva() : false,
         address: formValue.address || null,
-        code: formValue.code || null,
+        code:
+          (formValue.type === ClientType.PJ && !this.isForeignClient()
+            ? normalizeCui(formValue.code ?? '')
+            : formValue.code) || null,
         other_details: formValue.other_details || null,
         client_phones: formValue.phones
           .filter((p) => p.phone)

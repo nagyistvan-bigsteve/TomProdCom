@@ -103,6 +103,8 @@
       <input
         matInput
         [(ngModel)]="expectedDeliveryDate"
+        #deliveryDateModel="ngModel"
+        required
         [min]="currentDate"
         [matDatepicker]="picker"
       />
@@ -111,6 +113,9 @@
         [for]="picker"
       ></mat-datepicker-toggle>
       <mat-datepicker touchUi #picker></mat-datepicker>
+      @if (deliveryDateModel.invalid) {
+        <mat-error>{{ "OVERVIEW_PAGE.POPUP.INVALID_DATE" | translate }}</mat-error>
+      }
     </mat-form-field>
 
     <div class="d-flex flex-column justify-content-start text-start">
@@ -172,7 +177,12 @@
     <button mat-button [mat-dialog-close]="false">
       {{ "OVERVIEW_PAGE.POPUP.BACK_BUTTON" | translate }}
     </button>
-    <button mat-button [mat-dialog-close]="true" cdkFocusInitial>
+    <button
+      mat-button
+      [mat-dialog-close]="true"
+      [disabled]="deliveryDateModel.invalid"
+      cdkFocusInitial
+    >
       {{ "OVERVIEW_PAGE.POPUP.SAVE_BUTTON" | translate }}
     </button>
   </mat-dialog-actions>

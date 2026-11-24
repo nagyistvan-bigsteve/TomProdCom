@@ -85,12 +85,17 @@
       </mat-date-range-input>
       <mat-datepicker-toggle matIconSuffix [for]="picker" />
       <mat-date-range-picker #picker />
-      @if (dateRange.controls.start.hasError("matStartDateInvalid")) {
+      @if (
+        dateRange.controls.start.hasError("matStartDateInvalid") ||
+        dateRange.controls.start.hasError("matDatepickerParse")
+      ) {
         <mat-error>{{
           "ORDER.TABLE.FILTER.INVALID_START" | translate
         }}</mat-error>
-      }
-      @if (dateRange.controls.end.hasError("matEndDateInvalid")) {
+      } @else if (
+        dateRange.controls.end.hasError("matEndDateInvalid") ||
+        dateRange.controls.end.hasError("matDatepickerParse")
+      ) {
         <mat-error>{{
           "ORDER.TABLE.FILTER.INVALID_END" | translate
         }}</mat-error>

@@ -5,8 +5,8 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { OrderItemsResponse, OrderResponse } from '@core/models/models';
 import { CommonModule } from '@angular/common';
 import { MatDivider } from '@angular/material/divider';
-import { Unit_id } from '@core/models/enums';
 import { ClientStore } from '@features/clients/store/client.store';
+import { countedVolumeM3 } from '@features/orders/store/order-details/order-details.computed';
 import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
@@ -44,29 +44,13 @@ export class OrderPdfComponent {
     return voucher.includes('%');
   }
 
+  /** m³ of one line as the order total counts it: 0 (shown as "–") for M2 and BUC lines. */
   getTotalMQ(item: OrderItemsResponse): number {
-    if (item.packsPieces) {
-      return 0;
-    }
-
-    if (item.product.width) {
-      let quntity = +new Intl.NumberFormat('en-US', {
-        minimumIntegerDigits: 1,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 3,
-      }).format(
-        ((item.product.width * item.product.thickness * item.product.length) /
-          1000000) *
-          item.quantity,
-      );
-
-      if (item.product.unit_id === Unit_id.BOUNDLE) {
-        quntity = quntity * 10;
-      }
-
-      return quntity;
-    } else {
-      return item.quantity;
-    }
+    return countedVolumeM3(item);
   }
+
+  /** Sum of the lines' m³; the m³ column is left out of the PDF when it is 0. */
+  readonly totalM3 = computed(() =>
+    this.orderItems().reduce((sum, item) => sum + countedVolumeM3(item), 0),
+  );
 }

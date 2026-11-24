@@ -11,6 +11,7 @@ function stored(overrides: Partial<StoredCart> = {}): StoredCart {
     lastUpdated: '2026-10-17 11:55:00',
     usedPriceCategories: [],
     pricingClientId: null,
+    sourceOffer: null,
     ...overrides,
   };
 }
@@ -52,6 +53,20 @@ describe('toStoredCart', () => {
       lastUpdated: null,
       usedPriceCategories: [],
       pricingClientId: null,
+      sourceOffer: null,
     });
+  });
+
+  it('keeps the offer a cart was loaded from, so a reload does not lose it', () => {
+    const sourceOffer = {
+      offerId: 65,
+      deleteOnSave: true,
+      deliveryFee: 25,
+      expectedDelivery: '2026-12-01',
+      voucher: '',
+      deliveryAddress: '',
+      comment: '',
+    };
+    expect(toStoredCart(stored({ sourceOffer })).sourceOffer).toEqual(sourceOffer);
   });
 });

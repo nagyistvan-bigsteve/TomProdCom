@@ -26,14 +26,12 @@ export class UsersService {
     if (error) throw error;
   }
 
-  /** Removes the profile of a user who was not approved. */
+  /**
+   * Erases a user who is still waiting for approval: profile and sign-in
+   * account (RPC `deny_user`), so the email can sign up again.
+   */
   async deny(userId: string): Promise<void> {
-    const { error } = await this.supabase
-      .from('profiles')
-      .delete()
-      .eq('id', userId)
-      .select()
-      .single();
+    const { error } = await this.supabase.rpc('deny_user', { p_user_id: userId });
     if (error) throw error;
   }
 

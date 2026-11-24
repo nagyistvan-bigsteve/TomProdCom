@@ -1,6 +1,7 @@
 <mat-toolbar class="topbar">
   <div class="topbar-left">
-    @if (authStore.isAuthenticated()) {
+    <!-- A user waiting for approval has nowhere to go: no menu, no back -->
+    @if (authStore.isAuthenticated() && authStore.approved()) {
       <button
         @enterAndLeaveAnimation
         mat-icon-button

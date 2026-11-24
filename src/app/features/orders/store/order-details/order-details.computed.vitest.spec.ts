@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Unit_id } from '@core/models/enums';
 import {
   applyVoucher,
+  countedVolumeM3,
   itemVolumeM3,
   OrderItemForTotals,
   orderTotals,
@@ -81,6 +82,24 @@ describe('itemVolumeM3', () => {
 
   it('counts 0 for items with a pack breakdown', () => {
     expect(itemVolumeM3(makeItem({ packsPieces: '3p + 2b' }))).toBe(0);
+  });
+});
+
+describe('countedVolumeM3', () => {
+  it('counts M3 and bundle lines with their volume', () => {
+    expect(countedVolumeM3(makeItem())).toBe(0.15);
+  });
+
+  it('counts 0 for piece (BUC) and M2 lines, so PDF lines match the total', () => {
+    const pieces = makeItem({
+      product: { unit_id: Unit_id.BUC, width: 12, thickness: 10, length: 300 },
+      quantity: 6,
+    });
+    const m2 = makeItem({
+      product: { unit_id: Unit_id.M2, width: 12, thickness: 2, length: 300 },
+    });
+    expect(countedVolumeM3(pieces)).toBe(0);
+    expect(countedVolumeM3(m2)).toBe(0);
   });
 });
 

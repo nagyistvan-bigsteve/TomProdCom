@@ -4,7 +4,7 @@ import {
   filterByDateRange,
   filterBySearch,
   filterByStatus,
-  moveOrder,
+  moveOrderInFullList,
   orderListStats,
   selectVisibleOrders,
   sortOrders,
@@ -211,12 +211,30 @@ describe('orderListStats', () => {
   });
 });
 
-describe('moveOrder', () => {
-  it('moves one row and leaves the input untouched', () => {
-    const orders = [makeOrder({ id: 1 }), makeOrder({ id: 2 }), makeOrder({ id: 3 })];
+describe('moveOrderInFullList', () => {
+  const all = [1, 2, 3, 4, 5].map((id) => makeOrder({ id, sortOrder: id }));
 
-    expect(ids(moveOrder(orders, 0, 2))).toEqual([2, 3, 1]);
-    expect(ids(moveOrder(orders, 2, 0))).toEqual([3, 1, 2]);
-    expect(ids(orders)).toEqual([1, 2, 3]);
+  it('moves one row in an unfiltered list and leaves the input untouched', () => {
+    expect(ids(moveOrderInFullList(all, all, 0, 2))).toEqual([2, 3, 1, 4, 5]);
+    expect(ids(moveOrderInFullList(all, all, 4, 0))).toEqual([5, 1, 2, 3, 4]);
+    expect(ids(all)).toEqual([1, 2, 3, 4, 5]);
+  });
+
+  it('keeps hidden orders in place when the visible rows are filtered', () => {
+    const visible = [all[1], all[3]]; // orders 2 and 4
+
+    // 4 dropped on 2 (dragged up): goes right before 2
+    expect(ids(moveOrderInFullList(all, visible, 1, 0))).toEqual([1, 4, 2, 3, 5]);
+    // 2 dropped on 4 (dragged down): goes right after 4
+    expect(ids(moveOrderInFullList(all, visible, 0, 1))).toEqual([1, 3, 4, 2, 5]);
+  });
+
+  it('returns the whole list, so every order gets a position', () => {
+    const unnumbered = all.map((order) => ({ ...order, sortOrder: null as unknown as number }));
+    expect(moveOrderInFullList(unnumbered, unnumbered.slice(0, 2), 1, 0)).toHaveLength(5);
+  });
+
+  it('changes nothing when dropped on itself', () => {
+    expect(ids(moveOrderInFullList(all, all, 2, 2))).toEqual([1, 2, 3, 4, 5]);
   });
 });

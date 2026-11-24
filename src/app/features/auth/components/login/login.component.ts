@@ -63,9 +63,9 @@ export class LoginComponent {
 
     if (success) {
       if (!this.authStore.approved()) {
-        this.showAlert(this.translateService.instant('ALERT.PENDING_APPROVAL'));
+        // Stays signed in, so the refresh button there works in any tab;
+        // RLS gives an unapproved user no data at all
         this.router.navigate(['/wait-to-approve']);
-        await this.authStore.logout();
         return;
       }
       this.router.navigate(['/offer']);
@@ -80,7 +80,8 @@ export class LoginComponent {
     }
 
     const { error } = await this.supabaseService.client.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://tom-prod-com.web.app/reset-password',
+      // The app that sent the request (live, staging channel or localhost)
+      redirectTo: `${window.location.origin}/reset-password`,
     });
 
     if (error) {

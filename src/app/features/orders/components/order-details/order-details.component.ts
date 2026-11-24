@@ -38,6 +38,7 @@ import {
 } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CartStore } from '@features/orders/store/cart/cart.store';
+import { offerCarryOver } from '@features/orders/store/cart/offer-carry-over';
 import { Category, ClientType, Unit_id } from '@core/models/enums';
 import { Router } from '@angular/router';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -631,11 +632,13 @@ export class OrderDetailsComponent implements OnInit {
           this.clientStore.setClientId(
             this.clientStore.clientsEntityMap()[order.clientId].id,
           );
-          this.cartStore.setProductItems(productItems);
+          // "Delete the offer" happens in place_order, together with the new
+          // order: an offer the user gives up on stays where it was
+          this.cartStore.setProductItems(
+            productItems,
+            offerCarryOver(order, this.deleteOffer, new Date()),
+          );
           this.cartStore.setPricingClientId(order.clientId);
-          if (this.deleteOffer) {
-            this.detailsStore.moveToDeleted();
-          }
           this.router.navigate(['offer/overview']);
         }
       });

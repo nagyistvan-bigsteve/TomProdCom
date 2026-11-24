@@ -30,7 +30,8 @@ import {
 } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { provideNativeDateAdapter } from '@angular/material/core';
+import { provideAppDateAdapter } from '@shared/utils/app-date-adapter';
+import { validDateOrNull } from '@shared/utils/typed-date.util';
 import { syncDatePickerLocale } from '@shared/utils/date-picker-locale';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -76,7 +77,7 @@ import { NotificationService } from '@shared/utils/notification.service';
     CdkDropList,
     CdkDrag,
   ],
-  providers: [provideNativeDateAdapter()],
+  providers: [provideAppDateAdapter()],
   templateUrl: './order-table.component.html',
   styleUrl: './order-table.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -123,7 +124,7 @@ export class OrderTableComponent implements OnInit {
     this.dateRange.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((range) => {
-        this.store.setDateRange(range.start ?? null, range.end ?? null);
+        this.store.setDateRange(validDateOrNull(range.start), validDateOrNull(range.end));
       });
 
     this.searchFilter.valueChanges

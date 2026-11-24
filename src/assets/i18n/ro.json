@@ -107,6 +107,7 @@
     "POPUP": {
       "COMMENT": "Adauga un comentariu",
       "EXPECTED_DELIVERY": "Livrare așteptată",
+      "INVALID_DATE": "Dată nevalidă (ex. 01.12.2026, nu în trecut)",
       "DELIVERY_CHECKBOX": "Livrare până la această dată",
       "DELIVERY_CHECKBOX_TOOLTIP": "Bifează dacă livrarea trebuie să aibă loc până la această dată.",
       "FIRST_HOUR_CHECKBOX": "Livrare la prima ora",
@@ -149,6 +150,10 @@
     "UPDATE_BUTTON": "Actualizare",
     "FORWARD_BUTTON": "Mai departe",
     "ALREADY_EXISTING": "Clientul deja e adaugat",
+    "INVALID_CUI": "CUI nevalid: verificați cifrele (ex. RO31241122)",
+    "INVALID_CNP": "CNP-ul are 13 cifre",
+    "ADD_PHONE": "Adaugă număr de telefon",
+    "REMOVE_PHONE": "Șterge numărul de telefon",
     "FOREIGN_CLIENT": "Client străin",
     "TVA": "Plătitor TVA"
   },
@@ -183,7 +188,9 @@
     },
     "APPROVE": {
       "TITLE": "Utilizatori neaprobați:",
-      "NO_LIST": "Lista e goală"
+      "NO_LIST": "Lista e goală",
+      "CONFIRM_APPROVE": "Aprobi accesul pentru {{name}}?",
+      "CONFIRM_DENY": "Refuzi și ștergi contul lui {{name}}? Persoana se poate înregistra din nou cu același email."
     }
   },
   "SETTINGS": {
@@ -246,7 +253,9 @@
     "USER_LIST": {
       "TITLE": "Utilizatori:",
       "ADMINS": "Admini:",
-      "USERS": "Obișnuit:"
+      "USERS": "Obișnuit:",
+      "CONFIRM_PROMOTE": "Faci admin pe {{name}}? Va putea modifica prețuri, produse și utilizatori.",
+      "CONFIRM_DEMOTE": "Iei drepturile de admin lui {{name}}?"
     }
   },
   "ORDER": {
@@ -369,6 +378,12 @@
       "ITEM_SAVED": "Produsul a fost salvat!",
       "ITEM_DELETED": "Produsul a fost șters!"
     },
+    "USER": {
+      "APPROVED": "{{name}} a fost aprobat!",
+      "DENIED": "Contul lui {{name}} a fost șters.",
+      "PROMOTED": "{{name}} este acum admin.",
+      "DEMOTED": "{{name}} nu mai este admin."
+    },
     "GENERAL": {
       "UPDATE_ERROR": "Problemă la updatare",
       "LOAD_ERROR": "PROBLEMĂ la încărcarea datelor!",
@@ -458,7 +473,8 @@
     "EMAIL_SENT_ERROR": "Eroare la trimiterea e-mailului de resetare a parolei.",
     "SESSION_ERROR": "Eroare de autentificare",
     "INVALID_FORM": "Te rugăm să completezi toate câmpurile corect.",
-    "VERIFYING": "Se verifică sesiunea..."
+    "VERIFYING": "Se verifică sesiunea...",
+    "LINK_MISSING": "Linkul de resetare lipsește sau a expirat. Cereți un link nou din pagina de autentificare (\"Ai uitat parola?\")."
   },
   "PRINT_POPUP": {
     "TITLE_ORDER": "Comanda",

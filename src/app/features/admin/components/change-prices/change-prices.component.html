@@ -47,7 +47,11 @@
             aria-label="Select Category"
           >
             @for (category of categoryArray; track $index) {
-              <mat-chip-option [value]="category.value">{{ category.key }}</mat-chip-option>
+              <mat-chip-option
+                [value]="category.value"
+                [selectable]="category.value !== selectedCategory"
+                >{{ category.key }}</mat-chip-option
+              >
             }
           </mat-chip-listbox>
         </div>
@@ -79,7 +83,12 @@
           aria-label="Select Category"
         >
           @for (category of categoryOptions; track $index) {
-            <mat-chip-option [value]="category.value">{{ category.key }}</mat-chip-option>
+            <!-- The chosen chip cannot be tapped off: a matrix price needs a grade and a size -->
+            <mat-chip-option
+              [value]="category.value"
+              [selectable]="category.value !== selectedCategory"
+              >{{ category.key }}</mat-chip-option
+            >
           }
         </mat-chip-listbox>
 
@@ -89,7 +98,10 @@
           aria-label="Select Size"
         >
           @for (size of sizeOptions; track $index) {
-            <mat-chip-option [value]="size.value">
+            <mat-chip-option
+              [value]="size.value"
+              [selectable]="size.value !== selectedSize"
+            >
               {{ "OFFER_PAGE.CREATE_OFFER.SIZE_FILTER.FILTER_OPTIONS." + size.value | translate }}
             </mat-chip-option>
           }
@@ -120,17 +132,17 @@
     {{ "SETTINGS.EDIT_PRICE.UPDATE_BUTTON" | translate }}
   </button>
 
-  @if (!selectedCurrentPrice && !selectedPriceType) {
-    <p @enterAndLeaveAnimation class="no-selection-hint mat-body-medium">
-      {{ "SETTINGS.EDIT_PRICE.NO_PRODUCT" | translate }}
-    </p>
-  } @else {
-    @if (productsInFilterRange.length && !selectedPriceType) {
+  @if (selectedPriceType === "m3") {
+    @if (productsInFilterRange.length) {
       <div @enterAndLeaveAnimation class="product-list-container mt-2">
-        @for (product of productsInFilterRange; track $index) {
+        @for (product of productsInFilterRange; track product.id) {
           <div class="mat-body-medium">{{ product.name }}</div>
         }
       </div>
+    } @else {
+      <p @enterAndLeaveAnimation class="no-selection-hint mat-body-medium">
+        {{ "SETTINGS.EDIT_PRICE.NO_PRODUCT" | translate }}
+      </p>
     }
   }
 </div>

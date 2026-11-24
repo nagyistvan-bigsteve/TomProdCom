@@ -124,6 +124,10 @@
         <mat-error>
           {{ "ADD_CLIENT.ALREADY_EXISTING" | translate }}
         </mat-error>
+      } @else if (clientForm.get("code")?.hasError("invalidCui")) {
+        <mat-error>{{ "ADD_CLIENT.INVALID_CUI" | translate }}</mat-error>
+      } @else if (clientForm.get("code")?.hasError("pattern")) {
+        <mat-error>{{ "ADD_CLIENT.INVALID_CNP" | translate }}</mat-error>
       }
     </mat-form-field>
 

@@ -28,7 +28,7 @@ import {
 import { ClientStore } from '@features/clients/store/client.store';
 import { OrdersService } from '@features/orders/services/orders.service';
 import {
-  moveOrder,
+  moveOrderInFullList,
   orderListStats,
   selectVisibleOrders,
 } from './order.computed';
@@ -162,7 +162,8 @@ export const OrderStore = signalStore(
        * indexes of the currently visible list.
        */
       async reorder(previousIndex: number, currentIndex: number): Promise<boolean> {
-        const reordered = moveOrder(
+        const reordered = moveOrderInFullList(
+          store.ordersEntities(),
           store.visibleOrders(),
           previousIndex,
           currentIndex,
