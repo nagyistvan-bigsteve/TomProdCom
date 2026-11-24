@@ -56,7 +56,7 @@ The global `mat.icon-overrides(color: white)` in `styles.scss` makes all icons w
 ### `price-adjust-panel/` — price rows with a final-price input
 
 Presentational (no store access), used by the offer overview and the order-details price dialog.
-Inputs: `rows: PriceRow[]`, `perProduct`, `productNames` (by product id). Outputs: `perProductChange`, `finalPriceChange({ index, price })` (`price` is null when the field is cleared). The parent decides what a new price changes (cart vs. saved lines). In per-product mode only rows with a `productId` are shown.
+Inputs: `rows: PriceRow[]`, `perProduct`, `productNames` (by product id). Outputs: `perProductChange`, `finalPriceChange({ index, price })` (`price` is null when the field is cleared). The parent decides what a new price changes (cart vs. saved lines). In per-product mode only rows with a `productId` are shown. Its layout follows its own width (container query on `:host`, side by side from 440px), not the screen: in the desktop overview it sits in a 360px column and stays stacked.
 
 ### `order-table/` — reusable table for orders and offers
 

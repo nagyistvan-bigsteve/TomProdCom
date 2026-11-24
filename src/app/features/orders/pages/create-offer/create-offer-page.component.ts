@@ -19,10 +19,12 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatBadgeModule } from '@angular/material/badge';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { map } from 'rxjs';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
   selector: 'app-create-offer-page',
   imports: [
+    MoneyPipe,
     ProductSelectComponent,
     TranslateModule,
     SelectedProductComponent,

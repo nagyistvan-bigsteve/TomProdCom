@@ -223,7 +223,10 @@
 <ng-template #editOfferDialog>
   <div class="d-flex justify-content-between align-items-center pe-2">
     <h2 mat-dialog-title>
-      {{ "ORDER.DETAILS.EDIT_DIALOG.TITLE" | translate }}
+      {{
+        (justOffers ? "ORDER.DETAILS.EDIT_DIALOG.TITLE" : "ORDER.DETAILS.EDIT_DIALOG.TITLE_ORDER")
+          | translate
+      }}
     </h2>
     <button mat-icon-button [mat-dialog-close]="false">
       <mat-icon class="dialog-icon-dark">close</mat-icon>

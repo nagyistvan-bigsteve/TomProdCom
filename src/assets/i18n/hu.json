@@ -268,6 +268,7 @@
       "EDIT_BUTTON": "Módosít",
       "EDIT_DIALOG": {
         "TITLE": "Ajánlat szerkesztése",
+        "TITLE_ORDER": "Rendelés szerkesztése",
         "DESCRIPTION": "{{product}} módosítása.",
         "QUANTITY_INPUT": "Mennyiség",
         "CATEGORY_INPUT": "Minőség",

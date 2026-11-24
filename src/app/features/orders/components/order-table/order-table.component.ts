@@ -48,10 +48,12 @@ import { ClientStore } from '@features/clients/store/client.store';
 import { OrderStore } from '@features/orders/store/order/order.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 import { AppDatePipe } from '@shared/pipes/app-date.pipe';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
   selector: 'app-order-table',
   imports: [
+    MoneyPipe,
     AppDatePipe,
     DecimalInputDirective,
     MatTableModule,

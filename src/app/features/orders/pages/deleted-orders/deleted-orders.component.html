@@ -52,7 +52,7 @@
             <div class="detail-row price-row">
               <mat-icon class="detail-icon">payments</mat-icon>
               <span class="detail-label">{{ "DELETED_ORDERS.TOTAL" | translate }}:</span>
-              <span class="detail-value price">{{ order.totalAmountFinal | number: "1.2-2" }} RON</span>
+              <span class="detail-value price">{{ order.totalAmountFinal | money }} RON</span>
             </div>
             @if (order.operator) {
               <div class="detail-row">

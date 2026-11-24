@@ -7,10 +7,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
+import { AppDatePipe } from '@shared/pipes/app-date.pipe';
 
 @Component({
   selector: 'app-client-history',
-  imports: [CommonModule, MatButtonModule, TranslateModule],
+  imports: [
+    AppDatePipe,
+    MoneyPipe,CommonModule, MatButtonModule, TranslateModule],
   templateUrl: './client-history.component.html',
   styleUrl: './client-history.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,

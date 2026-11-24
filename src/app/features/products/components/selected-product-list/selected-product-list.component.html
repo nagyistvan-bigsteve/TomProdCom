@@ -115,7 +115,7 @@
                   <div
                     class="d-flex justify-content-end align-items-center h-100"
                     >
-                    {{ item.price | number: "1.0-2" }}
+                    {{ item.price | money }}
                   </div>
                 </div>
               </div>
@@ -323,7 +323,7 @@
         class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 px-3 py-2 mt-2 bg-white text-black fw-normal"
         >
         {{ "WORDS.TOTAL" | translate }}:
-        {{ cartStore.cartTotal() | number: "1.0-2" }}
+        {{ cartStore.cartTotal() | money }}
         {{ "LANGUAGE.CURRENCY" | translate }}
         <div class="d-flex justify-content-end">
           <button
@@ -340,7 +340,7 @@
         class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 px-3 py-2 mt-2 bg-extra-total text-black fw-normal"
         >
         <div>
-          {{ "WORDS.TOTAL" | translate }} B: {{ totalPriceInB() | number: "1.0-2" }}
+          {{ "WORDS.TOTAL" | translate }} B: {{ totalPriceInB() | money }}
           {{ "LANGUAGE.CURRENCY" | translate }}
           @if (linesWithoutB()) {
             <div class="mat-body-small partial-total">
@@ -363,7 +363,7 @@
         class="d-flex justify-content-between align-items-center shadow rounded-3 w-100 px-3 py-2 mt-2 bg-extra-total text-black fw-normal"
         >
         <div>
-          {{ "WORDS.TOTAL" | translate }} A: {{ totalPriceInA() | number: "1.0-2" }}
+          {{ "WORDS.TOTAL" | translate }} A: {{ totalPriceInA() | money }}
           {{ "LANGUAGE.CURRENCY" | translate }}
           @if (linesWithoutA()) {
             <div class="mat-body-small partial-total">

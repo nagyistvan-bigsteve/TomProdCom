@@ -79,7 +79,7 @@
         <div class="d-flex text-center align-items-center justify-content-center">
           <div class="d-flex flex-column">
             @if (calculatedPrice) {
-              {{ this.calculatedPrice | number: "1.0-1" }}
+              {{ this.calculatedPrice | money }}
               {{ "LANGUAGE.CURRENCY" | translate }}
             }
             @if (packsNeeded || extraPiecesNeeded) {

@@ -31,10 +31,12 @@ import { ENTER_ANIMATION } from '@core/models/animations';
 import { ClientStore } from '@features/clients/store/client.store';
 import { ProductStore } from '@features/products/store/product.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
   selector: 'app-selected-product-list',
   imports: [
+    MoneyPipe,
     DecimalInputDirective,
     CommonModule,
     TranslateModule,

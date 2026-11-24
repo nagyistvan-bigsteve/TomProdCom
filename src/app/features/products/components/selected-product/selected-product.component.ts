@@ -29,10 +29,12 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { applyBDiscount, ProductUtil } from '@shared/utils/product.util';
 import { ProductStore } from '@features/products/store/product.store';
 import { availableStock, stockCategoryFor } from '@shared/utils/stock.util';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
   selector: 'app-selected-product',
   imports: [
+    MoneyPipe,
     MatChipsModule,
     MatDividerModule,
     MatIconModule,

@@ -26,7 +26,7 @@
           <div class="d-flex align-items-center gap-2">
             <mat-icon class="mini-cart-icon">shopping_cart</mat-icon>
             <span class="mini-cart-total">
-              {{ cartStore.cartTotal() | number: "1.0-0" }} RON
+              {{ cartStore.cartTotal() | money }} RON
             </span>
           </div>
           <mat-icon class="mini-cart-chevron">chevron_right</mat-icon>

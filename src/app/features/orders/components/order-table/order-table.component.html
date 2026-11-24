@@ -202,7 +202,7 @@
         @if (order.dateOrderDelivered || justOffers) {
           <span>{{
             order.totalAmountFinal + order.deliveryFee - order.paidAmount
-              | number: "1.0-1"
+              | money
           }}</span>
         } @else {
           <button
@@ -219,7 +219,7 @@
           >
             {{
               order.totalAmountFinal + order.deliveryFee - order.paidAmount
-                | number: "1.0-1"
+                | money
             }}
           </button>
         }
@@ -243,12 +243,12 @@
                 @if (!justOffers) {
                   <span class="info-item">
                     <mat-icon class="info-icon">event</mat-icon>
-                    {{ order.dateOrderPlaced | date }}
+                    {{ order.dateOrderPlaced | appDate }}
                   </span>
                 } @else {
                   <span class="info-item">
                     <mat-icon class="info-icon">event</mat-icon>
-                    {{ order.expectedDelivery | date }}
+                    {{ order.expectedDelivery | appDate }}
                   </span>
                 }
 
@@ -276,13 +276,13 @@
                 @if (order.dateOrderDelivered) {
                   <span class="info-item delivered-item">
                     <mat-icon class="info-icon">check_circle</mat-icon>
-                    {{ order.dateOrderDelivered | date }}
+                    {{ order.dateOrderDelivered | appDate }}
                   </span>
                 }
                 @if (order.paidAmount) {
                   <span class="info-item paid-item">
                     <mat-icon class="info-icon">price_check</mat-icon>
-                    {{ order.paidAmount | number: "1.0-2" }} RON
+                    {{ order.paidAmount | money }} RON
                   </span>
                 }
                 <span class="info-item">
@@ -353,7 +353,7 @@
       {{
         "ORDER.TABLE.CONTENT.TOTAL_PRICE"
           | translate
-            : { price: store.stats().totalPrice | number: "1.0-2" }
+            : { price: store.stats().totalPrice | money }
       }}
     </span>
   </div>
@@ -367,7 +367,7 @@
     <div class="w-100 mt-2">
       {{
         "ORDER.TABLE.CONTENT.PAY_DIALOG.DESCRIPTION"
-          | translate: { maxAmount: data.maxAmount | number: "1.0-2" }
+          | translate: { maxAmount: data.maxAmount | money }
       }}
     </div>
     <mat-form-field class="w-100 mt-4" appearance="fill">
