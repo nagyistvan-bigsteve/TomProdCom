@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { OrderTableComponent } from '@features/orders/components/order-table/order-table.component';
@@ -18,6 +18,7 @@ import { parseOrderId } from '@features/orders/pages/order-id.util';
   ],
   templateUrl: './offers.component.html',
   styleUrl: './offers.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class OffersComponent {

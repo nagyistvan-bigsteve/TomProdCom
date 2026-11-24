@@ -1,4 +1,4 @@
-﻿import { Component, effect, inject, Input, signal } from '@angular/core';
+﻿import { Component, effect, inject, Input, signal, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -52,6 +52,7 @@ interface PhoneFormGroup extends FormGroup<{
   ],
   templateUrl: './add-client.component.html',
   styleUrl: './add-client.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class AddClientComponent {

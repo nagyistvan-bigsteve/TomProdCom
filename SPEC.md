@@ -311,9 +311,9 @@ Category represents the **quality grade** of a product (or of a specific line it
 | `A`   | 1   | Premium grade           |
 | `AB`  | 2   | Standard grade          |
 | `B`   | 3   | Board / secondary grade |
-| `T`   | 4   | Treated / impregnated   |
+| `T`   | 4   | Terrace (sorted from A) |
 
-A single product may be sold at different quality grades. The category determines which price row applies.
+A single product may be sold at different quality grades. The category determines which price row applies, and which stock grade the item is taken from (see §6.5).
 
 ### Size (`Size_id`)
 
@@ -416,7 +416,7 @@ Products may exist without a currently configured price. The application must be
 
 ## 6.4 Category (quality grade)
 
-In the domain, "category" means the **quality grade** of a product or of a specific line item in an offer/order. The four grades are: **A** (premium), **AB** (standard), **B** (board/secondary), **T** (treated/impregnated). See section 6.0 for enum values.
+In the domain, "category" means the **quality grade** of a product or of a specific line item in an offer/order. The four grades are: **A** (premium), **AB** (unsorted mix of A and B, as it arrives on the truck), **B** (board/secondary), **T** (terrace: always picked out of A; it is priced as T but has no stock of its own). See section 6.0 for enum values.
 
 A single physical product may be sold at multiple quality grades. Each grade has its own price row in the `prices_new` table.
 
@@ -426,9 +426,24 @@ Pricing is configured at the category level via the `prices_new` table (matched 
 
 ## 6.5 Stock
 
-Stock represents the currently available inventory.
+Stock represents the currently available inventory, **per stock grade**: the `stocks` table has one row per product and grade (`category_id` 1 = A, 2 = AB, 3 = B).
 
-The current application primarily manages stock directly.
+| Product                                   | Stock grades it has |
+| ----------------------------------------- | ------------------- |
+| up to 7 m long (`length <= 700` cm), not M2 | A, B and AB         |
+| longer than 7 m                           | AB only (no A/B split exists above 7 m) |
+| M2                                        | one AB row, not tracked by the booking triggers (as before) |
+
+**Stock grade rule** — which grade an order item is booked and deducted from:
+
+1. M2 product → not tracked;
+2. longer than 7 m → AB, whatever grade it is sold at;
+3. sold as T (terrace) → A;
+4. otherwise the sold grade (A, AB or B).
+
+The rule lives in SQL (`public.stock_category_for`) and is mirrored by `stockCategoryFor()` in `@shared/utils/stock.util`; keep both in step. Stock rows are created by the database (`products_stock_rows` triggers) when a product is added or its length/unit changes. If a product stops being graded (e.g. its length becomes more than 7 m), its A and B pieces are merged into AB; after any such change its bookings are recomputed for the new rule.
+
+An order may book more than is available: available stock (`stock - booked_stock`) can go negative, which the UI shows as a warning, not an error. Goods arrive as AB (truck intake) and are moved to A/B by a sorting; see §12.
 
 Future versions should support:
 
@@ -484,9 +499,9 @@ Each line item in an order (table `order_items`) contains:
 | -------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `product_id`   | number  | FK → products                                                                                                                                  |
 | `order_id`     | number  | FK → orders                                                                                                                                    |
-| `quantity`     | number  | Quantity in the product's native unit (or m² for M2 products stored as BRUT m²)                                                                |
+| `quantity`     | number  | Quantity in the product's native unit (or m² for M2 products stored as BRUT m²). Always more than 0 (database check; the add buttons refuse 0)  |
 | `category_id`  | number  | Quality grade chosen for this line item (FK → categories)                                                                                      |
-| `price`        | number  | Total price for this line item (already calculated)                                                                                            |
+| `price`        | number  | Total price for this line item (already calculated); 0 or more (database check)                                                                 |
 | `item_status`  | boolean | `false` = pending; `true` = delivered/completed. Set to `true` for all items when the order is marked delivered. Can also be toggled per item. |
 | `packs_pieces` | string  | For M2 products: pack breakdown in format `"Np + Mb"` (N full packs, M extra pieces). Empty for non-M2 products.                               |
 
@@ -805,6 +820,8 @@ Admins may additionally:
 
 - delete the order.
 
+Deleting and restoring are enforced in the database, not only in the UI (§21).
+
 ### Order details
 
 A user can:
@@ -820,6 +837,8 @@ A user can:
 - change the prices of the saved items (see 10.3, "Changing prices of a saved offer or order");
 - print order details;
 - mark the order as delivered.
+
+The items card ends with the amount to pay (`total_amount_final + delivery_fee`). When a voucher or a delivery fee is set, it shows the subtotal (`total_amount`), the voucher discount and the transport above it, so the lines add up to the total.
 
 Editing a product keeps its current unit price when only the quantity changes (except M2 products), so a price set by hand is not lost. Changing the category re-prices the item from the price list.
 
@@ -929,11 +948,14 @@ Route:
 
 ### Features
 
-- list products;
-- view stock;
+- list products with their A / B / AB stock (total, available, m³), and a total;
 - search products;
-- sort by stock;
-- edit stock.
+- filter: all · to sort (AB pieces of a product up to 7 m) · shortage (negative available);
+- sort by total stock;
+- correct stock per grade (absolute values, ≥ 0);
+- start a sorting (AB → A / B / waste) for a product with AB stock.
+
+The stock is reloaded every time the page is opened (there is no realtime subscription). It is also reloaded when the offer page opens and when the app comes back to the foreground (at most every 30 seconds), so the stock shown while building an offer is current.
 
 ### UX
 
@@ -991,7 +1013,7 @@ Route:
 
 ### Auto-purge
 
-Soft-deleted **orders and offers** are automatically and permanently purged **10 days** after their `deleted_at` timestamp. A countdown is shown in the Deleted page so employees know how long before an order is unrecoverable. The constant `DAYS_UNTIL_PERMANENT_DELETE = 10` controls this threshold.
+Soft-deleted **orders and offers** are automatically and permanently purged **10 days** after their `deleted_at` timestamp. The purge runs in the database every night at 02:30 UTC (pg_cron job `purge-deleted-orders` → `private.purge_deleted_orders()`), so it does not depend on anyone opening the Deleted page; the page itself never deletes anything on load. A countdown is shown in the Deleted page so employees know how long before an order is unrecoverable (0 days: it goes in the next nightly run). The constant `DAYS_UNTIL_PERMANENT_DELETE = 10` controls the countdown and must match the interval in the purge function.
 
 ### Deleted users
 
@@ -1041,6 +1063,10 @@ An offer may also be used as the starting point for creating an order while allo
 ### Cart persistence
 
 The product selection (cart) is persisted to `localStorage` throughout the offer creation workflow. If the user returns to the offer creation flow after more than **10 minutes** of inactivity, they are prompted to either restore the saved cart or discard it and start fresh. The prompt only appears when one of the offer creation pages is opened; until then the saved cart is left as it is, and it is replaced if the cart is filled from elsewhere (e.g. an offer loaded into the cart). A saved cart with no products is dropped without asking.
+
+### Cart totals
+
+Below the cart: the total, and "Total B" / "Total A", what the cart would cost with every line in that grade (the arrow switches the lines to it). A line whose product has no price in that grade keeps its own price; the pill then says how many such lines there are. Adding the same product and grade again asks to add to the line or replace it; either way the totals update at once. A line with quantity 0 is not added.
 
 ---
 
@@ -1154,6 +1180,8 @@ A price typed for a **general row** keeps the Category B board discount: a 2.5 c
 
 **Order of adjustments:** Category B board discount → TVA discount → manual discount.
 
+**Single source in code:** the first two steps (list price → charged unit price) are `effectiveUnitPrice()` in `src/app/shared/utils/product.util.ts`, and the amounts are the named constants next to it (`B_BOARD_DISCOUNT`, `B_DISCOUNT_THICKNESS`, `TVA_M3_DISCOUNT`, `TVA_BUNDLE_DISCOUNT`). Every screen that prices an item from its list price calls that function. Do not write these rules out again at a call site.
+
 ### Changing prices of a saved offer or order
 
 Offers and orders can be re-priced in place from the details screen (price icon in the top bar), without creating a new record. The dialog shows the same price panel as the offer overview:
@@ -1251,13 +1279,14 @@ Pure business-logic functions — price formulas, discount adjustments, quantity
 - **Config**: `vitest.config.mjs` at the project root. Path aliases (`@core`, `@shared`, `@features`) are resolved automatically.
 - **Scope**: Test exported pure functions. Do not use Angular `TestBed` or DI in Vitest tests — use plain `new ClassName()` for classes without constructor dependencies.
 
-Current test file: `src/app/shared/utils/product.util.vitest.spec.ts` covers `calculatePrice`, `applyBDiscount`, `applyTvaDiscount`, and adjustment ordering.
+Current test file: `src/app/shared/utils/product.util.vitest.spec.ts` covers `calculatePrice`, `applyBDiscount`, `applyTvaDiscount`, `effectiveUnitPrice`, and adjustment ordering.
 
-## 12.2 Component tests (Karma + Jasmine)
+## 12.2 Component tests (Angular unit-test builder + Vitest)
 
-Angular component behaviour (routing, template rendering, DI interactions) is covered by the existing Karma+Jasmine setup.
+Angular component behaviour (routing, template rendering, DI interactions, guards) is covered by `*.spec.ts` files run by the Angular `unit-test` builder with Vitest in jsdom. `src/test.ts` is its setup file and provides the app-wide test providers.
 
-- **Run**: `npm test`
+- **Run**: `npm test` (watch) or `npx ng test --watch=false` (single pass, as in CI)
+- **Deploy gate**: both GitHub workflows run `npm run test:unit` and the component specs before building; a failing test stops the deploy.
 
 ## 12.3 Rule
 
@@ -1267,49 +1296,98 @@ Every bug fix or new feature that touches pricing, cart state, or core business 
 
 Current functionality:
 
-- view stock;
-- edit stock;
-- use stock information while creating orders;
-- track incoming shipments and increment stock on verified delivery.
+- view stock per grade (A / B / AB, see §6.5);
+- correct stock per grade;
+- use stock information while creating orders (the grade the item will be taken from is shown);
+- register truck deliveries and add them to AB stock when validated;
+- sort AB pieces into A, B and waste.
+
+SQL: `supabase/migrations/*_graded_stock.sql` (undo: `supabase/rollbacks/graded_stock_rollback.sql`).
 
 ### `booked_stock`
 
-The `stocks` table (and the TypeScript `Stock` type) contains a `booked_stock` column.
+The `stocks` table (and the TypeScript `Stock` type) contains a `booked_stock` column, per grade.
 
-**Current state — maintained by three Postgres triggers on `order_items`** (real orders only, `just_offer = false`; M2 products are ignored):
+**Maintained by three Postgres triggers on `order_items`** (real orders only, `just_offer = false`; M2 products are ignored). Every change goes to the grade given by the stock grade rule (§6.5: T → A, longer than 7 m → AB).
+
+An item's effect on its grade: not delivered → `booked_stock += quantity`; delivered → `stock -= quantity`.
 
 | Trigger function               | Fires on | Effect                                                                                           |
 | ------------------------------ | -------- | ------------------------------------------------------------------------------------------------ |
-| `trg_order_item_book_stock`    | INSERT   | `booked_stock += quantity`                                                                       |
-| `trg_order_item_status_change` | UPDATE   | `item_status` false → true: `booked_stock -= quantity` and `stock -= quantity`; true → false reverses both |
-| `trg_order_item_delete_unbook` | DELETE   | if the item was not delivered: `booked_stock -= quantity`                                        |
+| `trg_order_item_book_stock`    | INSERT   | applies the item's effect (`booked_stock += quantity`)                                           |
+| `trg_order_item_status_change` | UPDATE   | removes the old effect and applies the new one, so a change of delivery status, quantity, category or product moves the booking to the right grade |
+| `trg_order_item_delete_unbook` | DELETE   | if the item was not delivered: `booked_stock -= quantity` (a delivered item stays deducted)       |
 
-Known gaps (not yet decided how to handle — do not "fix" silently):
+This also applies to a delivered item (decided 2026-11-23): changing its category or quantity is treated as a correction, so the deduction moves with it. Example: 10 pieces delivered as T took 10 from A; changing the line to AB gives A its 10 pieces back and takes 10 from AB instead.
 
-- Transforming an offer into an order only flips `just_offer`; its items were inserted as offer items and were never booked, but delivering them later still decrements `booked_stock` and `stock`.
-- Changing an item's quantity or category does not adjust `booked_stock`.
+When graded stock was introduced, `booked_stock` was recomputed from the undelivered items of real orders. This intentionally changed visible booked numbers wherever an offer had been converted into an order without booking (staging: 47 → 79 in total).
 
-Frontend service methods `addToBookedStock()`, `bookedStockSold()`, and `updateBookedStock()` in `stocks.service.ts` are **dead code** — they are defined but never called; the triggers do this work.
+**Offer ↔ order conversion** (trigger `orders_offer_conversion_stock` on `orders.just_offer`): offer items have no stock effect. When an offer becomes an order (any approved user, "direct transform"), every item's effect is applied: undelivered items are booked, items already marked delivered are deducted. When an admin turns an order back into an offer (only admins may, `prevent_order_to_offer`), every item's effect is removed again. Before this trigger existed (until 2026-11-23), converted offers were never booked, and delivering their items pushed `booked_stock` below zero; `booked_stock` was recomputed once to repair that.
 
-### Incoming stock (`coming_wares`)
+**Deleted orders** (trigger `orders_deleted_stock` on `orders.deleted_at`, decided 2026-11-24): a soft-deleted order books nothing. Deleting it releases the bookings of its undelivered items; restoring it books them again. Delivered items stay deducted either way, as for a permanent delete (the goods have left). While an order is deleted its items have no stock effect at all (`order_is_real` is false), so the nightly purge does not release them a second time. Until 2026-11-24 a deleted order kept its bookings until it was purged; `booked_stock` was recomputed once without deleted orders.
 
-The `coming_wares` feature tracks incoming shipments. When a shipment is inspected and verified, stock IS updated:
+### Truck intake (`shipments`, `shipment_items`)
 
-- Items with `for_order = false`: delivered to the **warehouse** → `stock` is incremented when the shipment is verified and the item is marked correct. Verification and the stock increment happen in one database transaction (`verify_coming_wares`); a shipment can be verified only once.
-- Items with `for_order = true`: delivered **directly to a customer's order** → stock is NOT incremented (the goods bypass the warehouse).
-- The `all_for_order` convenience flag forces all items in a shipment to `for_order = true`.
+When a truck arrives, nobody knows yet how much of it is A and how much B, but the goods must be in stock immediately. So a truck delivery always enters stock as **AB**.
+
+1. **Draft** (`/shipments/new`): date of arrival, truck / supplier name, comment, and lines (product + pieces; M2 products are not allowed). The page shows the total m³ (M3 and bundle products only, as on the products page) so it can be checked against the delivery papers. A draft can be edited and deleted (`save_shipment`, `delete_shipment`).
+   - The page says what still stops a save (name, date, a line, a valid quantity).
+   - Leaving a draft with unsaved changes asks first. An unsaved **new** truck is also kept on the device (localStorage) and offered back after a reload, e.g. the forced reload after a deploy.
+   - **Two people editing one draft:** each save sends the draft's version (`shipments.updated_at`). If someone else saved it meanwhile, the save is refused (`SA007`) instead of the last writer silently winning. The page asks: load the other version (the user's unsaved edits are dropped), or keep their own edits, in which case the next save replaces the other version. A reload never replaces unsaved edits on its own.
+2. **Validate** (`validate_shipment`): the draft becomes `validated` and every line's pieces are added to the product's AB stock, in one transaction. A shipment can be validated only once and is read-only afterwards. It is refused (`SA002`) if a line's product has become M2 since the draft was saved.
+
+A bale may never be opened and be sold as AB; nothing else is needed for that.
+
+The trucks list has Draft / Validated tabs, a search by truck name and, for validated trucks, a "to sort" filter (pieces left). It loads 50 trucks at a time, newest first. A validated truck shows who registered and who validated it, and each sorting shows who recorded it.
+
+**Writes only through the database functions.** Approved users can read `shipments`, `shipment_items` and `stock_sortings` but not write them directly: every write goes through `save_shipment`, `validate_shipment`, `delete_shipment`, `record_sorting` or `delete_sorting`. These run with the database owner's rights, check `private.is_approved()` themselves, and set `created_by` / `validated_by` to the caller. Without this, a direct API call could reopen a validated truck and validate it again (AB added twice), or delete a sorting without moving its stock back.
+
+### Sorting (`stock_sortings`)
+
+At the sorting ramp the AB pieces are sorted, e.g. `7.5x15x400: 49 pcs AB → 40 A + 8 B + 1 waste`.
+
+- `record_sorting`: AB `-=` A + B + waste, A `+=` A, B `+=` B, and the sorting is kept as a row (optionally linked to the validated truck it came from). Refused when the product has no A/B stock (M2 or longer than 7 m) or when AB stock is smaller than the pieces sorted. A sorting linked to a truck is also refused when it takes more pieces than are left of that product on the truck (received minus already sorted from it), or when the product is not on the truck.
+- `delete_sorting`: undoes a sorting (typo fix): the pieces go back into AB. Refused when the sorted A or B pieces are no longer in stock.
+- A sorting can be started from a validated truck, which shows per line: received / sorted / remaining. The dialog then shows and counts down what is left on that truck, not the whole AB stock. The Sort button is disabled until the truck's sortings have loaded, and once a line is fully sorted.
+- It can also be started from the products page. There it counts against the product's whole AB stock (e.g. stock that existed before graded stock). The user may pick the validated truck the pieces came from, from those that still have pieces of this product left (`shipments_with_remaining`). The sorting then counts against that truck, as if started from it, so the truck reaches 100%.
+- **Booked AB pieces:** a sorting is limited by the physical AB stock, not by AB free (stock − booked). If it takes AB pieces that customers ordered as AB, it is still allowed, but the dialog warns how many ordered pieces it takes and that AB free will be negative.
+- The dialog cannot be closed while a sorting is being saved. The truck page reloads its sortings whenever the dialog closes.
+
+Error codes raised by these functions (shown by the central toast, `apiErrorKey`):
+- `SA001` not enough AB stock;
+- `SA002` product has no A/B stock (or became M2, for a validation);
+- `SA003` shipment already validated (or not validated, for a sorting);
+- `SA004` a sorting cannot be undone because its A/B pieces are no longer in stock;
+- `SA005` more pieces than are left of the product on the truck;
+- `SA006` stock changed meanwhile (hand edit, below);
+- `SA007` truck draft changed meanwhile;
+- `SA008` a fraction of a piece in a hand stock edit (below).
+
+`42501` is raised when the caller is not an approved user.
+
+### Hand stock edit (`set_stock`, `stock_adjustments`)
+
+Any approved user can correct a grade's stock by hand (products page pencil, admin "update stock"). The value is absolute (≥ 0) and is saved through `set_stock(stock_id, expected, new)`:
+- `expected` is the value the user started editing from. If the stored value is different by now (a sale, a delivery, a sorting or another user's edit happened meanwhile), the save is refused with `SA006`. The page then reloads the stock and keeps the edit open with the new values, instead of silently overwriting that change.
+- Every saved edit is logged in `stock_adjustments` (old and new value, who, when). The table is read-only through the API.
+- Saving several grades shows one message.
+- Products counted in pieces take whole numbers only: BUC, bundles, and M3 products with a width (`SA008` otherwise). M3 products without a width are sold by volume, so their stock is in m³ and may have decimals; M2 stock is in m². Rule: `countsWholePieces()` in `@shared/utils/stock.util`, mirrored in `set_stock`.
+- A value the page cannot save (negative, not a number, a fraction of a piece) keeps the edit open with a message under the fields; nothing is sent.
+
+**Unit change to M2.** When a product becomes M2, its A/B stock is merged into AB as for any product that stops being graded, and its bookings are set to 0. M2 is not tracked, so those bookings could never be released.
 
 ### Stock concepts
 
 ```text
-available stock      ← currently active (stocks.stock field)
-reserved stock       ← active (booked_stock maintained by order_items triggers; see known gaps above)
-incoming/ordered     ← active (coming_wares feature — stock incremented on verification for warehouse items)
+stock (per grade)    ← stocks.stock: A, B, AB
+reserved stock       ← booked_stock per grade, maintained by order_items triggers
+available            ← stock - booked_stock (may be negative: more ordered than held)
+incoming             ← truck deliveries; enter AB stock when validated
 ```
 
 Future functionality:
 
-- closing the `booked_stock` gaps listed above (offer → order transformation, quantity edits);
+- closing the offer → order booking gap listed above;
 - stock per warehouse;
 - warehouse-specific inventory.
 
@@ -1370,6 +1448,8 @@ When adding a feature:
 4. verify labels, errors, dialogs, empty states, buttons, and accessibility labels.
 
 Translation keys should be descriptive and consistent.
+
+**Dates and money** follow the language, using each country's convention: Romanian `24.11.2026` (short `24.11`), Hungarian `2026.11.24` (short `11.24`), with `HH:mm` added where a time is shown. Templates use the `appDate` pipe (`@shared/pipes/app-date.pipe`, formats in `display-format.util`), never a hard-coded `date:` format; date pickers follow the language through `syncDatePickerLocale()`. Money uses the `money` pipe: whole amounts without decimals (`960`), amounts with cents with two (`2.155,50`).
 
 Avoid keys such as:
 
@@ -1556,6 +1636,15 @@ Deleted orders should be restorable.
 
 A restore operation must not create duplicate records.
 
+**Who may delete and restore** (trigger `orders_guard_deletion` on `orders.deleted_at`, so a direct API call cannot skip it):
+
+| Record | Soft delete           | Restore     | Permanent delete              |
+| ------ | --------------------- | ----------- | ----------------------------- |
+| Order  | admin                 | admin       | admin (RLS)                   |
+| Offer  | any approved user (e.g. "delete the offer" when loading it into the cart) | admin | any approved user (RLS) |
+
+The UI shows the Delete button for an offer only to its author and to admins; the Deleted page is admin-only. A soft-deleted order releases its stock bookings (§12).
+
 ---
 
 # 22. Printing
@@ -1577,6 +1666,8 @@ The printed document should prioritize:
 Printing should not depend on the visual mobile UI layout.
 
 Prefer a dedicated print layout/CSS or dedicated print representation.
+
+The PDF is built from that layout as images (html2canvas → jsPDF). The images are JPEG, so a one-page order stays around 250–300 kB (PNG made it 6.5 MB). The document title is "Comanda #37" / "Oferta #37", which the print dialog offers as the file name; a direct download is named "Comanda-37.pdf".
 
 ---
 
@@ -1620,16 +1711,16 @@ Users must not be able to manipulate another user's data merely by modifying fro
 
 ### Policy model
 
-The SQL lives in `supabase/migrations/` (`rls_require_approved_user.sql`, `rls_admin_only_writes.sql`). Two helper functions in the non-exposed `private` schema answer "who is calling": `private.is_approved()` and `private.is_admin()` (approved **and** listed in `admin_users`).
+The SQL lives in `supabase/migrations/` (`*_rls_require_approved_user.sql`, `*_rls_admin_only_writes.sql`; the emergency undo is `supabase/rollbacks/rls_rollback.sql`, kept out of `migrations/` so it is never applied by accident). Two helper functions in the non-exposed `private` schema answer "who is calling": `private.is_approved()` and `private.is_admin()` (approved **and** listed in `admin_users`).
 
 | Who                    | Can do                                                                                                          |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------- |
 | Not signed in          | Nothing: no table access, no function calls                                                                     |
 | Signed in, unapproved  | Read their own profile only                                                                                     |
-| Approved user          | Read everything; create and edit clients, orders, offers, order items, stock; inspect, verify and delete shipments; hard-delete offers |
-| Admin                  | Additionally: edit prices and products, create shipments, hard-delete orders, approve / deny users, change roles |
+| Approved user          | Read everything; create and edit clients, orders, offers, order items, stock; register, validate and delete truck deliveries; record and undo sortings; soft- and hard-delete offers |
+| Admin                  | Additionally: edit prices and products, soft-delete, restore and hard-delete orders, restore offers, approve / deny users, change roles |
 
-`admin_users` can be changed only by an admin. `stocks` is writable by every approved user because the `order_items` booking triggers update it on the user's behalf. Soft-deleting an order (`deleted_at`) is an ordinary update and is not restricted in the database.
+`admin_users` can be changed only by an admin. `stocks` is readable by every approved user but written only by database functions (`security definer`): the `order_items` booking triggers through `private.adjust_stock`, truck validation and sorting, and hand edits through `set_stock` (conflict check and audit log). The API role has no insert, update or delete right on it. Soft-deleting (`deleted_at`) is checked by the trigger `orders_guard_deletion`: only admins may delete or restore an order and restore an offer; any approved user may delete an offer (§21).
 
 The app loads products, prices, stock and clients only once a user is signed in and approved, and reloads them after every sign-in.
 

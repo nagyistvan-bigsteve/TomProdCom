@@ -6,11 +6,12 @@ import {
   signal,
   untracked,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { AddClientComponent } from '@features/clients/components/add-client/add-client.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { Client } from '@core/models/models';
-import { CommonModule } from '@angular/common';
+
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -33,7 +34,6 @@ import { ClientHistoryComponent } from '@features/clients/components/client-hist
     AddClientComponent,
     ClientHistoryComponent,
     TranslateModule,
-    CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -41,10 +41,11 @@ import { ClientHistoryComponent } from '@features/clients/components/client-hist
     MatOptionModule,
     MatIconModule,
     MatButtonModule,
-    MatButtonToggleModule,
-  ],
+    MatButtonToggleModule
+],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: ENTER_ANIMATION,
 })
 export class ClientsComponent {

@@ -1,0 +1,108 @@
+<div class="dark-page-header">
+  <span class="dark-page-title">{{ "SHIPMENTS.TITLE" | translate }}</span>
+</div>
+
+<div class="dark-page-content">
+  <a mat-flat-button class="new-btn" routerLink="/shipments/new">
+    <mat-icon>local_shipping</mat-icon>
+    {{ "SHIPMENTS.NEW" | translate }}
+  </a>
+
+  <mat-button-toggle-group
+    class="status-toggle w-100"
+    [value]="store.status()"
+    (change)="setStatus($event.value)"
+    hideSingleSelectionIndicator
+  >
+    <mat-button-toggle value="draft">{{ "SHIPMENTS.STATUS.draft" | translate }}</mat-button-toggle>
+    <mat-button-toggle value="validated">{{ "SHIPMENTS.STATUS.validated" | translate }}</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  <div class="list-controls">
+    <mat-form-field appearance="outline" class="on-dark-field search-field">
+      <mat-label>{{ "WORDS.SEARCH" | translate }}</mat-label>
+      <input
+        matInput
+        type="search"
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+      />
+    </mat-form-field>
+    @if (store.status() === "validated") {
+      <mat-chip-listbox
+        [value]="onlyToSort()"
+        (change)="onlyToSort.set($event.value === true)"
+        hideSingleSelectionIndicator
+        [attr.aria-label]="'SHIPMENTS.FILTER_TO_SORT' | translate"
+      >
+        <mat-chip-option [value]="true">{{ "SHIPMENTS.FILTER_TO_SORT" | translate }}</mat-chip-option>
+      </mat-chip-listbox>
+    }
+  </div>
+
+  @if (store.isBusy() && !store.shipments().length) {
+    <div class="loading-state"><mat-spinner diameter="40" /></div>
+  } @else if (store.listFailed() && !store.shipments().length) {
+    <div class="loading-state">
+      <p class="mat-body-medium on-dark-secondary">{{ "SHIPMENTS.LOAD_FAILED" | translate }}</p>
+      <button mat-stroked-button class="on-dark-stroked" (click)="setStatus(store.status())">
+        <mat-icon>refresh</mat-icon>
+        {{ "WORDS.RETRY" | translate }}
+      </button>
+    </div>
+  } @else {
+    @if (filtering() && store.hasMore()) {
+      <p class="mat-body-small on-dark-secondary m-0" role="status">
+        {{ "SHIPMENTS.FILTER_PARTIAL" | translate: { count: store.shipments().length } }}
+      </p>
+    }
+    <div class="shipment-list">
+      @for (card of visibleCards(); track card.shipment.id) {
+        <a class="shipment-card" [routerLink]="['/shipments', card.shipment.id]">
+          <span class="card-row">
+            <span class="mat-title-medium card-name">{{ card.shipment.name }}</span>
+            <span class="mat-body-medium on-dark-secondary">{{ card.shipment.arrived_on | appDate }}</span>
+          </span>
+          <span class="card-row mat-body-medium">
+            <span>
+              {{ card.lines }} {{ "SHIPMENTS.LINES" | translate }} · {{ card.pieces }}
+              {{ "SHIPMENTS.PIECES" | translate }}
+            </span>
+            <span>{{ card.m3 | number: "1.0-2" }} {{ "WORDS.M3" | translate }}</span>
+          </span>
+          @if (card.shipment.status === "validated") {
+            @if (card.sortedPercent !== null) {
+              <span
+                class="progress"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                [attr.aria-valuenow]="card.sortedPercent"
+                [attr.aria-label]="'SHIPMENTS.SORTED' | translate"
+              >
+                <span class="progress-bar" [style.width.%]="card.sortedPercent"></span>
+              </span>
+            }
+            <span class="mat-body-small on-dark-secondary">
+              {{ "SHIPMENTS.SORTED" | translate }}:
+              {{ card.sortedPercent !== null ? card.sortedPercent + "%" : "–" }}
+            </span>
+          }
+        </a>
+      } @empty {
+        <p class="mat-body-medium on-dark-secondary">{{ "SHIPMENTS.EMPTY" | translate }}</p>
+      }
+    </div>
+
+    @if (store.hasMore()) {
+      <button
+        mat-stroked-button
+        class="on-dark-stroked load-more"
+        [disabled]="store.isBusy()"
+        (click)="store.loadMore()"
+      >
+        {{ "SHIPMENTS.LOAD_MORE" | translate }}
+      </button>
+    }
+  }
+</div>

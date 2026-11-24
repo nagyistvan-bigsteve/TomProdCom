@@ -2,6 +2,12 @@
 import type { M2Quantities, Price2, Product, ProductItems } from '@core/models/models';
 import { Category, Unit_id } from '@core/models/enums';
 
+/** Price rule amounts (SPEC 10.3), in RON. */
+export const B_BOARD_DISCOUNT = 50;
+export const B_DISCOUNT_THICKNESS = 2.5;
+export const TVA_M3_DISCOUNT = 100;
+export const TVA_BUNDLE_DISCOUNT = 5;
+
 /** Applies the Category B board discount: −50 RON/m³ when unit=M3, category=B, thickness=2.5 cm. */
 export function applyBDiscount(
   unitPrice: number,
@@ -9,8 +15,12 @@ export function applyBDiscount(
   categoryId: Category,
   thickness: number,
 ): number {
-  if (unitId === Unit_id.M3 && categoryId === Category.B && thickness === 2.5) {
-    return unitPrice - 50;
+  if (
+    unitId === Unit_id.M3 &&
+    categoryId === Category.B &&
+    thickness === B_DISCOUNT_THICKNESS
+  ) {
+    return unitPrice - B_BOARD_DISCOUNT;
   }
   return unitPrice;
 }
@@ -38,9 +48,23 @@ export function applyTvaDiscount(
   isTva: boolean,
 ): number {
   if (!isTva) return unitPrice;
-  if (unitId === Unit_id.M3) return unitPrice - 100;
-  if (unitId === Unit_id.BOUNDLE) return unitPrice - 5;
+  if (unitId === Unit_id.M3) return unitPrice - TVA_M3_DISCOUNT;
+  if (unitId === Unit_id.BOUNDLE) return unitPrice - TVA_BUNDLE_DISCOUNT;
   return unitPrice;
+}
+
+/**
+ * The unit price a product is charged from its list price, before any manual
+ * adjustment (SPEC 10.3): Category B board discount, then TVA discount.
+ */
+export function effectiveUnitPrice(
+  listPrice: number,
+  product: Pick<Product, 'unit_id' | 'thickness'>,
+  category: Category,
+  isTva: boolean,
+): number {
+  const price = applyBDiscount(listPrice, product.unit_id, category, product.thickness);
+  return applyTvaDiscount(price, product.unit_id, isTva);
 }
 
 /**
@@ -64,12 +88,17 @@ export function calculateActualPrice(
       (item) =>
         item.category === Category.B &&
         item.product.unit_id === Unit_id.M3 &&
-        item.product.thickness === 2.5 &&
+        item.product.thickness === B_DISCOUNT_THICKNESS &&
         price.product_id === item.product.id,
     );
 
   if (hasEligible25Item) {
-    basePrice = applyBDiscount(basePrice, price.unit_id, price.category_id, 2.5);
+    basePrice = applyBDiscount(
+      basePrice,
+      price.unit_id,
+      price.category_id,
+      B_DISCOUNT_THICKNESS,
+    );
   }
 
   return applyTvaDiscount(basePrice, price.unit_id, isTva);

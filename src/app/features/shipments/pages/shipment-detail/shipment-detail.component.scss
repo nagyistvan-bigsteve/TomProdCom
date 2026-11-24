@@ -1,0 +1,244 @@
+@use "breakpoints" as *;
+
+// Page header, content width, dark fields and buttons, secondary text and the
+// stock colours are the shared dark-page helpers in styles.scss.
+
+:host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(57, 72, 60);
+  color: white;
+  overflow-y: auto;
+}
+
+.status-badge {
+  padding: var(--space-1) var(--space-2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+
+  // validated is a good state: success green, not the red of the actions
+  &.validated {
+    background: #216e25;
+  }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.header-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-3);
+
+  .on-dark-field {
+    flex: 1 1 220px;
+  }
+}
+
+.line-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.line-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-2);
+  padding: var(--space-2) var(--space-3) 0;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+
+  @include sm {
+    flex-wrap: nowrap;
+  }
+}
+
+.line-no {
+  width: 2rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.line-product,
+.line-product-field {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+// the dimensions are at the end of a product name: wrap, never cut off
+.line-product {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: 56px;
+  margin-bottom: var(--space-2);
+
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+.qty-field {
+  flex: 1 1 100px;
+
+  @include sm {
+    flex: 0 0 140px;
+  }
+}
+
+.invalid-hint {
+  color: rgb(255, 120, 120);
+}
+
+.totals {
+  text-align: right;
+}
+
+.missing-hint {
+  margin: 0;
+  text-align: right;
+  color: rgb(251, 255, 17);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  @include md {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
+.validate-btn {
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  --mat-button-filled-container-color: rgba(95, 1, 1, 0.75);
+  --mat-button-filled-label-text-color: white;
+  --mat-button-filled-disabled-container-color: rgba(95, 1, 1, 0.3);
+  --mat-button-filled-disabled-label-text-color: rgba(255, 255, 255, 0.5);
+
+  @include md {
+    width: 200px;
+  }
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+}
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.progress-list {
+  display: flex;
+  flex-direction: column;
+}
+
+// Mobile: name + Sort button on top, the three numbers below.
+// From sm: one line — name, numbers, button.
+.progress-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name action"
+    "stats stats";
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+
+  @include sm {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas: "name stats action";
+  }
+}
+
+.product-cell {
+  grid-area: name;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.progress-stats {
+  grid-area: stats;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+
+  @include sm {
+    grid-template-columns: repeat(3, 5.5rem);
+    text-align: right;
+  }
+
+  dt {
+    font-weight: normal;
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  dd {
+    margin: 0;
+  }
+}
+
+.progress-action {
+  grid-area: action;
+  justify-self: end;
+}
+
+.sorting-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.sorting-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 48px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sorting-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sorting-qty {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// autocomplete options render in the overlay, outside this component
+::ng-deep .wrap-option .mdc-list-item__primary-text {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

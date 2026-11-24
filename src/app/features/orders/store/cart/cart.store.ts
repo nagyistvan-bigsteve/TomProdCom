@@ -22,6 +22,7 @@ import {
   toStoredCart,
 } from './cart.persistence';
 import { CartSlice, initialCartSlice } from './cart.slice';
+import { replaceCartItem } from './cart.items';
 
 
 export const CartStore = signalStore(
@@ -41,6 +42,15 @@ export const CartStore = signalStore(
           pendingRestore: null,
         });
 
+      },
+
+      /** Replaces one cart line (duplicate dialog → "overwrite"). */
+      replaceProductItem(replaced: ProductItem, item: ProductItem) {
+        patchState(store, {
+          productItems: replaceCartItem(store.productItems(), replaced, item),
+          lastUpdated: new Date().toLocaleString('sv-SE'),
+          pendingRestore: null,
+        });
       },
 
       addProductItem(productItem: ProductItem) {

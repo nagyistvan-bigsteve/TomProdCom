@@ -1,12 +1,16 @@
 ﻿import {
   Component,
+  effect,
   ElementRef,
   inject,
   OnInit,
+  signal,
+  untracked,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { Product, Products, Stock } from '@core/models/models';
-import { CommonModule } from '@angular/common';
+import { Product, Products, Stock, StockCategory } from '@core/models/models';
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
@@ -24,14 +28,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FilterUtil } from '@shared/utils/filter.util';
-import { ProductStore } from '@features/products/store/product.store';
+import { ProductStore, StockChange } from '@features/products/store/product.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
+import { Category } from '@core/models/enums';
+import { STOCK_CATEGORIES } from '@shared/utils/stock.util';
 
 @Component({
   selector: 'app-update-products',
   imports: [
     DecimalInputDirective,
-    CommonModule,
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
@@ -41,10 +46,11 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
     TranslateModule,
     MatButtonModule,
     MatChipsModule,
-    MatButtonToggleModule,
-  ],
+    MatButtonToggleModule
+],
   templateUrl: './update-products.component.html',
   styleUrl: './update-products.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class UpdateProductsComponent implements OnInit {
@@ -86,29 +92,45 @@ export class UpdateProductsComponent implements OnInit {
     piece_per_pack: [this.selectedProduct.piece_per_pack],
   });
 
-  currentStock: Stock = {
-    id: 0,
-    product_id: 0,
-    stock: 0,
-    booked_stock: 0,
-  };
+  /** Editable copies of the selected product's stock rows, one per grade. */
+  gradeStocks: Stock[] = [];
+  /** Stock of each grade when the rows were filled: the expected value for `set_stock`. */
+  private stockBaseline: Partial<Record<StockCategory, number>> = {};
+  /** After a "changed meanwhile" refusal: refill the rows once the reload arrives. */
+  private readonly refillOnReload = signal<number | null>(null);
+  savingStock = false;
 
-  stockForm = this.fb.group({
-    id: [this.currentStock?.id],
-    product_id: [this.currentStock?.product_id],
-    stock: [this.currentStock?.stock],
-  });
+  readonly categoryName = (category: Category) => Category[category];
+
+  constructor() {
+    effect(() => {
+      const productId = this.refillOnReload();
+      const graded = this.productStore.stocksByProduct();
+      if (productId === null || this.productStore.isBusy()) return;
+      untracked(() => {
+        this.refillOnReload.set(null);
+        if (graded[productId]) this.fetchProductStock(productId);
+      });
+    });
+  }
 
   ngOnInit(): void {}
 
   fetchProductStock(productId: number): void {
-    this.currentStock =
-      this.productStore.stocksEntityMap()[productId] ?? {
-        id: 0,
-        product_id: productId,
-        stock: 0,
-        booked_stock: 0,
-      };
+    const graded = this.productStore.stocksByProduct()[productId] ?? {};
+    this.gradeStocks = STOCK_CATEGORIES.map((c) => graded[c])
+      .filter((s): s is Stock => !!s)
+      .map((s) => ({ ...s }));
+    this.stockBaseline = Object.fromEntries(
+      this.gradeStocks.map((s) => [s.category_id, s.stock]),
+    );
+  }
+
+  onModeChange(updateStock: boolean): void {
+    this.updateStock = updateStock;
+    if (updateStock && this.isProductSelectet) {
+      this.fetchProductStock(this.selectedProduct.id);
+    }
   }
 
   optionSelected(product: Product): void {
@@ -120,23 +142,35 @@ export class UpdateProductsComponent implements OnInit {
     }
   }
 
-  onStockSave() {
-    if (this.currentStock.id) {
-      this.productStore.updateStock({
-        id: this.currentStock.id,
-        stock: this.currentStock.stock,
-        product_id: this.currentStock.product_id,
-      });
-    } else {
-      this.productStore
-        .addStockAndReturn({
-          stock: this.currentStock.stock,
-          product_id: this.currentStock.product_id,
-        })
-        .subscribe((newStock) => {
-          this.currentStock = newStock;
-        });
+  /**
+   * Saves the changed grades. The rows are matched to the product's stock
+   * rows as they are now (by grade), so a length change that merged A/B into
+   * AB cannot make a save "succeed" on a row that no longer exists.
+   */
+  async onStockSave(): Promise<void> {
+    if (this.savingStock || !this.selectedProduct?.id) return;
+    const productId: number = this.selectedProduct.id;
+    const current = this.productStore.stocksByProduct()[productId] ?? {};
+    const changes: StockChange[] = [];
+    for (const row of this.gradeStocks) {
+      // an emptied number field gives null: leave that grade unchanged
+      if (row.stock === null || (row.stock as unknown) === '') continue;
+      const stock = Number(row.stock);
+      const live = current[row.category_id];
+      if (!live || !Number.isFinite(stock) || stock < 0) continue;
+      // "changed" means changed by the admin (vs. the value shown when the
+      // rows were filled), not vs. a stock reload that happened meanwhile
+      const baseline = this.stockBaseline[row.category_id] ?? live.stock;
+      if (stock === baseline) continue;
+      changes.push({ id: live.id, expected: baseline, stock });
     }
+
+    this.savingStock = true;
+    const result = await this.productStore.setStocks(changes);
+    this.savingStock = false;
+
+    if (result === 'saved') this.fetchProductStock(productId);
+    else if (result === 'conflict') this.refillOnReload.set(productId);
   }
 
   onSave() {

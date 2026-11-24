@@ -4,14 +4,12 @@ import { unwrapResult } from '@core/services/supabase-result.util';
 import { from, map, Observable } from 'rxjs';
 import { Product, Products } from '@core/models/models';
 import { Size_id, Unit_id } from '@core/models/enums';
-import { StocksService } from './stocks.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ProductsService {
   private supabaseService = inject(SupabaseService);
-  private stockService = inject(StocksService);
 
   getProducts(): Observable<Products> {
     return from(this.supabaseService.client.from('products').select('*')).pipe(
@@ -29,11 +27,7 @@ export class ProductsService {
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        this.stockService.addStock({
-          product_id: data.id,
-          stock: 0,
-          booked_stock: 0,
-        });
+        // its stock rows are created by the products_stock_rows trigger
         return data as Product;
       }),
     );

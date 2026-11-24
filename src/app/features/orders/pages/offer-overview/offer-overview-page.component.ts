@@ -7,6 +7,7 @@
   signal,
   TemplateRef,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -26,6 +27,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { syncDatePickerLocale } from '@shared/utils/date-picker-locale';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -72,6 +74,7 @@ import { PriceAdjustPanelComponent } from '@features/orders/components/price-adj
   ],
   templateUrl: './offer-overview-page.component.html',
   styleUrls: ['./offer-overview-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class OfferOverviewPageComponent {
@@ -109,6 +112,7 @@ export class OfferOverviewPageComponent {
   private lastClientId = signal<number | null>(null);
 
   constructor() {
+    syncDatePickerLocale();
     effect(() => {
       const currentId = this.clientStore.client()?.id ?? null;
       const previous = this.lastClientId();

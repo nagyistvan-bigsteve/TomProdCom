@@ -26,14 +26,14 @@
 .form-field {
   width: 100%;
 
-  --mdc-outlined-text-field-label-text-color: rgba(255, 255, 255, 0.65);
-  --mdc-outlined-text-field-hover-label-text-color: rgba(255, 255, 255, 0.85);
-  --mdc-outlined-text-field-focus-label-text-color: white;
-  --mdc-outlined-text-field-input-text-color: white;
-  --mdc-outlined-text-field-outline-color: rgba(255, 255, 255, 0.35);
-  --mdc-outlined-text-field-hover-outline-color: rgba(255, 255, 255, 0.65);
-  --mdc-outlined-text-field-focus-outline-color: white;
-  --mdc-outlined-text-field-caret-color: white;
+  --mat-form-field-outlined-label-text-color: rgba(255, 255, 255, 0.65);
+  --mat-form-field-outlined-hover-label-text-color: rgba(255, 255, 255, 0.85);
+  --mat-form-field-outlined-focus-label-text-color: white;
+  --mat-form-field-outlined-input-text-color: white;
+  --mat-form-field-outlined-outline-color: rgba(255, 255, 255, 0.35);
+  --mat-form-field-outlined-hover-outline-color: rgba(255, 255, 255, 0.65);
+  --mat-form-field-outlined-focus-outline-color: white;
+  --mat-form-field-outlined-caret-color: white;
 }
 
 .save-btn {

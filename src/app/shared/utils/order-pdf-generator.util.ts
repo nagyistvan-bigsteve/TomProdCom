@@ -3,6 +3,22 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { OrderItemsResponse, OrderResponse } from '@core/models/models';
 
+/**
+ * The pages are rendered as images (html2canvas at 2×). JPEG keeps a
+ * one-page order around a few hundred kB; PNG made it several MB.
+ */
+const PDF_JPEG_QUALITY = 0.9;
+
+/** Document title, also the name the print dialog suggests for the file. */
+export function pdfTitle(order: Pick<OrderResponse, 'id'>, justOffers: boolean): string {
+  return `${justOffers ? 'Oferta' : 'Comanda'} #${order.id}`;
+}
+
+/** File name when the PDF is downloaded instead of printed: "Comanda-37.pdf". */
+export function pdfFileName(order: Pick<OrderResponse, 'id'>, justOffers: boolean): string {
+  return `${justOffers ? 'Oferta' : 'Comanda'}-${order.id}.pdf`;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -59,10 +75,13 @@ export class OrderPdfGeneratorUtil {
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
+        compress: true,
       });
+      // the print dialog offers this as the file name ("Comanda #37.pdf")
+      pdf.setProperties({ title: pdfTitle(order, justOffers) });
 
-      const headerImgData = headerCanvas.toDataURL('image/png');
-      const footerImgData = footerCanvas.toDataURL('image/png');
+      const headerImgData = headerCanvas.toDataURL('image/jpeg', PDF_JPEG_QUALITY);
+      const footerImgData = footerCanvas.toDataURL('image/jpeg', PDF_JPEG_QUALITY);
 
       // Add pages
       for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
@@ -71,7 +90,7 @@ export class OrderPdfGeneratorUtil {
         }
 
         // Add header
-        pdf.addImage(headerImgData, 'PNG', 0, 0, pdfWidth, headerHeightMM);
+        pdf.addImage(headerImgData, 'JPEG', 0, 0, pdfWidth, headerHeightMM);
 
         const rowHeightMM = (tableHeightMM - 2.5) / (orderItems!.length + 2);
 
@@ -116,14 +135,14 @@ export class OrderPdfGeneratorUtil {
             pageCanvas.height,
           );
 
-          const pageContentImg = pageCanvas.toDataURL('image/png');
+          const pageContentImg = pageCanvas.toDataURL('image/jpeg', PDF_JPEG_QUALITY);
           const pageContentHeight =
             (pageCanvas.height * contentWidthMM) / pageCanvas.width;
 
           // Add content for this page
           pdf.addImage(
             pageContentImg,
-            'PNG',
+            'JPEG',
             margin,
             headerHeightMM - 7.5,
             contentWidthMM,
@@ -135,7 +154,7 @@ export class OrderPdfGeneratorUtil {
         const footerY = pdfHeight - footerHeightMM - margin;
         pdf.addImage(
           footerImgData,
-          'PNG',
+          'JPEG',
           margin,
           footerY,
           pdfWidth - margin * 2,
@@ -184,9 +203,7 @@ export class OrderPdfGeneratorUtil {
 
     if (!printWindow) {
       // Fallback: download if popup blocked
-      const orderType = justOffers ? 'offer' : 'order';
-      const filename = `${orderType}_${order?.id}_${new Date().getTime()}.pdf`;
-      pdf.save(filename);
+      pdf.save(pdfFileName(order, justOffers));
     }
 
     // Cleanup after delay (user should have opened it by then)
@@ -233,9 +250,7 @@ export class OrderPdfGeneratorUtil {
           document.body.removeChild(iframe);
           URL.revokeObjectURL(pdfUrl);
 
-          const orderType = justOffers ? 'offer' : 'order';
-          const filename = `${orderType}_#${order?.id}.pdf`;
-          pdf.save(filename);
+          pdf.save(pdfFileName(order, justOffers));
 
           alert('Could not open print dialog. PDF downloaded instead.');
         }

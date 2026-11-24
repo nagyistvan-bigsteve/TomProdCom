@@ -6,6 +6,7 @@
   OnChanges,
   Output,
   signal,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   M2_QUANTITIES,
@@ -27,10 +28,13 @@ import { CommonModule } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { applyBDiscount, ProductUtil } from '@shared/utils/product.util';
 import { ProductStore } from '@features/products/store/product.store';
+import { availableStock, stockCategoryFor } from '@shared/utils/stock.util';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
   selector: 'app-selected-product',
   imports: [
+    MoneyPipe,
     MatChipsModule,
     MatDividerModule,
     MatIconModule,
@@ -42,6 +46,7 @@ import { ProductStore } from '@features/products/store/product.store';
   ],
   templateUrl: './selected-product.component.html',
   styleUrl: './selected-product.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class SelectedProductComponent implements OnChanges {
@@ -63,7 +68,16 @@ export class SelectedProductComponent implements OnChanges {
   private productUtil = inject(ProductUtil);
   private hasFocused = false;
 
-  currentStock: Stock | null = null;
+  /**
+   * The stock row the selected category books from. Read from the store on
+   * every render, so the number follows a stock reload (e.g. after coming
+   * back to the app) instead of staying at the value it had when picked.
+   */
+  get currentStock(): Stock | null {
+    return this.selectedProduct ? this.gradeStock(this.selectedProduct) : null;
+  }
+
+  readonly available = availableStock;
 
   ngOnChanges(): void {
     this.selectedCategory = Category.A;
@@ -91,6 +105,21 @@ export class SelectedProductComponent implements OnChanges {
   addNewProduct() {
     setTimeout(() => {
       if (this.selectedProduct) {
+        const quantity =
+          this.selectedProduct.unit_id === Unit_id.M2 ? this.totalPiecesNeeded : +this.quantity;
+        if (!(quantity > 0)) {
+          this.translateService
+            .get(['SNACKBAR.PRODUCT.QUANTITY_REQUIRED', 'SNACKBAR.BUTTONS.CLOSE'])
+            .subscribe((translations) => {
+              this.snackBar.open(
+                translations['SNACKBAR.PRODUCT.QUANTITY_REQUIRED'],
+                translations['SNACKBAR.BUTTONS.CLOSE'],
+                { duration: 4500, panelClass: 'danger-snackbar' },
+              );
+            });
+          return;
+        }
+
         if (this.selectedProduct.unit_id !== Unit_id.M2) {
           this.addProduct.emit({
             product: this.selectedProduct,
@@ -112,10 +141,17 @@ export class SelectedProductComponent implements OnChanges {
     });
   }
 
-  private checkStock(product: Product): void {
-    this.currentStock = this.productStore.stocksEntityMap()[product.id] ?? null;
+  /** The stock row the selected category books from (T → A, longer than 7 m → AB). */
+  private gradeStock(product: Product): Stock | null {
+    const grade = stockCategoryFor(product, this.selectedCategory);
+    if (grade === null) return null;
+    return this.productStore.stocksByProduct()[product.id]?.[grade] ?? null;
+  }
 
-    if (this.currentStock && this.currentStock.stock <= 0) {
+  private checkStock(product: Product): void {
+    const stock = this.gradeStock(product);
+
+    if (stock && availableStock(stock) <= 0) {
       this.translateService
         .get(['SNACKBAR.PRODUCT.OUT_OF_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
         .subscribe((translations) => {
@@ -192,8 +228,10 @@ export class SelectedProductComponent implements OnChanges {
     this.calculatePrice();
   }
 
+  /** Warns only: an order may book more than is available (SPEC §12). */
   verifyStock(): void {
-    if (+this.quantity > this.currentStock!.stock) {
+    const stock = this.currentStock;
+    if (stock && +this.quantity > availableStock(stock)) {
       this.translateService
         .get(['SNACKBAR.PRODUCT.OUT_OF_STOCK', 'SNACKBAR.BUTTONS.CLOSE'])
         .subscribe((translations) => {

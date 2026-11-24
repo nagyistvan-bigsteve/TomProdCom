@@ -1,11 +1,11 @@
-<div class="page-header">
-  <span class="header-title">{{ "NAVBAR.PRODUCTS" | translate }}</span>
+<div class="dark-page-header">
+  <span class="dark-page-title">{{ "NAVBAR.PRODUCTS" | translate }}</span>
 </div>
 
-@if (products().length) {
+@if (cards().length) {
   <div class="page-body">
     <div class="controls-row">
-      <mat-form-field appearance="outline" class="search-field">
+      <mat-form-field appearance="outline" class="search-field on-dark-field">
         <mat-label>{{ "WORDS.SEARCH" | translate }}</mat-label>
         <input
           matInput
@@ -14,84 +14,150 @@
         />
       </mat-form-field>
 
-      <button mat-icon-button class="sort-btn" (click)="sortByStock()">
-        @if (sortDirection() === "asc") {
-          <mat-icon>keyboard_arrow_up</mat-icon>
-        } @else {
+      <button
+        mat-icon-button
+        class="sort-btn"
+        (click)="sortByStock()"
+        [attr.aria-label]="'STOCK.SORT' | translate"
+      >
+        @if (sortDirection() === "desc") {
           <mat-icon>keyboard_arrow_down</mat-icon>
+        } @else {
+          <mat-icon>keyboard_arrow_up</mat-icon>
         }
       </button>
     </div>
 
+    <div class="filter-row">
+      <mat-chip-listbox
+        class="filter-chips"
+        [value]="stockFilter()"
+        (change)="onFilterChange($event)"
+        hideSingleSelectionIndicator
+      >
+        <mat-chip-option value="all">{{ "STOCK.FILTER.ALL" | translate }}</mat-chip-option>
+        <mat-chip-option value="to-sort">
+          {{ "STOCK.FILTER.TO_SORT" | translate }} ({{ counts().toSort }})
+        </mat-chip-option>
+        <mat-chip-option value="negative">
+          {{ "STOCK.FILTER.NEGATIVE" | translate }} ({{ counts().negative }})
+        </mat-chip-option>
+      </mat-chip-listbox>
+      <span class="mat-body-small on-dark-secondary">{{ "STOCK.RULE_HINT" | translate }}</span>
+    </div>
+
     <div class="product-list">
-      @for (
-        product of visibleProducts();
-        let index = $index;
-        track product.id
-      ) {
-        <div class="product-card" [class.editing]="editOnIndex() === index">
+      @for (card of visibleCards(); track card.id) {
+        <div class="product-card" [class.editing]="editingId() === card.id">
           <div class="product-row">
-            <span class="product-name">{{ product.name }}</span>
+            <span class="product-name">{{ card.name }}</span>
+            @if (card.gradable && card.ab > 0) {
+              <button mat-stroked-button class="sort-ab-btn" (click)="openSorting(card)">
+                <mat-icon>call_split</mat-icon>
+                {{ "SORTING.BUTTON" | translate }}
+              </button>
+            }
             <button
               mat-icon-button
-              class="edit-btn d-flex align-items-center justify-content-center"
-              (click)="showEditStock(index)"
+              class="edit-btn"
+              (click)="toggleEdit(card)"
+              [attr.aria-label]="'STOCK.EDIT' | translate"
             >
-              <mat-icon>{{
-                editOnIndex() === index ? "close" : "edit"
-              }}</mat-icon>
+              <mat-icon>{{ editingId() === card.id ? "close" : "edit" }}</mat-icon>
             </button>
           </div>
 
-          <div class="product-meta">
-            <div class="stock-row">
-              <span class="meta-label">{{
-                "SNACKBAR.PRODUCT.STOCK" | translate
-              }}</span>
-              <span class="stock-good">{{ product.stock.stock }}</span>
-              <span class="stock-sep">/</span>
-              <span class="stock-warning">{{
-                product.stock.stock - product.stock.booked_stock
-              }}</span>
+          <div class="grade-table" role="table">
+            <div class="grade-head" role="row">
+              <span role="columnheader"></span>
+              <span role="columnheader">{{ "STOCK.TOTAL" | translate }}</span>
+              <span role="columnheader">{{ "STOCK.AVAILABLE" | translate }}</span>
+              <span role="columnheader">{{ card.totalM3 !== null ? ("WORDS.M3" | translate) : "" }}</span>
             </div>
-            @if (product.unit_id === 3) {
-              <div class="m3-row">
-                <span class="m3-value">{{
-                  calculateM3Qunatity(product) | number: "1.0-1"
-                }}</span>
-                <span class="meta-label">{{ "WORDS.M3" | translate }}</span>
+            @for (row of card.grades; track row.stock.id) {
+              <div class="grade-row" role="row">
+                <span class="grade-label" role="cell">{{ "STOCK.GRADE." + row.category | translate }}</span>
+                <span class="stock-good" role="cell">{{ row.stock.stock }}</span>
+                <span
+                  role="cell"
+                  [class.stock-warning]="row.available >= 0"
+                  [class.stock-negative]="row.available < 0"
+                >{{ row.available }}</span>
+                <span class="m3-value" role="cell">
+                  {{ row.m3 !== null ? (row.m3 | number: "1.0-2") : "" }}
+                </span>
+              </div>
+            }
+            @if (card.grades.length > 1) {
+              <div class="grade-row total-row" role="row">
+                <span class="grade-label" role="cell">Σ</span>
+                <span role="cell">{{ card.total }}</span>
+                <span role="cell"></span>
+                <span class="m3-value" role="cell">
+                  {{ card.totalM3 !== null ? (card.totalM3 | number: "1.0-2") : "" }}
+                </span>
               </div>
             }
           </div>
 
-          @if (editOnIndex() === index) {
-            <div @enterAndLeaveAnimation class="edit-row">
-              <mat-form-field appearance="outline" class="stock-edit-field">
-                <mat-label>{{
-                  "CLIENT_DETAILS.EDIT_BUTTON" | translate
-                }}</mat-label>
-                <input
-                  #setInput
-                  matInput
-                  [value]="product.stock.stock"
-                  type="number"
-                />
-              </mat-form-field>
+          @if (editingId() === card.id) {
+            <div @enterAndLeaveAnimation class="edit-panel">
+              <div class="edit-fields">
+                @for (row of card.grades; track row.stock.id) {
+                  <mat-form-field appearance="outline" class="stock-edit-field on-dark-field">
+                    <mat-label>{{ "STOCK.GRADE." + row.category | translate }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      min="0"
+                      [attr.inputmode]="wholePieces(card) ? 'numeric' : 'decimal'"                      [value]="row.stock.stock"
+                      (focus)="$any($event.target).select()"
+                      (input)="setDraft(row.stock.id, $any($event.target).value)"
+                    />
+                  </mat-form-field>
+                }
+              </div>
               <button
                 mat-mini-fab
                 class="save-btn"
-                (click)="setStock(product, +setInput.value)"
+                [disabled]="saving()"
+                (click)="saveEdit(card)"
+                [attr.aria-label]="'DIALOG.SAVE' | translate"
               >
                 <mat-icon>save</mat-icon>
               </button>
             </div>
+            @if (invalidStockIds().length) {
+              <p class="mat-body-small invalid-hint" role="alert">
+                @for (row of card.grades; track row.stock.id) {
+                  @if (invalidStockIds().includes(row.stock.id)) {
+                    {{ "STOCK.GRADE." + row.category | translate }}:
+                  }
+                }
+                {{ (wholePieces(card) ? "STOCK.INVALID_WHOLE" : "STOCK.INVALID") | translate }}
+              </p>
+            }
           }
         </div>
+      } @empty {
+        <p class="mat-body-medium on-dark-secondary">{{ "STOCK.EMPTY" | translate }}</p>
       }
     </div>
   </div>
-} @else {
+} @else if (productStore.isBusy()) {
   <div class="loading-state">
     <mat-spinner />
+  </div>
+} @else {
+  <div class="loading-state">
+    <p class="mat-body-medium on-dark-secondary">
+      {{ (productStore.loadFailed() ? "STOCK.LOAD_FAILED" : "STOCK.NO_PRODUCTS") | translate }}
+    </p>
+    @if (productStore.loadFailed()) {
+      <button mat-stroked-button class="on-dark-stroked" (click)="retry()">
+        <mat-icon>refresh</mat-icon>
+        {{ "WORDS.RETRY" | translate }}
+      </button>
+    }
   </div>
 }

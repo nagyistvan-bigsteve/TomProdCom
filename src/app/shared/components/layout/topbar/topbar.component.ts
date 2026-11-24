@@ -6,8 +6,9 @@ import {
   OnInit,
   Output,
   untracked,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { LanguageSwitcherComponent } from '../language-swicher/language-switcher.component';
+import { LanguageSwitcherComponent } from '@shared/components/layout/language-switcher/language-switcher.component';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule, Location } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -33,6 +34,7 @@ import { InstallService } from '@core/services/install.service';
   ],
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class TopbarComponent implements OnInit {

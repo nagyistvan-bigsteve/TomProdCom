@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +10,7 @@ import { ENTER_ANIMATION } from '@core/models/animations';
   imports: [TranslateModule, MatButtonModule],
   templateUrl: './start-page.component.html',
   styleUrl: './start-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: ENTER_ANIMATION,
 })
 export class StartPageComponent {

@@ -37,6 +37,35 @@ describe('apiErrorKey', () => {
     );
   });
 
+  it('names the stock function errors (AB stock, grade, validated shipment)', () => {
+    expect(apiErrorKey({ status: 400, code: 'SA001', method: 'POST' })).toBe(
+      'SNACKBAR.API.NOT_ENOUGH_AB',
+    );
+    expect(apiErrorKey({ status: 400, code: 'SA002', method: 'POST' })).toBe(
+      'SNACKBAR.API.NOT_GRADABLE',
+    );
+    expect(apiErrorKey({ status: 400, code: 'SA003', method: 'POST' })).toBe(
+      'SNACKBAR.API.SHIPMENT_LOCKED',
+    );
+    expect(apiErrorKey({ status: 400, code: 'SA004', method: 'POST' })).toBe(
+      'SNACKBAR.API.SORTING_SOLD',
+    );
+    expect(apiErrorKey({ status: 400, code: 'SA005', method: 'POST' })).toBe(
+      'SNACKBAR.API.MORE_THAN_TRUCK',
+    );
+    expect(hasSpecificApiMessage({ code: 'SA001' })).toBe(true);
+    expect(hasSpecificApiMessage({ code: 'SA005' })).toBe(true);
+    expect(apiErrorKey({ status: 400, code: 'SA006', method: 'POST' })).toBe(
+      'SNACKBAR.API.STOCK_CHANGED',
+    );
+    expect(apiErrorKey({ status: 400, code: 'SA007', method: 'POST' })).toBe(
+      'SNACKBAR.API.DRAFT_CHANGED',
+    );
+    expect(apiErrorKey({ status: 400, code: 'SA008', method: 'POST' })).toBe(
+      'SNACKBAR.API.WHOLE_PIECES',
+    );
+  });
+
   it('falls back to a load error for reads and a save error for writes', () => {
     expect(apiErrorKey({ status: 500, code: null, method: 'get' })).toBe(
       'SNACKBAR.GENERAL.LOAD_ERROR',

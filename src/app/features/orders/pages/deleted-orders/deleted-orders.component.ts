@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,6 +9,8 @@ import { OrdersService } from '@features/orders/services/orders.service';
 import { OrderResponse } from '@core/models/models';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { ConfirmDeleteDialogComponent } from '@shared/components/dialogs/confirm-delete-dialog.component';
+import { AppDatePipe } from '@shared/pipes/app-date.pipe';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 interface DeletedOrderWithDays extends OrderResponse {
   daysUntilDelete: number;
@@ -19,6 +21,8 @@ interface DeletedOrderWithDays extends OrderResponse {
   selector: 'app-deleted-orders',
   standalone: true,
   imports: [
+    MoneyPipe,
+    AppDatePipe,
     CommonModule,
     MatButtonModule,
     MatIconModule,
@@ -28,6 +32,7 @@ interface DeletedOrderWithDays extends OrderResponse {
   ],
   templateUrl: './deleted-orders.component.html',
   styleUrl: './deleted-orders.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class DeletedOrdersComponent {
@@ -65,21 +70,17 @@ export class DeletedOrdersComponent {
             const daysSinceDeletion = Math.floor(
               (now.getTime() - deletedDate.getTime()) / (1000 * 60 * 60 * 24),
             );
-            const daysUntilDelete =
-              this.DAYS_UNTIL_PERMANENT_DELETE - daysSinceDeletion;
+            // the database purges it in the night after the 10th day
+            const daysUntilDelete = Math.max(
+              0,
+              this.DAYS_UNTIL_PERMANENT_DELETE - daysSinceDeletion,
+            );
 
             return {
               ...order,
               daysUntilDelete,
               daysAgo: daysSinceDeletion,
             };
-          })
-          .filter((order) => {
-            if (order.daysUntilDelete <= 0) {
-              this.orderService.permanentlyDeleteOrder(order.id);
-              return false;
-            }
-            return true;
           })
           .sort((a, b) => b.daysAgo - a.daysAgo);
 

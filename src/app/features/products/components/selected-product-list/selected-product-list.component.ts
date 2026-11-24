@@ -11,6 +11,7 @@
   TemplateRef,
   untracked,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
@@ -24,20 +25,18 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CartStore } from '@features/orders/store/cart/cart.store';
 import { Price2, ProductItem, UsedPricesInOrder } from '@core/models/models';
 import { Category, Unit_id } from '@core/models/enums';
-import {
-  applyBDiscount,
-  applyTvaDiscount,
-  ProductUtil,
-} from '@shared/utils/product.util';
+import { effectiveUnitPrice, ProductUtil } from '@shared/utils/product.util';
 import { FormsModule } from '@angular/forms';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { ClientStore } from '@features/clients/store/client.store';
 import { ProductStore } from '@features/products/store/product.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
   selector: 'app-selected-product-list',
   imports: [
+    MoneyPipe,
     DecimalInputDirective,
     CommonModule,
     TranslateModule,
@@ -51,6 +50,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
   ],
   templateUrl: './selected-product-list.component.html',
   styleUrl: './selected-product-list.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class SelectedProductListComponent implements OnChanges {
@@ -77,6 +77,18 @@ export class SelectedProductListComponent implements OnChanges {
       return sum + (priceInA ? priceInA : item.price);
     }, 0);
   });
+
+  /** Cart lines with no B (A) price: "Total B" ("Total A") counts them at their own price. */
+  readonly linesWithoutB = computed(() =>
+    this.productStore.pricesEntities().length
+      ? this.cartStore.productItems().filter((item) => !this.getCalculatedPrice(Category.B, item)).length
+      : 0,
+  );
+  readonly linesWithoutA = computed(() =>
+    this.productStore.pricesEntities().length
+      ? this.cartStore.productItems().filter((item) => !this.getCalculatedPrice(Category.A, item)).length
+      : 0,
+  );
 
   editingItem: ProductItem | null = null;
   editableQuantity: number | null = null;
@@ -350,13 +362,7 @@ export class SelectedProductListComponent implements OnChanges {
         )?.price;
 
     if (exactPrice) {
-      exactPrice = applyBDiscount(
-        exactPrice,
-        item.product.unit_id,
-        newCategory,
-        item.product.thickness,
-      );
-      exactPrice = applyTvaDiscount(exactPrice, item.product.unit_id, isTva);
+      exactPrice = effectiveUnitPrice(exactPrice, item.product, newCategory, isTva);
     }
 
     if (this.discounts.length) {

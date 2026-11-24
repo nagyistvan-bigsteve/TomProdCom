@@ -1,4 +1,4 @@
-﻿import { Component, computed, inject, input } from '@angular/core';
+﻿import { Component, computed, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { PDFFooterComponent } from '../pdf-footer/pdf-footer.component';
 import { PDFHeaderComponent } from '../pdf-header/pdf-header.component';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -7,10 +7,12 @@ import { CommonModule } from '@angular/common';
 import { MatDivider } from '@angular/material/divider';
 import { Unit_id } from '@core/models/enums';
 import { ClientStore } from '@features/clients/store/client.store';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
   selector: 'app-order-pdf',
   imports: [
+    MoneyPipe,
     PDFFooterComponent,
     PDFHeaderComponent,
     TranslateModule,
@@ -18,6 +20,7 @@ import { ClientStore } from '@features/clients/store/client.store';
     MatDivider,
   ],
   templateUrl: './order-pdf.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './order-pdf.component.scss',
 })
 export class OrderPdfComponent {

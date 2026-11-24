@@ -26,6 +26,7 @@ Singleton app-level services (not feature-specific):
 - `supabase-result.util.ts` — `unwrapResult()`: returns `data`, throws `error` from a supabase-js response
 - `install.service.ts` — PWA install prompt handler
 - `app-version.service.ts` — checks deployed version on startup and force-reloads when a new version is detected
+- `language.service.ts` — current UI language (`current()` signal), applies it to ngx-translate and remembers it in localStorage (`selectedLanguage`); `init()` once in `AppComponent`, `toggle()` from the switcher. `language.util.ts` holds the pure `parseLanguage()`
 
 ## store/
 Global state not owned by any single feature:

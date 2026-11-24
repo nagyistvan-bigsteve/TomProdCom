@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
@@ -6,12 +6,12 @@ import {
 } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { TranslateModule } from '@ngx-translate/core';
-import { DatePipe } from '@angular/common';
+import { AppDatePipe } from '@shared/pipes/app-date.pipe';
 
 @Component({
   selector: 'app-confirm-restore-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule, TranslateModule, DatePipe],
+  imports: [AppDatePipe, MatDialogModule, MatButtonModule, TranslateModule],
   template: `
     <h2 mat-dialog-title>{{ 'RESTORE_DIALOG.TITLE' | translate }}</h2>
 
@@ -19,7 +19,7 @@ import { DatePipe } from '@angular/common';
       <p>{{ 'RESTORE_DIALOG.MESSAGE' | translate }}</p>
       <p class="text-muted last-updated">
         {{ 'RESTORE_DIALOG.LAST_UPDATED' | translate }}:
-        {{ data.lastUpdated | date: 'dd/MM/yyyy HH:mm' }}
+        {{ data.lastUpdated | appDate: 'dateTime' }}
       </p>
     </mat-dialog-content>
 
@@ -32,6 +32,7 @@ import { DatePipe } from '@angular/common';
       </button>
     </mat-dialog-actions>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [
     `
       .last-updated {

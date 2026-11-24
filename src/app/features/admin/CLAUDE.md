@@ -44,9 +44,8 @@ Has two modes toggled by an `updateStock: boolean` flag on the component:
 - On save, calls `ProductStore.updateProduct()`.
 
 **Stock edit mode** (`updateStock = true`):
-- User selects a product and sees the current stock value from `ProductStore.stocksEntityMap()`.
-- If a stock row exists: calls `ProductStore.updateStock()`.
-- If no stock row yet: calls `ProductStore.addStockAndReturn()`.
+- User selects a product and gets one field per stock grade it has (A / B / AB, from `ProductStore.stocksByProduct()`); save writes only the changed grades.
+- On save, the typed rows are matched by grade to the product's stock rows **as they are now**, so a length change that merged A/B into AB cannot report success on a row that no longer exists. The changed grades go to `ProductStore.setStocks()` (RPC `set_stock`), each with the value it had when the rows were filled. If someone changed a grade meanwhile (`SA006`), the rows are refilled once the stock reload arrives. Stock rows are created by the database, so there is no "add stock row" path.
 
 **Form layout:** Same CSS Grid pattern as `add-product`. Both share identical SCSS for dark-bg form field MDC overrides and the 2-column grid.
 

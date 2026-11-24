@@ -9,6 +9,7 @@
   Output,
   TemplateRef,
   ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { OrderResponse } from '@core/models/models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -30,6 +31,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { syncDatePickerLocale } from '@shared/utils/date-picker-locale';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -45,10 +47,14 @@ import {
 import { ClientStore } from '@features/clients/store/client.store';
 import { OrderStore } from '@features/orders/store/order/order.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
+import { AppDatePipe } from '@shared/pipes/app-date.pipe';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
   selector: 'app-order-table',
   imports: [
+    MoneyPipe,
+    AppDatePipe,
     DecimalInputDirective,
     MatTableModule,
     MatButtonModule,
@@ -72,6 +78,7 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
   providers: [provideNativeDateAdapter()],
   templateUrl: './order-table.component.html',
   styleUrl: './order-table.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [LEAVE_ANIMATION],
 })
 export class OrderTableComponent implements OnInit {
@@ -104,6 +111,7 @@ export class OrderTableComponent implements OnInit {
   ];
 
   constructor() {
+    syncDatePickerLocale();
     effect(() => this.isLoading.emit(this.store.isBusy()));
   }
 

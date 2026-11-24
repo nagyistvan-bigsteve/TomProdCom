@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
 import { OrderTableComponent } from '@features/orders/components/order-table/order-table.component';
 import { OrderResponse } from '@core/models/models';
 import { OrderDetailsComponent } from '@features/orders/components/order-details/order-details.component';
@@ -18,6 +18,7 @@ import { parseOrderId } from '@features/orders/pages/order-id.util';
   ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class OrdersComponent {

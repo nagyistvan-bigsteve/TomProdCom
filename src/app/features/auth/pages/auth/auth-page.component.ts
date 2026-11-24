@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { LoginComponent } from '@features/auth/components/login/login.component';
@@ -18,6 +18,7 @@ import { ENTER_ANIMATION } from '@core/models/animations';
   ],
   templateUrl: './auth-page.component.html',
   styleUrls: ['./auth-page.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION],
 })
 export class AuthPageComponent {

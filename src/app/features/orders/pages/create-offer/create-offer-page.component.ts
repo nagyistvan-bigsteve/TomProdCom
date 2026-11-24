@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject } from '@angular/core';
+import { Component, DestroyRef, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ProductSelectComponent } from '@features/products/components/product-list/product-list.component';
 import { Product, ProductItem } from '@core/models/models';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -14,14 +14,17 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { CartStore } from '@features/orders/store/cart/cart.store';
+import { ProductStore } from '@features/products/store/product.store';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatBadgeModule } from '@angular/material/badge';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { map } from 'rxjs';
+import { MoneyPipe } from '@shared/pipes/money.pipe';
 
 @Component({
   selector: 'app-create-offer-page',
   imports: [
+    MoneyPipe,
     ProductSelectComponent,
     TranslateModule,
     SelectedProductComponent,
@@ -37,6 +40,7 @@ import { map } from 'rxjs';
   standalone: true,
   templateUrl: './create-offer-page.component.html',
   styleUrl: './create-offer-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_ANIMATION, LEAVE_ANIMATION],
 })
 export class CreateOfferPageComponent {
@@ -47,6 +51,7 @@ export class CreateOfferPageComponent {
   private _snackBar = inject(MatSnackBar);
   private _dialog = inject(MatDialog);
   readonly cartStore = inject(CartStore);
+  private readonly productStore = inject(ProductStore);
 
   readonly isDesktop = toSignal(
     inject(BreakpointObserver)
@@ -54,6 +59,12 @@ export class CreateOfferPageComponent {
       .pipe(map((r) => r.matches)),
     { initialValue: false },
   );
+
+  constructor() {
+    // no realtime: show current stock while building the offer (skipped when
+    // stock was loaded seconds ago, e.g. right after sign-in)
+    this.productStore.refreshStocksIfStale();
+  }
 
   getSelectedProduct(product: Product): void {
     this.selectedProduct = product;
@@ -69,8 +80,6 @@ export class CreateOfferPageComponent {
       );
 
     if (existingProduct) {
-      const productList = this.cartStore.productItems();
-
       const dialogRef = this._dialog.open(OverwriteDialogComponent, {
         data: { productName: item.product.name },
       });
@@ -80,12 +89,7 @@ export class CreateOfferPageComponent {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((result: any) => {
           if (result === 'overwrite') {
-            const index = this.cartStore
-              .productItems()
-              .indexOf(existingProduct);
-            productList[index] = item;
-
-            this.cartStore.setProductItems(productList);
+            this.cartStore.replaceProductItem(existingProduct, item);
             this.openSnackBar(
               this.translateService.instant(
                 'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.OVERWRITE',

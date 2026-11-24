@@ -11,7 +11,7 @@
             class="ms-2"
             [(ngModel)]="selectedCategory"
             (ngModelChange)="onCategoryChange()"
-            aria-label="Select product category"
+            [attr.aria-label]="'A11Y.CATEGORY' | translate"
             [hideSingleSelectionIndicator]="true"
           >
             @for (price of productStore.pricesForSelectedProduct(); track $index) {
@@ -79,7 +79,7 @@
         <div class="d-flex text-center align-items-center justify-content-center">
           <div class="d-flex flex-column">
             @if (calculatedPrice) {
-              {{ this.calculatedPrice | number: "1.0-1" }}
+              {{ this.calculatedPrice | money }}
               {{ "LANGUAGE.CURRENCY" | translate }}
             }
             @if (packsNeeded || extraPiecesNeeded) {
@@ -97,9 +97,11 @@
     <div class="ms-4">
       @if (currentStock && selectedProduct.unit_id !== 2) {
         {{ "SNACKBAR.PRODUCT.STOCK" | translate }}
-        {{ currentStock.stock }}/{{
-          currentStock.stock - currentStock.booked_stock
-        }}
+        ({{ "STOCK.GRADE." + currentStock.category_id | translate }})
+        {{ currentStock.stock }}/<span
+          [class.stock-negative]="available(currentStock) < 0"
+          >{{ available(currentStock) }}</span
+        >
       }
     </div>
   </div>

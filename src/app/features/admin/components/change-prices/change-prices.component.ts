@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnInit, untracked } from '@angular/core';
+import { Component, effect, inject, OnInit, untracked, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatOptionModule } from '@angular/material/core';
@@ -14,7 +14,7 @@ import {
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { CommonModule } from '@angular/common';
+
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { ProductStore } from '@features/products/store/product.store';
@@ -32,13 +32,13 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    CommonModule,
     MatAutocompleteModule,
     ReactiveFormsModule,
-    MatButtonToggleModule,
-  ],
+    MatButtonToggleModule
+],
   templateUrl: './change-prices.component.html',
   styleUrl: './change-prices.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [ENTER_AND_LEAVE_ANIMATION, ENTER_ANIMATION, LEAVE_ANIMATION],
 })
 export class ChangePricesComponent implements OnInit {

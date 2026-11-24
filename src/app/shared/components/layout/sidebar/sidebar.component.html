@@ -33,14 +33,14 @@
 
     <mat-divider class="my-2 border-white" />
 
-    <!-- <button
+    <button
       class="sidebar-nav-item"
       mat-button
-      (click)="navigateTo('/coming-wares')"
+      (click)="navigateTo('/shipments')"
     >
       <mat-icon>local_shipping</mat-icon>
-      <span>{{ "NAVBAR.OFFER_BUTTON" | translate }}</span>
-    </button> -->
+      <span>{{ "NAVBAR.SHIPMENTS" | translate }}</span>
+    </button>
 
     @if (authStore.role() === "admin") {
       <button

@@ -1,0 +1,131 @@
+@use "breakpoints" as *;
+
+// Page header, content width, dark fields and buttons and secondary text are
+// the shared dark-page helpers in styles.scss.
+
+:host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(57, 72, 60);
+  color: white;
+  overflow-y: auto;
+}
+
+.new-btn {
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  --mat-button-filled-container-color: rgba(95, 1, 1, 0.75);
+  --mat-button-filled-label-text-color: white;
+
+  @include md {
+    width: 240px;
+    align-self: flex-end;
+  }
+}
+
+::ng-deep {
+  .status-toggle.mat-button-toggle-group {
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  .status-toggle .mat-button-toggle {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .status-toggle .mat-button-toggle-button {
+    width: 100%;
+  }
+  .status-toggle .mat-button-toggle-checked {
+    background: rgba(95, 1, 1, 1);
+    color: white;
+    font-weight: 600;
+  }
+}
+
+.list-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-3);
+}
+
+.search-field {
+  flex: 1 1 220px;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.shipment-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+
+  @include sm {
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+
+  @include md {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.shipment-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: var(--space-3);
+  color: inherit;
+  text-decoration: none;
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  transition: background 0.15s;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(0, 0, 0, 0.25);
+  }
+}
+
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.card-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.progress {
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.progress-bar {
+  display: block;
+  height: 100%;
+  background: rgb(141, 216, 27);
+}
+
+.load-more {
+  align-self: center;
+}

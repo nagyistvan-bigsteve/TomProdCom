@@ -14,7 +14,8 @@
     "SETTINGS": "Szerkesztések",
     "ACCOUNT": "Felhasználó",
     "PRODUCTS": "Készlet lista",
-    "DELETED": "Töröltek"
+    "DELETED": "Töröltek",
+    "SHIPMENTS": "Beérkező kamionok"
   },
   "OFFER_PAGE": {
     "FIRST_STEP": {
@@ -23,6 +24,7 @@
       "PRODUCTS": "Készlet lista"
     },
     "CREATE_OFFER": {
+      "TOTAL_PARTIAL": "{{count}} terméknek nincs {{grade}} ára, az marad a saját árán",
       "UNIT_FILTER": {
         "FILTER_LABEL": "Válassz egységet:",
         "FILTER_OPTIONS": {
@@ -94,7 +96,8 @@
     "TOTAL": "Totál",
     "VOUCHER": "Discount",
     "M3": "m³",
-    "SEARCH": "Keresés..."
+    "SEARCH": "Keresés...",
+    "RETRY": "Újra"
   },
   "OVERVIEW_PAGE": {
     "TITLE": "Rendelés áttekintése",
@@ -248,6 +251,8 @@
   },
   "ORDER": {
     "DETAILS": {
+      "SUBTOTAL": "Részösszeg",
+      "TRANSPORT": "Szállítás",
       "DELIVERED_BUTTON": "Ki lett szállítva",
       "TOTAL_TRANSFORM_BUTTON": "Rendeléssé váltotatás",
       "TOTAL_TRANSFORM_DESCRIPTION": "Rendeléssé akarod változtatni ezt az ajánlatot, úgy ahogy van? \n Az ajánlat el fog tűnni az ajánlatok táblázatból.",
@@ -263,6 +268,7 @@
       "EDIT_BUTTON": "Módosít",
       "EDIT_DIALOG": {
         "TITLE": "Ajánlat szerkesztése",
+        "TITLE_ORDER": "Rendelés szerkesztése",
         "DESCRIPTION": "{{product}} módosítása.",
         "QUANTITY_INPUT": "Mennyiség",
         "CATEGORY_INPUT": "Minőség",
@@ -359,11 +365,20 @@
       "NO_PERMISSION": "Nincs jogosultságod ehhez a művelethez!",
       "DUPLICATE": "Ez a bejegyzés már létezik!",
       "IN_USE": "A művelet nem lehetséges: a bejegyzést máshol használják!",
-      "NETWORK": "Nincs kapcsolat a szerverrel. Ellenőrizd az internetet!"
+      "NETWORK": "Nincs kapcsolat a szerverrel. Ellenőrizd az internetet!",
+      "NOT_ENOUGH_AB": "Nincs ennyi AB a készletben! Frissítsd vagy javítsd az AB készletet.",
+      "NOT_GRADABLE": "Ennek a terméknek nincs A/B készlete (M2 vagy 7 méter feletti).",
+      "SHIPMENT_LOCKED": "A kamion már validálva van, nem módosítható.",
+      "SORTING_SOLD": "A válogatott A/B darabok egy része már elfogyott, a válogatás nem vonható vissza.",
+      "MORE_THAN_TRUCK": "Ebből a termékből ennyi már nem maradt a kamionon.",
+      "STOCK_CHANGED": "Valaki közben módosította ezt a készletet. Az új értékek betöltve, nézd át és mentsd újra.",
+      "DRAFT_CHANGED": "Valaki közben módosította ezt a kamiont.",
+      "WHOLE_PIECES": "Ennek a terméknek a készlete egész darabszám."
     },
     "PRODUCT": {
       "STOCK": "Készlet: ",
       "OUT_OF_STOCK": "A termék már nincs készleten!",
+      "QUANTITY_REQUIRED": "Adj meg 0-nál nagyobb mennyiséget!",
       "LIMITED_STOCK": "Limitált készlet \n Megmaradt készlet: ",
       "SUCCESS": {
         "ADD": "Termék sikeresen hozzáadva!",
@@ -399,41 +414,6 @@
     "ACCOUNT_CREATED": "Sikeres regisztrálás! Jóváhagyás várása...",
     "INCORRECT_LOG_IN": "Helytelen email vagy jelszó. Próbálkozz újra.",
     "PENDING_APPROVAL": "Várakozás a jóváhagyásra..."
-  },
-  "CREATE_COMING_WARE": {
-    "TITLE": "Beérkező áru létrehozása",
-    "EMPTY_LIST": "A lista üres",
-    "WARES_LIST": "Beérkező áruk",
-    "WARES_HISTORY": "Átnézett áruk",
-    "WARES_TOGGLE_TRUE": "Átnézett áruk",
-    "WARES_TOGGLE_FALSE": "Várt áruk"
-  },
-  "COMING_WARES": {
-    "EXPECTED_DELIVERY": "Várható szállítási dátum",
-    "TOTAL_QUANTITY": "Teljes mennyiség",
-    "ALL_FOR_ORDER": "Mind megrendelésre",
-    "COMMENT": "Megjegyzés",
-    "NAME": "Név",
-    "ITEMS": "Termékek"
-  },
-  "COMING_WARES_ITEM": {
-    "ORDER_ID": "Rendelés azonosító",
-    "PRODUCT_ID": "Termék",
-    "CATEGORY": "Kategória",
-    "QUANTITY": "Mennyiség",
-    "FOR_ORDER": "Megrendeléshez tartozik",
-    "SUBMIT_BUTTON": "Átnézve",
-    "ITEMS_FOR_ORDER": "Termékek rendelésre:",
-    "ITEMS_FOR_STOCK": "Termékek stock-ra:",
-    "DELETE": "Rendelés törlése",
-    "INCORRECT_ITEM": "Mi nincs rendben?",
-    "INCORRECT_ITEM_COMMENT": "Írd le a hibát",
-    "SUBMIT_POPUP": {
-      "TITLE": "Át van nézve",
-      "DESCRIPTION": "Biztos, hogy jól át van nézve minden?",
-      "CANCEL_BUTTON": "Mégse",
-      "DELETE_BUTTON": "Átnézve!"
-    }
   },
   "DIALOG": {
     "CANCEL": "Mégse",
@@ -540,5 +520,111 @@
     "WARNING_PERMANENT": "Ez a művelet nem vonható vissza!",
     "CANCEL": "Mégse",
     "CONFIRM": "Megerősítés"
+  },
+  "STOCK": {
+    "GRADE": {
+      "1": "A",
+      "2": "AB",
+      "3": "B"
+    },
+    "TOTAL": "Készlet",
+    "AVAILABLE": "Szabad",
+    "SORT": "Rendezés készlet szerint",
+    "EDIT": "Készlet javítása",
+    "EMPTY": "Nincs találat",
+    "RULE_HINT": "T az A-ból fogy · 7 m felett csak AB",
+    "FILTER": {
+      "ALL": "Mind",
+      "TO_SORT": "Válogatásra vár",
+      "NEGATIVE": "Hiány"
+    },
+    "LOAD_FAILED": "A termékek vagy a készlet nem tölthető be.",
+    "NO_PRODUCTS": "Még nincs termék.",
+    "INVALID": "Az érték 0 vagy nagyobb legyen. Semmi sem lett mentve.",
+    "INVALID_WHOLE": "Egész darabszám, 0 vagy nagyobb. Semmi sem lett mentve."
+  },
+  "SORTING": {
+    "TITLE": "Válogatás (AB → A / B)",
+    "BUTTON": "Válogatás",
+    "AB_IN_STOCK": "AB készleten",
+    "ON_TRUCK": "Kamionról válogatható",
+    "TRUCK_LEFT": "Marad a kamionon",
+    "WASTE": "Selejt",
+    "REST_TO_A": "A maradék mind A",
+    "TAKEN_FROM_AB": "AB-ból levonva",
+    "AB_LEFT": "Marad AB",
+    "SUCCESS": "Válogatás elmentve!",
+    "HISTORY": "Válogatások",
+    "NONE": "Még nincs válogatás.",
+    "UNDO": "Válogatás visszavonása",
+    "UNDO_CONFIRM": "A darabok visszakerülnek az AB készletbe. Folytatod?",
+    "UNDONE": "Válogatás visszavonva!",
+    "ERROR": {
+      "NEGATIVE": "A mennyiség nem lehet negatív.",
+      "NOT_WHOLE": "Csak egész darabszám adható meg.",
+      "MORE_THAN_TRUCK": "Több darabot válogatnál, mint amennyi ebből a termékből a kamionon maradt.",
+      "MORE_THAN_AB": "Több darabot válogatnál, mint amennyi AB készleten van."
+    },
+    "TRUCK": "Kamion",
+    "NO_TRUCK": "Nincs kamionhoz kötve",
+    "TRUCK_HINT": "Ha a darabok egy kamionról jöttek, válaszd ki: így nő a kamion válogatottsága.",
+    "BOOKED_WARNING": "Figyelem: ebből {{booked}} AB darabot már megrendeltek. Válogatás után az AB szabad készlet {{free}} lesz.",
+    "LOAD_FAILED": "A válogatások nem tölthetők be."
+  },
+  "SHIPMENTS": {
+    "TITLE": "Beérkező kamionok",
+    "NEW": "Új kamion",
+    "TRUCK": "Kamion",
+    "STATUS": {
+      "draft": "Validálásra vár",
+      "validated": "Validálva"
+    },
+    "ARRIVED_ON": "Beérkezés dátuma",
+    "NAME": "Kamion / beszállító",
+    "COMMENT": "Megjegyzés",
+    "PRODUCT": "Termék",
+    "PIECES": "db",
+    "LINES": "tétel",
+    "TOTAL": "Összesen",
+    "AB_HINT": "A kamion teljes tartalma AB-ként kerül a készletbe validáláskor; a válogatás után oszlik A-ra és B-re.",
+    "CHANGE_PRODUCT": "Termék cseréje",
+    "REMOVE_LINE": "Tétel törlése",
+    "QTY_INVALID": "Pozitív egész szám",
+    "VALIDATE": "Validálás",
+    "VALIDATE_CONFIRM": "Validálás után a darabok bekerülnek az AB készletbe, és a kamion nem módosítható. Folytatod?",
+    "DELETE": "Kamion törlése",
+    "DELETE_CONFIRM": "Biztos, hogy törlöd ezt a kamiont?",
+    "SAVED": "Kamion elmentve!",
+    "VALIDATED": "Kamion validálva, az AB készlet frissült!",
+    "DELETED": "Kamion törölve!",
+    "FORM_INVALID": "Add meg a dátumot, a nevet és legalább egy tételt helyes darabszámmal!",
+    "EMPTY": "Nincs kamion ebben a listában.",
+    "NOT_FOUND": "A kamion nem található.",
+    "RECEIVED": "Beérkezett",
+    "SORTED": "Válogatva",
+    "REMAINING": "Maradt",
+    "ONLY_AB": "csak AB",
+    "MISSING": {
+      "TITLE": "Mentéshez hiányzik:",
+      "NAME": "név",
+      "DATE": "dátum",
+      "LINE": "legalább egy sor",
+      "QTY": "helyes darabszám"
+    },
+    "LEAVE": "Nem mentett kamion",
+    "LEAVE_CONFIRM": "A beírt adatok elvesznek. Biztosan kilépsz?",
+    "CREATED_BY": "Rögzítette: {{name}}",
+    "VALIDATED_BY": "Validálta: {{name}}",
+    "FILTER_TO_SORT": "Válogatásra vár",
+    "LOAD_FAILED": "A kamionok nem tölthetők be.",
+    "LOAD_MORE": "Továbbiak betöltése",
+    "CONFLICT": "Valaki közben módosította",
+    "CONFLICT_CONFIRM": "Valaki más közben elmentette ezt a kamiont. Betöltöd az ő változatát? A te nem mentett módosításaid elvesznek. (Mégse: megmaradnak a tieid, és a következő mentés felülírja az övét.)",
+    "FILTER_PARTIAL": "Csak a betöltött {{count}} kamionban keres. Továbbiak betöltése alább."
+  },
+  "A11Y": {
+    "UNIT_FILTER": "Szűrés mértékegység szerint",
+    "SIZE_FILTER": "Szűrés méret szerint",
+    "CATEGORY": "Minőségi kategória"
   }
 }

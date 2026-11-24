@@ -1,4 +1,4 @@
-﻿import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+﻿import { Component, EventEmitter, inject, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
@@ -11,6 +11,7 @@ import { MatDividerModule } from '@angular/material/divider';
   standalone: true,
   imports: [MatIconModule, MatButtonModule, TranslateModule, MatDividerModule],
   templateUrl: './sidebar.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './sidebar.component.scss',
 })
 export class SidebarComponent {
