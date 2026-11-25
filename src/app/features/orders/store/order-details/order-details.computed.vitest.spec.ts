@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { Unit_id } from '@core/models/enums';
+import type { ProductItem } from '@core/models/models';
+import { ProductUtil } from '@shared/utils/product.util';
 import {
   applyVoucher,
   countedVolumeM3,
@@ -63,13 +65,14 @@ describe('itemVolumeM3', () => {
     expect(itemVolumeM3(bundle)).toBeCloseTo(0.3, 10);
   });
 
-  it('rounds each item to 3 decimals', () => {
+  it('does not round an item; orderTotals rounds the total once', () => {
     const item = makeItem({
       quantity: 1,
       product: { unit_id: Unit_id.M3, width: 12.3, thickness: 2.3, length: 401 },
     });
     // 12.3 × 2.3 × 401 / 1e6 = 0.01134429
-    expect(itemVolumeM3(item)).toBe(0.011);
+    expect(itemVolumeM3(item)).toBeCloseTo(0.01134429, 10);
+    expect(orderTotals([item, item], null).totalQuantity).toBe(0.023);
   });
 
   it('uses the quantity for products sold by volume (no width)', () => {
@@ -148,5 +151,28 @@ describe('orderTotals', () => {
       totalAmountFinal: 0,
       totalQuantity: 0,
     });
+  });
+});
+
+describe('cart and saved order count the same m³', () => {
+  it('an offer turned into an order keeps its m³ (cart total = orderTotals)', () => {
+    const products = [
+      { unit_id: Unit_id.M3, width: 9.7, thickness: 2.4, length: 301 },
+      { unit_id: Unit_id.BOUNDLE, width: 12.5, thickness: 2.2, length: 397 },
+      { unit_id: Unit_id.M3, width: 0, thickness: 4, length: 0 },
+      { unit_id: Unit_id.BUC, width: 10, thickness: 5, length: 300 },
+    ];
+    const quantities = [7, 3, 1.37, 12];
+
+    const cartItems = products.map(
+      (product, i) => ({ product, quantity: quantities[i], price: 0, category: 1 }) as unknown as ProductItem,
+    );
+    const orderItems = products.map((product, i) =>
+      makeItem({ product, quantity: quantities[i], price: 0 }),
+    );
+
+    expect(new ProductUtil().calculateTotalQuantity(cartItems)).toBe(
+      orderTotals(orderItems, null).totalQuantity,
+    );
   });
 });

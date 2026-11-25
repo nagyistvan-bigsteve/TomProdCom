@@ -4,7 +4,7 @@ Living plans for bigger features that take several sessions. They are written so
 
 | Plan | Branch | Status |
 |---|---|---|
-| [Cleanup before multi-location](pre-location-cleanup.md) | `refactor/pre-location` | Step 1 done, Step 2 next — do this first |
+| [Cleanup before multi-location](pre-location-cleanup.md) | `refactor/pre-location` | Steps 1–2 done, Step 3 next — do this first |
 | [Multi-location (TOM ProdCom Instal)](multi-location.md) | `feature/instal-location` | Phase 0 done (mockup), Phase 1 next |
 | [Action history (audit log)](action-history.md) | `feature/action-history` (not created yet) | Planned |
 

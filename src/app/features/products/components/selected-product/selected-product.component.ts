@@ -26,7 +26,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { effectiveUnitPrice, ProductUtil } from '@shared/utils/product.util';
+import { effectiveUnitPrice, m2BrutQuantity, ProductUtil } from '@shared/utils/product.util';
 import { ProductStore } from '@features/products/store/product.store';
 import { ClientStore } from '@features/clients/store/client.store';
 import { availableStock, stockCategoryFor } from '@shared/utils/stock.util';
@@ -132,7 +132,7 @@ export class SelectedProductComponent implements OnChanges {
         } else {
           this.addProduct.emit({
             product: this.selectedProduct,
-            quantity: this.totalPiecesNeeded * this.selectedProduct.m2_brut,
+            quantity: m2BrutQuantity(this.selectedProduct, this.totalPiecesNeeded),
             price: this.calculatedPrice,
             packsNeeded: this.packsNeeded,
             extraPiecesNeeded: this.extraPiecesNeeded,

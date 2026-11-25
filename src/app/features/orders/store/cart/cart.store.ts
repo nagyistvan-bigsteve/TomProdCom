@@ -224,6 +224,10 @@ export const CartStore = signalStore(
   withHooks((store) => ({
     onInit() {
       const authStore = inject(useAuthStore);
+      // The user the cart belongs to: the last one signed in. A sign-out or an
+      // expired session (id → null) does not change it, so the same user
+      // signing back in keeps the cart; only another user empties it.
+      let ownerId = authStore.id();
       const stored = readFromLocalStorage<SavedCart>(CART_STORAGE_KEY);
 
       if (stored) {
@@ -254,20 +258,19 @@ export const CartStore = signalStore(
             pricingClientId: store.pricingClientId(),
             sourceOffer: store.sourceOffer(),
           }),
-          ownerId: authStore.id(),
+          ownerId,
         };
         return saved;
       });
 
-      // A cart belongs to the user who built it: sign-out or another user
-      // signing in empties it (a reload of the same user keeps it). The owner
-      // saved with it covers a sign-out while this store was not running.
-      let userId = authStore.id();
+      // Another user signing in empties the cart. The owner saved with it
+      // covers a change of user while this store was not running.
       effect(() => {
         const id = authStore.id();
-        if (id !== userId) {
-          userId = id;
-          untracked(() => store.reset());
+        if (id !== null && id !== ownerId) {
+          const hadOwner = ownerId !== null;
+          ownerId = id;
+          if (hadOwner) untracked(() => store.reset());
         }
       });
     },

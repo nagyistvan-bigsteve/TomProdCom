@@ -27,7 +27,13 @@ import { Price2, ProductItem, UsedPricesInOrder } from '@core/models/models';
 import { Category, Unit_id } from '@core/models/enums';
 import {
   effectiveUnitPrice,
+  findBasePrice,
   firstPricedCategory,
+  lineVolumeM3,
+  m2BrutQuantity,
+  m2FromM3,
+  m2NetArea,
+  rowAdjustment,
   nextCategory,
   ProductUtil,
 } from '@shared/utils/product.util';
@@ -37,6 +43,7 @@ import { ClientStore } from '@features/clients/store/client.store';
 import { ProductStore } from '@features/products/store/product.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 import { MoneyPipe } from '@shared/pipes/money.pipe';
+import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-selected-product-list',
@@ -107,6 +114,10 @@ export class SelectedProductListComponent implements OnChanges {
   readonly cartStore = inject(CartStore);
   readonly clientStore = inject(ClientStore);
   readonly productStore = inject(ProductStore);
+  readonly lineVolumeM3 = lineVolumeM3;
+  readonly m2FromM3 = m2FromM3;
+  readonly m2NetArea = m2NetArea;
+  private notify = inject(NotificationService);
 
   private initialized = false;
 
@@ -147,6 +158,12 @@ export class SelectedProductListComponent implements OnChanges {
 
   saveQuantity(item: ProductItem): void {
     if (this.editableQuantity != null) {
+      // 0 or less is not a line (and would leave a 0/0 unit price behind)
+      if (!(+this.editableQuantity > 0)) {
+        this.notify.error('SNACKBAR.PRODUCT.QUANTITY_REQUIRED');
+        return;
+      }
+
       if (item.product.unit_id === Unit_id.M2) {
         const newPrice = this.getExactPrice(item.category, item);
 
@@ -162,7 +179,7 @@ export class SelectedProductListComponent implements OnChanges {
           price,
           packsNeeded,
           extraPiecesNeeded,
-          quantity: totalPiecesNeeded * item.product.m2_brut,
+          quantity: m2BrutQuantity(item.product, totalPiecesNeeded),
         };
 
         this.cartStore.updateProductItem(
@@ -174,15 +191,15 @@ export class SelectedProductListComponent implements OnChanges {
         this.editingItem = null;
         this.editableQuantity = null;
       } else {
-        const price = (item.price / item.quantity) * this.editableQuantity;
-
-        item.quantity = this.editableQuantity;
+        // Same unit price at the new quantity; the store builds a new line
+        // (never write into a line from productItems())
+        const unitPrice = item.quantity ? item.price / item.quantity : 0;
 
         this.cartStore.updateQuantity(
           item.product.id,
           item.category,
-          item.quantity,
-          price,
+          this.editableQuantity,
+          unitPrice * this.editableQuantity,
         );
 
         this.editingItem = null;
@@ -259,24 +276,7 @@ export class SelectedProductListComponent implements OnChanges {
     this.usedPrices = [];
 
     this.cartStore.productItems().forEach((item) => {
-      const unicPrice = prices.find(
-        (price) => price.product_id === item.product.id,
-      );
-
-      let exactPrice = unicPrice
-        ? prices.find(
-            (price) =>
-              price.category_id === item.category &&
-              price.unit_id === item.product.unit_id &&
-              price.product_id === item.product.id,
-          )
-        : prices.find(
-            (price) =>
-              price.category_id === item.category &&
-              price.size_id === item.product.size_id &&
-              price.unit_id === item.product.unit_id &&
-              !price.product_id,
-          );
+      const exactPrice = findBasePrice(item.product, item.category, prices);
 
       if (!exactPrice) {
         return;
@@ -352,47 +352,14 @@ export class SelectedProductListComponent implements OnChanges {
     const prices = this.productStore.pricesEntities();
     const isTva: boolean = this.clientStore.client()?.tva ?? false;
 
-    const unicPrice = prices.find(
-      (price) => price.product_id === item.product.id,
+    const listPrice = findBasePrice(item.product, newCategory, prices)?.price;
+    // No list price → no price (0), whatever adjustment the overview holds
+    if (!listPrice) return 0;
+
+    return (
+      effectiveUnitPrice(listPrice, item.product, newCategory, isTva) +
+      rowAdjustment(this.discounts, item.product, newCategory)
     );
-
-    let exactPrice = unicPrice
-      ? prices.find(
-          (price) =>
-            price.category_id === newCategory &&
-            price.unit_id === item.product.unit_id &&
-            price.product_id === item.product.id,
-        )?.price
-      : prices.find(
-          (price) =>
-            price.category_id === newCategory &&
-            price.size_id === item.product.size_id &&
-            price.unit_id === item.product.unit_id &&
-            !price.product_id,
-        )?.price;
-
-    if (exactPrice) {
-      exactPrice = effectiveUnitPrice(exactPrice, item.product, newCategory, isTva);
-    }
-
-    if (this.discounts.length) {
-      let discount = this.discounts.find(
-        (d) =>
-          (d.category === newCategory &&
-            d.unit === item.product.unit_id &&
-            d.size === item.product.size_id &&
-            !d.productId) ||
-          (d.category === newCategory &&
-            d.unit === item.product.unit_id &&
-            d.size === item.product.size_id &&
-            d.productId === item.product.id),
-      )?.discount;
-      if (discount) {
-        exactPrice! += discount;
-      }
-    }
-
-    return exactPrice!;
   }
 
 }

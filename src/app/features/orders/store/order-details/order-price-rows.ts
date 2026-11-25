@@ -10,6 +10,7 @@ import {
   applyBDiscount,
   applyTvaDiscount,
   effectiveUnitPrice,
+  pieceVolumeM3,
 } from '@shared/utils/product.util';
 
 /**
@@ -43,9 +44,7 @@ export function unitPriceFromLine(
   if (!item.quantity) return 0;
 
   if (item.product.unit_id === Unit_id.M3 && item.product.width) {
-    const volumePerPiece =
-      (item.product.width * item.product.thickness * item.product.length) / 1_000_000;
-    return item.price / (item.quantity * volumePerPiece);
+    return item.price / (item.quantity * pieceVolumeM3(item.product));
   }
 
   return item.price / item.quantity;

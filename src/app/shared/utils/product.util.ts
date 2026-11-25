@@ -1,5 +1,11 @@
 ﻿import { Injectable } from '@angular/core';
-import type { M2Quantities, Price2, Product, ProductItems } from '@core/models/models';
+import type {
+  M2Quantities,
+  Price2,
+  Product,
+  ProductItems,
+  UsedPricesInOrder,
+} from '@core/models/models';
 import { Category, Unit_id } from '@core/models/enums';
 
 /** Price rule amounts (SPEC 10.3), in RON. */
@@ -7,6 +13,52 @@ export const B_BOARD_DISCOUNT = 50;
 export const B_DISCOUNT_THICKNESS = 2.5;
 export const TVA_M3_DISCOUNT = 100;
 export const TVA_BUNDLE_DISCOUNT = 5;
+
+/**
+ * The price rows a product is priced from (SPEC 10.1): its own rows when it
+ * has any (`product_id` = the product), otherwise the general rows of its
+ * unit and size. A product with own rows never falls back to the general ones.
+ * The one place that decides this; every price lookup goes through it.
+ */
+export function priceRowsForProduct(
+  product: Pick<Product, 'id' | 'unit_id' | 'size_id'>,
+  prices: readonly Price2[],
+): Price2[] {
+  const hasOwnRows = prices.some((p) => p.product_id === product.id);
+  return hasOwnRows
+    ? prices.filter((p) => p.product_id === product.id && p.unit_id === product.unit_id)
+    : prices.filter(
+        (p) =>
+          !p.product_id && p.unit_id === product.unit_id && p.size_id === product.size_id,
+      );
+}
+
+/** The price row of a product in one grade (SPEC 10.1), undefined when it has none. */
+export function findBasePrice(
+  product: Pick<Product, 'id' | 'unit_id' | 'size_id'>,
+  category: Category,
+  prices: readonly Price2[],
+): Price2 | undefined {
+  return priceRowsForProduct(product, prices).find((p) => p.category_id === category);
+}
+
+/**
+ * The manual adjustment (offer overview "final price") the price rows hold
+ * for a product in a grade: the product's own row first, then the row of its
+ * unit and size; 0 when none.
+ */
+export function rowAdjustment(
+  rows: UsedPricesInOrder,
+  product: Pick<Product, 'id' | 'unit_id' | 'size_id'>,
+  category: Category,
+): number {
+  const matching = rows.filter(
+    (r) => r.category === category && r.unit === product.unit_id && r.size === product.size_id,
+  );
+  const row =
+    matching.find((r) => r.productId === product.id) ?? matching.find((r) => !r.productId);
+  return row?.discount ?? 0;
+}
 
 /** The grades in the order the cart's grade button steps through them. */
 export const CATEGORY_CYCLE: readonly Category[] = [
@@ -150,6 +202,74 @@ export function pieceVolumeM3(
   return ((width * thickness * length) / 1_000_000) * multiplier;
 }
 
+/**
+ * m³ of `quantity` of a product (SPEC 10.5): pieces × piece volume (a bundle
+ * is 10 boards). A product without a width is sold by volume, so its quantity
+ * is already m³. Not rounded: a total is rounded once (`roundM3`), so many
+ * small lines are not rounded away. The one volume rule for the cart, order
+ * details, the saved `total_quantity` and the PDF.
+ */
+export function lineVolumeM3(
+  product: Pick<Product, 'unit_id' | 'width' | 'thickness' | 'length'>,
+  quantity: number,
+): number {
+  return product.width ? pieceVolumeM3(product) * quantity : quantity;
+}
+
+/** An m³ total rounded to 3 decimals (litres), as it is saved and shown. */
+export function roundM3(volume: number): number {
+  return Math.round(volume * 1000) / 1000;
+}
+
+/** Whether a unit's lines count in the m³ total: not M2 and not BUC (SPEC 10.5). */
+export function countsInVolumeTotal(unitId: Unit_id): boolean {
+  return unitId !== Unit_id.M2 && unitId !== Unit_id.BUC;
+}
+
+/** m² of an M3 product without a width (a slab): `m³ / thickness in m`. */
+export function m2FromM3(quantityM3: number, thicknessCm: number): number {
+  return quantityM3 / (thicknessCm / 100);
+}
+
+/**
+ * The pack breakdown of an M2 line worked out from its stored quantity (gross
+ * m² = pieces × m2_brut): for lines that come without one (an offer loaded
+ * into the cart) and for merged lines, so packs always match the quantity.
+ */
+export function m2PacksFromQuantity(
+  product: Pick<Product, 'm2_brut' | 'piece_per_pack'>,
+  quantity: number,
+): { pieces: number; packsNeeded: number; extraPiecesNeeded: number } {
+  const pieces = product.m2_brut > 0 ? Math.round(quantity / product.m2_brut) : 0;
+  const perPack = product.piece_per_pack;
+  return perPack > 0
+    ? { pieces, packsNeeded: Math.floor(pieces / perPack), extraPiecesNeeded: pieces % perPack }
+    : { pieces, packsNeeded: 0, extraPiecesNeeded: pieces };
+}
+
+/** Usable m² of an M2 line: all its pieces × m2_util (per piece). */
+export function m2NetArea(
+  product: Pick<Product, 'm2_util' | 'piece_per_pack'>,
+  packs: number | null | undefined,
+  extraPieces: number | null | undefined,
+): number {
+  return ((packs ?? 0) * product.piece_per_pack + (extraPieces ?? 0)) * product.m2_util;
+}
+
+/** The quantity an M2 line stores: its pieces in gross m² (`pieces × m2_brut`). */
+export function m2BrutQuantity(product: Pick<Product, 'm2_brut'>, pieces: number): number {
+  return pieces * product.m2_brut;
+}
+
+/** An M2 line's pack breakdown as stored in `packs_pieces`: "3p + 2b", "0p + 4b", "2p"; '' when none. */
+export function packsPiecesLabel(
+  packs: number | null | undefined,
+  extraPieces: number | null | undefined,
+): string {
+  if (!packs && !extraPieces) return '';
+  return `${packs || 0}p` + (extraPieces ? ` + ${extraPieces}b` : '');
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -186,14 +306,9 @@ export class ProductUtil {
     }
 
     if (product.unit_id === Unit_id.M3) {
-      if (!product.width) {
-        calculatedPrice = price * +quantity;
-      } else {
-        calculatedPrice =
-          ((product.width * product.length * product.thickness) / 1000000) *
-          price *
-          +quantity;
-      }
+      calculatedPrice = product.width
+        ? pieceVolumeM3(product) * price * +quantity
+        : price * +quantity;
     }
 
     if (product.unit_id === Unit_id.M2) {
@@ -265,20 +380,16 @@ export class ProductUtil {
     return buc * pieceVolumeM3(product);
   }
 
+  /** The cart's m³ total: the same per-line rule as a saved order (`orderTotals`). */
   calculateTotalQuantity(products: ProductItems): number {
-    let totalOrderQuantity = 0;
-
-    products.forEach((item) => {
-      const { unit_id, width, thickness, length } = item.product;
-
-      if (unit_id !== Unit_id.M2 && unit_id !== Unit_id.BUC) {
-        const volumeM3 = width ? (width * thickness * length) / 1_000_000 : 1;
-        const multiplier = unit_id === Unit_id.BOUNDLE ? 10 : 1;
-
-        totalOrderQuantity += item.quantity * volumeM3 * multiplier;
-      }
-    });
-
-    return totalOrderQuantity;
+    return roundM3(
+      products.reduce(
+        (sum, item) =>
+          countsInVolumeTotal(item.product.unit_id)
+            ? sum + lineVolumeM3(item.product, item.quantity)
+            : sum,
+        0,
+      ),
+    );
   }
 }

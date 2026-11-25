@@ -11,6 +11,7 @@ import {
 import { from, map, Observable } from 'rxjs';
 import { mapOrderRow, ORDER_SELECT, OrderRow } from './order.mapper';
 import { OrderTotals } from '@features/orders/store/order-details/order-details.computed';
+import { packsPiecesLabel } from '@shared/utils/product.util';
 
 /** A new line item as the add_order_item database function expects it. */
 export interface NewOrderItem {
@@ -369,13 +370,7 @@ export class OrdersService {
         quantity: +item.quantity,
         category_id: item.category,
         price: item.price,
-        packs_pieces:
-          item.packsNeeded || item.extraPiecesNeeded
-            ? (item.packsNeeded ? item.packsNeeded + 'p' : '0p') +
-              (item.extraPiecesNeeded
-                ? ' + ' + item.extraPiecesNeeded + 'b'
-                : '')
-            : '',
+        packs_pieces: packsPiecesLabel(item.packsNeeded, item.extraPiecesNeeded),
       }),
     );
 

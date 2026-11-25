@@ -1,5 +1,7 @@
 ﻿import { Price2, Product } from '@core/models/models';
+import { priceRowsForProduct } from '@shared/utils/product.util';
 
+/** The price rows of a product by id (SPEC 10.1, `priceRowsForProduct`); [] when unknown. */
 export function computePricesForProduct(
   selectedProductId: number | null,
   productsMap: Record<string | number, Product>,
@@ -8,13 +10,5 @@ export function computePricesForProduct(
   if (selectedProductId === null) return [];
   const product = productsMap[selectedProductId];
   if (!product) return [];
-  const unic = allPrices.filter((p) => p.product_id === product.id);
-  return unic.length > 0
-    ? unic
-    : allPrices.filter(
-        (p) =>
-          p.unit_id === product.unit_id &&
-          p.size_id === product.size_id &&
-          !p.product_id,
-      );
+  return priceRowsForProduct(product, allPrices);
 }

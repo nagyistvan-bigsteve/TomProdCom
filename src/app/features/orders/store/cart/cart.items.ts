@@ -1,5 +1,6 @@
 import type { ProductItem, ProductItems } from '@core/models/models';
-import type { Category } from '@core/models/enums';
+import { Category, Unit_id } from '@core/models/enums';
+import { m2PacksFromQuantity } from '@shared/utils/product.util';
 
 /**
  * The cart with `replaced` swapped for `item`, as a new array: the store's
@@ -16,9 +17,10 @@ export function replaceCartItem(
 
 /**
  * Two lines of the same product and grade as one line (a new object, the
- * inputs are left untouched): quantity and price summed; for M2 lines the
- * packs and loose pieces summed, with every full pack of loose pieces turned
- * into a pack.
+ * inputs are left untouched): quantity and price summed. For M2 lines the
+ * packs and loose pieces are worked out again from the summed quantity, so
+ * they match it even when a line came without a breakdown (loaded from an
+ * offer) and loose pieces that fill a pack become a pack.
  */
 export function mergeCartItems(base: ProductItem, added: ProductItem): ProductItem {
   const merged: ProductItem = {
@@ -29,23 +31,10 @@ export function mergeCartItems(base: ProductItem, added: ProductItem): ProductIt
   // A hand-set part must not be re-priced from the list later
   if (base.manualPrice || added.manualPrice) merged.manualPrice = true;
 
-  const hasPacks =
-    base.packsNeeded !== undefined ||
-    base.extraPiecesNeeded !== undefined ||
-    added.packsNeeded !== undefined ||
-    added.extraPiecesNeeded !== undefined;
-  if (!hasPacks) return merged;
-
-  const packs = (base.packsNeeded ?? 0) + (added.packsNeeded ?? 0);
-  const pieces = (base.extraPiecesNeeded ?? 0) + (added.extraPiecesNeeded ?? 0);
-  const perPack = base.product.piece_per_pack;
-
-  if (perPack > 0 && pieces >= perPack) {
-    merged.packsNeeded = packs + Math.floor(pieces / perPack);
-    merged.extraPiecesNeeded = pieces % perPack;
-  } else {
-    merged.packsNeeded = packs;
-    merged.extraPiecesNeeded = pieces;
+  if (base.product.unit_id === Unit_id.M2) {
+    const { packsNeeded, extraPiecesNeeded } = m2PacksFromQuantity(base.product, merged.quantity);
+    merged.packsNeeded = packsNeeded;
+    merged.extraPiecesNeeded = extraPiecesNeeded;
   }
   return merged;
 }

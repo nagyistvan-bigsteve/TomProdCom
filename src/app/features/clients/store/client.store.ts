@@ -154,13 +154,15 @@ export const ClientStore = signalStore(
       });
 
       // The client picked for an offer belongs to the user who picked it:
-      // sign-out or another user signing in clears the choice (like the cart)
+      // another user signing in clears the choice (like the cart); the same
+      // user signing back in after a sign-out or expired session keeps it
       let userId = authStore.id();
       effect(() => {
         const id = authStore.id();
-        if (id !== userId) {
+        if (id !== null && id !== userId) {
+          const hadUser = userId !== null;
           userId = id;
-          untracked(() => patchState(store, initialClientSlice));
+          if (hadUser) untracked(() => patchState(store, initialClientSlice));
         }
       });
     },

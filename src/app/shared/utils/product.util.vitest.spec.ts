@@ -6,9 +6,21 @@ import {
   applyTvaDiscount,
   effectiveUnitPrice,
   calculateActualPrice,
+  countsInVolumeTotal,
+  findBasePrice,
   firstPricedCategory,
+  lineVolumeM3,
+  m2BrutQuantity,
+  m2FromM3,
+  m2NetArea,
+  m2PacksFromQuantity,
   nextCategory,
+  packsPiecesLabel,
+  pieceVolumeM3,
+  priceRowsForProduct,
   ProductUtil,
+  roundM3,
+  rowAdjustment,
   unitPriceForTypedRow,
 } from './product.util';
 
@@ -397,5 +409,212 @@ describe('calculateActualPrice — product-specific row (product_id set)', () =>
     ];
     // PJ+TVA: 1200 − 0 (cart item is not category B) − 100 = 1100
     expect(calculateActualPrice(specificRow, true, cartItems)).toBe(1100);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Price lookup (SPEC 10.1): the one rule every lookup goes through
+// ---------------------------------------------------------------------------
+
+describe('priceRowsForProduct / findBasePrice', () => {
+  const board = makeProduct({ id: 7, unit_id: Unit_id.M3, size_id: Size_id.EXTRA });
+  const general = [
+    makePrice2({ id: 1, category_id: Category.A, size_id: Size_id.EXTRA, price: 1500 }),
+    makePrice2({ id: 2, category_id: Category.B, size_id: Size_id.EXTRA, price: 1300 }),
+    makePrice2({ id: 3, category_id: Category.A, size_id: Size_id.NORMAL, price: 1400 }),
+    makePrice2({ id: 4, category_id: Category.A, unit_id: Unit_id.BUC, size_id: Size_id.EXTRA, price: 20 }),
+  ];
+
+  it('uses the general rows of the product unit and size', () => {
+    expect(priceRowsForProduct(board, general).map((p) => p.id)).toEqual([1, 2]);
+    expect(findBasePrice(board, Category.B, general)?.price).toBe(1300);
+  });
+
+  it("uses only the product's own rows when it has any", () => {
+    const prices = [...general, makePrice2({ id: 9, product_id: 7, category_id: Category.A, price: 1700 })];
+    expect(priceRowsForProduct(board, prices).map((p) => p.id)).toEqual([9]);
+    expect(findBasePrice(board, Category.A, prices)?.price).toBe(1700);
+  });
+
+  it('does not fall back to a general row for a grade the product has no own price in', () => {
+    const prices = [...general, makePrice2({ id: 9, product_id: 7, category_id: Category.A, price: 1700 })];
+    expect(findBasePrice(board, Category.B, prices)).toBeUndefined();
+  });
+
+  it('ignores own rows of another unit', () => {
+    const prices = [makePrice2({ id: 9, product_id: 7, unit_id: Unit_id.BUC, category_id: Category.A })];
+    expect(findBasePrice(board, Category.A, prices)).toBeUndefined();
+  });
+
+  it('returns undefined for a product without prices', () => {
+    expect(findBasePrice(board, Category.A, [])).toBeUndefined();
+  });
+});
+
+describe('rowAdjustment', () => {
+  const product = { id: 7, unit_id: Unit_id.M3, size_id: Size_id.NORMAL };
+  const row = (discount: number, productId?: number, category = Category.A) => ({
+    unit: Unit_id.M3,
+    category,
+    size: Size_id.NORMAL,
+    price: 1000,
+    discount,
+    ...(productId ? { productId } : {}),
+  });
+
+  it('is 0 without a matching row', () => {
+    expect(rowAdjustment([], product, Category.A)).toBe(0);
+    expect(rowAdjustment([row(-50, undefined, Category.B)], product, Category.A)).toBe(0);
+  });
+
+  it('takes the general row of the unit and size', () => {
+    expect(rowAdjustment([row(-50)], product, Category.A)).toBe(-50);
+  });
+
+  it("prefers the product's own row over the general one, whatever the order", () => {
+    expect(rowAdjustment([row(-50), row(-80, 7)], product, Category.A)).toBe(-80);
+  });
+
+  it("ignores another product's row", () => {
+    expect(rowAdjustment([row(-80, 8)], product, Category.A)).toBe(0);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Volume (SPEC 10.5): one rule for cart, order details and PDF
+// ---------------------------------------------------------------------------
+
+describe('pieceVolumeM3 / lineVolumeM3', () => {
+  const board = makeProduct({ unit_id: Unit_id.M3, width: 10, thickness: 2.5, length: 400 });
+
+  it('one piece: width × thickness × length / 1,000,000', () => {
+    expect(pieceVolumeM3(board)).toBeCloseTo(0.01, 10);
+  });
+
+  it('a bundle is 10 boards', () => {
+    expect(pieceVolumeM3({ ...board, unit_id: Unit_id.BOUNDLE })).toBeCloseTo(0.1, 10);
+    expect(lineVolumeM3({ ...board, unit_id: Unit_id.BOUNDLE }, 3)).toBeCloseTo(0.3, 10);
+  });
+
+  it('does not round a line (only totals are rounded)', () => {
+    const odd = makeProduct({ unit_id: Unit_id.M3, width: 9.7, thickness: 2.4, length: 301 });
+    // 9.7 × 2.4 × 301 / 1e6 × 7 = 0.04905096
+    expect(lineVolumeM3(odd, 7)).toBeCloseTo(0.04905096, 10);
+  });
+
+  it('roundM3 rounds to litres', () => {
+    expect(roundM3(0.04905096)).toBe(0.049);
+    expect(roundM3(0.0126)).toBe(0.013);
+  });
+
+  it('a product without a width counts its quantity (already m³)', () => {
+    expect(lineVolumeM3(makeProduct({ width: 0 }), 1.25)).toBe(1.25);
+  });
+
+  it('calculateM3Quantity is pieces × piece volume', () => {
+    expect(util.calculateM3Quantity(board, 50)).toBeCloseTo(0.5, 10);
+  });
+});
+
+describe('countsInVolumeTotal', () => {
+  it('counts M3 and bundles, not M2 or BUC', () => {
+    expect(countsInVolumeTotal(Unit_id.M3)).toBe(true);
+    expect(countsInVolumeTotal(Unit_id.BOUNDLE)).toBe(true);
+    expect(countsInVolumeTotal(Unit_id.M2)).toBe(false);
+    expect(countsInVolumeTotal(Unit_id.BUC)).toBe(false);
+  });
+});
+
+describe('calculateTotalQuantity (cart m³)', () => {
+  const line = (product: Product, quantity: number) =>
+    ({ product, quantity, price: 0, category: Category.A }) as ProductItem;
+
+  it('sums the m³ of M3 and bundle lines and leaves out M2 and BUC', () => {
+    const items = [
+      line(makeProduct({ unit_id: Unit_id.M3, width: 10, thickness: 2.5, length: 400 }), 50), // 0.5
+      line(makeProduct({ unit_id: Unit_id.BOUNDLE, width: 10, thickness: 2.5, length: 400 }), 2), // 0.2
+      line(makeProduct({ unit_id: Unit_id.M3, width: 0 }), 1.3), // 1.3
+      line(makeProduct({ unit_id: Unit_id.M2, width: 10, thickness: 2, length: 100 }), 20),
+      line(makeProduct({ unit_id: Unit_id.BUC, width: 10, thickness: 2, length: 100 }), 20),
+    ];
+    expect(util.calculateTotalQuantity(items)).toBeCloseTo(2.0, 10);
+  });
+
+  it('is 0 for an empty cart', () => {
+    expect(util.calculateTotalQuantity([])).toBe(0);
+  });
+
+  it('does not round small lines away: 10 laths of 0.0004 m³ = 0.004 m³', () => {
+    const lath = makeProduct({ unit_id: Unit_id.M3, width: 2, thickness: 2, length: 100 });
+    const items = Array.from({ length: 10 }, () => line(lath, 1));
+    expect(util.calculateTotalQuantity(items)).toBe(0.004);
+  });
+});
+
+describe('calculatePrice — M2 NET and PAC modes', () => {
+  const tile = makeProduct({ unit_id: Unit_id.M2, m2_brut: 0.8, m2_util: 0.7, piece_per_pack: 5 });
+
+  it('NET: pieces from usable m², charged by gross m²', () => {
+    // ceil(3 / 0.7) = 5 pieces = 1 pack; 5 × 0.8 × 50 = 200
+    const r = util.calculatePrice(tile, 50, 3, 'NET');
+    expect(r.totalPiecesNeeded).toBe(5);
+    expect(r.packsNeeded).toBe(1);
+    expect(r.extraPiecesNeeded).toBe(0);
+    expect(r.price).toBeCloseTo(200, 5);
+  });
+
+  it('PAC: whole packs', () => {
+    // 2 packs × 5 = 10 pieces; 10 × 0.8 × 50 = 400
+    const r = util.calculatePrice(tile, 50, 2, 'PAC');
+    expect(r.totalPiecesNeeded).toBe(10);
+    expect(r.packsNeeded).toBe(2);
+    expect(r.price).toBeCloseTo(400, 5);
+  });
+
+  it('PAC: a fraction of a pack rounds up to whole pieces', () => {
+    // 1.5 packs × 5 = 7.5 → 8 pieces = 1 pack + 3
+    const r = util.calculatePrice(tile, 50, 1.5, 'PAC');
+    expect(r.totalPiecesNeeded).toBe(8);
+    expect(r.packsNeeded).toBe(1);
+    expect(r.extraPiecesNeeded).toBe(3);
+  });
+});
+
+describe('M2 helpers', () => {
+  const tile = { m2_brut: 0.288, m2_util: 0.27, piece_per_pack: 10 };
+
+  it('m2PacksFromQuantity: packs and loose pieces from the gross m²', () => {
+    // 23 pieces × 0.288 = 6.624 m²
+    expect(m2PacksFromQuantity(tile, 23 * 0.288)).toEqual({ pieces: 23, packsNeeded: 2, extraPiecesNeeded: 3 });
+    expect(m2PacksFromQuantity(tile, 10 * 0.288)).toEqual({ pieces: 10, packsNeeded: 1, extraPiecesNeeded: 0 });
+    expect(m2PacksFromQuantity(tile, 0)).toEqual({ pieces: 0, packsNeeded: 0, extraPiecesNeeded: 0 });
+  });
+
+  it('m2PacksFromQuantity: no pack size → all loose pieces; no m2_brut → 0', () => {
+    expect(m2PacksFromQuantity({ m2_brut: 0.5, piece_per_pack: 0 }, 3)).toEqual({ pieces: 6, packsNeeded: 0, extraPiecesNeeded: 6 });
+    expect(m2PacksFromQuantity({ m2_brut: 0, piece_per_pack: 10 }, 3).pieces).toBe(0);
+  });
+
+  it('m2NetArea: all pieces × m2_util, also with only packs or only pieces', () => {
+    expect(m2NetArea(tile, 2, 3)).toBeCloseTo(23 * 0.27, 10);
+    expect(m2NetArea(tile, 2, 0)).toBeCloseTo(20 * 0.27, 10);
+    expect(m2NetArea(tile, undefined, 4)).toBeCloseTo(4 * 0.27, 10);
+  });
+
+  it('m2BrutQuantity: pieces × m2_brut', () => {
+    expect(m2BrutQuantity({ m2_brut: 0.8 }, 12)).toBeCloseTo(9.6, 10);
+  });
+
+  it('m2FromM3: m³ / thickness in m', () => {
+    expect(m2FromM3(0.5, 2.5)).toBeCloseTo(20, 10);
+  });
+
+  it('packsPiecesLabel: the stored "Np + Mb" text', () => {
+    expect(packsPiecesLabel(3, 2)).toBe('3p + 2b');
+    expect(packsPiecesLabel(0, 4)).toBe('0p + 4b');
+    expect(packsPiecesLabel(undefined, 4)).toBe('0p + 4b');
+    expect(packsPiecesLabel(2, 0)).toBe('2p');
+    expect(packsPiecesLabel(0, 0)).toBe('');
+    expect(packsPiecesLabel(undefined, undefined)).toBe('');
   });
 });

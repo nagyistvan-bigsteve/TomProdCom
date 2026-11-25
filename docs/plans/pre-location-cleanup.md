@@ -11,8 +11,8 @@ Fix real pricing and cart bugs. Reduce the price lookup and the volume math to o
 | Step | What | Effort | Status |
 |---|---|---|---|
 | 1 | Bug fixes: TVA on add, category recursion, cart merge, cart and stores after sign-out | 1.5 days | ✅ Done 2026-11-25 |
-| 2 | One price lookup, one volume formula, inline math to tested helpers, Vitest gaps | 1.5 days | Next |
-| 3 | Baseline migration, schema drift check, SQL test script, magic ids to enums, small tidy-ups | 1.5–2 days | — |
+| 2 | One price lookup, one volume formula, inline math to tested helpers, Vitest gaps | 1.5 days | ✅ Done 2026-11-25 |
+| 3 | Baseline migration, schema drift check, SQL test script, magic ids to enums, small tidy-ups | 1.5–2 days | Next |
 
 ## Step 1: Bug fixes
 1. **TVA on first add.**
@@ -84,3 +84,20 @@ Fix real pricing and cart bugs. Reduce the price lookup and the volume math to o
   - **Not needed:** `OrderStore.init()` already empties its rows, and `OrderDetailsStore` is per component.
   - **Not done:** no component test for TVA on add. The price comes from the tested `effectiveUnitPrice`.
   - **Docs:** SPEC §9 (cart persistence, cart totals) and the orders/products CLAUDE.md updated. Code review run, findings fixed.
+- **2026-11-25: Step 2 done.**
+  - **Price lookup:** one rule, `priceRowsForProduct()` / `findBasePrice()` in `product.util`, used by `computePricesForProduct`, `getExactPrice` and `getUsedPrices`. The audit's "the two lookups disagree" was overstated: they differed only on the unit check for a product's own rows. Production and staging data: every product has a size, and no own row has another unit, so behaviour is unchanged. Staging has a leftover general row without a size (id 124, M3/AB 1200) that nothing can match; it is test data and was left alone.
+  - **Manual adjustment:** `rowAdjustment()`. A product's own row now wins over the general row, whatever the array order. With no list price the result is 0, no longer NaN.
+  - **Volume:**
+    - `lineVolumeM3()` (not rounded), `roundM3()` (totals rounded once), `countsInVolumeTotal()`. The cart total and `orderTotals` are tested equal, so an offer turned into an order keeps its m³.
+    - The review caught that per-line rounding counts lines under 0.0005 m³ as 0. Now only the total is rounded.
+    - On production data the old cart and order formulas differed only in rounding: all bundles have a width, and the 4 M3 products without a width count their quantity either way.
+  - **Inline math moved to helpers:** the template volume and m², `m2BrutQuantity` (3 copies), `packsPiecesLabel` (2 copies), and the M3 volume in `calculatePrice` and `unitPriceFromLine`.
+  - **Bugs found and fixed:**
+    - "Load offer into cart" dropped the M2 pack breakdown, so the order saved empty `packs_pieces`. Now `m2PacksFromQuantity()` rebuilds it, and merges use it too.
+    - The cart's usable m² showed a tenth of the real area for lines with only loose pieces, and far too little for lines with only packs. Now `m2NetArea()`.
+    - Editing a cart line to quantity 0 wrote into the store's line and later gave a NaN price. It is now refused with a toast, and the store line is no longer mutated.
+    - The Step 1 sign-out reset also wiped the same user's cart when a session expired. Now only *another* user signing in empties it.
+  - **Tests:** about 30 new Vitest cases (lookup, adjustment, volume, totals, M2 NET/PAC, M2 helpers, merge).
+  - **Left as is:**
+    - `selected-product` injects `ClientStore` from another feature. The sibling `selected-product-list` already did this; revisit when brand/location config arrives.
+    - The review also flagged `supabase/rollbacks/advisor_cleanup_rollback.sql`, already on `develop`: it recreates `products_without_prices()` on staging, where it never existed, without a pinned `search_path`. Look at it in Step 3.
