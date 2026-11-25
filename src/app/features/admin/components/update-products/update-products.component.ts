@@ -30,7 +30,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { FilterUtil } from '@shared/utils/filter.util';
 import { ProductStore, StockChange } from '@features/products/store/product.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
-import { Category } from '@core/models/enums';
+import { Category, Unit_id } from '@core/models/enums';
 import { STOCK_CATEGORIES } from '@shared/utils/stock.util';
 
 @Component({
@@ -54,6 +54,8 @@ import { STOCK_CATEGORIES } from '@shared/utils/stock.util';
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class UpdateProductsComponent implements OnInit {
+  readonly Unit_id = Unit_id;
+
   @ViewChild('input') input: ElementRef<HTMLInputElement> | null = null;
   updateStock: boolean = false;
 

@@ -27,6 +27,7 @@ import { ClientStore } from '@features/clients/store/client.store';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { ClientHistoryComponent } from '@features/clients/components/client-history/client-history.component';
+import { ClientType } from '@core/models/enums';
 
 @Component({
   selector: 'app-clients',
@@ -49,6 +50,8 @@ import { ClientHistoryComponent } from '@features/clients/components/client-hist
   animations: ENTER_ANIMATION,
 })
 export class ClientsComponent {
+  readonly ClientType = ClientType;
+
   @ViewChild(MatAutocompleteTrigger) autocomplete!: MatAutocompleteTrigger;
 
   readonly clientStore = inject(ClientStore);

@@ -21,6 +21,7 @@ import {
   OrderResponse,
   Price2,
   Product,
+  ProductItem,
   ProductItems,
 } from '@core/models/models';
 import { MatIconModule } from '@angular/material/icon';
@@ -45,7 +46,13 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { effectiveUnitPrice, ProductUtil } from '@shared/utils/product.util';
+import {
+  effectiveUnitPrice,
+  m2BrutQuantity,
+  m2PacksFromQuantity,
+  packsPiecesLabel,
+  ProductUtil,
+} from '@shared/utils/product.util';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -103,6 +110,10 @@ import { ConfirmDeleteDialogComponent } from '@shared/components/dialogs/confirm
   styleUrl: './order-details.component.scss',
 })
 export class OrderDetailsComponent implements OnInit {
+  readonly ClientType = ClientType;
+
+  readonly Unit_id = Unit_id;
+
   @ViewChild('input') input: ElementRef<HTMLInputElement> | null = null;
   @ViewChild('confirmDeliveredDialog')
   confirmDeliveredDialog!: TemplateRef<unknown>;
@@ -359,14 +370,8 @@ export class OrderDetailsComponent implements OnInit {
     let packsPieces = '';
 
     if (totalPiecesNeeded) {
-      packsPieces =
-        packsNeeded || extraPiecesNeeded
-          ? (packsNeeded ? packsNeeded + 'p' : '0p') +
-            (extraPiecesNeeded ? ' + ' + extraPiecesNeeded + 'b' : '')
-          : '';
-
-      this.selectedProductQuantity =
-        totalPiecesNeeded * product.m2_brut;
+      packsPieces = packsPiecesLabel(packsNeeded, extraPiecesNeeded);
+      this.selectedProductQuantity = m2BrutQuantity(product, totalPiecesNeeded);
     }
 
     const existingItem =
@@ -622,13 +627,23 @@ export class OrderDetailsComponent implements OnInit {
       .subscribe((result) => {
         if (result === true) {
           const entityMap = this.catalogStore.productsEntityMap();
-          const productItems: ProductItems = this.orderItems.map((item) => ({
-            product: entityMap[item.product.id]!,
-            quantity: item.quantity,
-            price: item.price,
-            category: Category[item.category.name as keyof typeof Category],
-            manualPrice: true,
-          }));
+          const productItems: ProductItems = this.orderItems.map((item) => {
+            const product = entityMap[item.product.id]!;
+            const line: ProductItem = {
+              product,
+              quantity: item.quantity,
+              price: item.price,
+              category: Category[item.category.name as keyof typeof Category],
+              manualPrice: true,
+            };
+            // M2 lines keep their pack breakdown, so the new order saves it again
+            if (product.unit_id === Unit_id.M2) {
+              const { packsNeeded, extraPiecesNeeded } = m2PacksFromQuantity(product, item.quantity);
+              line.packsNeeded = packsNeeded;
+              line.extraPiecesNeeded = extraPiecesNeeded;
+            }
+            return line;
+          });
           this.clientStore.setClientId(
             this.clientStore.clientsEntityMap()[order.clientId].id,
           );

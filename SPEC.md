@@ -1082,9 +1082,15 @@ An offer may also be used as the starting point for creating an order while allo
 
 The product selection (cart) is persisted to `localStorage` throughout the offer creation workflow. If the user returns to the offer creation flow after more than **10 minutes** of inactivity, they are prompted to either restore the saved cart or discard it and start fresh. The prompt only appears when one of the offer creation pages is opened; until then the saved cart is left as it is, and it is replaced if the cart is filled from elsewhere (e.g. an offer loaded into the cart). A saved cart with no products is dropped without asking.
 
+The cart and the client chosen for the offer belong to the user who built them (the saved cart records its owner). When another user signs in on the same device, the cart is emptied, the saved cart removed and the chosen client cleared; a saved cart of another user is never restored. The same user keeps them across a page reload, a sign-out or an expired session.
+
 ### Cart totals
 
-Below the cart: the total, and "Total B" / "Total A", what the cart would cost with every line in that grade (the arrow switches the lines to it). A line whose product has no price in that grade keeps its own price; the pill then says how many such lines there are. Adding the same product and grade again asks to add to the line or replace it; either way the totals update at once. A line with quantity 0 is not added.
+Below the cart: the total, and "Total B" / "Total A", what the cart would cost with every line in that grade (the arrow switches the lines to it). A line whose product has no price in that grade keeps its own price; the pill then says how many such lines there are. Adding the same product and grade again asks to add to the line or replace it; either way the totals update at once. Adding sums quantity and price; for M2 lines the packs and loose pieces are worked out again from the summed quantity (pieces = quantity / m2_brut), so loose pieces that fill a pack become a pack (5 + 5 pieces with 10 per pack = 1 pack). An M2 line of an offer loaded into the cart gets its breakdown the same way, so the order made from it saves it again. Switching a line to a grade another line of the same product already has merges the two the same way. A line with quantity 0 is not added.
+
+When two lines merge and one of them had a hand-set price (e.g. from an offer loaded into the cart), the merged line keeps counting as hand-set, so it is not re-priced from the list later: losing a negotiated price is worse than missing an automatic update. Changing a line's grade, or the "Total A / B" arrows, re-price it from the list and make it list-priced again.
+
+A line's price is the same from the moment it is added as later in the cart and the overview: the list price with the B board discount, then the TVA discount when the selected client has `tva = true` (section 10.3). The grade button steps A → AB → B → T → A and skips grades without a price; when no grade has a price, the line keeps its grade.
 
 ---
 
@@ -1105,6 +1111,8 @@ Prices are stored in the `prices_new` table. Each row has `unit_id`, `category_i
 3. **If no** → use the row that matches `size_id + category_id + unit_id` (category/size matrix price).
 
 If no matching price row exists the product is considered unpriceable and must be flagged to the admin.
+
+A product that has its own rows never falls back to the matrix, not even for a grade it has no own row in. Only own rows of the product's unit count: rows left from a unit change are ignored and the matrix applies. The rule lives in one place: `priceRowsForProduct()` (all rows of a product) and `findBasePrice()` (its row in one grade) in `@shared/utils/product.util`; every lookup (product card, cart, order details, price panels) goes through them.
 
 ---
 
@@ -1248,7 +1256,9 @@ volumeM3 per item = (width × thickness × length / 1,000,000) × quantity
 
 > Units: `width`, `thickness`, `length` are in **cm**. Dividing by 1,000,000 converts cm³ → m³.
 
-M2 and BUC items are excluded from this total (`countedVolumeM3()` per line). The printed PDF uses the same rule per line: an M2 or BUC line shows "–" in the m³ column, so the lines add up to the total, and when the total is 0 the m³ column is left out altogether.
+Each line's volume comes from `lineVolumeM3()` in `@shared/utils/product.util` (not rounded, so many small lines are not rounded away); a product without a width is sold by volume, so its quantity is already m³. The total is rounded once, to 3 decimals (`roundM3()`). The cart (`calculateTotalQuantity`), the saved order (`orderTotals`) and the PDF use this one rule, so an offer turned into an order keeps its m³ exactly.
+
+M2 and BUC items are excluded from this total (`countsInVolumeTotal()`; `countedVolumeM3()` per order line). The printed PDF uses the same rule per line: an M2 or BUC line shows "–" in the m³ column, so the lines add up to the total, and when the total is 0 the m³ column is left out altogether.
 
 ---
 
@@ -1258,8 +1268,8 @@ Do not calculate prices independently in multiple components.
 
 If the pricing hierarchy or a formula changes:
 
-1. Update `ProductUtil` (`@shared/utils/product.util`).
-2. Update `getExactPrice` in `selected-product-list.component.ts` if the lookup logic changes.
+1. Update `ProductUtil` and the pure functions in `@shared/utils/product.util`: `priceRowsForProduct` / `findBasePrice` (lookup), `effectiveUnitPrice` (B and TVA adjustments), `rowAdjustment` (manual overview adjustment), `lineVolumeM3` / `pieceVolumeM3` (volume), `m2BrutQuantity` / `m2FromM3` / `packsPiecesLabel` (M2).
+2. Components and templates only call these; they hold no formula of their own.
 3. Update `calculateActualPrice` in `@shared/utils/product.util` (used by `offer-overview-page.component.ts`) if the adjustment logic changes.
 4. Update any relevant tests.
 5. Update this section of SPEC.md.

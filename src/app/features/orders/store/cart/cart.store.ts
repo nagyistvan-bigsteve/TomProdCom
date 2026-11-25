@@ -9,7 +9,8 @@
 import { ProductItem, ProductItems, UsedPricesInOrder } from '@core/models/models';
 import { Category } from '@core/models/enums';
 
-import { computed } from '@angular/core';
+import { computed, effect, inject, untracked } from '@angular/core';
+import { useAuthStore } from '@core/store/auth-store';
 
 import {
   readFromLocalStorage,
@@ -18,11 +19,11 @@ import {
 import {
   CART_STORAGE_KEY,
   decideStoredCart,
-  StoredCart,
+  SavedCart,
   toStoredCart,
 } from './cart.persistence';
 import { CartSlice, initialCartSlice } from './cart.slice';
-import { replaceCartItem } from './cart.items';
+import { mergeDuplicateItems, replaceCartItem } from './cart.items';
 import type { OfferCarryOver } from './offer-carry-over';
 
 
@@ -52,6 +53,18 @@ export const CartStore = signalStore(
       /** Unties the cart from the offer it was loaded from: the offer stays as it is. */
       clearSourceOffer() {
         patchState(store, { sourceOffer: null });
+      },
+
+      /**
+       * Replaces all lines and keeps the rest (the offer the cart came from,
+       * used prices): the "Total A / B" arrows (`regradeItems`).
+       */
+      replaceAllItems(productItems: ProductItems) {
+        patchState(store, {
+          productItems,
+          lastUpdated: new Date().toLocaleString('sv-SE'),
+          pendingRestore: null,
+        });
       },
 
       /** Replaces one cart line (duplicate dialog → "overwrite"). */
@@ -115,32 +128,9 @@ export const CartStore = signalStore(
           return;
         }
 
-        const matchingItems = currentItems.filter(
-          (item) => item.category === category && item.product.id === productId,
-        );
+        const updatedItems = mergeDuplicateItems(currentItems, productId, category);
 
-        let mergedItem: ProductItem | null = null;
-
-        if (matchingItems.length > 1) {
-          const baseItem = { ...matchingItems[0] };
-          const totalQuantity =
-            matchingItems[0].quantity + matchingItems[1].quantity;
-          const totalPrice = matchingItems[0].price + matchingItems[1].price;
-
-          mergedItem = {
-            ...baseItem,
-            quantity: totalQuantity,
-            price: totalPrice,
-          };
-
-          const updatedItems = [
-            ...currentItems.filter(
-              (item) =>
-                !(item.category === category && item.product.id === productId),
-            ),
-            mergedItem,
-          ];
-
+        if (updatedItems !== currentItems) {
           patchState(store, {
             productItems: updatedItems,
             lastUpdated: new Date().toLocaleString('sv-SE'),
@@ -232,14 +222,28 @@ export const CartStore = signalStore(
     discardPendingCart(): void {
       patchState(store, { pendingRestore: null });
     },
+
+    /**
+     * Back to an empty cart, and the saved cart removed from localStorage
+     * (`lastUpdated` null): on sign-out or when another user signs in, so the
+     * next person on a shared device does not get it.
+     */
+    reset(): void {
+      patchState(store, initialCartSlice);
+    },
   })),
 
   withHooks((store) => ({
     onInit() {
-      const stored = readFromLocalStorage<StoredCart>(CART_STORAGE_KEY);
+      const authStore = inject(useAuthStore);
+      // The user the cart belongs to: the last one signed in. A sign-out or an
+      // expired session (id → null) does not change it, so the same user
+      // signing back in keeps the cart; only another user empties it.
+      let ownerId = authStore.id();
+      const stored = readFromLocalStorage<SavedCart>(CART_STORAGE_KEY);
 
       if (stored) {
-        switch (decideStoredCart(stored, new Date())) {
+        switch (decideStoredCart(stored, new Date(), authStore.id())) {
           case 'restore':
             patchState(store, toStoredCart(stored));
             break;
@@ -258,13 +262,28 @@ export const CartStore = signalStore(
         if (store.pendingRestore()) return undefined;
         if (store.lastUpdated() === null) return null;
 
-        return toStoredCart({
-          productItems: store.productItems(),
-          lastUpdated: store.lastUpdated(),
-          usedPriceCategories: store.usedPriceCategories(),
-          pricingClientId: store.pricingClientId(),
-          sourceOffer: store.sourceOffer(),
-        });
+        const saved: SavedCart = {
+          ...toStoredCart({
+            productItems: store.productItems(),
+            lastUpdated: store.lastUpdated(),
+            usedPriceCategories: store.usedPriceCategories(),
+            pricingClientId: store.pricingClientId(),
+            sourceOffer: store.sourceOffer(),
+          }),
+          ownerId,
+        };
+        return saved;
+      });
+
+      // Another user signing in empties the cart. The owner saved with it
+      // covers a change of user while this store was not running.
+      effect(() => {
+        const id = authStore.id();
+        if (id !== null && id !== ownerId) {
+          const hadOwner = ownerId !== null;
+          ownerId = id;
+          if (hadOwner) untracked(() => store.reset());
+        }
       });
     },
   })),

@@ -48,7 +48,7 @@
             </div>
             <div class="text-wrap me-5">{{ client().name }}</div>
             <div>
-              <strong>{{ client().type === 1 ? "CNP " : "CUI " }}</strong>
+              <strong>{{ client().type === ClientType.PF ? "CNP " : "CUI " }}</strong>
               : {{ client().code }}
             </div>
             <div class="mt-1 d-flex">
@@ -66,7 +66,7 @@
             </div>
             <div class="text-wrap me-5">
               <strong>{{
-                client().type === 1
+                client().type === ClientType.PF
                 ? ("PRINT_POPUP.ADDRESS_PF" | translate)
                 : ("PRINT_POPUP.ADDRESS_PJ" | translate)
               }}</strong>
@@ -108,7 +108,7 @@
                       }})
                     </span>
                   }
-                  @if (!item.packsPieces && item.product.unit_id === 3) {
+                  @if (!item.packsPieces && item.product.unit_id === Unit_id.M3) {
                     <span class="text-nowrap">
                       @if (item.product.width) {
                         {{ item.quantity }}
@@ -118,10 +118,7 @@
                         )
                         }}
                       } @else {
-                        {{
-                        item.quantity / (item.product.thickness / 100)
-                        | number: "1.0-2"
-                        }}
+                        {{ m2FromM3(item.quantity, item.product.thickness) | number: "1.0-2" }}
                         {{
                         translate(
                         "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.2"
@@ -130,7 +127,7 @@
                       }
                     </span>
                   }
-                  @if (!item.packsPieces && item.product.unit_id !== 3) {
+                  @if (!item.packsPieces && item.product.unit_id !== Unit_id.M3) {
                     <span class="text-nowrap">
                       {{ item.quantity | number: "1.0-1" }}
                       {{

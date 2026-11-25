@@ -14,6 +14,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { CartStore } from '@features/orders/store/cart/cart.store';
+import { mergeCartItems } from '@features/orders/store/cart/cart.items';
 import { ProductStore } from '@features/products/store/product.store';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatBadgeModule } from '@angular/material/badge';
@@ -76,7 +77,7 @@ export class CreateOfferPageComponent {
       .find(
         (product) =>
           product.category === item.category &&
-          product.product.name === item.product.name,
+          product.product.id === item.product.id,
       );
 
     if (existingProduct) {
@@ -88,47 +89,33 @@ export class CreateOfferPageComponent {
         .afterClosed()
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((result: any) => {
+          // The cart may have changed while the dialog was open (e.g. a price
+          // reload builds new line objects): act on the line as it is now
+          const current = this.cartStore
+            .productItems()
+            .find(
+              (line) =>
+                line.category === item.category &&
+                line.product.id === item.product.id,
+            );
+
           if (result === 'overwrite') {
-            this.cartStore.replaceProductItem(existingProduct, item);
+            if (current) {
+              this.cartStore.replaceProductItem(current, item);
+            } else {
+              this.cartStore.addProductItem(item);
+            }
             this.openSnackBar(
               this.translateService.instant(
                 'OFFER_PAGE.CREATE_OFFER.SUCCESS_BAR.OVERWRITE',
               ) + item.product.name,
             );
           } else if (result === 'add') {
-            existingProduct.quantity += item.quantity;
-            existingProduct.price += item.price;
-            if (item.extraPiecesNeeded) {
-              if (existingProduct.extraPiecesNeeded) {
-                if (
-                  existingProduct.extraPiecesNeeded + item.extraPiecesNeeded >
-                  existingProduct.product.piece_per_pack
-                ) {
-                  existingProduct.extraPiecesNeeded =
-                    (existingProduct.extraPiecesNeeded +
-                      item.extraPiecesNeeded) %
-                    existingProduct.product.piece_per_pack;
-                  existingProduct.packsNeeded
-                    ? (existingProduct.packsNeeded += 1)
-                    : (existingProduct.packsNeeded = 1);
-                } else {
-                  existingProduct.extraPiecesNeeded += item.extraPiecesNeeded;
-                }
-              } else {
-                existingProduct.extraPiecesNeeded = item.extraPiecesNeeded;
-              }
+            if (current) {
+              this.cartStore.replaceProductItem(current, mergeCartItems(current, item));
+            } else {
+              this.cartStore.addProductItem(item);
             }
-            if (item.packsNeeded) {
-              existingProduct.packsNeeded
-                ? (existingProduct.packsNeeded += item.packsNeeded)
-                : (existingProduct.packsNeeded = item.packsNeeded);
-            }
-
-            this.cartStore.updateProductItem(
-              existingProduct.product.id,
-              existingProduct.category,
-              existingProduct,
-            );
 
             this.openSnackBar(
               this.translateService.instant(

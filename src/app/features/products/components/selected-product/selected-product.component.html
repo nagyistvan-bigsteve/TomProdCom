@@ -33,14 +33,14 @@
 
         <div class="d-flex flex-column justify-content-center align-items-center mw-50">
           <div class="d-flex justify-content-center align-items-center w-100">
-            @if (selectedProduct.unit_id === 3) {
+            @if (selectedProduct.unit_id === Unit_id.M3) {
               {{
                 (selectedProduct.width
                   ? "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.1"
                   : "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS.3"
                 ) | translate
               }}
-            } @else if (selectedProduct.unit_id !== 2) {
+            } @else if (selectedProduct.unit_id !== Unit_id.M2) {
               {{
                 "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
                   selectedProduct.unit_id | translate
@@ -95,7 +95,7 @@
     </div>
     <mat-divider class="m-2"></mat-divider>
     <div class="ms-4">
-      @if (currentStock && selectedProduct.unit_id !== 2) {
+      @if (currentStock && selectedProduct.unit_id !== Unit_id.M2) {
         {{ "SNACKBAR.PRODUCT.STOCK" | translate }}
         ({{ "STOCK.GRADE." + currentStock.category_id | translate }})
         {{ currentStock.stock }}/<span

@@ -152,6 +152,19 @@ export const ClientStore = signalStore(
           untracked(() => store.fetchClients());
         }
       });
+
+      // The client picked for an offer belongs to the user who picked it:
+      // another user signing in clears the choice (like the cart); the same
+      // user signing back in after a sign-out or expired session keeps it
+      let userId = authStore.id();
+      effect(() => {
+        const id = authStore.id();
+        if (id !== null && id !== userId) {
+          const hadUser = userId !== null;
+          userId = id;
+          if (hadUser) untracked(() => patchState(store, initialClientSlice));
+        }
+      });
     },
   })),
 );

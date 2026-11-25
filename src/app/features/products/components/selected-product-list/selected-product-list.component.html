@@ -71,7 +71,7 @@
                       >
                       <div (click)="enableEdit($event, item)">
                         {{ item.quantity | number: "1.0-2" }}
-                        @if (item.product.unit_id !== 3) {
+                        @if (item.product.unit_id !== Unit_id.M3) {
                           {{
                           "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
                           item.product.unit_id | translate
@@ -94,7 +94,7 @@
                       >
                       <div (click)="enableEdit($event, item)">
                         {{ item.quantity | number: "1.0-2" }}
-                        @if (item.product.unit_id !== 3) {
+                        @if (item.product.unit_id !== Unit_id.M3) {
                           {{
                           "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
                           item.product.unit_id | translate
@@ -123,7 +123,7 @@
 
             <div class="row align-items-center">
               @switch (item.product.unit_id) {
-                @case (1) {
+                @case (Unit_id.BUC) {
                   <div class="col-10">
                     <div class="p-1">
                       {{
@@ -143,36 +143,20 @@
                     </button>
                   </div>
                 }
-                @case (2) {
+                @case (Unit_id.M2) {
                   <div class="col-10">
                     <div class="row border-bottom p-1">
                       {{ item.packsNeeded }}p + {{ item.extraPiecesNeeded }}b
                     </div>
-                    @if (item.packsNeeded && item.extraPiecesNeeded) {
+                    @if (item.packsNeeded || item.extraPiecesNeeded) {
                       <div class="row border-bottom p-1">
                         {{
                         "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.M2_NET"
                         | translate
                         }}
                         {{
-                        (item.product.piece_per_pack * item.packsNeeded +
-                        item.extraPiecesNeeded) *
-                        item.product.m2_util | number: "1.0-2"
-                        }}
-                      </div>
-                    } @else if (item.packsNeeded || item.extraPiecesNeeded) {
-                      <div class="row border-bottom p-1">
-                        {{
-                        "OFFER_PAGE.CREATE_OFFER.ITEM_DESCRIPTION.M2_NET"
-                        | translate
-                        }}
-                        {{
-                        item.extraPiecesNeeded
-                        ? item.extraPiecesNeeded * (item.product.m2_util / 10)
-                        : (item.packsNeeded! *
-                        item.product.piece_per_pack *
-                        (item.product.m2_util /
-                        item.product.piece_per_pack) | number: "1.0-2")
+                        m2NetArea(item.product, item.packsNeeded, item.extraPiecesNeeded)
+                        | number: "1.0-2"
                         }}
                       </div>
                     }
@@ -194,24 +178,15 @@
                     </button>
                   </div>
                 }
-                @case (3) {
+                @case (Unit_id.M3) {
                   <div class="col-10">
                     <div class="row border-bottom p-1">
                       @if (item.product.width) {
                         m³:
-                        {{
-                        item.quantity *
-                        ((item.product.width *
-                        item.product.thickness *
-                        item.product.length) /
-                        1000000) | number: "1.0-3"
-                        }}
+                        {{ lineVolumeM3(item.product, item.quantity) | number: "1.0-3" }}
                       } @else {
                         m²:
-                        {{
-                        item.quantity / (item.product.thickness / 100)
-                        | number: "1.0-2"
-                        }}
+                        {{ m2FromM3(item.quantity, item.product.thickness) | number: "1.0-2" }}
                       }
                     </div>
                     @if (item.product.width) {

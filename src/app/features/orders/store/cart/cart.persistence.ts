@@ -9,19 +9,30 @@ export type StoredCart = Pick<
   'productItems' | 'lastUpdated' | 'usedPriceCategories' | 'pricingClientId' | 'sourceOffer'
 >;
 
+/** What is written to localStorage: the cart and the user who built it. */
+export type SavedCart = StoredCart & {
+  /** Missing on carts saved before the owner was recorded. */
+  readonly ownerId?: string | null;
+};
+
 /**
  * What to do with a cart found in localStorage at startup:
  * - `restore` — recent (10 minutes or less): load it silently;
  * - `ask` — older: ask the user when they next open an offer creation page;
- * - `discard` — nothing in it.
+ * - `discard` — nothing in it, or built by another user than the one
+ *   signed in now (a shared device must not hand it to the next person).
  *
- * A cart without a readable timestamp is treated as recent, as before.
+ * A cart without a readable timestamp is treated as recent, and one without
+ * an owner (saved before owners were recorded) as the current user's, as before.
  */
 export function decideStoredCart(
-  stored: StoredCart,
+  stored: SavedCart,
   now: Date,
+  currentUserId: string | null,
 ): 'restore' | 'ask' | 'discard' {
   if (!stored.productItems?.length) return 'discard';
+  // null: saved while nobody was known to be signed in, so the owner is unknown
+  if (stored.ownerId != null && stored.ownerId !== currentUserId) return 'discard';
 
   const lastUpdated = stored.lastUpdated ? new Date(stored.lastUpdated) : null;
   const ageMs = lastUpdated ? now.getTime() - lastUpdated.getTime() : Infinity;

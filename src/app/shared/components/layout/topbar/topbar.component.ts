@@ -19,7 +19,7 @@ import { useAuthStore } from '@core/store/auth-store';
 import { UsersStore } from '@core/store/users.store';
 import { Router } from '@angular/router';
 import { MatBadgeModule } from '@angular/material/badge';
-import { InstallService } from '@core/services/install.service';
+import { PwaInstallService } from '@core/services/pwa-install.service';
 
 @Component({
   selector: 'app-topbar',
@@ -43,7 +43,7 @@ export class TopbarComponent implements OnInit {
   private location = inject(Location);
   private router = inject(Router);
   public authStore = inject(useAuthStore);
-  public installService = inject(InstallService);
+  public pwaInstallService = inject(PwaInstallService);
 
   readonly usersStore = inject(UsersStore);
 
@@ -59,7 +59,7 @@ export class TopbarComponent implements OnInit {
   ngOnInit(): void {}
 
   installApp(): void {
-    this.installService.promptInstall();
+    this.pwaInstallService.promptInstall();
   }
 
   toggleSidebar(): void {

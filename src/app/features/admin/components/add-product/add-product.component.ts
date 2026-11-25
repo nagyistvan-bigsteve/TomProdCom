@@ -27,7 +27,7 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Category } from '@core/models/enums';
+import { Category, Unit_id } from '@core/models/enums';
 import { ProductStore } from '@features/products/store/product.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 
@@ -51,6 +51,8 @@ import { DecimalInputDirective } from '@shared/directives/decimal-input.directiv
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class AddProductComponent {
+  readonly Unit_id = Unit_id;
+
   @ViewChild('addPriceDialog') addPriceDialogTemplate!: TemplateRef<any>;
 
   private readonly productStore = inject(ProductStore);

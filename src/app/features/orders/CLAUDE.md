@@ -165,9 +165,9 @@ Product selection and cart building. Calls into `CartStore` for all mutations.
 
 Cart panel has `padding-bottom: 88px` on mobile to keep the last rows scrollable above the fixed FAB (56px FAB + 24px offset + 8px breathing room).
 
-Duplicate handling: if the same `(category + product.name)` is already in the cart, an `OverwriteDialogComponent` opens:
+Duplicate handling: if the same `(category + product.id)` is already in the cart, an `OverwriteDialogComponent` opens:
 - "Overwrite" → replaces the item.
-- "Add/Merge" → sums quantity and price; recalculates pack-piece overflow for M2 items.
+- "Add/Merge" → `mergeCartItems()` (`store/cart/cart.items.ts`): sums quantity and price; for M2 items sums packs and loose pieces, a full pack of loose pieces (`>= piece_per_pack`) becomes a pack. The cart line is replaced, never mutated.
 
 ### `offer-overview/`
 
@@ -253,7 +253,9 @@ Key methods:
 - `addProductItem()` — **prepends** new items (newest first in the list).
 - `replaceProductItem(replaced, item)` — duplicate dialog "overwrite". Builds a new array (`replaceCartItem()` in `cart.items.ts`, unit-tested): never write into the array from `productItems()`, the signal would not notice and `cartTotal()` would keep the old total.
 - `updateProductItem(productId, category, updates)` — finds by `(productId + category)` pair.
-- `checkForDuplicatedItems()` — merges exact duplicates by summing quantity and price.
+- `checkForDuplicatedItems()` — merges every line of the same product + grade into one (`mergeDuplicateItems()` / `mergeCartItems()` in `cart.items.ts`, unit-tested: quantity and price summed, M2 packs and loose pieces summed with full packs carried over). The create page's "Add / Merge" uses `mergeCartItems()` too.
+- `reset()` — empty cart, saved cart removed. Called by the store itself when **another** user signs in (a sign-out or expired session, id → null, keeps the cart for the same user). The saved cart carries `ownerId` (`SavedCart`); `decideStoredCart()` discards another user's cart at startup. `ClientStore` clears the chosen client on another user the same way.
+- M2 lines always carry their pack breakdown: `mergeCartItems()` and "load offer into cart" work it out from the quantity (`m2PacksFromQuantity()` in `@shared/utils/product.util`), so `packs_pieces` is saved again for an order made from an offer.
 - `cartTotal()` — computed signal; sums all `item.price`.
 
 ### `order/` — order / offer list (`OrderStore`)
@@ -287,7 +289,7 @@ Default: `tableSortType='delivery'`, `tableFilterType='open'`, `justOffers=false
 
 Provided by `OrderDetailsComponent` (not root): each opened order gets its own instance.
 
-- `order-details.computed.ts` — pure, unit-tested: `applyVoucher(amount, voucher)`, `itemVolumeM3(item)` (how order details counts an item's m³: M2 items with a pack breakdown 0, items without width their quantity, bundles ×10, rounded to 3 decimals per item), `countedVolumeM3(item)` (what a line adds to the m³ total: 0 for M2 and BUC, like the cart's `calculateTotalQuantity`, SPEC §10.5; also the PDF's per-line m³), `orderTotals(items, voucher)` (m³ total = sum of `countedVolumeM3`).
+- `order-details.computed.ts` — pure, unit-tested: `applyVoucher(amount, voucher)`, `itemVolumeM3(item)` (an item's m³ = `lineVolumeM3()` from `@shared/utils/product.util`; M2 items with a pack breakdown 0), `countedVolumeM3(item)` (what a line adds to the m³ total: 0 for M2 and BUC via `countsInVolumeTotal()`, exactly as the cart's `calculateTotalQuantity`, SPEC §10.5 — tested equal; also the PDF's per-line m³), `orderTotals(items, voucher)` (m³ total = sum of `countedVolumeM3`).
 - `order-details.store.ts` — state `{ order, items }`:
   - `load(orderId)` — order and items together.
   - `addItem` / `updateItem` / `updatePrices` / `deleteItem` — compute the totals for the item list **after** the change, save item + totals in one database call, then update the order and reload the items. No timers.

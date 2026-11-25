@@ -31,7 +31,12 @@ Pure utility functions and helper services:
 - `order-pdf-generator.util.ts` — builds jsPDF documents from order data (used by the orders feature)
 - `product.util.ts` — price calculation helpers for M2/M3/BUC/BUNDLE unit conversions
 - `stock.util.ts` — graded stock rules (pure, Vitest-covered): `stockCategoryFor()` (T → A, > 7 m → AB, M2 untracked; mirrors SQL `stock_category_for`), `stockCategoriesOf()`, `availableStock()`, `groupStocksByProduct()`, `validateSorting()` / `sortingLimit()` (AB stock, and the truck remainder when sorting from a truck), `bookedAbShortfall()` (ordered AB pieces a sorting takes; warning only), `hasVolume()` (M3 / bundle: shown and summed in m³), `shipmentTotalM3()`, `countsWholePieces()` (BUC, bundle, M3 with a width: stock in whole pieces; mirrors `set_stock`), `m3InputAllowed()` / `piecesFromM3()` (stock typed in m³ on truck lines and the products page stock edit → nearest whole pieces; only pieces are stored)
-- `product.util.ts` also exports `pieceVolumeM3()` (m³ of one piece, of one bundle = 10 boards), used by `calculateM3Quantity` and the m³ input
+- `product.util.ts` also exports the single versions of the pricing and volume rules (Vitest-covered; never re-implement them in a component or template):
+  - `priceRowsForProduct()` / `findBasePrice()` — price lookup, SPEC §10.1 (own rows, else unit + size matrix; no fallback);
+  - `rowAdjustment()` — the overview's manual adjustment for a line (product row before general row);
+  - `nextCategory()` / `firstPricedCategory()` — the cart grade button cycle (stops after one round);
+  - `pieceVolumeM3()` (one piece, a bundle = 10 boards), `lineVolumeM3()` (a line, rounded to 3 decimals; no width → quantity is m³), `countsInVolumeTotal()` (not M2 / BUC);
+  - `m2BrutQuantity()`, `m2FromM3()`, `packsPiecesLabel()` ("3p + 2b").
 - `display-format.util.ts` — pure, Vitest-covered: `dateFormatFor(language, kind)`, `datePickerLocale(language)`, `moneyDigits(value)`; used by the pipes above
 - `date-picker-locale.ts` — `syncDatePickerLocale()`: call in the constructor of a component that provides a date adapter, so its date picker follows the UI language
 - `app-date-adapter.ts` — `provideAppDateAdapter()`: use it instead of `provideNativeDateAdapter()`. `AppDateAdapter` reads typed dates with `parseTypedDate()` in the picker locale's order instead of the browser's month-first `Date.parse`

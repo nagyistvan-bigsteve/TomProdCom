@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Location Switch Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  /* Registered so the location colors animate when they change */
+  @property --app-bg { syntax: '<color>'; inherits: true; initial-value: rgb(57, 72, 60); }
+  @property --topbar-bg { syntax: '<color>'; inherits: true; initial-value: rgb(73, 92, 76); }
+  @property --accent { syntax: '<color>'; inherits: true; initial-value: #9ccc65; }
+
+  :root {
+    --stage-bg: #e9ecea;
+    --stage-text: #1d2420;
+    --panel-bg: #ffffff;
+    --panel-border: #d5dbd7;
+    --muted: #5d6862;
+    --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-6: 24px; --space-8: 32px;
+    --dur: 450ms;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --stage-bg: #121614; --stage-text: #e6ebe8; --panel-bg: #1b211e; --panel-border: #2e3833; --muted: #9aa6a0;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --stage-bg: #121614; --stage-text: #e6ebe8; --panel-bg: #1b211e; --panel-border: #2e3833; --muted: #9aa6a0;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: Roboto, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--stage-bg);
+    color: var(--stage-text);
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; }
+
+  /* ---------- Stage: phone + notes ---------- */
+  .stage {
+    min-height: 100vh;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--space-8);
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .phone {
+    --app-bg: rgb(57, 72, 60);
+    --topbar-bg: rgb(73, 92, 76);
+    --accent: #9ccc65;
+    --accent-ink: #1e2b14;
+    position: relative;
+    width: 390px;
+    height: min(820px, calc(100vh - 48px));
+    min-height: 620px;
+    border-radius: 36px;
+    border: 10px solid #0d0f0e;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--app-bg);
+    color: #fff;
+    transition: --app-bg var(--dur) ease, --topbar-bg var(--dur) ease, --accent var(--dur) ease;
+  }
+  .phone[data-loc="instal"] {
+    --app-bg: rgb(22, 52, 92);
+    --topbar-bg: rgb(30, 72, 126);
+    --accent: #5cb8f2;
+    --accent-ink: #082039;
+  }
+  .phone.no-anim, .phone.no-anim * { transition: none !important; }
+
+  @media (max-width: 700px) {
+    .stage { padding: 0; gap: 0; }
+    .phone { width: 100%; height: 100dvh; min-height: 0; border: 0; border-radius: 0; box-shadow: none; }
+  }
+
+  /* ---------- Topbar ---------- */
+  .topbar {
+    position: relative;
+    z-index: 30;
+    height: 56px;
+    flex: 0 0 56px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 0 var(--space-2);
+    background: var(--topbar-bg);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  }
+  .spacer { flex: 1; }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 0; background: transparent; color: inherit;
+    display: grid; place-items: center; cursor: pointer;
+  }
+  .icon-btn:hover { background: rgba(255, 255, 255, 0.1); }
+  .icon-btn:focus-visible, .loc-switch button:focus-visible, .tab:focus-visible, .add-btn:focus-visible {
+    outline: 2px solid #fff; outline-offset: 2px;
+  }
+  svg { width: 24px; height: 24px; fill: currentColor; display: block; }
+
+  .logo-chip {
+    position: relative;
+    height: 40px;
+    width: 64px;
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+    transition: width var(--dur) ease;
+  }
+  .phone[data-loc="instal"] .logo-chip { width: 50px; }
+  .logo-chip img {
+    position: absolute;
+    transition: opacity var(--dur) ease, transform var(--dur) ease;
+  }
+  .logo-chip .logo-lumber { height: 34px; top: 3px; left: 4px; }
+  /* Instal logo is a wide wordmark: show only the house-and-pipe icon */
+  .logo-chip .logo-instal { height: 42px; top: -2px; left: -38px; opacity: 0; transform: scale(0.8); }
+  .phone[data-loc="instal"] .logo-chip .logo-lumber { opacity: 0; transform: scale(0.8); }
+  .phone[data-loc="instal"] .logo-chip .logo-instal { opacity: 1; transform: none; }
+
+  .loc-switch {
+    position: relative;
+    display: flex;
+    padding: 3px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.28);
+    margin-left: var(--space-1);
+  }
+  .loc-switch button {
+    position: relative; z-index: 1;
+    width: 38px; height: 30px;
+    border: 0; border-radius: 999px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    display: grid; place-items: center;
+    cursor: pointer;
+    transition: color var(--dur) ease;
+  }
+  .loc-switch button svg { width: 20px; height: 20px; }
+  .loc-switch button[aria-checked="true"] { color: var(--accent-ink); }
+  .loc-switch .thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 38px; height: 30px; border-radius: 999px;
+    background: var(--accent);
+    transition: transform 380ms cubic-bezier(0.3, 1.35, 0.5, 1);
+  }
+  .phone[data-loc="instal"] .loc-switch .thumb { transform: translateX(38px); }
+
+  .lang-btn {
+    min-width: 40px; height: 32px; padding: 0 var(--space-2);
+    border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.35);
+    background: transparent; color: #fff; font-weight: 500; font-size: 13px;
+    cursor: pointer; margin-left: var(--space-1);
+  }
+
+  /* ---------- Content ---------- */
+  .content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .loc-banner {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: rgba(0, 0, 0, 0.15);
+  }
+  .loc-banner .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+  .loc-name { font-weight: 700; font-size: 16px; letter-spacing: 0.2px; }
+  .loc-sub { font-size: 12px; color: rgba(255, 255, 255, 0.7); }
+
+  .tabs {
+    display: flex;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3) 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tab {
+    flex: 1 0 auto;
+    padding: var(--space-2) var(--space-3);
+    border: 0; background: transparent; color: rgba(255, 255, 255, 0.7);
+    font-weight: 500; font-size: 14px; cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .tab[aria-selected="true"] { color: #fff; border-bottom-color: var(--accent); }
+
+  .view {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--space-3) var(--space-3) 96px;
+    display: flex; flex-direction: column; gap: var(--space-2);
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+  .view.fading { opacity: 0; transform: translateY(6px); }
+  .view > * { flex-shrink: 0; }
+
+  .search {
+    width: 100%; height: 44px; padding: 0 var(--space-4);
+    border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.15); color: #fff; font: inherit; font-size: 15px;
+  }
+  .search::placeholder { color: rgba(255, 255, 255, 0.55); }
+  .search:focus { outline: none; border-color: #fff; }
+
+  .card {
+    display: flex; align-items: center; gap: var(--space-3);
+    padding: var(--space-3);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .card-main { flex: 1; min-width: 0; }
+  .card-title { font-weight: 500; font-size: 15px; }
+  .card-sub { font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-top: 2px; }
+  .card-side { text-align: right; white-space: nowrap; }
+  .amount { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .chips { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: var(--space-2); }
+  .chip {
+    font-size: 12px; padding: 2px var(--space-2); border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.9);
+    font-variant-numeric: tabular-nums;
+  }
+  .chip.accent { background: color-mix(in srgb, var(--accent) 85%, transparent); color: var(--accent-ink); font-weight: 500; }
+  .chip.warn { background: #f2c14e; color: #3a2a00; font-weight: 500; }
+  .add-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: 0;
+    background: var(--accent); color: var(--accent-ink);
+    display: grid; place-items: center; cursor: pointer; flex: 0 0 auto;
+  }
+  .add-btn:active { transform: scale(0.92); }
+  .note {
+    font-size: 13px; color: rgba(255, 255, 255, 0.8);
+    padding: var(--space-2) var(--space-3);
+    border-radius: 10px; border: 1px dashed rgba(255, 255, 255, 0.3);
+  }
+  .empty { text-align: center; color: rgba(255, 255, 255, 0.6); padding: var(--space-6); }
+
+  .cart-fab {
+    position: absolute; right: var(--space-4); bottom: var(--space-4); z-index: 20;
+    height: 56px; min-width: 56px; padding: 0 var(--space-4);
+    border-radius: 16px; border: 0;
+    background: var(--accent); color: var(--accent-ink);
+    display: flex; align-items: center; gap: var(--space-2);
+    font-weight: 700; cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  }
+  .cart-fab .count:empty { display: none; }
+  .cart-fab.bump { animation: bump 300ms ease; }
+  @keyframes bump { 50% { transform: scale(1.12); } }
+
+  /* ---------- Sidebar ---------- */
+  .backdrop {
+    position: absolute; inset: 56px 0 0 0; z-index: 25;
+    background: rgba(0, 0, 0, 0.45);
+    opacity: 0; pointer-events: none; transition: opacity 200ms ease;
+  }
+  .sidebar {
+    position: absolute; top: 56px; bottom: 0; left: 0; z-index: 26;
+    width: min(290px, 84%);
+    background: color-mix(in srgb, var(--app-bg) 80%, black);
+    transform: translateX(-100%);
+    transition: transform 240ms ease;
+    display: flex; flex-direction: column;
+    padding: var(--space-4) var(--space-3);
+    gap: var(--space-2);
+    overflow-y: auto;
+  }
+  .phone.menu-open .sidebar { transform: none; }
+  .phone.menu-open .backdrop { opacity: 1; pointer-events: auto; }
+  .side-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255, 255, 255, 0.6); padding: 0 var(--space-1); }
+  .loc-card {
+    display: flex; flex-direction: column; gap: var(--space-2);
+    padding: var(--space-2); border-radius: 12px;
+    border: 2px solid transparent; background: rgba(255, 255, 255, 0.06);
+    color: #fff; text-align: left; cursor: pointer; width: 100%;
+  }
+  .loc-card[aria-checked="true"] { border-color: var(--accent); background: rgba(255, 255, 255, 0.12); }
+  .loc-card .logo-box {
+    width: 100%; height: 48px; border-radius: 8px; background: #fff;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .loc-card .logo-box img { height: 42px; flex-shrink: 0; }
+  /* Wordmark has blank margins and a thin frame: oversize it and let the box clip them */
+  .loc-card.instal .logo-box img { height: 56px; }
+  .loc-card .t, .loc-card .s { padding: 0 var(--space-1); }
+  .loc-card .t { font-weight: 500; font-size: 14px; }
+  .loc-card .s { font-size: 12px; color: rgba(255, 255, 255, 0.65); }
+  .menu-item {
+    display: block; width: 100%; text-align: left;
+    padding: var(--space-3); border-radius: 10px; border: 0;
+    background: transparent; color: #fff; font-size: 15px; cursor: pointer;
+  }
+  .menu-item:hover { background: rgba(255, 255, 255, 0.08); }
+  .divider { height: 1px; background: rgba(255, 255, 255, 0.12); margin: var(--space-2) 0; }
+
+  /* ---------- Toast & dialog ---------- */
+  .toast {
+    position: absolute; left: 50%; bottom: 88px; z-index: 40;
+    transform: translate(-50%, 20px); opacity: 0;
+    background: #222; color: #fff; padding: var(--space-3) var(--space-4);
+    border-radius: 8px; font-size: 14px; white-space: nowrap;
+    transition: opacity 200ms ease, transform 200ms ease;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  .dialog-wrap {
+    position: absolute; inset: 0; z-index: 50;
+    background: rgba(0, 0, 0, 0.5);
+    display: grid; place-items: center; padding: var(--space-6);
+    opacity: 0; pointer-events: none; transition: opacity 180ms ease;
+  }
+  .dialog-wrap.open { opacity: 1; pointer-events: auto; }
+  .dialog {
+    background: #fff; color: rgba(0, 0, 0, 0.87);
+    border-radius: 16px; padding: var(--space-6); max-width: 320px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  }
+  .dialog h3 { margin: 0 0 var(--space-3); font-size: 20px; font-weight: 500; }
+  .dialog p { margin: 0 0 var(--space-6); font-size: 14px; line-height: 1.5; color: rgba(0, 0, 0, 0.7); }
+  .dialog .actions { display: flex; justify-content: flex-end; gap: var(--space-2); flex-wrap: wrap; }
+  .btn {
+    height: 40px; padding: 0 var(--space-4); border-radius: 20px; border: 0; cursor: pointer;
+    font-weight: 500; font-size: 14px;
+  }
+  .btn.text { background: transparent; color: rgb(57, 72, 60); }
+  .btn.filled { background: rgb(57, 72, 60); color: #fff; }
+
+  /* ---------- Notes panel ---------- */
+  .notes {
+    width: 100%;
+    max-width: 460px;
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    padding: var(--space-6);
+    line-height: 1.5;
+    font-size: 15px;
+  }
+  @media (max-width: 700px) {
+    .notes { border-radius: 0; border-left: 0; border-right: 0; max-width: none; }
+  }
+  .notes .tag {
+    display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--muted);
+    border: 1px solid var(--panel-border); border-radius: 999px; padding: 2px var(--space-2);
+  }
+  .notes h1 { font-size: 22px; line-height: 1.25; margin: var(--space-3) 0 var(--space-2); }
+  .notes h2 { font-size: 15px; margin: var(--space-6) 0 var(--space-2); }
+  .notes p { margin: 0; color: var(--muted); }
+  .notes ul, .notes ol { margin: 0; padding-left: 20px; }
+  .notes li { margin: var(--space-1) 0; }
+  .seg { display: inline-flex; border: 1px solid var(--panel-border); border-radius: 999px; padding: 3px; gap: 2px; }
+  .seg button {
+    border: 0; background: transparent; color: var(--stage-text);
+    padding: var(--space-1) var(--space-4); border-radius: 999px; cursor: pointer; font-size: 14px;
+  }
+  .seg button[aria-checked="true"] { background: rgb(57, 72, 60); color: #fff; }
+
+  /* Circular reveal between the two location themes */
+  ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .phone, .phone * { transition-duration: 1ms !important; animation-duration: 1ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="phone" id="phone" data-loc="lumber">
+    <header class="topbar">
+      <button class="icon-btn" id="menuBtn" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      </button>
+      <span class="spacer"></span>
+      <div class="logo-chip" aria-hidden="true">
+        <img class="logo-lumber" src="__LOGO_LUMBER__" alt="">
+        <img class="logo-instal" src="__LOGO_INSTAL__" alt="">
+      </div>
+      <div class="loc-switch" role="radiogroup" id="locSwitch">
+        <span class="thumb"></span>
+        <button role="radio" data-loc="lumber" aria-checked="true">
+          <svg viewBox="0 0 24 24"><path d="M12 2 6.5 10H9l-4 6h5.5v5h3v-5H19l-4-6h2.5z"/></svg>
+        </button>
+        <button role="radio" data-loc="instal" aria-checked="false">
+          <svg viewBox="0 0 24 24"><path d="M12 2.7C8 7.3 6 10.8 6 13.4a6 6 0 0 0 12 0c0-2.6-2-6.1-6-10.7z"/></svg>
+        </button>
+      </div>
+      <button class="lang-btn" id="langBtn">RO</button>
+    </header>
+
+    <main class="content">
+      <div class="loc-banner">
+        <span class="dot"></span>
+        <div>
+          <div class="loc-name" id="locName"></div>
+          <div class="loc-sub" id="locSub"></div>
+        </div>
+      </div>
+      <nav class="tabs" role="tablist" id="tabs"></nav>
+      <section class="view" id="view"></section>
+    </main>
+
+    <button class="cart-fab" id="cartFab" aria-label="Cart">
+      <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.6-1.35 2.4c-.16.3-.25.6-.25 1 0 1.1.9 2 2 2h12v-2H7.4c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.4-.41 1.75-1.03l3.58-6.49A1 1 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+      <span class="count" id="cartCount"></span>
+    </button>
+
+    <div class="backdrop" id="backdrop"></div>
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <div class="dialog-wrap" id="dialogWrap">
+      <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+        <h3 id="dlgTitle"></h3>
+        <p id="dlgBody"></p>
+        <div class="actions">
+          <button class="btn text" id="dlgCancel"></button>
+          <button class="btn filled" id="dlgOk"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="notes" id="notes"></aside>
+</div>
+
+<script>
+const LOGO = { lumber: '__LOGO_LUMBER__', instal: '__LOGO_INSTAL__' };
+
+const T = {
+  ro: {
+    loc: { lumber: 'Depozit lemn', instal: 'Instal' },
+    locFull: { lumber: 'TOM ProdCom', instal: 'TOM ProdCom Instal' },
+    locSub: { lumber: 'Depozit de cherestea', instal: 'Instalații sanitare și termice' },
+    tabs: { products: 'Produse', orders: 'Comenzi', offers: 'Oferte', clients: 'Clienți' },
+    search: 'Caută produs…', empty: 'Niciun rezultat',
+    stock: 'Stoc', noStock: 'm² — fără stoc', price: 'Preț',
+    status: { confirmed: 'Confirmată', delivered: 'Livrată', progress: 'În lucru' },
+    validUntil: 'Valabilă până la', orders: 'Comenzi',
+    shared: 'Clienții sunt comuni pentru ambele locații. Comenzile fiecărui client sunt numărate pe locație.',
+    added: 'Adăugat în coș', cart: n => `Coș: ${n} produse`,
+    switched: x => `Locație: ${x}`,
+    dlgTitle: 'Schimbați locația?',
+    dlgBody: (n, x) => `Coșul are ${n} produse de la ${x}. Produsele și prețurile diferă între locații, așa că coșul va fi golit.`,
+    cancel: 'Anulează', ok: 'Schimbă și golește',
+    sideLoc: 'Locație', sideMenu: 'Meniu',
+    menu: ['Ofertă nouă', 'Comenzi', 'Oferte', 'Clienți', 'Produse', 'Recepții camioane', 'Setări'],
+    notInMockup: 'Nu face parte din mockup',
+    unit: { m3: 'm³', m2: 'm²', m: 'm', buc: 'buc' },
+    notes: `
+      <span class="tag">Mockup</span>
+      <h1>Locație nouă: TOM ProdCom Instal</h1>
+      <p>Mockup interactiv: cum ar arăta comutarea între cele două locații în aplicație. Datele sunt doar exemple.</p>
+      <h2>Încercați</h2>
+      <ul>
+        <li>Apăsați comutatorul din bara de sus (brad / picătură) sau alegeți locația din meniu (☰).</li>
+        <li>Adăugați câteva produse în coș (+), apoi schimbați locația: aplicația cere confirmare.</li>
+        <li>Comparați Produse, Comenzi și Oferte la cele două locații. Clienții rămân aceiași.</li>
+      </ul>
+      <h2>Ce se schimbă la comutare</h2>
+      <ul>
+        <li>Culoarea de fundal și logo-ul, cu o tranziție.</li>
+        <li>Produsele, stocul și prețurile.</li>
+        <li>Comenzile și ofertele.</li>
+        <li>Meniul: la Instal nu apar recepția camioanelor și sortarea.</li>
+      </ul>
+      <h2>Ce rămâne la fel</h2>
+      <ul>
+        <li>Clienții (listă comună).</li>
+        <li>Utilizatorii: orice utilizator aprobat poate comuta.</li>
+        <li>Locația aleasă se păstrează pe telefon, ca limba.</li>
+      </ul>
+      <h2>Efect de tranziție</h2>
+      <div class="seg" role="radiogroup" id="fxSeg">
+        <button role="radio" data-fx="circle">Cerc</button>
+        <button role="radio" data-fx="fade">Estompare</button>
+      </div>
+      <h2>Întrebări deschise</h2>
+      <ol>
+        <li>Ce produse vinde Instal și în ce unități (bucată, metru, set)? Există un catalog (Excel) de importat?</li>
+        <li>Pe PDF-ul ofertei apar alte date de firmă (CUI, adresă, telefon, cont bancar)?</li>
+        <li>Prețurile și reducerile pentru PF / PJ sunt la fel ca la depozit? TVA-ul și taxarea inversă la fel?</li>
+        <li>Se ține stoc la Instal? Cum intră marfa (livrări de la furnizori)?</li>
+        <li>Numerotarea comenzilor și ofertelor să fie separată pe locație?</li>
+        <li>Adminul are nevoie de o vedere comună (ambele locații) la Comenzi, Oferte sau Șterse?</li>
+        <li>La deschiderea aplicației: ultima locație folosită sau o locație implicită pe utilizator?</li>
+        <li>Coșul: se golește la comutare (ca în mockup) sau fiecare locație își păstrează coșul?</li>
+      </ol>`
+  },
+  hu: {
+    loc: { lumber: 'Fatelep', instal: 'Instal' },
+    locFull: { lumber: 'TOM ProdCom', instal: 'TOM ProdCom Instal' },
+    locSub: { lumber: 'Fatelep', instal: 'Szaniter- és fűtéstechnika' },
+    tabs: { products: 'Termékek', orders: 'Rendelések', offers: 'Ajánlatok', clients: 'Ügyfelek' },
+    search: 'Termék keresése…', empty: 'Nincs találat',
+    stock: 'Készlet', noStock: 'm² — nincs készlet', price: 'Ár',
+    status: { confirmed: 'Visszaigazolva', delivered: 'Kiszállítva', progress: 'Folyamatban' },
+    validUntil: 'Érvényes:', orders: 'Rendelések',
+    shared: 'Az ügyfelek mindkét telephelyen közösek. Az ügyfelek rendeléseit telephelyenként számoljuk.',
+    added: 'Kosárba téve', cart: n => `Kosár: ${n} termék`,
+    switched: x => `Telephely: ${x}`,
+    dlgTitle: 'Telephelyet vált?',
+    dlgBody: (n, x) => `A kosárban ${n} termék van (${x}). A termékek és az árak telephelyenként eltérnek, ezért a kosár kiürül.`,
+    cancel: 'Mégse', ok: 'Váltás és ürítés',
+    sideLoc: 'Telephely', sideMenu: 'Menü',
+    menu: ['Új ajánlat', 'Rendelések', 'Ajánlatok', 'Ügyfelek', 'Termékek', 'Kamion átvétel', 'Beállítások'],
+    notInMockup: 'Nem része a mockupnak',
+    unit: { m3: 'm³', m2: 'm²', m: 'm', buc: 'db' },
+    notes: `
+      <span class="tag">Mockup</span>
+      <h1>Új telephely: TOM ProdCom Instal</h1>
+      <p>Interaktív mockup: így nézne ki a két telephely közötti váltás az alkalmazásban. Az adatok csak példák.</p>
+      <h2>Próbálja ki</h2>
+      <ul>
+        <li>Nyomja meg a felső sáv kapcsolóját (fenyő / csepp), vagy válasszon telephelyet a menüben (☰).</li>
+        <li>Tegyen néhány terméket a kosárba (+), majd váltson telephelyet: az alkalmazás megerősítést kér.</li>
+        <li>Hasonlítsa össze a Termékek, Rendelések és Ajánlatok füleket a két telephelyen. Az ügyfelek ugyanazok maradnak.</li>
+      </ul>
+      <h2>Mi változik váltáskor</h2>
+      <ul>
+        <li>A háttérszín és a logó, áttűnéssel.</li>
+        <li>A termékek, a készlet és az árak.</li>
+        <li>A rendelések és az ajánlatok.</li>
+        <li>A menü: az Instalnál nincs kamion átvétel és válogatás.</li>
+      </ul>
+      <h2>Mi marad ugyanaz</h2>
+      <ul>
+        <li>Az ügyfelek (közös lista).</li>
+        <li>A felhasználók: minden jóváhagyott felhasználó válthat.</li>
+        <li>A választott telephelyet a telefon megjegyzi, mint a nyelvet.</li>
+      </ul>
+      <h2>Áttűnési effekt</h2>
+      <div class="seg" role="radiogroup" id="fxSeg">
+        <button role="radio" data-fx="circle">Kör</button>
+        <button role="radio" data-fx="fade">Áttűnés</button>
+      </div>
+      <h2>Nyitott kérdések</h2>
+      <ol>
+        <li>Mit árul az Instal, és milyen mértékegységben (darab, méter, készlet)? Van importálható katalógus (Excel)?</li>
+        <li>Az ajánlat PDF-jén más cégadatok szerepelnek (CUI, cím, telefon, bankszámla)?</li>
+        <li>Az árak és kedvezmények magánszemélynek / cégnek ugyanazok, mint a fatelepen? Az ÁFA és a fordított adózás is?</li>
+        <li>Vezetünk készletet az Instalnál? Hogyan érkezik az áru (beszállítói szállítmányok)?</li>
+        <li>A rendelések és ajánlatok számozása telephelyenként külön legyen?</li>
+        <li>Kell-e az adminnak közös nézet (mindkét telephely) a Rendelések, Ajánlatok vagy Törölt oldalon?</li>
+        <li>Az alkalmazás megnyitásakor: az utoljára használt telephely, vagy felhasználónként egy alapértelmezett?</li>
+        <li>A kosár: váltáskor kiürül (mint a mockupban), vagy minden telephely megtartja a saját kosarát?</li>
+      </ol>`
+  }
+};
+
+/* Sample data: not real */
+const CLIENTS = {
+  c1: { name: 'SC Lemn Construct SRL', type: 'PJ' },
+  c2: { name: 'Kovács András', type: 'PF' },
+  c3: { name: 'SC Casa Verde SRL', type: 'PJ' },
+  c4: { name: 'Popescu Ion', type: 'PF' },
+  c5: { name: 'SC Termo Instal Bihor SRL', type: 'PJ' }
+};
+
+const DATA = {
+  lumber: {
+    products: [
+      { id: 'l1', name: { ro: 'Scândură brută', hu: 'Fűrészelt deszka' }, sub: '25 × 100 × 4000 mm', unit: 'm3', price: 1450, grades: { A: 4.2, AB: 6.8, B: 1.5 } },
+      { id: 'l2', name: { ro: 'Grindă', hu: 'Gerenda' }, sub: '100 × 100 × 4000 mm', unit: 'm3', price: 1650, grades: { A: 2.1, AB: 3.4, B: 0.8 } },
+      { id: 'l3', name: { ro: 'Dulap', hu: 'Palló' }, sub: '50 × 150 × 6000 mm', unit: 'm3', price: 1550, grades: { A: 3.0, AB: 5.2, B: 1.1 } },
+      { id: 'l4', name: { ro: 'Lambriu', hu: 'Lambéria' }, sub: '15 × 96 × 3000 mm', unit: 'm2', price: 38, grades: null },
+      { id: 'l5', name: { ro: 'Scândură terasă', hu: 'Teraszdeszka' }, sub: '28 × 145 × 4000 mm', unit: 'm3', price: 2100, grades: { 'T (A)': 1.9 } },
+      { id: 'l6', name: { ro: 'Grindă lungă', hu: 'Hosszú gerenda' }, sub: '150 × 150 × 8000 mm', unit: 'm3', price: 1750, grades: { AB: 2.6 } }
+    ],
+    orders: [
+      { no: '0141', client: 'c1', date: '2026-11-24', total: 4830, status: 'confirmed' },
+      { no: '0140', client: 'c2', date: '2026-11-21', total: 1240, status: 'delivered' },
+      { no: '0139', client: 'c3', date: '2026-11-18', total: 9920.5, status: 'delivered' },
+      { no: '0138', client: 'c4', date: '2026-11-12', total: 615, status: 'progress' }
+    ],
+    offers: [
+      { no: '0052', client: 'c4', valid: '2026-12-01', total: 2310 },
+      { no: '0051', client: 'c3', valid: '2026-11-30', total: 7450 }
+    ]
+  },
+  instal: {
+    products: [
+      { id: 'i1', name: { ro: 'Țeavă PPR Ø20 mm', hu: 'PPR cső Ø20 mm' }, sub: 'PPR-20', unit: 'm', price: 4.9, stock: 340 },
+      { id: 'i2', name: { ro: 'Cot PPR 90° Ø20 mm', hu: 'PPR könyök 90° Ø20 mm' }, sub: 'PPR-C90-20', unit: 'buc', price: 1.2, stock: 520 },
+      { id: 'i3', name: { ro: 'Robinet sferic 1/2"', hu: 'Golyóscsap 1/2"' }, sub: 'RS-12', unit: 'buc', price: 24.5, stock: 85 },
+      { id: 'i4', name: { ro: 'Baterie lavoar monocomandă', hu: 'Egykaros mosdócsaptelep' }, sub: 'BL-M01', unit: 'buc', price: 189, stock: 12 },
+      { id: 'i5', name: { ro: 'Țeavă PEX-AL Ø16 mm', hu: 'PEX-AL cső Ø16 mm' }, sub: 'PEXAL-16', unit: 'm', price: 6.4, stock: 600 },
+      { id: 'i6', name: { ro: 'Boiler electric 80 L', hu: 'Elektromos bojler 80 L' }, sub: 'BE-80', unit: 'buc', price: 899, stock: 4 },
+      { id: 'i7', name: { ro: 'Calorifer oțel 22K 600×1000', hu: 'Acéllemez radiátor 22K 600×1000' }, sub: 'CAL-22-6010', unit: 'buc', price: 465, stock: 7 }
+    ],
+    orders: [
+      { no: '0007', client: 'c5', date: '2026-11-24', total: 2184.3, status: 'confirmed' },
+      { no: '0006', client: 'c2', date: '2026-11-20', total: 456.8, status: 'delivered' },
+      { no: '0005', client: 'c3', date: '2026-11-15', total: 3905, status: 'delivered' }
+    ],
+    offers: [
+      { no: '0004', client: 'c1', valid: '2026-12-05', total: 1180.4 },
+      { no: '0003', client: 'c4', valid: '2026-12-02', total: 899 }
+    ]
+  }
+};
+
+const ICON_PLUS = '<svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>';
+
+function load(key, fallback) { try { return localStorage.getItem('mockup.' + key) || fallback; } catch { return fallback; } }
+function save(key, value) { try { localStorage.setItem('mockup.' + key, value); } catch { /* storage unavailable */ } }
+
+const state = {
+  loc: load('loc', 'lumber') === 'instal' ? 'instal' : 'lumber',
+  lang: load('lang', 'ro') === 'hu' ? 'hu' : 'ro',
+  fx: load('fx', 'circle') === 'fade' ? 'fade' : 'circle',
+  tab: 'products',
+  query: '',
+  cart: []
+};
+
+const $ = id => document.getElementById(id);
+const phone = $('phone');
+const view = $('view');
+const t = () => T[state.lang];
+
+function money(v) {
+  const nf = new Intl.NumberFormat(state.lang === 'ro' ? 'ro-RO' : 'hu-HU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return nf.format(v) + ' lei';
+}
+function num(v) {
+  return new Intl.NumberFormat(state.lang === 'ro' ? 'ro-RO' : 'hu-HU', { maximumFractionDigits: 2 }).format(v);
+}
+function date(iso) {
+  const [y, m, d] = iso.split('-');
+  return state.lang === 'ro' ? `${d}.${m}.${y}` : `${y}.${m}.${d}`;
+}
+
+/* ---------- Rendering ---------- */
+function renderShell() {
+  document.documentElement.lang = state.lang;
+  phone.dataset.loc = state.loc;
+  $('langBtn').textContent = state.lang.toUpperCase();
+  $('locName').textContent = t().locFull[state.loc];
+  $('locSub').textContent = t().locSub[state.loc];
+  for (const b of $('locSwitch').querySelectorAll('button')) {
+    b.setAttribute('aria-checked', String(b.dataset.loc === state.loc));
+    b.setAttribute('aria-label', t().loc[b.dataset.loc]);
+  }
+  $('tabs').innerHTML = Object.entries(t().tabs).map(([key, label]) =>
+    `<button class="tab" role="tab" data-tab="${key}" aria-selected="${key === state.tab}">${label}</button>`).join('');
+  $('cartCount').textContent = state.cart.length ? String(state.cart.length) : '';
+  renderSidebar();
+}
+
+function renderSidebar() {
+  const items = t().menu
+    .map((label, i) => ({ label, i }))
+    .filter(item => !(state.loc === 'instal' && item.i === 5)); // no truck intake at Instal
+  const tabFor = { 1: 'orders', 2: 'offers', 3: 'clients', 4: 'products' };
+  $('sidebar').innerHTML = `
+    <div class="side-label">${t().sideLoc}</div>
+    ${['lumber', 'instal'].map(loc => `
+      <button class="loc-card ${loc}" role="radio" data-loc="${loc}" aria-checked="${loc === state.loc}">
+        <span class="logo-box"><img src="${LOGO[loc]}" alt=""></span>
+        <span><span class="t">${t().locFull[loc]}</span><br><span class="s">${t().locSub[loc]}</span></span>
+      </button>`).join('')}
+    <div class="divider"></div>
+    <div class="side-label">${t().sideMenu}</div>
+    ${items.map(item => `<button class="menu-item" data-tab="${tabFor[item.i] || ''}">${item.label}</button>`).join('')}`;
+}
+
+function renderView() {
+  const d = DATA[state.loc];
+  const L = t();
+  let html = '';
+  if (state.tab === 'products') {
+    const q = state.query.trim().toLowerCase();
+    const list = d.products.filter(p => !q || p.name[state.lang].toLowerCase().includes(q) || p.sub.toLowerCase().includes(q));
+    html += `<input class="search" id="search" type="search" placeholder="${L.search}" value="${state.query.replace(/"/g, '&quot;')}">`;
+    html += list.map(p => {
+      let stock;
+      if (state.loc === 'lumber') {
+        stock = p.grades
+          ? Object.entries(p.grades).map(([g, v]) => `<span class="chip">${g} · ${num(v)} ${L.unit[p.unit]}</span>`).join('')
+          : `<span class="chip">${L.noStock}</span>`;
+      } else {
+        stock = `<span class="chip">${L.stock}: ${num(p.stock)} ${L.unit[p.unit]}</span>`;
+      }
+      return `
+        <div class="card">
+          <div class="card-main">
+            <div class="card-title">${p.name[state.lang]}</div>
+            <div class="card-sub">${p.sub} · ${money(p.price)} / ${L.unit[p.unit]}</div>
+            <div class="chips">${stock}</div>
+          </div>
+          <button class="add-btn" data-add="${p.id}" aria-label="+">${ICON_PLUS}</button>
+        </div>`;
+    }).join('') || `<div class="empty">${L.empty}</div>`;
+  } else if (state.tab === 'orders') {
+    html = d.orders.map(o => `
+      <div class="card">
+        <div class="card-main">
+          <div class="card-title">#${o.no} · ${CLIENTS[o.client].name}</div>
+          <div class="card-sub">${date(o.date)}</div>
+          <div class="chips"><span class="chip ${o.status === 'confirmed' ? 'accent' : o.status === 'progress' ? 'warn' : ''}">${L.status[o.status]}</span></div>
+        </div>
+        <div class="card-side"><div class="amount">${money(o.total)}</div></div>
+      </div>`).join('');
+  } else if (state.tab === 'offers') {
+    html = d.offers.map(o => `
+      <div class="card">
+        <div class="card-main">
+          <div class="card-title">#${o.no} · ${CLIENTS[o.client].name}</div>
+          <div class="card-sub">${L.validUntil} ${date(o.valid)}</div>
+        </div>
+        <div class="card-side"><div class="amount">${money(o.total)}</div></div>
+      </div>`).join('');
+  } else {
+    html = `<div class="note">${L.shared}</div>`;
+    html += Object.entries(CLIENTS).map(([id, c]) => {
+      const counts = ['lumber', 'instal'].map(loc =>
+        `<span class="chip ${loc === state.loc ? 'accent' : ''}">${L.loc[loc]} · ${DATA[loc].orders.filter(o => o.client === id).length}</span>`).join('');
+      return `
+        <div class="card">
+          <div class="card-main">
+            <div class="card-title">${c.name}</div>
+            <div class="card-sub">${c.type} · ${L.orders}</div>
+            <div class="chips">${counts}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+  view.innerHTML = html;
+}
+
+function renderNotes() {
+  $('notes').innerHTML = t().notes;
+  for (const b of $('fxSeg').querySelectorAll('button')) b.setAttribute('aria-checked', String(b.dataset.fx === state.fx));
+}
+
+function renderAll() { renderShell(); renderView(); renderNotes(); }
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+/* ---------- Location switch ---------- */
+let pending = null;
+
+function requestSwitch(to, originEl) {
+  if (to === state.loc) return;
+  closeMenu();
+  if (state.cart.length) {
+    pending = { to, originEl };
+    $('dlgTitle').textContent = t().dlgTitle;
+    $('dlgBody').textContent = t().dlgBody(state.cart.length, t().loc[state.loc]);
+    $('dlgCancel').textContent = t().cancel;
+    $('dlgOk').textContent = t().ok;
+    $('dialogWrap').classList.add('open');
+    $('dlgOk').focus();
+    return;
+  }
+  doSwitch(to, originEl);
+}
+
+function closeDialog() { $('dialogWrap').classList.remove('open'); pending = null; }
+
+function doSwitch(to, originEl) {
+  const apply = () => {
+    state.loc = to;
+    state.cart = [];
+    state.query = '';
+    save('loc', to);
+    renderShell();
+    renderView();
+  };
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (state.fx === 'circle' && document.startViewTransition && !reduced) {
+    const origin = (originEl && originEl.isConnected ? originEl : $('locSwitch')).getBoundingClientRect();
+    const x = origin.left + origin.width / 2;
+    const y = origin.top + origin.height / 2;
+    const r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    phone.classList.add('no-anim');
+    const vt = document.startViewTransition(apply);
+    vt.ready.then(() => {
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] },
+        { duration: 650, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', pseudoElement: '::view-transition-new(root)' }
+      );
+    });
+    vt.finished.finally(() => phone.classList.remove('no-anim'));
+  } else {
+    view.classList.add('fading');
+    setTimeout(() => { apply(); view.classList.remove('fading'); }, 180);
+  }
+  toast(t().switched(T[state.lang].locFull[to]));
+}
+
+/* ---------- Menu ---------- */
+function openMenu() { phone.classList.add('menu-open'); }
+function closeMenu() { phone.classList.remove('menu-open'); }
+
+/* ---------- Events ---------- */
+$('locSwitch').addEventListener('click', e => {
+  const b = e.target.closest('button[data-loc]');
+  if (b) requestSwitch(b.dataset.loc, b);
+});
+$('locSwitch').addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    e.preventDefault();
+    const to = state.loc === 'lumber' ? 'instal' : 'lumber';
+    requestSwitch(to, $('locSwitch').querySelector(`[data-loc="${to}"]`));
+  }
+});
+$('menuBtn').addEventListener('click', () => phone.classList.contains('menu-open') ? closeMenu() : openMenu());
+$('backdrop').addEventListener('click', closeMenu);
+$('sidebar').addEventListener('click', e => {
+  const card = e.target.closest('.loc-card');
+  if (card) { requestSwitch(card.dataset.loc, $('locSwitch').querySelector(`[data-loc="${card.dataset.loc}"]`)); return; }
+  const item = e.target.closest('.menu-item');
+  if (!item) return;
+  closeMenu();
+  if (item.dataset.tab) { state.tab = item.dataset.tab; renderShell(); renderView(); }
+  else toast(t().notInMockup);
+});
+$('langBtn').addEventListener('click', () => {
+  state.lang = state.lang === 'ro' ? 'hu' : 'ro';
+  save('lang', state.lang);
+  renderAll();
+});
+$('tabs').addEventListener('click', e => {
+  const b = e.target.closest('.tab');
+  if (!b) return;
+  state.tab = b.dataset.tab;
+  renderShell();
+  renderView();
+});
+view.addEventListener('input', e => {
+  if (e.target.id !== 'search') return;
+  state.query = e.target.value;
+  const pos = e.target.selectionStart;
+  renderView();
+  const s = $('search');
+  s.focus();
+  s.setSelectionRange(pos, pos);
+});
+view.addEventListener('click', e => {
+  const b = e.target.closest('[data-add]');
+  if (!b) return;
+  state.cart.push(b.dataset.add);
+  $('cartCount').textContent = String(state.cart.length);
+  const fab = $('cartFab');
+  fab.classList.remove('bump'); void fab.offsetWidth; fab.classList.add('bump');
+  toast(t().added);
+});
+$('cartFab').addEventListener('click', () => toast(t().cart(state.cart.length)));
+$('dlgCancel').addEventListener('click', closeDialog);
+$('dlgOk').addEventListener('click', () => {
+  const p = pending;
+  closeDialog();
+  if (p) doSwitch(p.to, p.originEl);
+});
+$('dialogWrap').addEventListener('click', e => { if (e.target.id === 'dialogWrap') closeDialog(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeDialog(); closeMenu(); }
+});
+$('notes').addEventListener('click', e => {
+  const b = e.target.closest('[data-fx]');
+  if (!b) return;
+  state.fx = b.dataset.fx;
+  save('fx', state.fx);
+  renderNotes();
+});
+
+renderAll();
+</script>
+</body>
+</html>

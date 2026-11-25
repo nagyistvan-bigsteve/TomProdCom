@@ -24,7 +24,7 @@ Singleton app-level services (not feature-specific):
 - `auth.service.ts` — sign-up, sign-in, sign-out, session, own profile (throws on error; `getProfile()` returns null when the profile is gone, i.e. the user was denied, and the auth store then signs the session out)
 - `users.service.ts` — user lists, approve, deny (RPC `deny_user`: profile + auth account), `set_user_role` (throws on error)
 - `supabase-result.util.ts` — `unwrapResult()`: returns `data`, throws `error` from a supabase-js response
-- `install.service.ts` — PWA install prompt handler
+- `pwa-install.service.ts` — PWA install prompt handler (`PwaInstallService`; named so it is not confused with the "Instal" location)
 - `app-version.service.ts` — checks deployed version on startup and force-reloads when a new version is detected
 - `language.service.ts` — current UI language (`current()` signal), applies it to ngx-translate and remembers it in localStorage (`selectedLanguage`); `init()` once in `AppComponent`, `toggle()` from the switcher. `language.util.ts` holds the pure `parseLanguage()`
 

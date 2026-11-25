@@ -26,8 +26,9 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { applyBDiscount, ProductUtil } from '@shared/utils/product.util';
+import { effectiveUnitPrice, m2BrutQuantity, ProductUtil } from '@shared/utils/product.util';
 import { ProductStore } from '@features/products/store/product.store';
+import { ClientStore } from '@features/clients/store/client.store';
 import { availableStock, stockCategoryFor } from '@shared/utils/stock.util';
 import { MoneyPipe } from '@shared/pipes/money.pipe';
 
@@ -50,6 +51,8 @@ import { MoneyPipe } from '@shared/pipes/money.pipe';
   animations: [ENTER_ANIMATION],
 })
 export class SelectedProductComponent implements OnChanges {
+  readonly Unit_id = Unit_id;
+
   @Input({ required: true }) selectedProduct: Product | undefined;
   @Output() addProduct = new EventEmitter<ProductItem>();
 
@@ -63,6 +66,7 @@ export class SelectedProductComponent implements OnChanges {
   totalPiecesNeeded: number = 0;
 
   readonly productStore = inject(ProductStore);
+  private clientStore = inject(ClientStore);
   private snackBar = inject(MatSnackBar);
   private translateService = inject(TranslateService);
   private productUtil = inject(ProductUtil);
@@ -130,7 +134,7 @@ export class SelectedProductComponent implements OnChanges {
         } else {
           this.addProduct.emit({
             product: this.selectedProduct,
-            quantity: this.totalPiecesNeeded * this.selectedProduct.m2_brut,
+            quantity: m2BrutQuantity(this.selectedProduct, this.totalPiecesNeeded),
             price: this.calculatedPrice,
             packsNeeded: this.packsNeeded,
             extraPiecesNeeded: this.extraPiecesNeeded,
@@ -253,11 +257,13 @@ export class SelectedProductComponent implements OnChanges {
   }
 
   private calculatePrice(): void {
-    const adjustedUnitPrice = applyBDiscount(
+    // Same unit price as the cart list (B board discount, then TVA), so the
+    // line shows its real price from the moment it is added (SPEC 10.3)
+    const adjustedUnitPrice = effectiveUnitPrice(
       this.selectedPrice?.price!,
-      this.selectedProduct!.unit_id,
+      this.selectedProduct!,
       this.selectedCategory,
-      this.selectedProduct!.thickness,
+      this.clientStore.client()?.tva ?? false,
     );
     const { price, packsNeeded, extraPiecesNeeded, totalPiecesNeeded } =
       this.productUtil.calculatePrice(

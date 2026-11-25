@@ -57,6 +57,8 @@ interface PhoneFormGroup extends FormGroup<{
   animations: [ENTER_ANIMATION],
 })
 export class AddClientComponent {
+  readonly ClientType = ClientType;
+
   @Input() withoutForwardButton: boolean = false;
 
   readonly clientStore = inject(ClientStore);
@@ -269,7 +271,7 @@ export class AddClientComponent {
         id: currentClient?.id || 0,
         name: formValue.name,
         type: formValue.type,
-        tva: formValue.type === 2 ? this.tva() : false,
+        tva: formValue.type === ClientType.PJ ? this.tva() : false,
         address: formValue.address || null,
         code:
           (formValue.type === ClientType.PJ && !this.isForeignClient()

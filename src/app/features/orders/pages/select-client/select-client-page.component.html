@@ -36,7 +36,7 @@
       >
         @for (client of filteredClients(); track client.id) {
           <mat-option [value]="client">
-            {{ client.name }} ({{ client.type === 1 ? "PF" : "PJ" }})
+            {{ client.name }} ({{ client.type === ClientType.PF ? "PF" : "PJ" }})
           </mat-option>
         }
       </mat-autocomplete>

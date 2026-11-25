@@ -10,7 +10,7 @@ Used on the `/products` page and embedded inside the offer creation flow (`/offe
 
 ### `selected-product/` — single cart line-item builder
 
-Shows one product selected for an offer line item. Lets the user enter quantity, choose the quantity input mode for M2 products (BRUT / NET / BUC / PAC), and set the quality category (A / AB / B / T). Below it: total / available stock of the grade the item will deduct from (`stockCategoryFor`; e.g. "(A)" for T), red when available is negative. No extra "T is taken from A" text (removed on request; the grade label says it).
+Shows one product selected for an offer line item. Its price uses `effectiveUnitPrice()` (B board discount, then TVA for a selected `tva=true` client), the same list price the cart uses. Manual adjustments from the offer overview's price panel are applied later, in the overview (`rowAdjustment()` in the cart list). Lets the user enter quantity, choose the quantity input mode for M2 products (BRUT / NET / BUC / PAC), and set the quality category (A / AB / B / T). Below it: total / available stock of the grade the item will deduct from (`stockCategoryFor`; e.g. "(A)" for T), red when available is negative. No extra "T is taken from A" text (removed on request; the grade label says it).
 
 **Add button:** full-width `mat-flat-button` with `add_shopping_cart` icon, app-red background (`rgb(134, 2, 2)`). Styled via `--mdc-filled-button-container-color` / `--mdc-filled-button-label-text-color` CSS custom properties in the component SCSS (no `!important`).
 
@@ -20,8 +20,9 @@ The running list of products added to the current offer cart.
 
 **Important behaviors:**
 - On every load, `compareSavedPrice()` compares each item's saved price against the current price from `ProductStore`. If the price table has changed since the cart was last saved, the cart item price is silently updated.
-- `getExactPrice()` implements the full price-lookup hierarchy: product-specific price first, then size/category matrix. Also applies TVA adjustment (`client.tva=true` → M3 −100, BUNDLE −5) and any manual discounts from the offer-overview page.
+- `getExactPrice()` = `findBasePrice()` (the SPEC §10.1 lookup, `@shared/utils/product.util`) → `effectiveUnitPrice()` (B board and TVA adjustments) + `rowAdjustment()` (manual discount from the offer-overview page). No price row → 0. It holds no lookup logic of its own; `getUsedPrices()` uses `findBasePrice()` too.
 - Emits `@Output() pricesOutput: EventEmitter<Price2[]>` so the offer-overview page knows which price rows are in use.
+- The "Total A / B" arrows (`goToClientPageWithA/B`) re-grade the whole cart in one pass with `regradeItems()` (`@features/orders/store/cart/cart.items`) and `CartStore.replaceAllItems()`: lines priced in that grade move to it, become list-priced again, and duplicates are merged once at the end. The grade button and these arrows clear `manualPrice`; `firstPricedCategory` checks the list price (`findBasePrice`), not the adjusted one.
 - `getTotalPriceInA()` / `getTotalPriceInB()` compute hypothetical totals at category A and B prices — displayed as reference prices during cart review. A line with no price in that grade counts at its own price; `linesWithoutA()` / `linesWithoutB()` drive the note under the pill (`OFFER_PAGE.CREATE_OFFER.TOTAL_PARTIAL`).
 
 **Layout constraints (`isInOverview` flag):**
@@ -47,7 +48,7 @@ Opened by `create-offer-page` when the user adds a product+category combination 
 
 Two choices:
 - **Overwrite** — replaces the existing item with the new one.
-- **Add / Merge** — sums quantities and prices; for M2 items, recalculates pack overflow if combined extra pieces exceed a full pack.
+- **Add / Merge** — `mergeCartItems()` (`@features/orders/store/cart/cart.items`): sums quantities and prices; for M2 items the packs and loose pieces are worked out again from the summed quantity (`m2PacksFromQuantity()`), so loose pieces that fill a pack become a pack.
 
 ## pages/
 

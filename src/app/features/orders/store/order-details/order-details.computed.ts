@@ -1,5 +1,5 @@
-import { Unit_id } from '@core/models/enums';
 import { OrderItemsResponse } from '@core/models/models';
+import { countsInVolumeTotal, lineVolumeM3, roundM3 } from '@shared/utils/product.util';
 
 /** What the totals need to know about a line item. */
 export type OrderItemForTotals = Pick<
@@ -39,31 +39,20 @@ export function applyVoucher(amount: number, voucher: string | null | undefined)
 }
 
 /**
- * Volume of one line item in m³, as order details has always counted it:
- * items with a pack breakdown (M2) count 0, items without a width count their
- * quantity, a bundle is 10 pieces; each item's volume is rounded to 3 decimals.
+ * Volume of one line item in m³ (`lineVolumeM3`, SPEC.md §10.5); items with a
+ * pack breakdown (M2) count 0.
  */
 export function itemVolumeM3(item: OrderItemForTotals): number {
-  if (item.packsPieces) return 0;
-  if (!item.product.width) return item.quantity;
-
-  const volume =
-    ((item.product.width * item.product.thickness * item.product.length) /
-      1_000_000) *
-    item.quantity;
-  const rounded = Math.round(volume * 1000) / 1000;
-
-  return item.product.unit_id === Unit_id.BOUNDLE ? rounded * 10 : rounded;
+  return item.packsPieces ? 0 : lineVolumeM3(item.product, item.quantity);
 }
 
 /**
- * The m³ a line adds to the order total: M2 and BUC items count 0, as in the
- * cart (`calculateTotalQuantity`, SPEC.md §10.5); others their `itemVolumeM3`.
- * The PDF shows this per line, so its lines add up to its total.
+ * The m³ a line adds to the order total: M2 and BUC items count 0, exactly as
+ * in the cart (`calculateTotalQuantity`); others their `itemVolumeM3`. The PDF
+ * shows this per line, so its lines add up to its total.
  */
 export function countedVolumeM3(item: OrderItemForTotals): number {
-  const unit = item.product.unit_id;
-  return unit !== Unit_id.M2 && unit !== Unit_id.BUC ? itemVolumeM3(item) : 0;
+  return countsInVolumeTotal(item.product.unit_id) ? itemVolumeM3(item) : 0;
 }
 
 /**
@@ -85,6 +74,6 @@ export function orderTotals(
   return {
     totalAmount,
     totalAmountFinal: applyVoucher(totalAmount, voucher),
-    totalQuantity,
+    totalQuantity: roundM3(totalQuantity),
   };
 }

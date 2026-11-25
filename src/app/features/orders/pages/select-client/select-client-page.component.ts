@@ -18,6 +18,7 @@ import { ClientStore } from '@features/clients/store/client.store';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
+import { ClientType } from '@core/models/enums';
 
 @Component({
   selector: 'select-client-page',
@@ -40,6 +41,8 @@ import { ENTER_AND_LEAVE_ANIMATION } from '@core/models/animations';
   animations: [ENTER_AND_LEAVE_ANIMATION],
 })
 export class SelectClientPageComponent {
+  readonly ClientType = ClientType;
+
   @ViewChild(MatAutocompleteTrigger) autocomplete!: MatAutocompleteTrigger;
 
   readonly clientStore = inject(ClientStore);

@@ -8,12 +8,12 @@ export type Product = {
   name: string;
   unit_id: Unit_id;
   size_id: Size_id;
-  thickness: number;
-  width: number;
-  length: number;
-  m2_util: number;
-  m2_brut: number;
-  piece_per_pack: number;
+  thickness: number | null;
+  width: number | null;
+  length: number | null;
+  m2_util: number | null;
+  m2_brut: number | null;
+  piece_per_pack: number | null;
 };
 
 /** One grade's stock of a product (A, AB or B; T is kept in A). */
@@ -102,9 +102,9 @@ export type OrderItemsResponse = {
     id: number;
     name: string;
     unit_id: number;
-    thickness: number;
-    width: number;
-    length: number;
+    thickness: number | null;
+    width: number | null;
+    length: number | null;
   };
   orderId: number;
   quantity: number;
