@@ -6,9 +6,41 @@ import {
   applyTvaDiscount,
   effectiveUnitPrice,
   calculateActualPrice,
+  firstPricedCategory,
+  nextCategory,
   ProductUtil,
   unitPriceForTypedRow,
 } from './product.util';
+
+describe('nextCategory', () => {
+  it('steps A → AB → B → T → A', () => {
+    expect(nextCategory(Category.A)).toBe(Category.AB);
+    expect(nextCategory(Category.AB)).toBe(Category.B);
+    expect(nextCategory(Category.B)).toBe(Category.T);
+    expect(nextCategory(Category.T)).toBe(Category.A);
+  });
+});
+
+describe('firstPricedCategory', () => {
+  it('returns the start grade when it has a price', () => {
+    expect(firstPricedCategory(Category.B, () => true)).toBe(Category.B);
+  });
+
+  it('skips grades without a price, wrapping after T', () => {
+    const priced = new Set([Category.AB]);
+    expect(firstPricedCategory(Category.B, (c) => priced.has(c))).toBe(Category.AB);
+  });
+
+  it('returns null instead of looping when no grade has a price', () => {
+    let calls = 0;
+    const result = firstPricedCategory(Category.A, () => {
+      calls++;
+      return false;
+    });
+    expect(result).toBeNull();
+    expect(calls).toBe(4);
+  });
+});
 
 // ---------------------------------------------------------------------------
 // Helpers

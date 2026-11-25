@@ -165,9 +165,9 @@ Product selection and cart building. Calls into `CartStore` for all mutations.
 
 Cart panel has `padding-bottom: 88px` on mobile to keep the last rows scrollable above the fixed FAB (56px FAB + 24px offset + 8px breathing room).
 
-Duplicate handling: if the same `(category + product.name)` is already in the cart, an `OverwriteDialogComponent` opens:
+Duplicate handling: if the same `(category + product.id)` is already in the cart, an `OverwriteDialogComponent` opens:
 - "Overwrite" → replaces the item.
-- "Add/Merge" → sums quantity and price; recalculates pack-piece overflow for M2 items.
+- "Add/Merge" → `mergeCartItems()` (`store/cart/cart.items.ts`): sums quantity and price; for M2 items sums packs and loose pieces, a full pack of loose pieces (`>= piece_per_pack`) becomes a pack. The cart line is replaced, never mutated.
 
 ### `offer-overview/`
 
@@ -253,7 +253,8 @@ Key methods:
 - `addProductItem()` — **prepends** new items (newest first in the list).
 - `replaceProductItem(replaced, item)` — duplicate dialog "overwrite". Builds a new array (`replaceCartItem()` in `cart.items.ts`, unit-tested): never write into the array from `productItems()`, the signal would not notice and `cartTotal()` would keep the old total.
 - `updateProductItem(productId, category, updates)` — finds by `(productId + category)` pair.
-- `checkForDuplicatedItems()` — merges exact duplicates by summing quantity and price.
+- `checkForDuplicatedItems()` — merges every line of the same product + grade into one (`mergeDuplicateItems()` / `mergeCartItems()` in `cart.items.ts`, unit-tested: quantity and price summed, M2 packs and loose pieces summed with full packs carried over). The create page's "Add / Merge" uses `mergeCartItems()` too.
+- `reset()` — empty cart, saved cart removed. Called by the store itself when the signed-in user changes (sign-out or another user), so a shared device never shows the previous user's cart. `ClientStore` clears the chosen client the same way.
 - `cartTotal()` — computed signal; sums all `item.price`.
 
 ### `order/` — order / offer list (`OrderStore`)

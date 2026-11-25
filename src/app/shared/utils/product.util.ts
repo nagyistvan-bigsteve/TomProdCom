@@ -8,6 +8,37 @@ export const B_DISCOUNT_THICKNESS = 2.5;
 export const TVA_M3_DISCOUNT = 100;
 export const TVA_BUNDLE_DISCOUNT = 5;
 
+/** The grades in the order the cart's grade button steps through them. */
+export const CATEGORY_CYCLE: readonly Category[] = [
+  Category.A,
+  Category.AB,
+  Category.B,
+  Category.T,
+];
+
+/** The grade after `category` in `CATEGORY_CYCLE`, back to A after T. */
+export function nextCategory(category: Category): Category {
+  const index = CATEGORY_CYCLE.indexOf(category);
+  return CATEGORY_CYCLE[(index + 1) % CATEGORY_CYCLE.length];
+}
+
+/**
+ * The first grade, from `start` on and stepping like the grade button, that
+ * has a price; null when no grade has one. Each grade is tried once, so a
+ * product without any price cannot loop forever.
+ */
+export function firstPricedCategory(
+  start: Category,
+  hasPrice: (category: Category) => boolean,
+): Category | null {
+  let category = start;
+  for (let tried = 0; tried < CATEGORY_CYCLE.length; tried++) {
+    if (hasPrice(category)) return category;
+    category = nextCategory(category);
+  }
+  return null;
+}
+
 /** Applies the Category B board discount: −50 RON/m³ when unit=M3, category=B, thickness=2.5 cm. */
 export function applyBDiscount(
   unitPrice: number,

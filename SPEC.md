@@ -1082,9 +1082,13 @@ An offer may also be used as the starting point for creating an order while allo
 
 The product selection (cart) is persisted to `localStorage` throughout the offer creation workflow. If the user returns to the offer creation flow after more than **10 minutes** of inactivity, they are prompted to either restore the saved cart or discard it and start fresh. The prompt only appears when one of the offer creation pages is opened; until then the saved cart is left as it is, and it is replaced if the cart is filled from elsewhere (e.g. an offer loaded into the cart). A saved cart with no products is dropped without asking.
 
+The cart and the client chosen for the offer belong to the user who built them. Signing out, or another user signing in on the same device, empties the cart, removes the saved cart and clears the chosen client. A page reload by the same user keeps them.
+
 ### Cart totals
 
-Below the cart: the total, and "Total B" / "Total A", what the cart would cost with every line in that grade (the arrow switches the lines to it). A line whose product has no price in that grade keeps its own price; the pill then says how many such lines there are. Adding the same product and grade again asks to add to the line or replace it; either way the totals update at once. A line with quantity 0 is not added.
+Below the cart: the total, and "Total B" / "Total A", what the cart would cost with every line in that grade (the arrow switches the lines to it). A line whose product has no price in that grade keeps its own price; the pill then says how many such lines there are. Adding the same product and grade again asks to add to the line or replace it; either way the totals update at once. Adding sums quantity and price; for M2 lines it sums packs and loose pieces, and every full pack of loose pieces becomes a pack (5 + 5 pieces with 10 per pack = 1 pack). Switching a line to a grade another line of the same product already has merges the two the same way. A line with quantity 0 is not added.
+
+A line's price is the same from the moment it is added as later in the cart and the overview: the list price with the B board discount, then the TVA discount when the selected client has `tva = true` (section 10.3). The grade button steps A → AB → B → T → A and skips grades without a price; when no grade has a price, the line keeps its grade.
 
 ---
 

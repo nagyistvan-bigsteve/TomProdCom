@@ -10,8 +10,8 @@ Fix real pricing and cart bugs. Reduce the price lookup and the volume math to o
 
 | Step | What | Effort | Status |
 |---|---|---|---|
-| 1 | Bug fixes: TVA on add, category recursion, cart merge, cart and stores after sign-out | 1.5 days | In progress |
-| 2 | One price lookup, one volume formula, inline math to tested helpers, Vitest gaps | 1.5 days | — |
+| 1 | Bug fixes: TVA on add, category recursion, cart merge, cart and stores after sign-out | 1.5 days | ✅ Done 2026-11-25 |
+| 2 | One price lookup, one volume formula, inline math to tested helpers, Vitest gaps | 1.5 days | Next |
 | 3 | Baseline migration, schema drift check, SQL test script, magic ids to enums, small tidy-ups | 1.5–2 days | — |
 
 ## Step 1: Bug fixes
@@ -76,3 +76,11 @@ Fix real pricing and cart bugs. Reduce the price lookup and the volume math to o
 
 ## Log
 - **2026-11-25:** Audit done (pricing; orders, cart, stock; lumber assumptions). Plan created. Branch `refactor/pre-location` created.
+- **2026-11-25: Step 1 done.**
+  - **TVA on add:** `selected-product` now uses `effectiveUnitPrice`. The impact was smaller than feared: the overview re-prices every line, so saved prices were already right. Only the price shown on `/offer/create` was too high for a `tva=true` client.
+  - **Grade button:** `firstPricedCategory` / `nextCategory` in `product.util` stop after one cycle. A line whose only priced grade is its own is left alone, so a manual price survives.
+  - **Merge:** `mergeCartItems` / `mergeDuplicateItems` in `cart.items.ts` sum all duplicates. They also fix a found bug: loose M2 pieces that exactly fill a pack were not turned into a pack (`>` instead of `>=`). The merged line stays manual if either part was. The create page now matches by product id instead of name, re-reads the line when the dialog closes, and no longer edits the cart line in place.
+  - **Sign-out:** the cart is emptied and the saved cart removed when the user changes. The saved cart records its owner (`SavedCart.ownerId`), and another user's saved cart is discarded on startup. `ClientStore` clears the chosen client.
+  - **Not needed:** `OrderStore.init()` already empties its rows, and `OrderDetailsStore` is per component.
+  - **Not done:** no component test for TVA on add. The price comes from the tested `effectiveUnitPrice`.
+  - **Docs:** SPEC §9 (cart persistence, cart totals) and the orders/products CLAUDE.md updated. Code review run, findings fixed.

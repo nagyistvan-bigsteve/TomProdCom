@@ -10,7 +10,7 @@ Used on the `/products` page and embedded inside the offer creation flow (`/offe
 
 ### `selected-product/` — single cart line-item builder
 
-Shows one product selected for an offer line item. Lets the user enter quantity, choose the quantity input mode for M2 products (BRUT / NET / BUC / PAC), and set the quality category (A / AB / B / T). Below it: total / available stock of the grade the item will deduct from (`stockCategoryFor`; e.g. "(A)" for T), red when available is negative. No extra "T is taken from A" text (removed on request; the grade label says it).
+Shows one product selected for an offer line item. Its price uses `effectiveUnitPrice()` (B board discount, then TVA for a selected `tva=true` client), the same as the cart list, so a line never changes price after it is added. Lets the user enter quantity, choose the quantity input mode for M2 products (BRUT / NET / BUC / PAC), and set the quality category (A / AB / B / T). Below it: total / available stock of the grade the item will deduct from (`stockCategoryFor`; e.g. "(A)" for T), red when available is negative. No extra "T is taken from A" text (removed on request; the grade label says it).
 
 **Add button:** full-width `mat-flat-button` with `add_shopping_cart` icon, app-red background (`rgb(134, 2, 2)`). Styled via `--mdc-filled-button-container-color` / `--mdc-filled-button-label-text-color` CSS custom properties in the component SCSS (no `!important`).
 
@@ -47,7 +47,7 @@ Opened by `create-offer-page` when the user adds a product+category combination 
 
 Two choices:
 - **Overwrite** — replaces the existing item with the new one.
-- **Add / Merge** — sums quantities and prices; for M2 items, recalculates pack overflow if combined extra pieces exceed a full pack.
+- **Add / Merge** — `mergeCartItems()` (`@features/orders/store/cart/cart.items`): sums quantities and prices; for M2 items sums packs and loose pieces, and loose pieces that reach a full pack (`>= piece_per_pack`) become a pack.
 
 ## pages/
 

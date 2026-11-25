@@ -1,9 +1,110 @@
 import { describe, it, expect } from 'vitest';
 import type { ProductItem } from '@core/models/models';
-import { replaceCartItem } from './cart.items';
+import { Category } from '@core/models/enums';
+import { mergeCartItems, mergeDuplicateItems, replaceCartItem } from './cart.items';
 
 const line = (quantity: number, price: number) =>
   ({ quantity, price }) as unknown as ProductItem;
+
+const item = (
+  id: number,
+  category: Category,
+  quantity: number,
+  price: number,
+  packs?: { packsNeeded?: number; extraPiecesNeeded?: number; perPack?: number },
+): ProductItem =>
+  ({
+    product: { id, piece_per_pack: packs?.perPack ?? 10 },
+    category,
+    quantity,
+    price,
+    ...(packs?.packsNeeded !== undefined ? { packsNeeded: packs.packsNeeded } : {}),
+    ...(packs?.extraPiecesNeeded !== undefined
+      ? { extraPiecesNeeded: packs.extraPiecesNeeded }
+      : {}),
+  }) as unknown as ProductItem;
+
+describe('mergeCartItems', () => {
+  it('sums quantity and price', () => {
+    const merged = mergeCartItems(item(1, Category.A, 2, 200), item(1, Category.A, 3, 300));
+    expect(merged.quantity).toBe(5);
+    expect(merged.price).toBe(500);
+    expect(merged.packsNeeded).toBeUndefined();
+  });
+
+  it('leaves both inputs untouched', () => {
+    const base = item(1, Category.A, 2, 200, { packsNeeded: 1, extraPiecesNeeded: 4 });
+    const added = item(1, Category.A, 3, 300, { packsNeeded: 0, extraPiecesNeeded: 4 });
+    mergeCartItems(base, added);
+    expect(base.quantity).toBe(2);
+    expect(base.packsNeeded).toBe(1);
+    expect(base.extraPiecesNeeded).toBe(4);
+  });
+
+  it('sums packs and loose pieces under a full pack', () => {
+    const merged = mergeCartItems(
+      item(1, Category.A, 1, 1, { packsNeeded: 1, extraPiecesNeeded: 3 }),
+      item(1, Category.A, 1, 1, { packsNeeded: 2, extraPiecesNeeded: 4 }),
+    );
+    expect(merged.packsNeeded).toBe(3);
+    expect(merged.extraPiecesNeeded).toBe(7);
+  });
+
+  it('turns exactly one pack of loose pieces into a pack', () => {
+    const merged = mergeCartItems(
+      item(1, Category.A, 1, 1, { packsNeeded: 0, extraPiecesNeeded: 5 }),
+      item(1, Category.A, 1, 1, { packsNeeded: 0, extraPiecesNeeded: 5 }),
+    );
+    expect(merged.packsNeeded).toBe(1);
+    expect(merged.extraPiecesNeeded).toBe(0);
+  });
+
+  it('keeps the line hand-priced when either part was', () => {
+    const manual = { ...item(1, Category.A, 1, 500), manualPrice: true };
+    expect(mergeCartItems(item(1, Category.A, 1, 100), manual).manualPrice).toBe(true);
+    expect(mergeCartItems(manual, item(1, Category.A, 1, 100)).manualPrice).toBe(true);
+    expect(
+      mergeCartItems(item(1, Category.A, 1, 100), item(1, Category.A, 1, 100)).manualPrice,
+    ).toBeUndefined();
+  });
+
+  it('carries the pieces over a full pack', () => {
+    const merged = mergeCartItems(
+      item(1, Category.A, 1, 1, { packsNeeded: 1, extraPiecesNeeded: 8 }),
+      item(1, Category.A, 1, 1, { extraPiecesNeeded: 6 }),
+    );
+    expect(merged.packsNeeded).toBe(2);
+    expect(merged.extraPiecesNeeded).toBe(4);
+  });
+});
+
+describe('mergeDuplicateItems', () => {
+  it('merges all lines of the product and grade, not only two', () => {
+    const items = [
+      item(1, Category.A, 1, 100),
+      item(2, Category.A, 5, 50),
+      item(1, Category.A, 2, 200),
+      item(1, Category.A, 3, 300),
+    ];
+
+    const result = mergeDuplicateItems(items, 1, Category.A);
+
+    expect(result).toHaveLength(2);
+    expect(result[0].quantity).toBe(6);
+    expect(result[0].price).toBe(600);
+    expect(result[1]).toBe(items[1]);
+  });
+
+  it('keeps other grades of the same product apart', () => {
+    const items = [item(1, Category.A, 1, 100), item(1, Category.B, 2, 150)];
+    expect(mergeDuplicateItems(items, 1, Category.A)).toBe(items);
+  });
+
+  it('returns the same array when there is nothing to merge', () => {
+    const items = [item(1, Category.A, 1, 100)];
+    expect(mergeDuplicateItems(items, 1, Category.A)).toBe(items);
+  });
+});
 
 describe('replaceCartItem', () => {
   it('returns a new array so the cart total is recomputed', () => {

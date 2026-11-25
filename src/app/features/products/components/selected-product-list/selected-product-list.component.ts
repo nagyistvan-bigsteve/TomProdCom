@@ -25,7 +25,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CartStore } from '@features/orders/store/cart/cart.store';
 import { Price2, ProductItem, UsedPricesInOrder } from '@core/models/models';
 import { Category, Unit_id } from '@core/models/enums';
-import { effectiveUnitPrice, ProductUtil } from '@shared/utils/product.util';
+import {
+  effectiveUnitPrice,
+  firstPricedCategory,
+  nextCategory,
+  ProductUtil,
+} from '@shared/utils/product.util';
 import { FormsModule } from '@angular/forms';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { ClientStore } from '@features/clients/store/client.store';
@@ -130,7 +135,7 @@ export class SelectedProductListComponent implements OnChanges {
   changeCategory(event: any, item: ProductItem): void {
     event.stopPropagation();
 
-    this.updateCategory(this.switchCategory(item.category), item);
+    this.updateCategory(nextCategory(item.category), item);
   }
 
   enableEdit(event: any, item: ProductItem): void {
@@ -316,12 +321,17 @@ export class SelectedProductListComponent implements OnChanges {
     return calculatedNewPrice;
   }
 
-  private updateCategory(newCategory: Category, item: ProductItem): void {
-    const newPrice = this.getExactPrice(newCategory, item);
+  /** Moves the line to the first grade from `start` on that has a price; none → unchanged. */
+  private updateCategory(start: Category, item: ProductItem): void {
+    const newCategory = firstPricedCategory(
+      start,
+      (category) => !!this.getExactPrice(category, item),
+    );
 
-    if (!newPrice) {
-      this.updateCategory(this.switchCategory(newCategory), item);
-    } else {
+    // Back at its own grade (the only priced one): leave the line, and a
+    // hand-set price on it, as it is
+    if (newCategory !== null && newCategory !== item.category) {
+      const newPrice = this.getExactPrice(newCategory, item);
       const actualNewPrice = this.productUtil.calculatePrice(
         item.product,
         newPrice,
@@ -385,12 +395,4 @@ export class SelectedProductListComponent implements OnChanges {
     return exactPrice!;
   }
 
-  private switchCategory(category: Category): Category {
-    let newCategory = category + 1;
-    if (newCategory > Category.T) {
-      newCategory = Category.A;
-    }
-
-    return newCategory;
-  }
 }

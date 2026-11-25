@@ -152,6 +152,17 @@ export const ClientStore = signalStore(
           untracked(() => store.fetchClients());
         }
       });
+
+      // The client picked for an offer belongs to the user who picked it:
+      // sign-out or another user signing in clears the choice (like the cart)
+      let userId = authStore.id();
+      effect(() => {
+        const id = authStore.id();
+        if (id !== userId) {
+          userId = id;
+          untracked(() => patchState(store, initialClientSlice));
+        }
+      });
     },
   })),
 );
