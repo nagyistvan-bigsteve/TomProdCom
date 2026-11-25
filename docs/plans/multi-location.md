@@ -15,6 +15,8 @@ The owner opened a second business, **TOM ProdCom Instal** (plumbing and heating
 
 Total: about 2–3 weeks. Phase 3 is the uncertain part.
 
+**Prerequisite:** [pre-location-cleanup.md](pre-location-cleanup.md) must be merged to `develop` before Phase 1 starts. It merges the price lookup and volume math into one tested version each, and adds the baseline schema. Rebase this branch on `develop` afterwards.
+
 ## Decisions
 - **2026-11-25:** Instal sells **different goods** (plumbing). No lumber grades (A/AB/B/T), no M3 or bundles, no truck intake, no sorting.
 - **2026-11-25:** **Clients are shared** between locations. Orders and offers belong to one location.

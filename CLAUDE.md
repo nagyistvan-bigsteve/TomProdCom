@@ -121,6 +121,7 @@ Translations at `src/assets/i18n/ro.json` (Romanian) and `hu.json` (Hungarian). 
 
 Multi-session features have living plans in `docs/plans/` (index: `docs/plans/README.md`). Before working on one, read its plan and continue with the first phase that is not done; at the end of a phase update its Status table and Log.
 
+- `docs/plans/pre-location-cleanup.md` — pricing/cart bug fixes and consolidation before multi-location (branch `refactor/pre-location`, do first)
 - `docs/plans/multi-location.md` — second location TOM ProdCom Instal with a location switch (branch `feature/instal-location`)
 - `docs/plans/action-history.md` — admin-visible audit log of who did what (branch `feature/action-history`)
 
