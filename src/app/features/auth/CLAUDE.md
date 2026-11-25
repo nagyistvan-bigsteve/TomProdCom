@@ -59,7 +59,7 @@ For admins this page loads both user lists on init (`UsersStore.loadUnapprovedUs
 
 Shown to authenticated but not-yet-approved users.
 
-- **No automatic polling.** The page has a manual `tryRefresh()` button that awaits `authStore.refreshUserData()` and then tries to navigate to `/offer`. If the user has been approved since their last check, navigation succeeds; otherwise the guard keeps them on this page. A log-out button sits below it.
+- **No automatic polling.** The page has a manual `tryRefresh()` button that awaits `authStore.refreshUserData()` and then tries to navigate to `/offer`. When the user was denied meanwhile (no profile: `getProfile()` returns null), the store signs out and opens `/auth`, and the page shows `AUTH.WAIT_TO_APPROVE.ACCOUNT_REMOVED`. If the user has been approved since their last check, navigation succeeds; otherwise the guard keeps them on this page. A log-out button sits below it.
 - The user stays signed in here (login no longer signs an unapproved user out). `AppComponent` renders the sidebar and the topbar menu/back buttons only for approved users.
 
 **Layout:** single frosted dark card centered on the dark-green background (same glass style as the user profile card).

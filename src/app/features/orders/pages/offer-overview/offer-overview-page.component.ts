@@ -31,8 +31,10 @@ import { syncDatePickerLocale } from '@shared/utils/date-picker-locale';
 import { validDateOrNull } from '@shared/utils/typed-date.util';
 import {
   carriedDeliveryDate,
+  carryOverDecision,
   TVA_COMMENT_LINE,
 } from '@features/orders/store/cart/offer-carry-over';
+import { applyVoucher } from '@features/orders/store/order-details/order-details.computed';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -108,9 +110,9 @@ export class OfferOverviewPageComponent {
   comment: string = '';
   voucher: string = '';
   justOffer: boolean = false;
-  expectedDeliveryDate: Date | null = new Date(
-    this.currentDate.getTime() + 3 * 24 * 60 * 60 * 1000,
-  );
+  expectedDeliveryDate: Date | null = this.defaultDeliveryDate();
+  /** The fields above were prefilled from the offer ("Creare comandă"). */
+  private carryApplied = false;
   untilDeliveryDate: boolean = false;
   forFirstHour: boolean = false;
   transferPayment: boolean = false;
@@ -125,6 +127,14 @@ export class OfferOverviewPageComponent {
     effect(() => {
       const currentId = this.clientStore.client()?.id ?? null;
       const previous = this.lastClientId();
+
+      // Another client than the offer's: the order no longer replaces the offer
+      if (
+        carryOverDecision(this.cartStore.sourceOffer(), this.clientStore.currentClientId()) ===
+        'drop'
+      ) {
+        this.detachOffer(this.carryApplied);
+      }
 
       if (previous !== null && previous !== currentId) {
         this.resetForClientChange();
@@ -142,13 +152,45 @@ export class OfferOverviewPageComponent {
   /** Prefills what "Creare comandă" carried over from the offer (SPEC.md §8.10). */
   private applyOfferCarryOver(): void {
     const carry = this.cartStore.sourceOffer();
-    if (!carry) return;
+    const decision = carryOverDecision(carry, this.clientStore.currentClientId());
+    if (decision === 'drop') this.cartStore.clearSourceOffer();
+    if (decision !== 'apply' || !carry) return;
 
+    this.carryApplied = true;
     this.deliveryFee = carry.deliveryFee;
     this.voucher = carry.voucher;
     this.comment = carry.comment;
     this.delivery_address.set(carry.deliveryAddress);
     this.expectedDeliveryDate = carriedDeliveryDate(carry) ?? this.expectedDeliveryDate;
+  }
+
+  /** The offer this cart was loaded from, while it applies (banner in the page). */
+  readonly linkedOffer = computed(() =>
+    carryOverDecision(this.cartStore.sourceOffer(), this.clientStore.currentClientId()) ===
+    'apply'
+      ? this.cartStore.sourceOffer()
+      : null,
+  );
+
+  /**
+   * Unties the cart from its offer: the offer is not deleted on save. Values
+   * prefilled from it are cleared when the client changed; on the banner's X
+   * they stay, as they are visible and editable.
+   */
+  detachOffer(clearPrefill: boolean): void {
+    this.cartStore.clearSourceOffer();
+    if (clearPrefill) {
+      this.deliveryFee = 0;
+      this.voucher = '';
+      this.comment = '';
+      this.delivery_address.set('');
+      this.expectedDeliveryDate = this.defaultDeliveryDate();
+    }
+    this.carryApplied = false;
+  }
+
+  private defaultDeliveryDate(): Date {
+    return new Date(this.currentDate.getTime() + 3 * 24 * 60 * 60 * 1000);
   }
 
   private resetForClientChange(): void {
@@ -163,21 +205,12 @@ export class OfferOverviewPageComponent {
     });
   }
 
+  /** Total after the voucher, rounded to 2 decimals like order details (`applyVoucher`). */
   get totalPrice(): number {
-    let total = this.price;
     if (this.voucher.includes('-')) {
       this.voucher = this.voucher.replace('-', '');
     }
-    if (this.voucher.includes('%')) {
-      const discountPercent = parseFloat(this.voucher.replace('%', '')) / 100;
-      total -= total * discountPercent;
-    } else {
-      const discountValue = parseFloat(this.voucher);
-      if (!isNaN(discountValue)) {
-        total -= discountValue;
-      }
-    }
-    return total > 0 ? total : 0;
+    return applyVoucher(this.price, this.voucher);
   }
 
   get price(): number {
@@ -379,7 +412,7 @@ export class OfferOverviewPageComponent {
 
   /** The offer this order replaces, when "Creare comandă" had "Șterge oferta" ticked. */
   private offerToDelete(): number | null {
-    const carry = this.cartStore.sourceOffer();
+    const carry = this.linkedOffer();
     return carry?.deleteOnSave ? carry.offerId : null;
   }
 

@@ -49,6 +49,11 @@ export const CartStore = signalStore(
         });
       },
 
+      /** Unties the cart from the offer it was loaded from: the offer stays as it is. */
+      clearSourceOffer() {
+        patchState(store, { sourceOffer: null });
+      },
+
       /** Replaces one cart line (duplicate dialog → "overwrite"). */
       replaceProductItem(replaced: ProductItem, item: ProductItem) {
         patchState(store, {

@@ -7,6 +7,8 @@ import { OrderResponse } from '@core/models/models';
  */
 export interface OfferCarryOver {
   readonly offerId: number;
+  /** The offer's client: the carry-over only applies while this client is selected. */
+  readonly clientId: number;
   /** "Șterge oferta" was ticked: place_order soft-deletes the offer with the new order. */
   readonly deleteOnSave: boolean;
   readonly deliveryFee: number;
@@ -55,6 +57,7 @@ export function offerCarryOver(
 
   return {
     offerId: offer.id,
+    clientId: offer.clientId,
     deleteOnSave,
     deliveryFee: offer.deliveryFee ?? 0,
     expectedDelivery: keepDate ? isoDay(expected!) : null,
@@ -62,6 +65,25 @@ export function offerCarryOver(
     deliveryAddress: offer.delivery_address ?? '',
     comment: commentWithoutAutoLines(offer.comment),
   };
+}
+
+/** No client selected yet (ClientStore `currentClientId`). */
+const NO_CLIENT = -1;
+
+/**
+ * What the overview does with the carry-over for the selected client:
+ * - `apply` — it is the offer's client: prefill and replace the offer;
+ * - `wait` — no client selected yet (e.g. after a reload): keep it, apply nothing;
+ * - `drop` — another client was chosen (or an old saved cart without a client):
+ *   the new order has nothing to do with the offer.
+ */
+export function carryOverDecision(
+  carry: OfferCarryOver | null,
+  selectedClientId: number | null,
+): 'apply' | 'wait' | 'drop' | 'none' {
+  if (!carry) return 'none';
+  if (selectedClientId === null || selectedClientId === NO_CLIENT) return 'wait';
+  return carry.clientId === selectedClientId ? 'apply' : 'drop';
 }
 
 /** The carried-over expected delivery as a local date, or null for the default. */

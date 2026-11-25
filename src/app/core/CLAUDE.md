@@ -21,7 +21,7 @@ Import via alias: `@core/models/models`, `@core/models/enums`, `@core/models/ani
 ## services/
 Singleton app-level services (not feature-specific):
 - `supabase.service.ts` — Supabase client wrapper; only place that constructs the client
-- `auth.service.ts` — sign-up, sign-in, sign-out, session, own profile (throws on error)
+- `auth.service.ts` — sign-up, sign-in, sign-out, session, own profile (throws on error; `getProfile()` returns null when the profile is gone, i.e. the user was denied, and the auth store then signs the session out)
 - `users.service.ts` — user lists, approve, deny (RPC `deny_user`: profile + auth account), `set_user_role` (throws on error)
 - `supabase-result.util.ts` — `unwrapResult()`: returns `data`, throws `error` from a supabase-js response
 - `install.service.ts` — PWA install prompt handler

@@ -35,4 +35,4 @@ Pure utility functions and helper services:
 - `display-format.util.ts` — pure, Vitest-covered: `dateFormatFor(language, kind)`, `datePickerLocale(language)`, `moneyDigits(value)`; used by the pipes above
 - `date-picker-locale.ts` — `syncDatePickerLocale()`: call in the constructor of a component that provides a date adapter, so its date picker follows the UI language
 - `app-date-adapter.ts` — `provideAppDateAdapter()`: use it instead of `provideNativeDateAdapter()`. `AppDateAdapter` reads typed dates with `parseTypedDate()` in the picker locale's order instead of the browser's month-first `Date.parse`
-- `typed-date.util.ts` — pure, Vitest-covered: `parseTypedDate(text, yearFirst)` (null for empty, invalid Date for a day that does not exist), `validDateOrNull()`, `isYearFirstLocale()`
+- `typed-date.util.ts` — pure, Vitest-covered: `parseTypedDate(text, yearFirst)` (ISO `2026-12-01` year first in any language; null for empty, invalid Date for a day that does not exist), `validDateOrNull()`, `isYearFirstLocale()`

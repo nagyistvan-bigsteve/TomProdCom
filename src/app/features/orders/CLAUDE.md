@@ -92,7 +92,9 @@ Filter status is rendered as a `mat-button-toggle-group` (hidden on the offers p
 Secondary sort within any mode: "for first hour" flag → "until delivery date" flag.  
 Sort is chosen via a `mat-menu` dropdown triggered by a sort icon button.
 
-**Drag-and-drop sort:** Enabled only when the current user is `admin` AND `tableSort === 'admin'`. Uses Angular CDK Drag-Drop. New order is persisted via the Supabase RPC `update_order_sort_orders`.
+**Drag-and-drop sort:** Enabled only when the current user is `admin` AND `tableSort === 'admin'`. Uses Angular CDK Drag-Drop. New order is persisted via the Supabase RPC `update_order_sort_orders`. A newly inserted order gets `MAX(sort_order) + 1` from the trigger `orders_default_sort_order` (end of the admin sort).
+
+**Date range:** filters by expected delivery (the label says so). Each end re-validates the other on change, so a fixed start-after-end range does not keep the old error.
 
 **Delete behavior:**
 - Orders and offers alike → **soft-delete** (sets `deleted_at`); they appear on the Deleted page and can be restored for 10 days.
@@ -186,7 +188,8 @@ Key features:
 - Manual discount: `setFinalPrice(index, finalPrice)` stores the difference as `discount` on the price row; this discount is applied back in `SelectedProductListComponent.getExactPrice()`.
 - TVA auto-comment: if `client.tva = true`, prepends `"Taxare inversa - fără TVA\n"` (`TVA_COMMENT_LINE`) to the comment when the confirm dialog opens, unless it is already there; "back" restores the comment as it was.
 - Expected delivery: typed dates go through `provideAppDateAdapter()` (day first in RO, year first in HU); the field is `required`, shows `OVERVIEW_PAGE.POPUP.INVALID_DATE` and disables Save while invalid or in the past.
-- An offer loaded with "Creare comandă" prefills fee, voucher, comment, delivery address and date from `CartStore.sourceOffer()`; `placeOrder(..., offerToDelete)` passes the offer id when "delete the offer" was ticked.
+- An offer loaded with "Creare comandă" prefills fee, voucher, comment, delivery address and date from `CartStore.sourceOffer()`; `placeOrder(..., offerToDelete)` passes the offer id when "delete the offer" was ticked. The carry-over holds the offer's `clientId`: `carryOverDecision()` applies it only for that client, waits while none is selected, and drops it (`CartStore.clearSourceOffer()`, prefilled fields reset) once another client is chosen. While it applies, `.offer-link-banner` under the header shows `OVERVIEW_PAGE.FROM_OFFER` / `REPLACES_OFFER` and a `link_off` button (`detachOffer(false)`: untie, keep the typed values).
+- The saved `total_amount_final` is `applyVoucher(cartTotal, voucher)` (rounded to 2 decimals), the same as order details.
 - Delivery fee appended to comment as `"Transport: N RON\n"` on its own line (`appendCommentLine()` in `offer-comment.util.ts`).
 - On confirm: calls `OrdersService.placeOrder()`, clears cart, resets client, navigates to `/orders` (order) or `/offers` (offer).
 

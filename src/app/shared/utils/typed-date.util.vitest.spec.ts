@@ -50,6 +50,24 @@ describe('parseTypedDate, bad input', () => {
   });
 });
 
+describe('parseTypedDate, ISO', () => {
+  it('reads 2026-12-01 year first in both languages', () => {
+    for (const yearFirst of [false, true]) {
+      const date = parseTypedDate('2026-12-01', yearFirst)!;
+      expect([date.getFullYear(), date.getMonth() + 1, date.getDate()]).toEqual([2026, 12, 1]);
+    }
+  });
+
+  it('still refuses a day that does not exist', () => {
+    expect(isInvalid(parseTypedDate('2026-02-31', false))).toBe(true);
+  });
+
+  it('keeps reading Romanian dashes day first', () => {
+    const date = parseTypedDate('01-12-2026', false)!;
+    expect([date.getFullYear(), date.getMonth() + 1, date.getDate()]).toEqual([2026, 12, 1]);
+  });
+});
+
 describe('isYearFirstLocale', () => {
   it('is true only for Hungarian', () => {
     expect(isYearFirstLocale('hu-HU')).toBe(true);

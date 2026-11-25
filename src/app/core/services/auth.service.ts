@@ -47,13 +47,14 @@ export class AuthService {
     return data.session;
   }
 
-  async getProfile(userId: string): Promise<Profile> {
+  /** The user's profile, or null when it no longer exists (the user was denied). */
+  async getProfile(userId: string): Promise<Profile | null> {
     const { data, error } = await this.supabase
       .from('profiles')
       .select('role, approved, email, name')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
     if (error) throw error;
-    return data as Profile;
+    return data as Profile | null;
   }
 }

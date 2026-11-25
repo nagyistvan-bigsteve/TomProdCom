@@ -101,6 +101,9 @@
   },
   "OVERVIEW_PAGE": {
     "TITLE": "Rendelés áttekintése",
+    "FROM_OFFER": "A(z) #{{id}} ajánlatból",
+    "REPLACES_OFFER": "A(z) #{{id}} ajánlatot váltja (mentéskor törlődik)",
+    "DETACH_OFFER": "Leválasztás az ajánlatról",
     "BUTTONS": {
       "CONFIRM": "Rendelés mentése"
     },
@@ -184,7 +187,8 @@
     "WAIT_TO_APPROVE": {
       "HEADING": "Fiók jóváhagyásra vár",
       "TITLE": "Várnod kell, amíg egy adminisztrátor jóváhagyja a fiókodat.",
-      "BUTTON": "Frissítés"
+      "BUTTON": "Frissítés",
+      "ACCOUNT_REMOVED": "Egy adminisztrátor elutasította a fiókodat. Kijelentkeztettünk."
     },
     "APPROVE": {
       "TITLE": "Új felhasználók:",
@@ -305,7 +309,7 @@
         "OPEN": "nyitott",
         "CLOSED": "kész",
         "EXPECTED_TODAY": "mára várt",
-        "DATE_RANGE": "Válassz egy időszakot",
+        "DATE_RANGE": "Időszak (várt szállítás)",
         "START_DATE": "kezdet",
         "END_DATE": "vég",
         "INVALID_START": "Helytelen kezdeti idő",

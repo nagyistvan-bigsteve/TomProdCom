@@ -101,6 +101,9 @@
   },
   "OVERVIEW_PAGE": {
     "TITLE": "Revizuire comandă",
+    "FROM_OFFER": "Din oferta #{{id}}",
+    "REPLACES_OFFER": "Înlocuiește oferta #{{id}} (se șterge la salvare)",
+    "DETACH_OFFER": "Nu mai lega de ofertă",
     "BUTTONS": {
       "CONFIRM": "Confirmare comandă"
     },
@@ -184,7 +187,8 @@
     "WAIT_TO_APPROVE": {
       "HEADING": "Cont în așteptare",
       "TITLE": "Trebuie să aștepți până când un administrator îți aprobă contul.",
-      "BUTTON": "Refresh"
+      "BUTTON": "Refresh",
+      "ACCOUNT_REMOVED": "Contul tău a fost refuzat de un administrator. Te-am deconectat."
     },
     "APPROVE": {
       "TITLE": "Utilizatori neaprobați:",
@@ -305,7 +309,7 @@
         "OPEN": "deshise",
         "CLOSED": "finalizate",
         "EXPECTED_TODAY": "pentru astăzi",
-        "DATE_RANGE": "Selectează o perioadă",
+        "DATE_RANGE": "Perioadă (livrare așteptată)",
         "START_DATE": "început",
         "END_DATE": "sfârșit",
         "INVALID_START": "Dată de începere nevalidă",

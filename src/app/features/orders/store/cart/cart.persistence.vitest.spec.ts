@@ -60,6 +60,7 @@ describe('toStoredCart', () => {
   it('keeps the offer a cart was loaded from, so a reload does not lose it', () => {
     const sourceOffer = {
       offerId: 65,
+      clientId: 3,
       deleteOnSave: true,
       deliveryFee: 25,
       expectedDelivery: '2026-12-01',

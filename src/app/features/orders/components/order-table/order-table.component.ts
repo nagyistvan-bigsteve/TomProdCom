@@ -127,6 +127,16 @@ export class OrderTableComponent implements OnInit {
         this.store.setDateRange(validDateOrNull(range.start), validDateOrNull(range.end));
       });
 
+    // "Start after end" sits on the field that was typed in; re-check the other
+    // one so a fixed range does not keep showing the old error
+    const { start, end } = this.dateRange.controls;
+    start.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => end.updateValueAndValidity({ emitEvent: false }));
+    end.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => start.updateValueAndValidity({ emitEvent: false }));
+
     this.searchFilter.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((search) => this.store.setSearchText(search ?? ''));

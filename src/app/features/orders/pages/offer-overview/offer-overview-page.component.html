@@ -7,6 +7,24 @@
   <span class="step-chip">3 / 3</span>
 </div>
 
+@if (linkedOffer(); as offer) {
+  <div class="offer-link-banner">
+    <mat-icon>link</mat-icon>
+    <span class="mat-body-medium offer-link-text">{{
+      (offer.deleteOnSave ? "OVERVIEW_PAGE.REPLACES_OFFER" : "OVERVIEW_PAGE.FROM_OFFER")
+        | translate: { id: offer.offerId }
+    }}</span>
+    <button
+      mat-icon-button
+      (click)="detachOffer(false)"
+      [attr.aria-label]="'OVERVIEW_PAGE.DETACH_OFFER' | translate"
+      [matTooltip]="'OVERVIEW_PAGE.DETACH_OFFER' | translate"
+    >
+      <mat-icon>link_off</mat-icon>
+    </button>
+  </div>
+}
+
 <div class="offer-page-container">
   <div
     class="overview-layout full-width"
@@ -96,7 +114,7 @@
       ></textarea>
     </mat-form-field>
 
-    <mat-form-field class="w-100" appearance="outline">
+    <mat-form-field class="w-100" appearance="outline" subscriptSizing="dynamic">
       <mat-label>{{
         "OVERVIEW_PAGE.POPUP.EXPECTED_DELIVERY" | translate
       }}</mat-label>

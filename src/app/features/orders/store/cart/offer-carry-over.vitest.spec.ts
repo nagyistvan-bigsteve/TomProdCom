@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { OrderResponse } from '@core/models/models';
 import {
   carriedDeliveryDate,
+  carryOverDecision,
   commentWithoutAutoLines,
   offerCarryOver,
 } from './offer-carry-over';
@@ -54,6 +55,7 @@ describe('offerCarryOver', () => {
 
     expect(carry).toEqual({
       offerId: 65,
+      clientId: 3,
       deleteOnSave: true,
       deliveryFee: 25,
       expectedDelivery: '2026-12-01',
@@ -93,6 +95,32 @@ describe('offerCarryOver', () => {
       comment: '',
       expectedDelivery: null,
     });
+  });
+});
+
+describe('carryOverDecision', () => {
+  const carry = offerCarryOver(makeOffer(), true, today);
+
+  it('applies for the offer\'s own client', () => {
+    expect(carryOverDecision(carry, 3)).toBe('apply');
+  });
+
+  it('drops it once another client is chosen, so the offer is not deleted by an unrelated order', () => {
+    expect(carryOverDecision(carry, 14)).toBe('drop');
+  });
+
+  it('waits while no client is selected (e.g. after a reload)', () => {
+    expect(carryOverDecision(carry, -1)).toBe('wait');
+    expect(carryOverDecision(carry, null)).toBe('wait');
+  });
+
+  it('drops a carry-over saved before it knew its client', () => {
+    const { clientId: _, ...withoutClient } = carry;
+    expect(carryOverDecision(withoutClient as typeof carry, 3)).toBe('drop');
+  });
+
+  it('has nothing to decide without a carry-over', () => {
+    expect(carryOverDecision(null, 3)).toBe('none');
   });
 });
 

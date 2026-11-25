@@ -252,6 +252,8 @@ An unapproved user who signs in stays signed in and lands on the wait-to-approve
 
 An admin who **denies** a waiting user erases that user completely: profile and Supabase sign-in account (`auth.users`), at once, through `deny_user` (security definer, admin only, refuses an approved user and the caller themselves). The same email can sign up again. Approve, deny, promote and demote each ask for confirmation and confirm with a toast.
 
+A denied user's open tab still holds a valid token until it expires. When the app finds no profile behind a session (refresh on the wait-to-approve page, startup, sign-in), it signs that session out and opens `/auth`; the wait-to-approve page says the account was denied (`AUTH.WAIT_TO_APPROVE.ACCOUNT_REMOVED`).
+
 ---
 
 ## 5.3 Public routes
@@ -802,6 +804,8 @@ Admins additionally have an order-priority sorting mechanism using drag and drop
 
 The priority/order position must be persisted reliably. A drag while a search, status filter or date range hides some orders places the dragged order next to the row it was dropped on, keeps the hidden orders where they were, and renumbers the whole list (`moveOrderInFullList()`), so no order is left without a position.
 
+A new order or offer gets the next position at the end of the admin sort (`MAX(sort_order) + 1`, trigger `orders_default_sort_order` → `assign_default_sort_order()`, `20261125120000_orders_default_sort_order.sql`); that migration also numbered the orders that had no position, after the numbered ones, by expected delivery.
+
 ### Search
 
 Provide a single search input that can search by:
@@ -813,9 +817,9 @@ The UI should avoid forcing users to choose which field they are searching.
 
 ### Date filtering
 
-Users can select a period and see orders created during that period.
+Users can select a period and see the orders whose **expected delivery** falls in it; the field's label says so ("Perioadă (livrare așteptată)"). Fixing a start-after-end range clears the error on both fields.
 
-Typed dates (here and in the overview's expected delivery) are read in the UI language's order: Romanian day first (`1.12.2026`, `01.12.26`), Hungarian year first (`2026.12.01.`). Text that is not a real day shows an error under the field and is not used; the overview's Save stays disabled until the date is valid and not in the past. Rule: `parseTypedDate()` in `@shared/utils/typed-date.util`, used by `AppDateAdapter` (`provideAppDateAdapter()` instead of `provideNativeDateAdapter()`).
+Typed dates (here and in the overview's expected delivery) are read in the UI language's order: Romanian day first (`1.12.2026`, `01.12.26`), Hungarian year first (`2026.12.01.`). ISO `2026-12-01` is accepted in both languages. Text that is not a real day shows an error under the field and is not used; the overview's Save stays disabled until the date is valid and not in the past. Rule: `parseTypedDate()` in `@shared/utils/typed-date.util`, used by `AppDateAdapter` (`provideAppDateAdapter()` instead of `provideNativeDateAdapter()`).
 
 ### Row actions
 
@@ -900,6 +904,8 @@ Redirect to:
 ```
 
 The existing offer data should populate the workflow: items at the offer's prices, the client, and in the overview the transport fee, the voucher, the delivery address, the comment (without the TVA and "Transport: N RON" lines, which are added again on save) and the expected delivery date (unless it is already past; then the usual today + 3 days). These are kept with the cart (`CartStore.sourceOffer`, localStorage), so a reload keeps them.
+
+The carry-over belongs to the offer's client (`carryOverDecision()` in `cart/offer-carry-over.ts`). It applies only while that client is selected; once another client is chosen it is dropped: nothing is prefilled from the offer and the offer is not deleted. Line edits on `/offer/create` keep it, so the offer's lines can be adjusted before the order is saved. While it applies, the overview shows a banner "Din oferta #N" (or "Înlocuiește oferta #N (se șterge la salvare)" when "delete the offer" was ticked) with a button that unties the cart from the offer (the prefilled values stay editable, the offer is not deleted).
 
 The user can decide whether the original offer should:
 
