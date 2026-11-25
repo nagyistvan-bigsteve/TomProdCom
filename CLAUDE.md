@@ -117,6 +117,13 @@ Translations at `src/assets/i18n/ro.json` (Romanian) and `hu.json` (Hungarian). 
 
 `AppVersionService` checks the deployed version on startup and forces a full page reload when a new version is detected — this is intentional to flush the service worker cache. `ngsw-config.json` controls caching strategy (prefetch for app shell, freshness for i18n).
 
+## Active Feature Plans
+
+Multi-session features have living plans in `docs/plans/` (index: `docs/plans/README.md`). Before working on one, read its plan and continue with the first phase that is not done; at the end of a phase update its Status table and Log.
+
+- `docs/plans/multi-location.md` — second location TOM ProdCom Instal with a location switch (branch `feature/instal-location`)
+- `docs/plans/action-history.md` — admin-visible audit log of who did what (branch `feature/action-history`)
+
 ## Mandatory Rules
 
 - **Read `SPEC.md` before every architectural change** (new component, service, store, route, database table, or any pricing/auth/stock logic).

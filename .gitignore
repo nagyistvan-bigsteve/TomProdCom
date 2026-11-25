@@ -42,3 +42,6 @@ testem.log
 Thumbs.db
 
 .firebase
+
+# Built mockup (logos embedded) — rebuild with: node docs/mockups/build-mockup.mjs
+docs/mockups/location-switch.html
