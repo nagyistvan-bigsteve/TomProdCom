@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { ENTER_ANIMATION } from '@core/models/animations';
 import { useAuthStore } from '@core/store/auth-store';
 import { TranslateModule } from '@ngx-translate/core';
+import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-wait-to-approve',
@@ -17,9 +18,20 @@ import { TranslateModule } from '@ngx-translate/core';
 export class WaitToApproveComponent {
   private router = inject(Router);
   private authStore = inject(useAuthStore);
+  private notification = inject(NotificationService);
 
-  tryRefresh(): void {
-    this.authStore.refreshUserData();
+  /** Reads the approval again; the guard keeps the user here while it is still pending. */
+  async tryRefresh(): Promise<void> {
+    const result = await this.authStore.refreshUserData();
+    if ('accountRemoved' in result && result.accountRemoved) {
+      // The store has already signed out and opened /auth
+      this.notification.error('AUTH.WAIT_TO_APPROVE.ACCOUNT_REMOVED');
+      return;
+    }
     this.router.navigate(['/offer']);
+  }
+
+  logout(): void {
+    this.authStore.logout();
   }
 }

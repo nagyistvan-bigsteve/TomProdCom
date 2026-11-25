@@ -14,7 +14,7 @@ Any approved user registers, validates and deletes trucks and records sortings. 
 2. **Save** → `save_shipment` RPC. It creates or replaces the draft and its lines, and lines of the same product are summed.
    - The header sends the draft's `updated_at`. If someone else saved meanwhile, the RPC raises `SA007`, the store reloads the draft and the central toast says so.
    - The page then asks (`resolveConflict`): load their version (`takeTheirs`, the form refills) or keep the user's edits (the form is left alone; the next save carries the new version and replaces theirs). The fill effect never refills a dirty form on a reload of the same draft by itself.
-   - After a successful save the store reloads the draft to get its new version.
+   - After a successful save the store reloads the draft to get its new version. The refill keeps the lines in their on-screen order (`inScreenOrder`); the RPC returns them by product.
    - A new draft navigates to `/shipments/:id`.
 3. **Validate** → confirm → quiet save (so exactly what is on screen is validated, with one toast) → `validate_shipment` RPC. The status becomes `validated` and the pieces are added to AB, once. Read-only afterwards.
 4. **Validated truck:**

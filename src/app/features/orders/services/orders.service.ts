@@ -360,6 +360,8 @@ export class OrdersService {
     just_offer: boolean,
     delivery_address: string,
     delivery_fee: number,
+    /** Offer this order replaces ("Creare comandă" + "Șterge oferta"): soft-deleted in the same transaction. */
+    offerToDelete: number | null = null,
   ): Promise<boolean> {
     const items: Omit<ExactOrderItem, 'order_id'>[] = productItems.map(
       (item) => ({
@@ -395,6 +397,7 @@ export class OrdersService {
         delivery_fee,
       },
       p_items: items,
+      ...(offerToDelete != null ? { p_offer_to_delete: offerToDelete } : {}),
     });
 
     if (error) {

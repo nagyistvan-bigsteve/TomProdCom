@@ -136,14 +136,28 @@ export function orderListStats(orders: OrderResponse[]): OrderListStats {
   };
 }
 
-/** The list after moving one row, as the drag-and-drop table reports it. */
-export function moveOrder(
-  orders: OrderResponse[],
+/**
+ * The whole list in admin order after a drag in the visible (possibly filtered)
+ * rows: the dragged order lands next to the visible row it was dropped on, and
+ * the hidden orders keep their places. Every order gets numbered from it, so a
+ * drag with a search active does not leave the hidden orders unnumbered.
+ */
+export function moveOrderInFullList(
+  allOrders: OrderResponse[],
+  visibleOrders: OrderResponse[],
   previousIndex: number,
   currentIndex: number,
 ): OrderResponse[] {
-  const moved = [...orders];
-  const [order] = moved.splice(previousIndex, 1);
-  if (order) moved.splice(currentIndex, 0, order);
-  return moved;
+  const full = sortOrders(allOrders, 'admin');
+  const moved = visibleOrders[previousIndex];
+  const target = visibleOrders[currentIndex];
+  if (!moved || !target || moved.id === target.id) return full;
+
+  const rest = full.filter((order) => order.id !== moved.id);
+  const targetIndex = rest.findIndex((order) => order.id === target.id);
+  if (targetIndex === -1) return full;
+
+  // Dragged down: after the target row; dragged up: before it
+  rest.splice(previousIndex < currentIndex ? targetIndex + 1 : targetIndex, 0, moved);
+  return rest;
 }

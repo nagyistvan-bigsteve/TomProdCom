@@ -23,6 +23,7 @@ import {
 } from './cart.persistence';
 import { CartSlice, initialCartSlice } from './cart.slice';
 import { replaceCartItem } from './cart.items';
+import type { OfferCarryOver } from './offer-carry-over';
 
 
 export const CartStore = signalStore(
@@ -35,13 +36,22 @@ export const CartStore = signalStore(
   })),
   withMethods((store) => {
     return {
-      setProductItems(productItems: ProductItems) {
+      /**
+       * Fills the cart from an offer ("Creare comandă"): its items, plus what
+       * the overview prefills and which offer the new order replaces.
+       */
+      setProductItems(productItems: ProductItems, sourceOffer: OfferCarryOver | null = null) {
         patchState(store, {
           productItems,
+          sourceOffer,
           lastUpdated: new Date().toLocaleString('sv-SE'),
           pendingRestore: null,
         });
+      },
 
+      /** Unties the cart from the offer it was loaded from: the offer stays as it is. */
+      clearSourceOffer() {
+        patchState(store, { sourceOffer: null });
       },
 
       /** Replaces one cart line (duplicate dialog → "overwrite"). */
@@ -155,8 +165,8 @@ export const CartStore = signalStore(
           pendingRestore: null,
           usedPriceCategories: [],
           pricingClientId: null,
+          sourceOffer: null,
         });
-
       },
 
       deleteProductById(productId: string | number, category: Category) {
@@ -253,6 +263,7 @@ export const CartStore = signalStore(
           lastUpdated: store.lastUpdated(),
           usedPriceCategories: store.usedPriceCategories(),
           pricingClientId: store.pricingClientId(),
+          sourceOffer: store.sourceOffer(),
         });
       });
     },

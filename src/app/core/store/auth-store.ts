@@ -85,6 +85,10 @@ export const useAuthStore = signalStore(
         try {
           const user = await authService.signIn(email, password);
           const profile = await authService.getProfile(user.id);
+          if (!profile) {
+            await authService.signOut();
+            throw new Error('Profile not found');
+          }
 
           patchState(store, {
             isAuthenticated: true,
@@ -125,6 +129,13 @@ export const useAuthStore = signalStore(
           if (!id) return { success: false, error: 'Not authenticated' };
 
           const profile = await authService.getProfile(id);
+          if (!profile) {
+            // Denied meanwhile: the profile and the account are gone, the token is not yet
+            await authService.signOut().catch(() => undefined);
+            resetState();
+            router.navigate(['/auth']);
+            return { success: false, accountRemoved: true };
+          }
 
           patchState(store, {
             email: profile.email,
@@ -147,6 +158,11 @@ export const useAuthStore = signalStore(
           if (session) {
             const userId = session.user.id;
             const profile = await authService.getProfile(userId);
+            if (!profile) {
+              // A session whose user was denied: end it
+              await authService.signOut().catch(() => undefined);
+              return { success: true, isAuthenticated: false };
+            }
 
             patchState(store, {
               isAuthenticated: true,

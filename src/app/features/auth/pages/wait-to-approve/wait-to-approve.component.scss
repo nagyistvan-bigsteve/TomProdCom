@@ -72,3 +72,9 @@
   padding: var(--space-2) var(--space-6);
   height: 44px;
 }
+
+.logout-btn {
+  --mat-button-text-label-text-color: rgba(255, 255, 255, 0.7);
+  --mat-icon-color: rgba(255, 255, 255, 0.7);
+  margin-top: calc(-1 * var(--space-3));
+}

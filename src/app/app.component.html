@@ -1,4 +1,4 @@
-@if (authStore.isAuthenticated()) {
+@if (authStore.isAuthenticated() && authStore.approved()) {
   <app-topbar (sidebarToggle)="toggleSidebar()"></app-topbar>
   <app-sidebar [isOpen]="isSidebarOpen" (closeEvent)="closeSidebar()"></app-sidebar>
   <main class="app-content" [class.sidebar-open]="isSidebarOpen">

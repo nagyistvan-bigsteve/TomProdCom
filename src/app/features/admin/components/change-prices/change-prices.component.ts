@@ -134,17 +134,18 @@ export class ChangePricesComponent implements OnInit {
       this.selectedCurrentPrice = price;
       this.actualPrice = price ? price.price : 0;
 
-      if (price) {
-        const unicProductIds = new Set(
-          this.unicPriceList.map((u) => u.product.id),
-        );
-        this.productsInFilterRange = products.filter(
-          (p) =>
-            p.unit_id === Unit_id.M3 &&
-            p.size_id === this.selectedSize &&
-            !unicProductIds.has(p.id),
-        );
-      }
+      // The M3 products this matrix price applies to (or would, once saved)
+      const unicProductIds = new Set(
+        this.unicPriceList
+          .filter((u) => u.category_id === this.selectedCategory)
+          .map((u) => u.product.id),
+      );
+      this.productsInFilterRange = products.filter(
+        (p) =>
+          p.unit_id === Unit_id.M3 &&
+          p.size_id === this.selectedSize &&
+          !unicProductIds.has(p.id),
+      );
     }
   }
 
@@ -199,6 +200,11 @@ export class ChangePricesComponent implements OnInit {
   }
 
   addNewPrice(): void {
+    // A matrix price without a size or grade applies to no product
+    if (this.selectedCategory == null) return;
+    if (this.selectedPriceType !== 'new' && this.selectedSize == null) return;
+    if (this.selectedPriceType === 'new' && !this.selectedNewProduct) return;
+
     const price: Partial<Price2> = {
       unit_id:
         this.selectedPriceType === 'new'

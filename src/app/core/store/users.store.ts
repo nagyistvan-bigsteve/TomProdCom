@@ -49,32 +49,43 @@ export const UsersStore = signalStore(
       loadUsers,
       loadUnapprovedUsers,
 
-      async approve(userId: string): Promise<void> {
+      /** Resolves true when the user was approved. */
+      async approve(userId: string): Promise<boolean> {
+        let done = true;
         try {
           await usersService.approve(userId);
         } catch (error) {
+          done = false;
           console.error('Failed to approve user: ', error);
         }
         await Promise.all([loadUnapprovedUsers(), loadUsers()]);
+        return done;
       },
 
-      async deny(userId: string): Promise<void> {
+      /** Resolves true when the user and their sign-in account were erased. */
+      async deny(userId: string): Promise<boolean> {
+        let done = true;
         try {
           await usersService.deny(userId);
         } catch (error) {
+          done = false;
           console.error('Failed to deny user: ', error);
         }
         await loadUnapprovedUsers();
+        return done;
       },
 
-      /** Switches a user between "user" and "admin". */
-      async toggleRole(userId: string, currentRole: UserRole): Promise<void> {
+      /** Switches a user between "user" and "admin"; resolves true on success. */
+      async toggleRole(userId: string, currentRole: UserRole): Promise<boolean> {
+        let done = true;
         try {
           await usersService.setRole(userId, currentRole === 'user' ? 'admin' : 'user');
         } catch (error) {
+          done = false;
           console.error('Failed to update user: ', error);
         }
         await loadUsers();
+        return done;
       },
 
       clear(): void {

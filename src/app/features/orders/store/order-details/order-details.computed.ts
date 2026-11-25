@@ -56,7 +56,20 @@ export function itemVolumeM3(item: OrderItemForTotals): number {
   return item.product.unit_id === Unit_id.BOUNDLE ? rounded * 10 : rounded;
 }
 
-/** Order totals for a list of line items and the order's voucher. */
+/**
+ * The m³ a line adds to the order total: M2 and BUC items count 0, as in the
+ * cart (`calculateTotalQuantity`, SPEC.md §10.5); others their `itemVolumeM3`.
+ * The PDF shows this per line, so its lines add up to its total.
+ */
+export function countedVolumeM3(item: OrderItemForTotals): number {
+  const unit = item.product.unit_id;
+  return unit !== Unit_id.M2 && unit !== Unit_id.BUC ? itemVolumeM3(item) : 0;
+}
+
+/**
+ * Order totals for a list of line items and the order's voucher. The m³ total
+ * is the sum of `countedVolumeM3`, so an order keeps its m³ when it is edited.
+ */
 export function orderTotals(
   items: OrderItemForTotals[],
   voucher: string | null | undefined,
@@ -66,7 +79,7 @@ export function orderTotals(
 
   items.forEach((item) => {
     totalAmount += item.price;
-    totalQuantity += item.product.unit_id !== Unit_id.M2 ? itemVolumeM3(item) : 0;
+    totalQuantity += countedVolumeM3(item);
   });
 
   return {

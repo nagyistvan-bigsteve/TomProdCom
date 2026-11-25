@@ -10,7 +10,9 @@ import { TranslateModule } from '@ngx-translate/core';
 interface DialogData {
   title: string;
   message: string;
-  orderId: number;
+  orderId?: number;
+  /** Parameters for `message`; defaults to `{ orderId }`. */
+  messageParams?: Record<string, unknown>;
   isDangerous?: boolean;
 }
 
@@ -21,7 +23,7 @@ interface DialogData {
   template: `
     <h2 mat-dialog-title>{{ data.title | translate }}</h2>
     <mat-dialog-content>
-      <p>{{ data.message | translate: { orderId: data.orderId } }}</p>
+      <p>{{ data.message | translate: (data.messageParams ?? { orderId: data.orderId }) }}</p>
       @if (data.isDangerous) {
         <p class="warning-text">
           {{ 'DELETED_ORDERS.WARNING_PERMANENT' | translate }}

@@ -110,6 +110,13 @@
   @include md {
     padding: var(--space-6);
   }
+
+  // the forms stay at the content width of the other pages on wide screens
+  > * {
+    width: 100%;
+    max-width: 960px;
+    margin-inline: auto;
+  }
 }
 
 ::ng-deep {

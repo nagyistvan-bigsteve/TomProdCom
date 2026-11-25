@@ -11,6 +11,7 @@ import { ENTER_ANIMATION } from '@core/models/animations';
 import { ConfirmDeleteDialogComponent } from '@shared/components/dialogs/confirm-delete-dialog.component';
 import { AppDatePipe } from '@shared/pipes/app-date.pipe';
 import { MoneyPipe } from '@shared/pipes/money.pipe';
+import { NotificationService } from '@shared/utils/notification.service';
 
 interface DeletedOrderWithDays extends OrderResponse {
   daysUntilDelete: number;
@@ -38,6 +39,7 @@ interface DeletedOrderWithDays extends OrderResponse {
 export class DeletedOrdersComponent {
   private readonly orderService = inject(OrdersService);
   private readonly dialog = inject(MatDialog);
+  private readonly notification = inject(NotificationService);
 
   private readonly DAYS_UNTIL_PERMANENT_DELETE = 10;
 
@@ -115,6 +117,11 @@ export class DeletedOrdersComponent {
             this.deletedOrders.update((orders) =>
               orders.filter((o) => o.id !== order.id),
             );
+            this.notification.success(
+              order.justOffer
+                ? 'SNACKBAR.ORDER.OFFER_RESTORED'
+                : 'SNACKBAR.ORDER.ORDER_RESTORED',
+            );
           }
           this.isProcessing.set(false);
         });
@@ -144,6 +151,7 @@ export class DeletedOrdersComponent {
             this.deletedOrders.update((orders) =>
               orders.filter((o) => o.id !== order.id),
             );
+            this.notification.success('SNACKBAR.ORDER.PERMANENTLY_DELETED');
           }
           this.isProcessing.set(false);
         });

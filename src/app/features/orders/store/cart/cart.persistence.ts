@@ -6,7 +6,7 @@ export const STALE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 /** The part of the cart kept in localStorage. */
 export type StoredCart = Pick<
   CartSlice,
-  'productItems' | 'lastUpdated' | 'usedPriceCategories' | 'pricingClientId'
+  'productItems' | 'lastUpdated' | 'usedPriceCategories' | 'pricingClientId' | 'sourceOffer'
 >;
 
 /**
@@ -35,5 +35,6 @@ export function toStoredCart(cart: StoredCart): StoredCart {
     lastUpdated: cart.lastUpdated ?? null,
     usedPriceCategories: cart.usedPriceCategories ?? [],
     pricingClientId: cart.pricingClientId ?? null,
+    sourceOffer: cart.sourceOffer ?? null,
   };
 }

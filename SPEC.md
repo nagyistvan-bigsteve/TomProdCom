@@ -248,6 +248,12 @@ The user approval state is separate from authentication.
 
 A user may be successfully authenticated by Supabase but still be unable to access protected application functionality.
 
+An unapproved user who signs in stays signed in and lands on the wait-to-approve page, so its refresh button works in any tab or device. RLS gives them no data (§24). That page shows no menu or sidebar, only refresh and log out.
+
+An admin who **denies** a waiting user erases that user completely: profile and Supabase sign-in account (`auth.users`), at once, through `deny_user` (security definer, admin only, refuses an approved user and the caller themselves). The same email can sign up again. Approve, deny, promote and demote each ask for confirmation and confirm with a toast.
+
+A denied user's open tab still holds a valid token until it expires. When the app finds no profile behind a session (refresh on the wait-to-approve page, startup, sign-in), it signs that session out and opens `/auth`; the wait-to-approve page says the account was denied (`AUTH.WAIT_TO_APPROVE.ACCOUNT_REMOVED`).
+
 ---
 
 ## 5.3 Public routes
@@ -368,7 +374,7 @@ A customer is either `PF` (persoană fizică — individual) or `PJ` (persoană 
 | `type`          | `ClientType`   | PF or PJ                                 |
 | `name`          | string         | Required; must be non-empty              |
 | `address`       | string \| null | Billing / main address                   |
-| `code`          | string \| null | Company registration or tax code; unique |
+| `code`          | string \| null | Company registration or tax code; unique. A Romanian PJ's CUI (2–10 digits, optional `RO`) must have a valid check digit (key 753217532; `isValidCui()` in `@core/guards/cuiValidator`). Lowercase and spaces are accepted ("ro 31241122") and saved normalised ("RO31241122", `normalizeCui()`); the duplicate check compares normalised codes. An invalid CUI or CNP shows an error text under the field |
 | `other_details` | string \| null | Free-form extra information              |
 | `tva`           | boolean        | Reverse-charge VAT flag (see below)      |
 | `client_phones` | array          | One or more phone numbers with labels    |
@@ -513,9 +519,9 @@ An order can be marked as delivered, which sets `date_order_delivered` to today 
 
 Deleted records may be soft-deleted where appropriate.
 
-Deleted orders and offers should be recoverable from the Deleted page. Deleting an offer (from the offers table, or by ticking "delete the offer" when loading it into the cart) is a soft delete, the same as for orders.
+Deleted orders and offers should be recoverable from the Deleted page. Deleting an offer (from the offers table, or by ticking "delete the offer" for "Create order", §8.10) is a soft delete, the same as for orders.
 
-Deleted users follow a separate lifecycle and are permanently erased after 10 days.
+A denied user is erased at once, profile and sign-in account (§5.2). An approved user is never erased by the app.
 
 Do not assume that "delete" always means immediate physical deletion.
 
@@ -604,8 +610,10 @@ Allow a user to set a new password after following the password-reset email.
 
 - does not require application approval;
 - should only be reachable through the valid reset-password flow;
-- invalid/expired reset links must be handled gracefully;
+- invalid/expired reset links must be handled gracefully: opened without a recovery link (no `?code=` / `#access_token=`), or with one Supabase refused, the page says so at once and offers "back to login"; a link that has not become a session within 10 seconds is treated the same;
 - after successful reset, redirect to the appropriate authentication/application flow.
+
+The reset email links back to the app it was requested from (`window.location.origin` + `/reset-password`): live, the staging channel or localhost. Each such URL must be in the Supabase project's Auth redirect allow list.
 
 ---
 
@@ -794,7 +802,9 @@ Users can sort by:
 
 Admins additionally have an order-priority sorting mechanism using drag and drop.
 
-The priority/order position must be persisted reliably.
+The priority/order position must be persisted reliably. A drag while a search, status filter or date range hides some orders places the dragged order next to the row it was dropped on, keeps the hidden orders where they were, and renumbers the whole list (`moveOrderInFullList()`), so no order is left without a position.
+
+A new order or offer gets the next position at the end of the admin sort (`MAX(sort_order) + 1`, trigger `orders_default_sort_order` → `assign_default_sort_order()`, `20261125120000_orders_default_sort_order.sql`); that migration also numbered the orders that had no position, after the numbered ones, by expected delivery.
 
 ### Search
 
@@ -807,7 +817,9 @@ The UI should avoid forcing users to choose which field they are searching.
 
 ### Date filtering
 
-Users can select a period and see orders created during that period.
+Users can select a period and see the orders whose **expected delivery** falls in it; the field's label says so ("Perioadă (livrare așteptată)"). Fixing a start-after-end range clears the error on both fields.
+
+Typed dates (here and in the overview's expected delivery) are read in the UI language's order: Romanian day first (`1.12.2026`, `01.12.26`), Hungarian year first (`2026.12.01.`). ISO `2026-12-01` is accepted in both languages. Text that is not a real day shows an error under the field and is not used; the overview's Save stays disabled until the date is valid and not in the past. Rule: `parseTypedDate()` in `@shared/utils/typed-date.util`, used by `AppDateAdapter` (`provideAppDateAdapter()` instead of `provideNativeDateAdapter()`).
 
 ### Row actions
 
@@ -838,7 +850,11 @@ A user can:
 - print order details;
 - mark the order as delivered.
 
-The items card ends with the amount to pay (`total_amount_final + delivery_fee`). When a voucher or a delivery fee is set, it shows the subtotal (`total_amount`), the voucher discount and the transport above it, so the lines add up to the total.
+The items card ends with the amount to pay (`total_amount_final + delivery_fee`). When a voucher or a delivery fee is set, it shows the subtotal (`total_amount`), the voucher discount and the transport above it, so the lines add up to the total. When something has been paid (`paid_amount`), the paid amount and the remainder follow the total.
+
+Adding, editing and deleting a product save at once and confirm with a toast; deleting asks first. Saving an order or offer, recording a payment, deleting, restoring and permanently deleting also confirm with a toast.
+
+The offers table shows the expected delivery date in its "Expected delivery" column, like the orders table; the creation date is in the expanded row.
 
 Editing a product keeps its current unit price when only the quantity changes (except M2 products), so a price set by hand is not lost. Changing the category re-prices the item from the price list.
 
@@ -887,12 +903,16 @@ Redirect to:
 /offer/overview
 ```
 
-The existing offer data should populate the workflow.
+The existing offer data should populate the workflow: items at the offer's prices, the client, and in the overview the transport fee, the voucher, the delivery address, the comment (without the TVA and "Transport: N RON" lines, which are added again on save) and the expected delivery date (unless it is already past; then the usual today + 3 days). These are kept with the cart (`CartStore.sourceOffer`, localStorage), so a reload keeps them.
+
+The carry-over belongs to the offer's client (`carryOverDecision()` in `cart/offer-carry-over.ts`). It applies only while that client is selected; once another client is chosen it is dropped: nothing is prefilled from the offer and the offer is not deleted. Line edits on `/offer/create` keep it, so the offer's lines can be adjusted before the order is saved. While it applies, the overview shows a banner "Din oferta #N" (or "Înlocuiește oferta #N (se șterge la salvare)" when "delete the offer" was ticked) with a button that unties the cart from the offer (the prefilled values stay editable, the offer is not deleted).
 
 The user can decide whether the original offer should:
 
 - remain;
 - be deleted.
+
+"Be deleted" happens only when the new order is saved, in the same transaction (`place_order(..., p_offer_to_delete)`): the offer is soft-deleted (Deleted page, restorable by an admin). If the user gives up before saving, the offer stays among the offers.
 
 #### Transform into order
 
@@ -990,6 +1010,8 @@ Pricing management:
 - edit category prices;
 - edit special prices.
 
+An m³ matrix price always has a grade and a size: the selected grade and size chips cannot be tapped off. Under the price the page lists the M3 products of that size the price applies to (those without their own price in that grade).
+
 ### Security
 
 These are configuration operations and may require elevated permissions depending on the specific operation.
@@ -1017,11 +1039,7 @@ Soft-deleted **orders and offers** are automatically and permanently purged **10
 
 ### Deleted users
 
-Denied/deleted users are permanently erased after 10 days.
-
-This retention behavior should be implemented deliberately and safely.
-
-The system should avoid accidental permanent deletion of active users.
+Users are not on this page. A denied user is erased at once (§5.2); `deny_user` refuses an approved user, so an active user cannot be deleted by accident.
 
 ---
 
@@ -1230,7 +1248,7 @@ volumeM3 per item = (width × thickness × length / 1,000,000) × quantity
 
 > Units: `width`, `thickness`, `length` are in **cm**. Dividing by 1,000,000 converts cm³ → m³.
 
-M2 and BUC items are excluded from this total.
+M2 and BUC items are excluded from this total (`countedVolumeM3()` per line). The printed PDF uses the same rule per line: an M2 or BUC line shows "–" in the m³ column, so the lines add up to the total, and when the total is 0 the m³ column is left out altogether.
 
 ---
 
@@ -1333,6 +1351,7 @@ When a truck arrives, nobody knows yet how much of it is A and how much B, but t
 1. **Draft** (`/shipments/new`): date of arrival, truck / supplier name, comment, and lines (product + pieces; M2 products are not allowed). The page shows the total m³ (M3 and bundle products only, as on the products page) so it can be checked against the delivery papers. A draft can be edited and deleted (`save_shipment`, `delete_shipment`).
    - A line's quantity can also be typed in **m³** (pcs / m³ switch in the field) for M3 and bundle products counted in pieces whose dimensions are known. The m³ is converted to the nearest whole number of pieces (bundles: one bundle = 10 boards' volume), and the field shows the pieces and the m³ they really are, e.g. 4 m³ of 7.5×15×400 → 89 pcs = 4.005 m³. Only the pieces are saved; m³ that rounds to 0 pieces is refused. Rule: `piecesFromM3()` / `m3InputAllowed()` in `@shared/utils/stock.util`.
    - The page says what still stops a save (name, date, a line, a valid quantity).
+   - After a save the lines stay in the order they were typed, although the database returns them by product (`inScreenOrder()` in `shipment.util`), so "line 1" is still the same board when the papers are checked again.
    - Leaving a draft with unsaved changes asks first. An unsaved **new** truck is also kept on the device (localStorage) and offered back after a reload, e.g. the forced reload after a deploy.
    - **Two people editing one draft:** each save sends the draft's version (`shipments.updated_at`). If someone else saved it meanwhile, the save is refused (`SA007`) instead of the last writer silently winning. The page asks: load the other version (the user's unsaved edits are dropped), or keep their own edits, in which case the next save replaces the other version. A reload never replaces unsaved edits on its own.
 2. **Validate** (`validate_shipment`): the draft becomes `validated` and every line's pieces are added to the product's AB stock, in one transaction. A shipment can be validated only once and is read-only afterwards. It is refused (`SA002`) if a line's product has become M2 since the draft was saved.
@@ -1643,7 +1662,7 @@ A restore operation must not create duplicate records.
 | Record | Soft delete           | Restore     | Permanent delete              |
 | ------ | --------------------- | ----------- | ----------------------------- |
 | Order  | admin                 | admin       | admin (RLS)                   |
-| Offer  | any approved user (e.g. "delete the offer" when loading it into the cart) | admin | any approved user (RLS) |
+| Offer  | any approved user (e.g. "delete the offer" with "Create order", done by `place_order` when the order is saved) | admin | any approved user (RLS) |
 
 The UI shows the Delete button for an offer only to its author and to admins; the Deleted page is admin-only. A soft-deleted order releases its stock bookings (§12).
 

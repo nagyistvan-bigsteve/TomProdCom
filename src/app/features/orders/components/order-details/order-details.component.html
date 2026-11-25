@@ -106,6 +106,22 @@
               >{{ order.totalAmountFinal + order.deliveryFee | money }} RON</span
             >
           </div>
+          @if (order.paidAmount) {
+            <div class="subtotal-row">
+              <span>{{ "ORDER.DETAILS.PAID" | translate }}</span>
+              <span>−{{ order.paidAmount | money }} RON</span>
+            </div>
+            <div class="subtotal-row remaining-row">
+              <span>{{ "ORDER.DETAILS.REMAINING" | translate }}</span>
+              <span
+                >{{
+                  order.totalAmountFinal + order.deliveryFee - order.paidAmount
+                    | money
+                }}
+                RON</span
+              >
+            </div>
+          }
         </div>
 
         <!-- Right column: client info + actions always together -->

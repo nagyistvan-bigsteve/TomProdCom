@@ -24,7 +24,7 @@
             mat-icon-button
             class="demote-btn"
             [disabled]="authStore.id() === user.id"
-            (click)="changeUserRole(user.id, user.role)"
+            (click)="changeUserRole(user)"
           >
             <mat-icon>arrow_circle_down</mat-icon>
           </button>
@@ -51,7 +51,7 @@
           <button
             mat-icon-button
             class="promote-btn"
-            (click)="changeUserRole(user.id, user.role)"
+            (click)="changeUserRole(user)"
           >
             <mat-icon>arrow_circle_up</mat-icon>
           </button>

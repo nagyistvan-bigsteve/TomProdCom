@@ -101,12 +101,16 @@
   },
   "OVERVIEW_PAGE": {
     "TITLE": "Rendelés áttekintése",
+    "FROM_OFFER": "A(z) #{{id}} ajánlatból",
+    "REPLACES_OFFER": "A(z) #{{id}} ajánlatot váltja (mentéskor törlődik)",
+    "DETACH_OFFER": "Leválasztás az ajánlatról",
     "BUTTONS": {
       "CONFIRM": "Rendelés mentése"
     },
     "POPUP": {
       "COMMENT": "Megjegyzés írása",
       "EXPECTED_DELIVERY": "Várt szállítás",
+      "INVALID_DATE": "Érvénytelen dátum (pl. 2026.12.01., nem a múltban)",
       "DELIVERY_CHECKBOX": "Kiszállítás eddig az időpontig",
       "DELIVERY_CHECKBOX_TOOLTIP": "Jelöld be, ha a kiszállításnak eddig az időpontig kell megtörténnie.",
       "FIRST_HOUR_CHECKBOX": "Kiszállítás az első órában",
@@ -149,6 +153,10 @@
     "UPDATE_BUTTON": "Módosítás",
     "FORWARD_BUTTON": "Tovább",
     "ALREADY_EXISTING": "Ez a kliens már létezik",
+    "INVALID_CUI": "Érvénytelen CUI: ellenőrizd a számjegyeket (pl. RO31241122)",
+    "INVALID_CNP": "A CNP 13 számjegyből áll",
+    "ADD_PHONE": "Telefonszám hozzáadása",
+    "REMOVE_PHONE": "Telefonszám törlése",
     "FOREIGN_CLIENT": "Külföldi kliens",
     "TVA": "TVA Fizető"
   },
@@ -179,11 +187,14 @@
     "WAIT_TO_APPROVE": {
       "HEADING": "Fiók jóváhagyásra vár",
       "TITLE": "Várnod kell, amíg egy adminisztrátor jóváhagyja a fiókodat.",
-      "BUTTON": "Frissítés"
+      "BUTTON": "Frissítés",
+      "ACCOUNT_REMOVED": "Egy adminisztrátor elutasította a fiókodat. Kijelentkeztettünk."
     },
     "APPROVE": {
       "TITLE": "Új felhasználók:",
-      "NO_LIST": "A lista üres"
+      "NO_LIST": "A lista üres",
+      "CONFIRM_APPROVE": "Jóváhagyod {{name}} hozzáférését?",
+      "CONFIRM_DENY": "Elutasítod és törlöd {{name}} fiókját? Ugyanazzal az email címmel újra regisztrálhat."
     }
   },
   "SETTINGS": {
@@ -246,7 +257,9 @@
     "USER_LIST": {
       "TITLE": "Felhasználók:",
       "ADMINS": "Adminok:",
-      "USERS": "Közönséges:"
+      "USERS": "Közönséges:",
+      "CONFIRM_PROMOTE": "Adminná teszed {{name}} felhasználót? Árakat, termékeket és felhasználókat módosíthat majd.",
+      "CONFIRM_DEMOTE": "Elveszed {{name}} admin jogait?"
     }
   },
   "ORDER": {
@@ -285,7 +298,10 @@
         "EMPTY": "Nincs olyan tétel, aminek az árát itt módosítani lehet.",
         "CANCEL_BUTTON": "Mégse",
         "SAVE_BUTTON": "Mentés"
-      }
+      },
+      "PAID": "Előre kifizetve",
+      "REMAINING": "Fizetendő",
+      "DELETE_ITEM_MESSAGE": "Törlöd a(z) {{product}} tételt a listából?"
     },
     "TABLE": {
       "FILTER": {
@@ -293,7 +309,7 @@
         "OPEN": "nyitott",
         "CLOSED": "kész",
         "EXPECTED_TODAY": "mára várt",
-        "DATE_RANGE": "Válassz egy időszakot",
+        "DATE_RANGE": "Időszak (várt szállítás)",
         "START_DATE": "kezdet",
         "END_DATE": "vég",
         "INVALID_START": "Helytelen kezdeti idő",
@@ -354,7 +370,23 @@
       "OK": "OK"
     },
     "ORDER": {
-      "UPDATE_SUCCESS": "Sikeresen frissítve!"
+      "UPDATE_SUCCESS": "Sikeresen frissítve!",
+      "ORDER_SAVED": "A rendelés elmentve!",
+      "OFFER_SAVED": "Az ajánlat elmentve!",
+      "PAID": "A fizetés rögzítve!",
+      "ORDER_DELETED": "A rendelés a Töröltek közé került.",
+      "OFFER_DELETED": "Az ajánlat a Töröltek közé került.",
+      "ORDER_RESTORED": "A rendelés visszaállítva!",
+      "OFFER_RESTORED": "Az ajánlat visszaállítva!",
+      "PERMANENTLY_DELETED": "Véglegesen törölve.",
+      "ITEM_SAVED": "A termék elmentve!",
+      "ITEM_DELETED": "A termék törölve!"
+    },
+    "USER": {
+      "APPROVED": "{{name}} jóváhagyva!",
+      "DENIED": "{{name}} fiókja törölve.",
+      "PROMOTED": "{{name}} mostantól admin.",
+      "DEMOTED": "{{name}} már nem admin."
     },
     "GENERAL": {
       "UPDATE_ERROR": "Hiba szerkesztéskor",
@@ -445,7 +477,8 @@
     "EMAIL_SENT_ERROR": "Hiba történt a jelszó visszaállító e-mail küldésekor.",
     "SESSION_ERROR": "Bejelentkezési hiba",
     "INVALID_FORM": "Kérlek töltsd ki helyesen az összes mezőt.",
-    "VERIFYING": "Munkamenet ellenőrzése..."
+    "VERIFYING": "Munkamenet ellenőrzése...",
+    "LINK_MISSING": "A jelszó-visszaállító link hiányzik vagy lejárt. Kérj új linket a bejelentkezési oldalon (\"Elfelejtetted a jelszavad?\")."
   },
   "PRINT_POPUP": {
     "TITLE_ORDER": "Rendelés",
@@ -488,6 +521,7 @@
   "RESTORE_DIALOG": {
     "TITLE": "Visszaállítod az előző munkamenetet?",
     "MESSAGE": "Az előző munkamenetből származó mentetlen ajánlat adatok több mint 10 percesek.",
+    "MESSAGE_SHIPMENT": "Egy korábbi munkamenetből van egy mentetlen új kamionod.",
     "LAST_UPDATED": "Utoljára frissítve",
     "DISCARD": "Elvetés",
     "KEEP": "Adatok megtartása"

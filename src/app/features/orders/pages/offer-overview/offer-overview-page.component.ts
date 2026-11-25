@@ -26,8 +26,15 @@ import { OrdersService } from '@features/orders/services/orders.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { provideNativeDateAdapter } from '@angular/material/core';
+import { provideAppDateAdapter } from '@shared/utils/app-date-adapter';
 import { syncDatePickerLocale } from '@shared/utils/date-picker-locale';
+import { validDateOrNull } from '@shared/utils/typed-date.util';
+import {
+  carriedDeliveryDate,
+  carryOverDecision,
+  TVA_COMMENT_LINE,
+} from '@features/orders/store/cart/offer-carry-over';
+import { applyVoucher } from '@features/orders/store/order-details/order-details.computed';
 import { Router } from '@angular/router';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -45,11 +52,13 @@ import {
 import { ClientStore } from '@features/clients/store/client.store';
 import { DecimalInputDirective } from '@shared/directives/decimal-input.directive';
 import { PriceAdjustPanelComponent } from '@features/orders/components/price-adjust-panel/price-adjust-panel.component';
+import { appendCommentLine } from './offer-comment.util';
+import { NotificationService } from '@shared/utils/notification.service';
 
 @Component({
   selector: 'app-offer-overview',
   standalone: true,
-  providers: [provideNativeDateAdapter()],
+  providers: [provideAppDateAdapter()],
   imports: [
     DecimalInputDirective,
     CommonModule,
@@ -84,6 +93,7 @@ export class OfferOverviewPageComponent {
   readonly cartStore = inject(CartStore);
   readonly clientStore = inject(ClientStore);
   readonly authStore = inject(useAuthStore);
+  private readonly notification = inject(NotificationService);
   private readonly productUtil = inject(ProductUtil);
   private router = inject(Router);
   private ordersService = inject(OrdersService);
@@ -100,9 +110,9 @@ export class OfferOverviewPageComponent {
   comment: string = '';
   voucher: string = '';
   justOffer: boolean = false;
-  expectedDeliveryDate: Date = new Date(
-    this.currentDate.getTime() + 3 * 24 * 60 * 60 * 1000,
-  );
+  expectedDeliveryDate: Date | null = this.defaultDeliveryDate();
+  /** The fields above were prefilled from the offer ("Creare comandă"). */
+  private carryApplied = false;
   untilDeliveryDate: boolean = false;
   forFirstHour: boolean = false;
   transferPayment: boolean = false;
@@ -113,9 +123,18 @@ export class OfferOverviewPageComponent {
 
   constructor() {
     syncDatePickerLocale();
+    this.applyOfferCarryOver();
     effect(() => {
       const currentId = this.clientStore.client()?.id ?? null;
       const previous = this.lastClientId();
+
+      // Another client than the offer's: the order no longer replaces the offer
+      if (
+        carryOverDecision(this.cartStore.sourceOffer(), this.clientStore.currentClientId()) ===
+        'drop'
+      ) {
+        this.detachOffer(this.carryApplied);
+      }
 
       if (previous !== null && previous !== currentId) {
         this.resetForClientChange();
@@ -130,6 +149,50 @@ export class OfferOverviewPageComponent {
     });
   }
 
+  /** Prefills what "Creare comandă" carried over from the offer (SPEC.md §8.10). */
+  private applyOfferCarryOver(): void {
+    const carry = this.cartStore.sourceOffer();
+    const decision = carryOverDecision(carry, this.clientStore.currentClientId());
+    if (decision === 'drop') this.cartStore.clearSourceOffer();
+    if (decision !== 'apply' || !carry) return;
+
+    this.carryApplied = true;
+    this.deliveryFee = carry.deliveryFee;
+    this.voucher = carry.voucher;
+    this.comment = carry.comment;
+    this.delivery_address.set(carry.deliveryAddress);
+    this.expectedDeliveryDate = carriedDeliveryDate(carry) ?? this.expectedDeliveryDate;
+  }
+
+  /** The offer this cart was loaded from, while it applies (banner in the page). */
+  readonly linkedOffer = computed(() =>
+    carryOverDecision(this.cartStore.sourceOffer(), this.clientStore.currentClientId()) ===
+    'apply'
+      ? this.cartStore.sourceOffer()
+      : null,
+  );
+
+  /**
+   * Unties the cart from its offer: the offer is not deleted on save. Values
+   * prefilled from it are cleared when the client changed; on the banner's X
+   * they stay, as they are visible and editable.
+   */
+  detachOffer(clearPrefill: boolean): void {
+    this.cartStore.clearSourceOffer();
+    if (clearPrefill) {
+      this.deliveryFee = 0;
+      this.voucher = '';
+      this.comment = '';
+      this.delivery_address.set('');
+      this.expectedDeliveryDate = this.defaultDeliveryDate();
+    }
+    this.carryApplied = false;
+  }
+
+  private defaultDeliveryDate(): Date {
+    return new Date(this.currentDate.getTime() + 3 * 24 * 60 * 60 * 1000);
+  }
+
   private resetForClientChange(): void {
     this.usedPriceCategories = [];
     this.cartStore.setUsedPriceCategories([]);
@@ -142,21 +205,12 @@ export class OfferOverviewPageComponent {
     });
   }
 
+  /** Total after the voucher, rounded to 2 decimals like order details (`applyVoucher`). */
   get totalPrice(): number {
-    let total = this.price;
     if (this.voucher.includes('-')) {
       this.voucher = this.voucher.replace('-', '');
     }
-    if (this.voucher.includes('%')) {
-      const discountPercent = parseFloat(this.voucher.replace('%', '')) / 100;
-      total -= total * discountPercent;
-    } else {
-      const discountValue = parseFloat(this.voucher);
-      if (!isNaN(discountValue)) {
-        total -= discountValue;
-      }
-    }
-    return total > 0 ? total : 0;
+    return applyVoucher(this.price, this.voucher);
   }
 
   get price(): number {
@@ -279,9 +333,11 @@ export class OfferOverviewPageComponent {
     });
 
     let totalOrderQuantity = this.getTotalQuantity();
+    // Restored on "back", so a comment carried over from an offer survives
+    const commentBefore = this.comment;
 
-    if (this.clientStore.client()?.tva) {
-      this.comment = 'Taxare inversa - fără TVA\n';
+    if (this.clientStore.client()?.tva && !this.comment.startsWith(TVA_COMMENT_LINE)) {
+      this.comment = TVA_COMMENT_LINE + '\n' + this.comment;
     }
 
     dialogRef
@@ -292,17 +348,23 @@ export class OfferOverviewPageComponent {
         let orderComment = this.comment;
 
         if (this.deliveryFee) {
-          orderComment += 'Transport: ' + this.deliveryFee + 'RON' + '\n';
+          orderComment = appendCommentLine(
+            orderComment,
+            'Transport: ' + this.deliveryFee + ' RON',
+          );
         }
 
         if (this.transferPayment) {
-          orderComment +=
-            this.translate.instant('OVERVIEW_PAGE.POPUP.TRANSFER_PAYMENT') +
-            '\n';
+          orderComment = appendCommentLine(
+            orderComment,
+            this.translate.instant('OVERVIEW_PAGE.POPUP.TRANSFER_PAYMENT'),
+          );
         }
 
-        if (result === true) {
-          this.expectedDeliveryDate.setHours(6);
+        const typedDate = validDateOrNull(this.expectedDeliveryDate);
+        if (result === true && typedDate) {
+          const deliveryDate = new Date(typedDate);
+          deliveryDate.setHours(6, 0, 0, 0);
           this.ordersService
             .placeOrder(
               this.cartStore.productItems(),
@@ -312,7 +374,7 @@ export class OfferOverviewPageComponent {
               this.clientStore.client()!,
               this.authStore.id()!,
               orderComment,
-              this.expectedDeliveryDate!,
+              deliveryDate,
               this.untilDeliveryDate,
               this.forFirstHour,
               totalOrderQuantity,
@@ -321,6 +383,7 @@ export class OfferOverviewPageComponent {
                 this.clientStore.client()?.address ||
                 '',
               this.deliveryFee,
+              this.offerToDelete(),
             )
             .then((saved) => {
               if (!saved) {
@@ -334,12 +397,23 @@ export class OfferOverviewPageComponent {
               this.comment = '';
               this.deliveryFee = 0;
 
+              this.notification.success(
+                this.justOffer
+                  ? 'SNACKBAR.ORDER.OFFER_SAVED'
+                  : 'SNACKBAR.ORDER.ORDER_SAVED',
+              );
               this.router.navigate([this.justOffer ? '/offers' : '/orders']);
             });
         } else {
-          this.comment = '';
+          this.comment = commentBefore;
         }
       });
+  }
+
+  /** The offer this order replaces, when "Creare comandă" had "Șterge oferta" ticked. */
+  private offerToDelete(): number | null {
+    const carry = this.linkedOffer();
+    return carry?.deleteOnSave ? carry.offerId : null;
   }
 
   goBack(): void {

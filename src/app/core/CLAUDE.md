@@ -8,7 +8,7 @@ Route guards. `auth-guard.service.ts` enforces three access levels:
 2. Authenticated but unapproved → `/wait-to-approve`
 3. Non-admin on admin routes → `/offer`
 
-`cuiValidator.ts` — Angular validator for Romanian CUI (company tax ID) format.
+`cuiValidator.ts` — Angular validator for Romanian CUI (company tax ID): format and check digit (`isValidCui()`, Vitest-covered). `normalizeCui()` drops spaces and upper-cases ("ro 31241122" → "RO31241122"); validation accepts both, PJ codes are saved normalised.
 
 ## models/
 Domain-wide TypeScript types and constants. No business logic here.
@@ -21,8 +21,8 @@ Import via alias: `@core/models/models`, `@core/models/enums`, `@core/models/ani
 ## services/
 Singleton app-level services (not feature-specific):
 - `supabase.service.ts` — Supabase client wrapper; only place that constructs the client
-- `auth.service.ts` — sign-up, sign-in, sign-out, session, own profile (throws on error)
-- `users.service.ts` — user lists, approve, deny, `set_user_role` (throws on error)
+- `auth.service.ts` — sign-up, sign-in, sign-out, session, own profile (throws on error; `getProfile()` returns null when the profile is gone, i.e. the user was denied, and the auth store then signs the session out)
+- `users.service.ts` — user lists, approve, deny (RPC `deny_user`: profile + auth account), `set_user_role` (throws on error)
 - `supabase-result.util.ts` — `unwrapResult()`: returns `data`, throws `error` from a supabase-js response
 - `install.service.ts` — PWA install prompt handler
 - `app-version.service.ts` — checks deployed version on startup and force-reloads when a new version is detected

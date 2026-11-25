@@ -101,12 +101,16 @@
   },
   "OVERVIEW_PAGE": {
     "TITLE": "Revizuire comandă",
+    "FROM_OFFER": "Din oferta #{{id}}",
+    "REPLACES_OFFER": "Înlocuiește oferta #{{id}} (se șterge la salvare)",
+    "DETACH_OFFER": "Nu mai lega de ofertă",
     "BUTTONS": {
       "CONFIRM": "Confirmare comandă"
     },
     "POPUP": {
       "COMMENT": "Adauga un comentariu",
       "EXPECTED_DELIVERY": "Livrare așteptată",
+      "INVALID_DATE": "Dată nevalidă (ex. 01.12.2026, nu în trecut)",
       "DELIVERY_CHECKBOX": "Livrare până la această dată",
       "DELIVERY_CHECKBOX_TOOLTIP": "Bifează dacă livrarea trebuie să aibă loc până la această dată.",
       "FIRST_HOUR_CHECKBOX": "Livrare la prima ora",
@@ -149,6 +153,10 @@
     "UPDATE_BUTTON": "Actualizare",
     "FORWARD_BUTTON": "Mai departe",
     "ALREADY_EXISTING": "Clientul deja e adaugat",
+    "INVALID_CUI": "CUI nevalid: verificați cifrele (ex. RO31241122)",
+    "INVALID_CNP": "CNP-ul are 13 cifre",
+    "ADD_PHONE": "Adaugă număr de telefon",
+    "REMOVE_PHONE": "Șterge numărul de telefon",
     "FOREIGN_CLIENT": "Client străin",
     "TVA": "Plătitor TVA"
   },
@@ -179,11 +187,14 @@
     "WAIT_TO_APPROVE": {
       "HEADING": "Cont în așteptare",
       "TITLE": "Trebuie să aștepți până când un administrator îți aprobă contul.",
-      "BUTTON": "Refresh"
+      "BUTTON": "Refresh",
+      "ACCOUNT_REMOVED": "Contul tău a fost refuzat de un administrator. Te-am deconectat."
     },
     "APPROVE": {
       "TITLE": "Utilizatori neaprobați:",
-      "NO_LIST": "Lista e goală"
+      "NO_LIST": "Lista e goală",
+      "CONFIRM_APPROVE": "Aprobi accesul pentru {{name}}?",
+      "CONFIRM_DENY": "Refuzi și ștergi contul lui {{name}}? Persoana se poate înregistra din nou cu același email."
     }
   },
   "SETTINGS": {
@@ -246,7 +257,9 @@
     "USER_LIST": {
       "TITLE": "Utilizatori:",
       "ADMINS": "Admini:",
-      "USERS": "Obișnuit:"
+      "USERS": "Obișnuit:",
+      "CONFIRM_PROMOTE": "Faci admin pe {{name}}? Va putea modifica prețuri, produse și utilizatori.",
+      "CONFIRM_DEMOTE": "Iei drepturile de admin lui {{name}}?"
     }
   },
   "ORDER": {
@@ -285,7 +298,10 @@
         "EMPTY": "Nu există produse cu preț modificabil aici.",
         "CANCEL_BUTTON": "Înapoi",
         "SAVE_BUTTON": "Salvează"
-      }
+      },
+      "PAID": "Plătit în avans",
+      "REMAINING": "Rest de plată",
+      "DELETE_ITEM_MESSAGE": "Ștergi {{product}} din listă?"
     },
     "TABLE": {
       "FILTER": {
@@ -293,7 +309,7 @@
         "OPEN": "deshise",
         "CLOSED": "finalizate",
         "EXPECTED_TODAY": "pentru astăzi",
-        "DATE_RANGE": "Selectează o perioadă",
+        "DATE_RANGE": "Perioadă (livrare așteptată)",
         "START_DATE": "început",
         "END_DATE": "sfârșit",
         "INVALID_START": "Dată de începere nevalidă",
@@ -354,7 +370,23 @@
       "OK": "OK"
     },
     "ORDER": {
-      "UPDATE_SUCCESS": "Update cu succes!"
+      "UPDATE_SUCCESS": "Update cu succes!",
+      "ORDER_SAVED": "Comanda a fost salvată!",
+      "OFFER_SAVED": "Oferta a fost salvată!",
+      "PAID": "Plata a fost înregistrată!",
+      "ORDER_DELETED": "Comanda a fost mutată la Șterse.",
+      "OFFER_DELETED": "Oferta a fost mutată la Șterse.",
+      "ORDER_RESTORED": "Comanda a fost restaurată!",
+      "OFFER_RESTORED": "Oferta a fost restaurată!",
+      "PERMANENTLY_DELETED": "Ștearsă definitiv.",
+      "ITEM_SAVED": "Produsul a fost salvat!",
+      "ITEM_DELETED": "Produsul a fost șters!"
+    },
+    "USER": {
+      "APPROVED": "{{name}} a fost aprobat!",
+      "DENIED": "Contul lui {{name}} a fost șters.",
+      "PROMOTED": "{{name}} este acum admin.",
+      "DEMOTED": "{{name}} nu mai este admin."
     },
     "GENERAL": {
       "UPDATE_ERROR": "Problemă la updatare",
@@ -445,7 +477,8 @@
     "EMAIL_SENT_ERROR": "Eroare la trimiterea e-mailului de resetare a parolei.",
     "SESSION_ERROR": "Eroare de autentificare",
     "INVALID_FORM": "Te rugăm să completezi toate câmpurile corect.",
-    "VERIFYING": "Se verifică sesiunea..."
+    "VERIFYING": "Se verifică sesiunea...",
+    "LINK_MISSING": "Linkul de resetare lipsește sau a expirat. Cereți un link nou din pagina de autentificare (\"Ai uitat parola?\")."
   },
   "PRINT_POPUP": {
     "TITLE_ORDER": "Comanda",
@@ -488,6 +521,7 @@
   "RESTORE_DIALOG": {
     "TITLE": "Restaurezi sesiunea anterioară?",
     "MESSAGE": "Aveți date nesalvate dintr-o sesiune anterioară care sunt mai vechi de 10 minute.",
+    "MESSAGE_SHIPMENT": "Ai un camion nou nesalvat dintr-o sesiune anterioară.",
     "LAST_UPDATED": "Ultima actualizare",
     "DISCARD": "Renunță",
     "KEEP": "Păstrează datele"

@@ -63,7 +63,7 @@ Three editing modes, selected by `selectedPriceType`:
 
 **`unic` mode:** Lists all price rows where `product_id` is not null (flat list of product+category combos, searchable). User selects one and edits the price via `changePrice()`.
 
-**`m3` mode:** User picks a category (`A`/`AB`/`B`/`T`) and size (`NORMAL`/`EXTRA`/`EXTRA2`), which filters to the matching base price. Also shows M3 products in that filter range (excluding those that already have `unic` prices) so the user can see what the price applies to.
+**`m3` mode:** User picks a category (`A`/`AB`/`B`/`T`) and size (`NORMAL`/`EXTRA`/`EXTRA2`), which filters to the matching base price. The selected chip is `[selectable]="false"`, so it cannot be tapped off (a matrix price without size or grade applies to no product); `addNewPrice()` also refuses a missing size/grade. Below the price it lists the M3 products of that size without a `unic` price in that grade (or `NO_PRODUCT`).
 
 **`new` mode ("Egyedi beáll."):** Shows **all** products (sorted by name, searchable via `overrideSearch`). This tab is always visible — it is not conditional on `productsWithoutPrices.length`. User picks a category chip, then selects a product. **Smart save logic:**
 - `checkExistingUnicPrice()` is called on product-select and on category-change. It looks up `unicPriceList` for an entry matching the selected `product.id + selectedCategory`.
@@ -81,8 +81,8 @@ Three editing modes, selected by `selectedPriceType`:
 
 Lists all users where `approved = false` (`UsersStore.unapprovedUsers()`, loaded by the user page).
 
-- **Approve:** calls `UsersStore.approve(id)` → sets `profiles.approved = true`, then reloads both lists.
-- **Deny:** calls `UsersStore.deny(id)` → **permanently hard-deletes the user** from Supabase (not soft-delete). The user record is gone.
+- **Approve:** asks first (`ConfirmDeleteDialogComponent`), then `UsersStore.approve(id)` → sets `profiles.approved = true`, reloads both lists, toast `SNACKBAR.USER.APPROVED`.
+- **Deny:** asks first (dangerous variant), then `UsersStore.deny(id)` → RPC `deny_user` (security definer, admin only, refuses approved users and yourself) erases the profile **and the `auth.users` account**, so the email can sign up again. Toast `SNACKBAR.USER.DENIED`.
 
 **Layout:** Frosted card (`.section-card`, `rgba(255,255,255,0.08)` on the dark-green background). Section header shows an orange `pending` icon and a count badge. Each pending user gets a row with a small avatar circle, name + email (truncated), and green check / red cancel icon buttons. The component renders nothing when the unapproved list is empty — the parent (`user.component`) guards the `@if(users.length)` check before mounting it.
 
@@ -92,7 +92,7 @@ Lists all users where `approved = false` (`UsersStore.unapprovedUsers()`, loaded
 
 Lists all approved users (`UsersStore.users()`, loaded by the user page).
 
-- **Toggle role:** calls `UsersStore.toggleRole(id, oldRole)`, which toggles `user` ↔ `admin` through the `set_user_role` database function (role and `admin_users` together; refused for non-admins).
+- **Toggle role:** asks first (`USER.USER_LIST.CONFIRM_PROMOTE` / `CONFIRM_DEMOTE`), confirms with a toast, and calls `UsersStore.toggleRole(id, oldRole)`, which toggles `user` ↔ `admin` through the `set_user_role` database function (role and `admin_users` together; refused for non-admins).
   - Promoting to admin: also inserts a row into the `admin_users` table.
   - Demoting to user: also deletes the row from `admin_users`.
 - An admin cannot accidentally demote themselves without a safeguard (enforced in `AuthStore`).

@@ -44,6 +44,7 @@ import {
   DraftHeader,
   DraftLine,
   draftFingerprint,
+  inScreenOrder,
   missingForSave,
   parseDraftBackup,
   shipmentProgress,
@@ -237,7 +238,8 @@ export class ShipmentDetailComponent {
         this.takeTheirs.set(false);
         this.fillForm(
           { arrivedOn: shipment.arrived_on, name: shipment.name, comment: shipment.comment ?? '' },
-          shipment.shipment_items,
+          // a reload after a save keeps the lines where the user typed them
+          reload ? inScreenOrder(shipment.shipment_items, this.lines()) : shipment.shipment_items,
         );
         this.baseline.set(draftFingerprint(this.header(), this.lines()));
       });
@@ -308,7 +310,12 @@ export class ShipmentDetailComponent {
     }
     const keep = await firstValueFrom(
       this.dialog
-        .open(ConfirmRestoreDialogComponent, { data: { lastUpdated: new Date(backup.savedAt) } })
+        .open(ConfirmRestoreDialogComponent, {
+          data: {
+            lastUpdated: new Date(backup.savedAt),
+            message: 'RESTORE_DIALOG.MESSAGE_SHIPMENT',
+          },
+        })
         .afterClosed(),
     );
     if (keep === true) {

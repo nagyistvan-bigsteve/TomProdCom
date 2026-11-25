@@ -15,6 +15,21 @@ import { SupabaseService } from '@core/services/supabase.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ENTER_ANIMATION } from '@core/models/animations';
 
+/** How long a recovery link may take to turn into a session before the page gives up. */
+const LINK_WAIT_MS = 10_000;
+
+/**
+ * Whether the URL carries a Supabase recovery link that is still to be
+ * exchanged (PKCE `?code=`, implicit `#access_token=`). A link Supabase
+ * refused comes back with `error`, which counts as no link.
+ */
+export function hasRecoveryParams(search: string, hash: string): boolean {
+  const query = new URLSearchParams(search);
+  const fragment = new URLSearchParams(hash.replace(/^#/, ''));
+  if (query.has('error') || fragment.has('error')) return false;
+  return query.has('code') || fragment.has('access_token');
+}
+
 @Component({
   selector: 'app-reset-password',
   imports: [
@@ -39,6 +54,9 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   private authSubscription: any;
 
   showForm = false;
+  /** No usable recovery link: shown instead of the endless "verifying" spinner. */
+  readonly linkMissing = signal(false);
+  private linkTimeout?: ReturnType<typeof setTimeout>;
   showPassword = signal(false);
   showConfirm = signal(false);
 
@@ -52,17 +70,31 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       async (event, session) => {
         if (event === 'PASSWORD_RECOVERY' && session) {
           this.showForm = true;
+          this.linkMissing.set(false);
         }
       },
     );
 
     this.supabaseService.auth.getSession().then(({ data: { session } }) => {
-      if (session) this.showForm = true;
+      if (session) {
+        this.showForm = true;
+        return;
+      }
+      // Opened without a recovery link, or the link was refused (expired, used):
+      // say so at once; otherwise give the link time to be exchanged for a session
+      if (!hasRecoveryParams(window.location.search, window.location.hash)) {
+        this.linkMissing.set(true);
+      } else {
+        this.linkTimeout = setTimeout(() => {
+          if (!this.showForm) this.linkMissing.set(true);
+        }, LINK_WAIT_MS);
+      }
     });
   }
 
   ngOnDestroy() {
     this.authSubscription?.data.subscription.unsubscribe();
+    clearTimeout(this.linkTimeout);
   }
 
   togglePassword() {

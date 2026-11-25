@@ -38,6 +38,7 @@ import {
 } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CartStore } from '@features/orders/store/cart/cart.store';
+import { offerCarryOver } from '@features/orders/store/cart/offer-carry-over';
 import { Category, ClientType, Unit_id } from '@core/models/enums';
 import { Router } from '@angular/router';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -67,6 +68,8 @@ import {
 import { PriceAdjustPanelComponent } from '@features/orders/components/price-adjust-panel/price-adjust-panel.component';
 import { AppDatePipe } from '@shared/pipes/app-date.pipe';
 import { MoneyPipe } from '@shared/pipes/money.pipe';
+import { NotificationService } from '@shared/utils/notification.service';
+import { ConfirmDeleteDialogComponent } from '@shared/components/dialogs/confirm-delete-dialog.component';
 
 @Component({
   selector: 'app-order-details',
@@ -192,6 +195,7 @@ export class OrderDetailsComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private translateService = inject(TranslateService);
   private _dialog = inject(MatDialog);
+  private readonly notification = inject(NotificationService);
 
   client = computed(
     () => this.clientStore.clientsEntityMap()[this.order?.clientId!],
@@ -243,10 +247,11 @@ export class OrderDetailsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((result) => {
         if (result) {
-          this.detailsStore.saveCommentAndVoucher(
-            this.orderComment,
-            this.orderVoucher,
-          );
+          this.detailsStore
+            .saveCommentAndVoucher(this.orderComment, this.orderVoucher)
+            .then((saved) => {
+              if (saved) this.notification.success('SNACKBAR.ORDER.UPDATE_SUCCESS');
+            });
         }
       });
   }
@@ -369,23 +374,31 @@ export class OrderDetailsComponent implements OnInit {
 
     if (existingItem) {
       // Same product, category and unit price: merge into the existing line
-      this.detailsStore.updateItem(existingItem.id, {
-        quantity: existingItem.quantity + this.selectedProductQuantity,
-        price: existingItem.price + price,
-      });
+      this.detailsStore
+        .updateItem(existingItem.id, {
+          quantity: existingItem.quantity + this.selectedProductQuantity,
+          price: existingItem.price + price,
+        })
+        .then((saved) => this.notifyItemSaved(saved));
       return;
     }
 
-    this.detailsStore.addItem(
-      {
-        product_id: product.id,
-        quantity: +this.selectedProductQuantity,
-        category_id: this.selectedCategory,
-        price,
-        packs_pieces: packsPieces,
-      },
-      product,
-    );
+    this.detailsStore
+      .addItem(
+        {
+          product_id: product.id,
+          quantity: +this.selectedProductQuantity,
+          category_id: this.selectedCategory,
+          price,
+          packs_pieces: packsPieces,
+        },
+        product,
+      )
+      .then((saved) => this.notifyItemSaved(saved));
+  }
+
+  private notifyItemSaved(saved: boolean): void {
+    if (saved) this.notification.success('SNACKBAR.ORDER.ITEM_SAVED');
   }
 
   private findMergableItem(
@@ -487,11 +500,31 @@ export class OrderDetailsComponent implements OnInit {
       .updateItem(item.id, { category_id: newCategory, quantity: newQuantity, price })
       .then((saved) => {
         if (saved) this.editingItemId.set(null);
+        this.notifyItemSaved(saved);
       });
   }
 
   deleteOrderItem(item: OrderItemsResponse): void {
-    this.detailsStore.deleteItem(item.id);
+    // The delete saves at once, so it asks first
+    this._dialog
+      .open(ConfirmDeleteDialogComponent, {
+        data: {
+          title: 'OFFER_PAGE.CREATE_OFFER.DELETE_ITEM_POPUP.TITLE',
+          message: 'ORDER.DETAILS.DELETE_ITEM_MESSAGE',
+          messageParams: {
+            product: `${item.product.name} – ${item.category.name}`,
+          },
+          isDangerous: true,
+        },
+      })
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((confirmed: boolean) => {
+        if (!confirmed) return;
+        this.detailsStore.deleteItem(item.id).then((deleted) => {
+          if (deleted) this.notification.success('SNACKBAR.ORDER.ITEM_DELETED');
+        });
+      });
   }
 
   optionSelected(product: Product): void {
@@ -599,11 +632,13 @@ export class OrderDetailsComponent implements OnInit {
           this.clientStore.setClientId(
             this.clientStore.clientsEntityMap()[order.clientId].id,
           );
-          this.cartStore.setProductItems(productItems);
+          // "Delete the offer" happens in place_order, together with the new
+          // order: an offer the user gives up on stays where it was
+          this.cartStore.setProductItems(
+            productItems,
+            offerCarryOver(order, this.deleteOffer, new Date()),
+          );
           this.cartStore.setPricingClientId(order.clientId);
-          if (this.deleteOffer) {
-            this.detailsStore.moveToDeleted();
-          }
           this.router.navigate(['offer/overview']);
         }
       });
