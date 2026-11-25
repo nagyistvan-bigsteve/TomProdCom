@@ -71,7 +71,7 @@
                       >
                       <div (click)="enableEdit($event, item)">
                         {{ item.quantity | number: "1.0-2" }}
-                        @if (item.product.unit_id !== 3) {
+                        @if (item.product.unit_id !== Unit_id.M3) {
                           {{
                           "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
                           item.product.unit_id | translate
@@ -94,7 +94,7 @@
                       >
                       <div (click)="enableEdit($event, item)">
                         {{ item.quantity | number: "1.0-2" }}
-                        @if (item.product.unit_id !== 3) {
+                        @if (item.product.unit_id !== Unit_id.M3) {
                           {{
                           "OFFER_PAGE.CREATE_OFFER.UNIT_FILTER.FILTER_OPTIONS." +
                           item.product.unit_id | translate
@@ -123,7 +123,7 @@
 
             <div class="row align-items-center">
               @switch (item.product.unit_id) {
-                @case (1) {
+                @case (Unit_id.BUC) {
                   <div class="col-10">
                     <div class="p-1">
                       {{
@@ -143,7 +143,7 @@
                     </button>
                   </div>
                 }
-                @case (2) {
+                @case (Unit_id.M2) {
                   <div class="col-10">
                     <div class="row border-bottom p-1">
                       {{ item.packsNeeded }}p + {{ item.extraPiecesNeeded }}b
@@ -178,7 +178,7 @@
                     </button>
                   </div>
                 }
-                @case (3) {
+                @case (Unit_id.M3) {
                   <div class="col-10">
                     <div class="row border-bottom p-1">
                       @if (item.product.width) {

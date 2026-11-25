@@ -23,6 +23,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CartStore } from '@features/orders/store/cart/cart.store';
+import { regradeItems } from '@features/orders/store/cart/cart.items';
 import { Price2, ProductItem, UsedPricesInOrder } from '@core/models/models';
 import { Category, Unit_id } from '@core/models/enums';
 import {
@@ -66,6 +67,8 @@ import { NotificationService } from '@shared/utils/notification.service';
   animations: [ENTER_ANIMATION],
 })
 export class SelectedProductListComponent implements OnChanges {
+  readonly Unit_id = Unit_id;
+
   @ViewChild('confirmDeleteDialog') confirmDeleteDialog!: TemplateRef<any>;
   @Output() isLoaded = new EventEmitter<void>();
   @Output() pricesOutput = new EventEmitter<Price2[]>();
@@ -221,32 +224,20 @@ export class SelectedProductListComponent implements OnChanges {
   }
 
   goToClientPageWithB(): void {
-    this.cartStore.productItems().forEach((item) => {
-      let priceInB = this.getCalculatedPrice(Category.B, item);
-
-      if (priceInB) {
-        this.cartStore.updateProductItem(item.product.id, item.category, {
-          category: Category.B,
-          price: this.getCalculatedPrice(Category.B, item),
-        });
-      }
-    });
-
-    this.router.navigate(['/offer/client']);
+    this.goToClientPageIn(Category.B);
   }
 
   goToClientPageWithA(): void {
-    this.cartStore.productItems().forEach((item) => {
-      let priceInA = this.getCalculatedPrice(Category.A, item);
+    this.goToClientPageIn(Category.A);
+  }
 
-      if (priceInA) {
-        this.cartStore.updateProductItem(item.product.id, item.category, {
-          category: Category.A,
-          price: this.getCalculatedPrice(Category.A, item),
-        });
-      }
-    });
-
+  /** Every line that has a price in `category` moves to it, then on to the client page. */
+  private goToClientPageIn(category: Category): void {
+    this.cartStore.replaceAllItems(
+      regradeItems(this.cartStore.productItems(), category, (item) =>
+        this.getCalculatedPrice(category, item),
+      ),
+    );
     this.router.navigate(['/offer/client']);
   }
 
@@ -323,9 +314,11 @@ export class SelectedProductListComponent implements OnChanges {
 
   /** Moves the line to the first grade from `start` on that has a price; none → unchanged. */
   private updateCategory(start: Category, item: ProductItem): void {
+    // "Has a price" means a list price: a row the overview set to 0 still counts
+    const prices = this.productStore.pricesEntities();
     const newCategory = firstPricedCategory(
       start,
-      (category) => !!this.getExactPrice(category, item),
+      (category) => !!findBasePrice(item.product, category, prices)?.price,
     );
 
     // Back at its own grade (the only priced one): leave the line, and a
@@ -339,9 +332,12 @@ export class SelectedProductListComponent implements OnChanges {
         'BRUT',
       ).price;
 
+      // Re-priced from the list in the new grade: no longer a hand-set price,
+      // so later price, TVA and adjustment changes reach it again
       this.cartStore.updateProductItem(item.product.id, item.category, {
         category: newCategory,
         price: actualNewPrice,
+        manualPrice: false,
       });
 
       this.getUsedPrices();

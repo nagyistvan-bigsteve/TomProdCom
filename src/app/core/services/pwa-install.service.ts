@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
-export class InstallService {
+export class PwaInstallService {
   private deferredPrompt: any = null;
   public installPromptAvailable = new BehaviorSubject<boolean>(false);
 

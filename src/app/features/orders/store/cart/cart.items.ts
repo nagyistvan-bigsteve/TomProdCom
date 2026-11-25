@@ -32,11 +32,38 @@ export function mergeCartItems(base: ProductItem, added: ProductItem): ProductIt
   if (base.manualPrice || added.manualPrice) merged.manualPrice = true;
 
   if (base.product.unit_id === Unit_id.M2) {
-    const { packsNeeded, extraPiecesNeeded } = m2PacksFromQuantity(base.product, merged.quantity);
-    merged.packsNeeded = packsNeeded;
-    merged.extraPiecesNeeded = extraPiecesNeeded;
+    if ((base.product.m2_brut ?? 0) > 0) {
+      const { packsNeeded, extraPiecesNeeded } = m2PacksFromQuantity(base.product, merged.quantity);
+      merged.packsNeeded = packsNeeded;
+      merged.extraPiecesNeeded = extraPiecesNeeded;
+    } else {
+      // No gross m² per piece to work from: keep the two breakdowns, summed
+      merged.packsNeeded = (base.packsNeeded ?? 0) + (added.packsNeeded ?? 0);
+      merged.extraPiecesNeeded = (base.extraPiecesNeeded ?? 0) + (added.extraPiecesNeeded ?? 0);
+    }
   }
   return merged;
+}
+
+/**
+ * Every line moved to `category` at the price `priceOf` gives it ("Total A" /
+ * "Total B" arrows); a line it gives no price for (0) stays as it is. Moved
+ * lines are list-priced again (`manualPrice` cleared). Lines that end up with
+ * the same product and grade are merged once, at the end, so no merged line
+ * is later overwritten with the price of one of its parts.
+ */
+export function regradeItems(
+  items: ProductItems,
+  category: Category,
+  priceOf: (item: ProductItem) => number,
+): ProductItems {
+  let result = items.map((item) => {
+    const price = priceOf(item);
+    return price ? { ...item, category, price, manualPrice: false } : item;
+  });
+  const products = new Set(result.filter((i) => i.category === category).map((i) => i.product.id));
+  for (const id of products) result = mergeDuplicateItems(result, id, category);
+  return result;
 }
 
 /**

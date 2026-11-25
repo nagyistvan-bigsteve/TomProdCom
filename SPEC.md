@@ -1088,6 +1088,8 @@ The cart and the client chosen for the offer belong to the user who built them (
 
 Below the cart: the total, and "Total B" / "Total A", what the cart would cost with every line in that grade (the arrow switches the lines to it). A line whose product has no price in that grade keeps its own price; the pill then says how many such lines there are. Adding the same product and grade again asks to add to the line or replace it; either way the totals update at once. Adding sums quantity and price; for M2 lines the packs and loose pieces are worked out again from the summed quantity (pieces = quantity / m2_brut), so loose pieces that fill a pack become a pack (5 + 5 pieces with 10 per pack = 1 pack). An M2 line of an offer loaded into the cart gets its breakdown the same way, so the order made from it saves it again. Switching a line to a grade another line of the same product already has merges the two the same way. A line with quantity 0 is not added.
 
+When two lines merge and one of them had a hand-set price (e.g. from an offer loaded into the cart), the merged line keeps counting as hand-set, so it is not re-priced from the list later: losing a negotiated price is worse than missing an automatic update. Changing a line's grade, or the "Total A / B" arrows, re-price it from the list and make it list-priced again.
+
 A line's price is the same from the moment it is added as later in the cart and the overview: the list price with the B board discount, then the TVA discount when the selected client has `tva = true` (section 10.3). The grade button steps A → AB → B → T → A and skips grades without a price; when no grade has a price, the line keeps its grade.
 
 ---
@@ -1110,7 +1112,7 @@ Prices are stored in the `prices_new` table. Each row has `unit_id`, `category_i
 
 If no matching price row exists the product is considered unpriceable and must be flagged to the admin.
 
-A product that has its own rows never falls back to the matrix, not even for a grade it has no own row in. Own rows must be of the product's unit. The rule lives in one place: `priceRowsForProduct()` (all rows of a product) and `findBasePrice()` (its row in one grade) in `@shared/utils/product.util`; every lookup (product card, cart, order details, price panels) goes through them.
+A product that has its own rows never falls back to the matrix, not even for a grade it has no own row in. Only own rows of the product's unit count: rows left from a unit change are ignored and the matrix applies. The rule lives in one place: `priceRowsForProduct()` (all rows of a product) and `findBasePrice()` (its row in one grade) in `@shared/utils/product.util`; every lookup (product card, cart, order details, price panels) goes through them.
 
 ---
 

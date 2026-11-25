@@ -22,6 +22,7 @@ The running list of products added to the current offer cart.
 - On every load, `compareSavedPrice()` compares each item's saved price against the current price from `ProductStore`. If the price table has changed since the cart was last saved, the cart item price is silently updated.
 - `getExactPrice()` = `findBasePrice()` (the SPEC §10.1 lookup, `@shared/utils/product.util`) → `effectiveUnitPrice()` (B board and TVA adjustments) + `rowAdjustment()` (manual discount from the offer-overview page). No price row → 0. It holds no lookup logic of its own; `getUsedPrices()` uses `findBasePrice()` too.
 - Emits `@Output() pricesOutput: EventEmitter<Price2[]>` so the offer-overview page knows which price rows are in use.
+- The "Total A / B" arrows (`goToClientPageWithA/B`) re-grade the whole cart in one pass with `regradeItems()` (`@features/orders/store/cart/cart.items`) and `CartStore.replaceAllItems()`: lines priced in that grade move to it, become list-priced again, and duplicates are merged once at the end. The grade button and these arrows clear `manualPrice`; `firstPricedCategory` checks the list price (`findBasePrice`), not the adjusted one.
 - `getTotalPriceInA()` / `getTotalPriceInB()` compute hypothetical totals at category A and B prices — displayed as reference prices during cart review. A line with no price in that grade counts at its own price; `linesWithoutA()` / `linesWithoutB()` drive the note under the pill (`OFFER_PAGE.CREATE_OFFER.TOTAL_PARTIAL`).
 
 **Layout constraints (`isInOverview` flag):**

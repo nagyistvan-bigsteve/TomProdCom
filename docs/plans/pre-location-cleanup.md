@@ -12,7 +12,7 @@ Fix real pricing and cart bugs. Reduce the price lookup and the volume math to o
 |---|---|---|---|
 | 1 | Bug fixes: TVA on add, category recursion, cart merge, cart and stores after sign-out | 1.5 days | ✅ Done 2026-11-25 |
 | 2 | One price lookup, one volume formula, inline math to tested helpers, Vitest gaps | 1.5 days | ✅ Done 2026-11-25 |
-| 3 | Baseline migration, schema drift check, SQL test script, magic ids to enums, small tidy-ups | 1.5–2 days | Next |
+| 3 | Baseline migration, schema drift check, SQL test script, magic ids to enums, small tidy-ups | 1.5–2 days | ✅ Done 2026-11-25 (owner decision open: align staging/production columns) |
 
 ## Step 1: Bug fixes
 1. **TVA on first add.**
@@ -101,3 +101,42 @@ Fix real pricing and cart bugs. Reduce the price lookup and the volume math to o
   - **Left as is:**
     - `selected-product` injects `ClientStore` from another feature. The sibling `selected-product-list` already did this; revisit when brand/location config arrives.
     - The review also flagged `supabase/rollbacks/advisor_cleanup_rollback.sql`, already on `develop`: it recreates `products_without_prices()` on staging, where it never existed, without a pinned `search_path`. Look at it in Step 3.
+- **2026-11-25: Step 3 done.**
+  - **Baseline:** `supabase/schema/baseline.sql`, the database before the first migration, read from production.
+    - **Changed from the plan:** it is not a migration recorded as applied. Today's state plus a replay of the migrations would fail, because the migrations change the base tables. And production's migration history stays as it is, so nothing was written to production.
+    - It runs in one transaction and refuses to start when `public.orders` exists. The guard was tested on staging.
+    - Not yet done: a full replay (baseline, then all migrations) on an empty project, which needs a temporary Supabase branch.
+  - **Drift check (staging vs production):**
+    - Migration history, policies, triggers, grants, cron and all functions are the same. Two functions differ only in whitespace.
+    - Real differences, listed in `supabase/README.md`:
+      - text column limits, e.g. `clients.address` is `varchar(100)` on production and unlimited on staging. A longer value saves on staging and fails on production; the longest real value today is 55;
+      - `products.width` / `length` precision;
+      - a foreign key `profiles` → `auth.users` exists only on staging;
+      - `on update cascade` on `order_items.category_id` exists only on production;
+      - `handle_new_user()` is slightly different.
+    - **Open decision for the owner/user:** align the two with one migration.
+  - **`NOT VALID` checks:** both `order_items` checks are already validated on both projects. Nothing to do.
+  - **`stocks`:** read-only through the API, as CLAUDE.md says. The insert/update/delete privileges are revoked, even though the policy says "full access". Supabase's default `TRUNCATE` grant remains on every table; it cannot be called through the REST API. Possible later hardening.
+  - **SQL tests:** `supabase/tests/order_flow_checks.sql`, 31 checks covering:
+    - `place_order` (offer, order, replaced offer, never an order deleted as "the offer");
+    - the order item RPCs and their totals;
+    - soft delete and restore permissions;
+    - mark delivered;
+    - the 10-day purge, permanent delete, and `deny_user`.
+
+    All 31 pass on staging, and the run is rolled back.
+  - **Rollback script:** `advisor_cleanup_rollback.sql` now has the production-only function in a separate, commented-out block, with a pinned `search_path`.
+  - **Magic ids:** 27 template sites and 1 TypeScript site use `Unit_id` / `ClientType`. No numeric unit or client-type comparisons are left in `features/`.
+  - **Tidy-ups:**
+    - `Product` lumber fields and the order-line product dimensions are now `number | null`. The helpers use `!`, which keeps the exact old arithmetic: a first try with `?? 0` changed `undefined` → NaN into 0.
+    - `InstallService` was renamed to `PwaInstallService`.
+    - `logo-outline-2.png` and `logo-outline-3.png` were deleted.
+  - **The code review on Step 3 found, and these were fixed:**
+    - A saved cart with owner `null` was discarded for its real user. Null now means unknown.
+    - An M2 merge without `m2_brut` lost the pack breakdown. The two breakdowns are now summed.
+    - Own price rows of another unit blocked the general rows. They are now ignored.
+    - "Total A / B" could save a merged line at the price of only one of its parts (an older bug). It now re-grades in one pass (`regradeItems`).
+    - A grade change kept `manualPrice` (older), so TVA and price changes never reached the line. It is now cleared.
+    - The grade button skipped grades whose overview price was 0. It now checks the list price only.
+    - `m2FromM3` showed ∞ without a thickness. It now returns 0.
+  - **Kept on purpose, in SPEC §9:** when a hand-priced line and a list-priced line merge, the merged line stays hand-priced. Losing a negotiated price is worse than missing an automatic re-price. Revisit if the owner sees it differently.

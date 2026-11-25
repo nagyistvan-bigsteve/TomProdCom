@@ -9,7 +9,7 @@
         <div class="price-row">
           <div class="price-info">
             <div class="price-label">
-              @if (price.unit === 2 || price.productId) {
+              @if (price.unit === Unit_id.M2 || price.productId) {
                 {{ productNames()[price.productId!] }}
               } @else {
                 {{

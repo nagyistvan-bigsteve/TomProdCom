@@ -51,6 +51,8 @@ import { MoneyPipe } from '@shared/pipes/money.pipe';
   animations: [ENTER_ANIMATION],
 })
 export class SelectedProductComponent implements OnChanges {
+  readonly Unit_id = Unit_id;
+
   @Input({ required: true }) selectedProduct: Product | undefined;
   @Output() addProduct = new EventEmitter<ProductItem>();
 

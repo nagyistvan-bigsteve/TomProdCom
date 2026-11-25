@@ -19,7 +19,7 @@
         <mat-icon>arrow_back</mat-icon>
       </button>
     }
-    @if (installService.installPromptAvailable | async) {
+    @if (pwaInstallService.installPromptAvailable | async) {
       <button
         mat-icon-button
         aria-label="Install app"

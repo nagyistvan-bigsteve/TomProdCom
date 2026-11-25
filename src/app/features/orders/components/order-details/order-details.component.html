@@ -57,7 +57,7 @@
                         item.product.unit_id | translate
                     }})
                   </span>
-                } @else if (!item.packsPieces && item.product.unit_id === 3) {
+                } @else if (!item.packsPieces && item.product.unit_id === Unit_id.M3) {
                   <span class="item-qty">
                     {{ item.quantity }}
                     {{
@@ -131,7 +131,7 @@
             <div class="info-row">
               <mat-icon class="info-row-icon">badge</mat-icon>
               <span class="info-row-label">{{
-                client().type === 1 ? "CNP" : "CUI"
+                client().type === ClientType.PF ? "CNP" : "CUI"
               }}</span>
               <span class="info-row-value">{{ client().code }}</span>
             </div>
@@ -168,7 +168,7 @@
               <mat-icon class="info-row-icon">home</mat-icon>
               <span class="info-row-value">
                 {{
-                  client().type === 1
+                  client().type === ClientType.PF
                     ? ("PRINT_POPUP.ADDRESS_PF" | translate)
                     : ("PRINT_POPUP.ADDRESS_PJ" | translate)
                 }}
@@ -328,7 +328,7 @@
                       item.product.unit_id | translate
                   }})
                 </span>
-              } @else if (!item.packsPieces && item.product.unit_id === 3) {
+              } @else if (!item.packsPieces && item.product.unit_id === Unit_id.M3) {
                 <span class="text-nowrap item-qty">
                   {{ item.quantity }}
                   {{
@@ -472,7 +472,7 @@
               />
             </mat-form-field>
 
-            @if (selectedProduct?.unit_id === 2) {
+            @if (selectedProduct?.unit_id === Unit_id.M2) {
               <div (click)="m2SetUnit()" class="m2-unit-badge">
                 @if (
                   selectedM2Quantity() === "BRUT" ||

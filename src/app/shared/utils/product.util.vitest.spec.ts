@@ -441,9 +441,9 @@ describe('priceRowsForProduct / findBasePrice', () => {
     expect(findBasePrice(board, Category.B, prices)).toBeUndefined();
   });
 
-  it('ignores own rows of another unit', () => {
-    const prices = [makePrice2({ id: 9, product_id: 7, unit_id: Unit_id.BUC, category_id: Category.A })];
-    expect(findBasePrice(board, Category.A, prices)).toBeUndefined();
+  it('own rows of another unit (left from a unit change) do not count: general rows apply', () => {
+    const prices = [...general, makePrice2({ id: 9, product_id: 7, unit_id: Unit_id.BUC, category_id: Category.A })];
+    expect(findBasePrice(board, Category.A, prices)?.id).toBe(1);
   });
 
   it('returns undefined for a product without prices', () => {
@@ -605,8 +605,10 @@ describe('M2 helpers', () => {
     expect(m2BrutQuantity({ m2_brut: 0.8 }, 12)).toBeCloseTo(9.6, 10);
   });
 
-  it('m2FromM3: m³ / thickness in m', () => {
+  it('m2FromM3: m³ / thickness in m; 0 without a thickness (no ∞ on screen)', () => {
     expect(m2FromM3(0.5, 2.5)).toBeCloseTo(20, 10);
+    expect(m2FromM3(0.5, null)).toBe(0);
+    expect(m2FromM3(0.5, 0)).toBe(0);
   });
 
   it('packsPiecesLabel: the stored "Np + Mb" text', () => {

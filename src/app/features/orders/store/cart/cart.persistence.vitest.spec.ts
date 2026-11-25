@@ -59,6 +59,11 @@ describe('decideStoredCart', () => {
     expect(decideStoredCart(saved, now, USER)).toBe('restore');
   });
 
+  it('restores a cart saved while nobody was known to be signed in (owner null)', () => {
+    const saved: SavedCart = { ...stored({ lastUpdated: '2026-10-17 11:59:00' }), ownerId: null };
+    expect(decideStoredCart(saved, now, USER)).toBe('restore');
+  });
+
   it('keeps a cart saved before owners were recorded, as before', () => {
     expect(decideStoredCart(stored({ lastUpdated: '2026-10-17 11:59:00' }), now, USER)).toBe(
       'restore',

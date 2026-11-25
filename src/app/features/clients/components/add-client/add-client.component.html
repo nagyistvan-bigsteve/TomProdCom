@@ -20,7 +20,7 @@
       <input matInput formControlName="name" />
     </mat-form-field>
 
-    @if (clientForm.get("type")?.value === 2) {
+    @if (clientForm.get("type")?.value === ClientType.PJ) {
       <div @enterAnimation class="w-100 text-start mb-2">
         <mat-checkbox [checked]="tva()" (change)="tva.set(!tva())">{{
           "ADD_CLIENT.TVA" | translate
@@ -33,7 +33,7 @@
       <mat-select formControlName="type">
         @for (type of clientTypes; track type) {
           <mat-option [value]="type">
-            {{ type === 1 ? "PF" : "PJ" }}
+            {{ type === ClientType.PF ? "PF" : "PJ" }}
           </mat-option>
         }
       </mat-select>
@@ -105,7 +105,7 @@
     <mat-form-field appearance="outline" class="w-100">
       <mat-label>
         {{
-          clientForm.get("type")?.value === 1
+          clientForm.get("type")?.value === ClientType.PF
             ? ("ADD_CLIENT.CODE_PF" | translate)
             : ("ADD_CLIENT.CODE_PJ" | translate)
         }}
@@ -113,7 +113,7 @@
       <input
         matInput
         [type]="
-          clientForm.get('type')?.value === 1 && !isForeignClient()
+          clientForm.get('type')?.value === ClientType.PF && !isForeignClient()
             ? 'tel'
             : 'text'
         "

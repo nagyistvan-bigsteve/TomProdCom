@@ -31,7 +31,8 @@ export function decideStoredCart(
   currentUserId: string | null,
 ): 'restore' | 'ask' | 'discard' {
   if (!stored.productItems?.length) return 'discard';
-  if (stored.ownerId !== undefined && stored.ownerId !== currentUserId) return 'discard';
+  // null: saved while nobody was known to be signed in, so the owner is unknown
+  if (stored.ownerId != null && stored.ownerId !== currentUserId) return 'discard';
 
   const lastUpdated = stored.lastUpdated ? new Date(stored.lastUpdated) : null;
   const ageMs = lastUpdated ? now.getTime() - lastUpdated.getTime() : Infinity;

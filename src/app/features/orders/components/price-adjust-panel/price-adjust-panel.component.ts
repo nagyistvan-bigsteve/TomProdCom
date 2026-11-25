@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { TranslateModule } from '@ngx-translate/core';
 import { PriceRow } from '@features/orders/store/order-details/order-price-rows';
+import { Unit_id } from '@core/models/enums';
 
 /**
  * Price rows (base / adjustment / final) with an input for the final unit
@@ -30,6 +31,8 @@ import { PriceRow } from '@features/orders/store/order-details/order-price-rows'
   styleUrl: './price-adjust-panel.component.scss',
 })
 export class PriceAdjustPanelComponent {
+  readonly Unit_id = Unit_id;
+
   readonly rows = input.required<PriceRow[]>();
   readonly perProduct = input(false);
   /** Product names for product rows and M2 rows, by product id. */

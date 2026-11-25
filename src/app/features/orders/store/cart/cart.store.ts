@@ -55,6 +55,18 @@ export const CartStore = signalStore(
         patchState(store, { sourceOffer: null });
       },
 
+      /**
+       * Replaces all lines and keeps the rest (the offer the cart came from,
+       * used prices): the "Total A / B" arrows (`regradeItems`).
+       */
+      replaceAllItems(productItems: ProductItems) {
+        patchState(store, {
+          productItems,
+          lastUpdated: new Date().toLocaleString('sv-SE'),
+          pendingRestore: null,
+        });
+      },
+
       /** Replaces one cart line (duplicate dialog → "overwrite"). */
       replaceProductItem(replaced: ProductItem, item: ProductItem) {
         patchState(store, {

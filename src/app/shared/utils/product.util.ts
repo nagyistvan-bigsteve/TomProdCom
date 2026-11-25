@@ -16,15 +16,16 @@ export const TVA_BUNDLE_DISCOUNT = 5;
 
 /**
  * The price rows a product is priced from (SPEC 10.1): its own rows when it
- * has any (`product_id` = the product), otherwise the general rows of its
- * unit and size. A product with own rows never falls back to the general ones.
+ * has any (`product_id` = the product, of its unit), otherwise the general
+ * rows of its unit and size. A product with own rows never falls back to the
+ * general ones; own rows of another unit (left from a unit change) do not count.
  * The one place that decides this; every price lookup goes through it.
  */
 export function priceRowsForProduct(
   product: Pick<Product, 'id' | 'unit_id' | 'size_id'>,
   prices: readonly Price2[],
 ): Price2[] {
-  const hasOwnRows = prices.some((p) => p.product_id === product.id);
+  const hasOwnRows = prices.some((p) => p.product_id === product.id && p.unit_id === product.unit_id);
   return hasOwnRows
     ? prices.filter((p) => p.product_id === product.id && p.unit_id === product.unit_id)
     : prices.filter(
@@ -96,7 +97,7 @@ export function applyBDiscount(
   unitPrice: number,
   unitId: Unit_id,
   categoryId: Category,
-  thickness: number,
+  thickness: number | null,
 ): number {
   if (
     unitId === Unit_id.M3 &&
@@ -199,7 +200,7 @@ export function pieceVolumeM3(
 ): number {
   const { unit_id, width, thickness, length } = product;
   const multiplier = unit_id === Unit_id.BOUNDLE ? BOARDS_PER_BUNDLE : 1;
-  return ((width * thickness * length) / 1_000_000) * multiplier;
+  return ((width! * thickness! * length!) / 1_000_000) * multiplier;
 }
 
 /**
@@ -226,9 +227,9 @@ export function countsInVolumeTotal(unitId: Unit_id): boolean {
   return unitId !== Unit_id.M2 && unitId !== Unit_id.BUC;
 }
 
-/** m² of an M3 product without a width (a slab): `m³ / thickness in m`. */
-export function m2FromM3(quantityM3: number, thicknessCm: number): number {
-  return quantityM3 / (thicknessCm / 100);
+/** m² of an M3 product without a width (a slab): `m³ / thickness in m`; 0 without a thickness. */
+export function m2FromM3(quantityM3: number, thicknessCm: number | null): number {
+  return thicknessCm ? quantityM3 / (thicknessCm / 100) : 0;
 }
 
 /**
@@ -240,8 +241,9 @@ export function m2PacksFromQuantity(
   product: Pick<Product, 'm2_brut' | 'piece_per_pack'>,
   quantity: number,
 ): { pieces: number; packsNeeded: number; extraPiecesNeeded: number } {
-  const pieces = product.m2_brut > 0 ? Math.round(quantity / product.m2_brut) : 0;
-  const perPack = product.piece_per_pack;
+  const m2Brut = product.m2_brut!;
+  const pieces = m2Brut > 0 ? Math.round(quantity / m2Brut) : 0;
+  const perPack = product.piece_per_pack!;
   return perPack > 0
     ? { pieces, packsNeeded: Math.floor(pieces / perPack), extraPiecesNeeded: pieces % perPack }
     : { pieces, packsNeeded: 0, extraPiecesNeeded: pieces };
@@ -253,12 +255,12 @@ export function m2NetArea(
   packs: number | null | undefined,
   extraPieces: number | null | undefined,
 ): number {
-  return ((packs ?? 0) * product.piece_per_pack + (extraPieces ?? 0)) * product.m2_util;
+  return ((packs ?? 0) * product.piece_per_pack! + (extraPieces ?? 0)) * product.m2_util!;
 }
 
 /** The quantity an M2 line stores: its pieces in gross m² (`pieces × m2_brut`). */
 export function m2BrutQuantity(product: Pick<Product, 'm2_brut'>, pieces: number): number {
-  return pieces * product.m2_brut;
+  return pieces * product.m2_brut!;
 }
 
 /** An M2 line's pack breakdown as stored in `packs_pieces`: "3p + 2b", "0p + 4b", "2p"; '' when none. */
@@ -339,8 +341,8 @@ export class ProductUtil {
     mode: M2Quantities,
     price: number,
   ) {
-    const piecesPerPack = product.piece_per_pack;
-    const m2BrutPerPiece = product.m2_brut;
+    const piecesPerPack = product.piece_per_pack!;
+    const m2BrutPerPiece = product.m2_brut!;
 
     let totalPiecesNeeded = 0;
     let packsNeeded = 0;
@@ -351,7 +353,7 @@ export class ProductUtil {
         break;
 
       case 'NET':
-        totalPiecesNeeded = Math.ceil(quantity / product.m2_util);
+        totalPiecesNeeded = Math.ceil(quantity / product.m2_util!);
         break;
 
       case 'BUC':

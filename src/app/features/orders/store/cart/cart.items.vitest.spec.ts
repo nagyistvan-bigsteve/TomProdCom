@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { ProductItem } from '@core/models/models';
 import { Category, Unit_id } from '@core/models/enums';
-import { mergeCartItems, mergeDuplicateItems, replaceCartItem } from './cart.items';
+import { mergeCartItems, mergeDuplicateItems, regradeItems, replaceCartItem } from './cart.items';
 
 const line = (quantity: number, price: number) =>
   ({ quantity, price }) as unknown as ProductItem;
@@ -74,6 +74,21 @@ describe('mergeCartItems', () => {
     expect(merged.extraPiecesNeeded).toBe(0);
   });
 
+  it('M2 without m2_brut: the two breakdowns are summed instead of lost', () => {
+    const noBrut = (packs: number, pieces: number) =>
+      ({
+        product: { id: 1, unit_id: Unit_id.M2, m2_brut: null, piece_per_pack: 10 },
+        category: Category.A,
+        quantity: 1,
+        price: 1,
+        packsNeeded: packs,
+        extraPiecesNeeded: pieces,
+      }) as unknown as ProductItem;
+    const merged = mergeCartItems(noBrut(1, 3), noBrut(2, 0));
+    expect(merged.packsNeeded).toBe(3);
+    expect(merged.extraPiecesNeeded).toBe(3);
+  });
+
   it('keeps the line hand-priced when either part was', () => {
     const manual = { ...item(1, Category.A, 1, 500), manualPrice: true };
     expect(mergeCartItems(item(1, Category.A, 1, 100), manual).manualPrice).toBe(true);
@@ -140,5 +155,31 @@ describe('replaceCartItem', () => {
     replaceCartItem(items, a, line(5, 5));
 
     expect(items[0]).toBe(a);
+  });
+});
+
+describe('regradeItems', () => {
+  // price per piece in the new grade: 100
+  const priceOf = (i: ProductItem) => i.quantity * 100;
+
+  it('moves every priced line and merges once: the merged line has the price of all its pieces', () => {
+    const items = [item(1, Category.A, 2, 300), item(1, Category.B, 3, 450)];
+    const result = regradeItems(items, Category.B, priceOf);
+    expect(result).toHaveLength(1);
+    expect(result[0].quantity).toBe(5);
+    expect(result[0].price).toBe(500);
+    expect(result[0].category).toBe(Category.B);
+  });
+
+  it('leaves a line without a price in the new grade as it is', () => {
+    const items = [item(1, Category.A, 2, 300), item(2, Category.A, 1, 50)];
+    const result = regradeItems(items, Category.B, (i) => (i.product.id === 2 ? 0 : priceOf(i)));
+    expect(result[1]).toBe(items[1]);
+    expect(result[0].category).toBe(Category.B);
+  });
+
+  it('a re-priced line is list-priced again', () => {
+    const manual = { ...item(1, Category.A, 2, 999), manualPrice: true };
+    expect(regradeItems([manual], Category.B, priceOf)[0].manualPrice).toBe(false);
   });
 });

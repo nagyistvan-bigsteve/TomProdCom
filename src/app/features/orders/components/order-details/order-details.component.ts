@@ -110,6 +110,10 @@ import { ConfirmDeleteDialogComponent } from '@shared/components/dialogs/confirm
   styleUrl: './order-details.component.scss',
 })
 export class OrderDetailsComponent implements OnInit {
+  readonly ClientType = ClientType;
+
+  readonly Unit_id = Unit_id;
+
   @ViewChild('input') input: ElementRef<HTMLInputElement> | null = null;
   @ViewChild('confirmDeliveredDialog')
   confirmDeliveredDialog!: TemplateRef<unknown>;

@@ -38,7 +38,7 @@
     <input matInput [(ngModel)]="selectedProduct.thickness" formControlName="thickness" type="number" required />
   </mat-form-field>
 
-  @if (selectedProduct.unit_id === 2) {
+  @if (selectedProduct.unit_id === Unit_id.M2) {
     <mat-form-field @enterAndLeaveAnimation appearance="outline" class="form-field">
       <mat-label>{{ "SETTINGS.ADD_PRODUCT.M2_BRUT" | translate }}</mat-label>
       <input matInput [(ngModel)]="selectedProduct.m2_brut" formControlName="m2_brut" type="number" />
